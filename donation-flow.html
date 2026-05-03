@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Protein Outfitters — Farmer donation flow</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+
+<style>
+.role-bar { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: var(--r-3); box-shadow: var(--sh-0); max-width: 460px; margin: var(--s-6) auto; }
+.role-bar button { flex: 1; padding: 10px 14px; border-radius: var(--r-2); font-size: var(--text-sm); font-weight: 700; color: var(--ink-2); }
+.role-bar button.active { background: var(--brand); color: var(--ink-inverse); }
+
+/* Donation banner */
+.donation-banner {
+  background: linear-gradient(135deg, var(--accent-soft) 0%, #e7f4ec 100%);
+  padding: var(--s-5) var(--s-6); border-radius: var(--r-4);
+  display: grid; grid-template-columns: 56px 1fr; gap: var(--s-4); align-items: center;
+}
+.donation-banner-icon {
+  width: 56px; height: 56px; border-radius: var(--r-3);
+  background: var(--brand-grad); color: var(--ink-inverse);
+  display: grid; place-items: center; font-size: 26px;
+}
+.donation-banner h3 { margin: 0 0 4px; font-size: var(--text-md); font-weight: 800; }
+.donation-banner p { margin: 0; font-size: var(--text-sm); color: var(--ink-2); }
+.donation-banner .row-actions { grid-column: 1 / -1; display: flex; gap: var(--s-2); margin-top: var(--s-3); }
+
+/* Listing summary */
+.listing-summary {
+  display: grid; gap: var(--s-4);
+  padding: var(--s-5);
+  background: var(--surface); border-radius: var(--r-4);
+  margin-top: var(--s-4);
+}
+.listing-photo {
+  height: 200px; border-radius: var(--r-3);
+  background: linear-gradient(135deg, #4a2820 0%, #1a0d08 80%);
+  position: relative;
+}
+@media (min-width: 768px) {
+  .listing-summary { grid-template-columns: 200px 1fr; }
+  .listing-photo { height: auto; }
+}
+.fractions-status {
+  display: grid; gap: 6px;
+}
+.fraction-status-row {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: var(--s-3); align-items: center;
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface-2); border-radius: var(--r-2);
+  font-size: var(--text-sm);
+}
+.fraction-status-row.is-sold .label { color: var(--accent-2); font-weight: 700; }
+.fraction-status-row.is-donated .label { color: var(--brand); font-weight: 700; }
+.fraction-status-row.is-unsold { background: var(--warn-soft); }
+.fraction-status-row.is-unsold .label { color: var(--warn); font-weight: 700; }
+
+/* Donation confirm sheet */
+.confirm-sheet { padding: var(--s-6); display: grid; gap: var(--s-5); max-width: 540px; margin: 0 auto; }
+.confirm-row { padding: var(--s-3) var(--s-4); background: var(--surface-2); border-radius: var(--r-2); }
+.confirm-row .eyebrow { display: block; margin-bottom: 4px; }
+.confirm-row strong { font-size: var(--text-md); font-weight: 800; }
+.confirm-row p { margin: var(--s-1) 0 0; font-size: var(--text-sm); color: var(--ink-2); line-height: 1.55; }
+.disclosure {
+  padding: var(--s-3) var(--s-4); border-radius: var(--r-2);
+  background: var(--info-soft); color: var(--info); font-size: var(--text-xs); line-height: 1.6;
+}
+
+/* Deed of gift inline preview */
+.deed-preview {
+  background: white; border: 1px solid var(--hairline); border-radius: var(--r-3);
+  padding: var(--s-5); font-family: 'Times New Roman', serif; font-size: var(--text-xs); line-height: 1.55;
+  max-height: 200px; overflow: auto;
+}
+.deed-preview h4 { margin: 0 0 var(--s-2); font-size: var(--text-base); font-family: var(--font-sans); font-weight: 800; }
+
+/* Tax letter preview screen */
+.tax-letter {
+  background: white; padding: var(--s-8);
+  border-radius: var(--r-4);
+  box-shadow: var(--sh-2);
+  max-width: 600px; margin: 0 auto;
+  font-family: 'Times New Roman', serif;
+  color: #1a1a1a;
+}
+.tax-letter-head { border-bottom: 2px solid #1a1a1a; padding-bottom: var(--s-4); margin-bottom: var(--s-5); }
+.tax-letter-head h2 { font-size: var(--text-xl); margin: 0; font-family: var(--font-sans); font-weight: 900; letter-spacing: var(--tracking-tight); }
+.tax-letter-head p { margin: 4px 0 0; font-size: var(--text-xs); }
+.tax-letter section { margin-bottom: var(--s-4); font-size: var(--text-sm); line-height: 1.6; }
+.tax-letter dl { display: grid; grid-template-columns: 180px 1fr; gap: 8px 16px; font-size: var(--text-sm); margin: var(--s-3) 0; }
+.tax-letter dt { font-weight: 700; }
+.tax-letter dd { margin: 0; }
+.tax-letter .signature { margin-top: var(--s-5); padding-top: var(--s-4); border-top: 1px solid #ccc; }
+.tax-letter .signature-line { display: inline-block; width: 200px; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; font-style: italic; }
+
+/* Distribution timeline */
+.dist-timeline { display: flex; flex-direction: column; gap: var(--s-3); }
+.dist-event {
+  display: grid; grid-template-columns: 36px 1fr;
+  gap: var(--s-3); padding: var(--s-3) 0;
+}
+.dist-event .marker {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent); margin: 4px auto 0;
+}
+.dist-event .marker.pending { background: var(--surface-2); border: 2px solid var(--ink-3); width: 14px; height: 14px; }
+.dist-event .label-title { font-size: var(--text-sm); font-weight: 700; }
+.dist-event .label-sub { font-size: var(--text-xs); color: var(--ink-2); margin-top: 2px; }
+
+/* Admin queue */
+.admin-row {
+  background: var(--surface);
+  padding: var(--s-4) var(--s-5);
+  display: grid; grid-template-columns: 1fr auto;
+  gap: var(--s-3); align-items: center;
+  border-radius: var(--r-3); margin-bottom: 8px;
+}
+.admin-row .ico { width: 40px; height: 40px; border-radius: var(--r-2); background: var(--brand-grad); color: white; display: grid; place-items: center; flex-shrink: 0; font-size: var(--text-sm); font-weight: 800; }
+.admin-row-body { display: flex; align-items: center; gap: var(--s-3); }
+.admin-row strong { font-size: var(--text-base); font-weight: 700; }
+.admin-row .meta { font-size: var(--text-xs); color: var(--ink-3); margin-top: 2px; }
+
+.impact-card {
+  padding: var(--s-5);
+  display: flex; flex-direction: column; gap: var(--s-2);
+}
+.impact-card .num { font-size: var(--text-3xl); font-weight: 900; letter-spacing: var(--tracking-tight); }
+.impact-card .label { font-size: var(--text-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); font-weight: 700; }
+
+.checkbox-row { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--surface-2); border-radius: var(--r-2); cursor: pointer; }
+.checkbox-row input { margin-top: 2px; }
+.checkbox-row label { font-size: var(--text-sm); }
+</style>
+</head>
+<body>
+
+<header class="glass-nav">
+  <div class="container">
+    <nav class="row row--between" style="padding: 14px 0;">
+      <a href="#" style="font-weight: 900; font-size: 16px; text-transform: uppercase;">Protein Outfitters</a>
+      <span class="pill pill--accent" style="font-size: 10px;">DONATION FLOW</span>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="role-bar">
+    <button class="active" onclick="showView('farmer')">Farmer</button>
+    <button onclick="showView('confirm')">Confirm</button>
+    <button onclick="showView('letter')">Tax letter</button>
+    <button onclick="showView('admin')">Admin</button>
+    <button onclick="showView('impact')">Impact</button>
+  </div>
+</div>
+
+<!-- ============ FARMER LISTING VIEW ============ -->
+<section id="view-farmer" class="container container--narrow section">
+  <span class="eyebrow">Your listing</span>
+  <h1 class="display-md mt-2">Premium Angus Steer #402</h1>
+  <p class="body">Drop-off Thu, Jun 21 at Hilltop Custom Meats · 22 mi from your ranch</p>
+
+  <!-- Donation banner -->
+  <div class="donation-banner mt-6">
+    <div class="donation-banner-icon">🍖</div>
+    <div>
+      <h3>3 weeks until drop-off, ¼ unsold</h3>
+      <p>Donate the unsold quarter to local schools and food banks through Producer Partnership. We pay the processor from program funds; you get a tax letter; the meat goes to people who need it.</p>
+    </div>
+    <div class="row-actions">
+      <button class="btn btn--primary btn--lg" onclick="showView('confirm')">Donate this fraction →</button>
+      <button class="btn btn--secondary btn--lg" onclick="showToast('Listing kept · we\'ll keep marketing the unsold fraction')">Keep listed</button>
+    </div>
+  </div>
+
+  <!-- Fractions status -->
+  <div class="listing-summary mt-6">
+    <div class="listing-photo"></div>
+    <div>
+      <span class="eyebrow">Fractions sold</span>
+      <h3 class="h2 mt-2">3 of 4 quarters claimed</h3>
+      <div class="fractions-status mt-4">
+        <div class="fraction-status-row is-sold">
+          <span>½</span><span class="label">Mark R. · 282 lbs</span><span class="text-faint">Reserved Mar 14</span>
+        </div>
+        <div class="fraction-status-row is-sold">
+          <span>¼</span><span class="label">Sarah J. · 140 lbs</span><span class="text-faint">Reserved Mar 16</span>
+        </div>
+        <div class="fraction-status-row is-unsold">
+          <span>¼</span><span class="label">Unsold · 3 weeks left</span><span class="text-faint">$1,134 list price</span>
+        </div>
+      </div>
+      <p class="body-sm mt-4 text-faint">Once a fraction is donated, it's removed from the marketplace. Buyers won't see it as "available."</p>
+    </div>
+  </div>
+
+  <!-- Why donate -->
+  <div class="card mt-8" style="padding: var(--s-6);">
+    <span class="eyebrow">Why donate the remainder</span>
+    <div class="grid mt-4 gap-4" style="grid-template-columns: 1fr;">
+      <div>
+        <strong style="font-size: var(--text-md); display: block; margin-bottom: 4px;">Fill your animal completely</strong>
+        <p class="body-sm">Trucking and processing are sized for the whole animal. A donated quarter means the animal goes to processing on schedule, no scramble for last-minute buyers.</p>
+      </div>
+      <div>
+        <strong style="font-size: var(--text-md); display: block; margin-bottom: 4px;">Get a tax acknowledgment letter</strong>
+        <p class="body-sm">For raised livestock the IRS deduction is generally limited to your basis. The bigger benefit for cash-basis farmers is avoiding income recognition on a sale you didn't make. Talk to your CPA.</p>
+      </div>
+      <div>
+        <strong style="font-size: var(--text-md); display: block; margin-bottom: 4px;">No fee on donated fractions</strong>
+        <p class="body-sm">We charge $0 platform fee on this fraction. Producer Partnership pays the processor's kill fee from program funds. You get goodwill and the receipt.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DONATION CONFIRM SHEET ============ -->
+<section id="view-confirm" class="hidden container container--narrow section">
+  <div class="confirm-sheet">
+    <div class="row row--between">
+      <button class="btn btn--ghost btn--sm" onclick="showView('farmer')">← Back</button>
+      <span class="pill pill--accent">DONATION</span>
+    </div>
+    <h2 class="display-md">Donate ¼ of Steer #402</h2>
+
+    <div class="confirm-row">
+      <span class="eyebrow">Estimated yield</span>
+      <strong>≈ 140 lbs take-home protein</strong>
+      <p>Pre-kill estimate. Final tax letter uses actual hanging weight after processing.</p>
+    </div>
+
+    <div class="confirm-row">
+      <span class="eyebrow">Recipient</span>
+      <strong>Producer Partnership · 501(c)(3) · EIN 81-1234567</strong>
+      <p>Montana-based hunger-relief nonprofit; meat goes to food banks, schools, and food shelves through their distribution network.</p>
+    </div>
+
+    <div class="confirm-row">
+      <span class="eyebrow">Funding</span>
+      <strong>Processor's kill fee paid from program funds</strong>
+      <p>Grants + corporate sponsors + individual monetary donations cover the $95 kill fee + ~$675 processing. You pay $0; buyers pay $0.</p>
+    </div>
+
+    <div class="confirm-row">
+      <span class="eyebrow">Tax letter</span>
+      <strong>IRS-compliant acknowledgment, mailed within 10 days of processing</strong>
+      <p>Will list pounds of protein donated, recipient EIN, date of donation, and "no goods or services were provided in exchange." We email the PDF and mail a paper copy if you check the box below.</p>
+    </div>
+
+    <div class="disclosure">
+      <strong>About the deduction:</strong> For raised livestock, the IRS generally allows a deduction at your tax basis (your accumulated production costs). For most cash-basis farmers those costs were already deducted as expenses, so the deduction is small — but you also avoid recognizing income on a sale you didn't make. Some donations of "wholesome food" qualify for up to 2× basis. Talk to your CPA for your specific situation. Watch for state-level credits in Minnesota.
+    </div>
+
+    <div class="card" style="padding: var(--s-5);">
+      <span class="eyebrow">Deed of Gift (preview)</span>
+      <div class="deed-preview mt-3">
+        <h4>DEED OF GIFT</h4>
+        <p>This Deed of Gift, made effective May 3, 2026, between <strong>Arthur Sterling</strong> ("Donor"), and <strong>Producer Partnership, Inc.</strong>, a Montana 501(c)(3) corporation ("Donee"), transfers and conveys all right, title, and interest of the Donor in and to the following:</p>
+        <p><strong>One quarter share of Animal #402 (Black Angus Steer)</strong>, currently held at Sterling Trust Farms, scheduled for processing at Hilltop Custom Meats on June 21, 2026, with estimated take-home protein yield of 140 lbs.</p>
+        <p>Donor warrants that the Donor has full title to the donated property, free and clear of all liens and encumbrances, and that the property is healthy and fit for human consumption to the best of Donor's knowledge.</p>
+        <p>Donee accepts the gift on behalf of its charitable mission. No goods or services were provided to Donor in exchange.</p>
+        <p>Donor: ___________________________ Date: _______________</p>
+        <p>Donee: ___________________________ Date: _______________</p>
+      </div>
+    </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" />
+      <span>I agree to transfer ownership of the donated fraction to Producer Partnership, Inc., and confirm the animal is healthy and fit for human consumption to the best of my knowledge.</span>
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" />
+      <span>Mail me a paper copy of the tax acknowledgment letter (in addition to the PDF email).</span>
+    </label>
+
+    <button class="btn btn--primary btn--xl btn--block" onclick="showView('letter')">E-sign and donate</button>
+    <small class="text-faint text-center" style="font-size: 11px;">By signing you agree to the Deed of Gift. Once signed the donation cannot be revoked.</small>
+  </div>
+</section>
+
+<!-- ============ TAX LETTER PREVIEW ============ -->
+<section id="view-letter" class="hidden container container--narrow section">
+  <div class="row row--between mb-6">
+    <button class="btn btn--ghost btn--sm" onclick="showView('confirm')">← Back</button>
+    <span class="pill pill--accent">TAX LETTER PREVIEW</span>
+  </div>
+
+  <h2 class="display-md mb-4">Tax acknowledgment letter</h2>
+  <p class="body mb-8" style="max-width: 60ch;">This is what you'll receive after processing. Today the donation is initiated; the final letter generates once {{processor}} reports actual hanging weight.</p>
+
+  <div class="tax-letter">
+    <div class="tax-letter-head">
+      <h2>Producer Partnership, Inc.</h2>
+      <p>A 501(c)(3) charitable organization · EIN 81-1234567</p>
+      <p>1234 Farm Road, Bozeman, MT 59715</p>
+    </div>
+
+    <section>
+      <strong>Date of letter:</strong> June 22, 2026<br>
+      <strong>Date of donation:</strong> May 3, 2026 (Deed of Gift signed)
+    </section>
+
+    <section>
+      <p>Dear Arthur Sterling,</p>
+      <p>Thank you for your generous donation to Producer Partnership, Inc. Your contribution will help us feed local food banks, schools, and food shelves across Montana and Minnesota.</p>
+    </section>
+
+    <section>
+      <strong>Donation summary</strong>
+      <dl>
+        <dt>Donor</dt><dd>Arthur Sterling, Sterling Trust Farms, Bemidji, MN</dd>
+        <dt>Description</dt><dd>One quarter share of Animal #402 (Black Angus Steer)</dd>
+        <dt>Estimated take-home protein</dt><dd><strong>142 lbs</strong> (final hanging weight: 580 lbs / 4)</dd>
+        <dt>Processed at</dt><dd>Hilltop Custom Meats, Bemidji, MN (USDA Establishment 12345)</dd>
+        <dt>Estimated fair market value</dt><dd>$1,134.00 (based on $4.50/lb hanging × 252 lbs / 4)</dd>
+      </dl>
+    </section>
+
+    <section>
+      <p><strong>No goods or services were provided</strong> by Producer Partnership, Inc. in exchange for this donation. Producer Partnership, Inc. is a tax-exempt organization under section 501(c)(3) of the Internal Revenue Code; donations are deductible to the extent allowed by law.</p>
+      <p>For raised livestock, the IRS generally limits the charitable deduction to the donor's tax basis in the animal. Please consult your tax professional for guidance on your specific deduction.</p>
+    </section>
+
+    <div class="signature">
+      <span class="signature-line">M. Stittsworth, on behalf of Producer Partnership</span>
+    </div>
+  </div>
+
+  <div class="row gap-3 mt-8" style="justify-content: center;">
+    <button class="btn btn--primary" onclick="showToast('PDF download started')">Download PDF</button>
+    <button class="btn btn--secondary" onclick="showView('admin')">View admin queue</button>
+  </div>
+</section>
+
+<!-- ============ ADMIN DONATION QUEUE ============ -->
+<section id="view-admin" class="hidden container section">
+  <div class="row row--between mb-6">
+    <div>
+      <span class="eyebrow">Admin · Donation Program</span>
+      <h2 class="display-md mt-2">Active donations</h2>
+    </div>
+    <div class="row gap-2">
+      <button class="btn btn--ghost btn--sm">Export</button>
+      <button class="btn btn--secondary btn--sm">Audit log</button>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="grid grid-cols-4 mb-6" style="gap: var(--s-3);">
+    <div class="card impact-card">
+      <span class="num">12</span>
+      <span class="label">Active donations</span>
+    </div>
+    <div class="card impact-card">
+      <span class="num">2,148</span>
+      <span class="label">lbs in pipeline</span>
+    </div>
+    <div class="card impact-card">
+      <span class="num">$28k</span>
+      <span class="label">Program fund balance</span>
+    </div>
+    <div class="card impact-card">
+      <span class="num">94%</span>
+      <span class="label">Distribution rate</span>
+    </div>
+  </div>
+
+  <!-- Donations queue -->
+  <div class="card" style="padding: var(--s-5);">
+    <span class="eyebrow">By stage</span>
+    <div class="mt-4">
+      <h3 class="h3" style="margin-top: var(--s-4);">Pending funding (1)</h3>
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico" style="background: linear-gradient(135deg, var(--warn), #d57f30);">!</div>
+          <div>
+            <strong>Hereford #339 · ¼ donation</strong>
+            <div class="meta">Sterling Trust · need $185 to fund kill fee · drop-off Jun 28</div>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--sm" onclick="showToast('Allocate funding form opens')">Allocate</button>
+      </div>
+
+      <h3 class="h3" style="margin-top: var(--s-5);">Awaiting processing (3)</h3>
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico">A</div>
+          <div>
+            <strong>Angus Steer #402 · ¼ donation</strong>
+            <div class="meta">Sterling Trust · funded · drop-off Thu Jun 21</div>
+          </div>
+        </div>
+        <button class="btn btn--secondary btn--sm">View</button>
+      </div>
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico">W</div>
+          <div>
+            <strong>Wagyu Cross #102 · ½ donation</strong>
+            <div class="meta">Agri-Credit Union · funded · drop-off Jul 18</div>
+          </div>
+        </div>
+        <button class="btn btn--secondary btn--sm">View</button>
+      </div>
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico" style="background: linear-gradient(135deg,#7d6b5a,#a89485);">H</div>
+          <div>
+            <strong>Berkshire Hog #88 · whole donation</strong>
+            <div class="meta">Heritage Pork · funded · drop-off Jun 14</div>
+          </div>
+        </div>
+        <button class="btn btn--secondary btn--sm">View</button>
+      </div>
+
+      <h3 class="h3" style="margin-top: var(--s-5);">Tax letters in queue (4)</h3>
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico">L</div>
+          <div>
+            <strong>Lamb #L20 · ½ donation</strong>
+            <div class="meta">North Star Sheep · 32 lbs distributed · letter generating</div>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--sm">Send letter</button>
+      </div>
+
+      <h3 class="h3" style="margin-top: var(--s-5);">Distribution in progress (4)</h3>
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico">B</div>
+          <div>
+            <strong>Steer #380 · ¼ donation · 138 lbs</strong>
+            <div class="meta">→ Bemidji Food Shelf (60 lbs delivered May 1) · 78 lbs to schools queued</div>
+          </div>
+        </div>
+        <button class="btn btn--secondary btn--sm">Track</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PUBLIC IMPACT DASHBOARD ============ -->
+<section id="view-impact" class="hidden container section">
+  <div class="text-center mb-8">
+    <span class="eyebrow">Donation program</span>
+    <h2 class="display-2xl mt-2">Local protein, local impact.</h2>
+    <p class="body" style="max-width: 60ch; margin: var(--s-4) auto;">Real-time view of pounds donated, schools and food banks served, dollars raised. We update this nightly.</p>
+  </div>
+
+  <!-- Big stats -->
+  <div class="grid grid-cols-3 mb-8" style="gap: var(--s-4);">
+    <div class="card impact-card text-center">
+      <span class="num">14,892</span>
+      <span class="label">lbs donated · all-time</span>
+    </div>
+    <div class="card impact-card text-center">
+      <span class="num">38</span>
+      <span class="label">food banks &amp; schools served</span>
+    </div>
+    <div class="card impact-card text-center">
+      <span class="num">$31,420</span>
+      <span class="label">in grants &amp; donations raised</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2" style="gap: var(--s-5);">
+    <div class="card" style="padding: var(--s-6);">
+      <span class="eyebrow">By recipient</span>
+      <div class="mt-4 stack">
+        <div class="row row--between"><span style="font-size: var(--text-sm);">Bemidji Food Shelf</span><strong>3,420 lbs</strong></div>
+        <div class="row row--between"><span style="font-size: var(--text-sm);">Bemidji Public Schools</span><strong>2,840 lbs</strong></div>
+        <div class="row row--between"><span style="font-size: var(--text-sm);">Itasca County Food Bank</span><strong>2,180 lbs</strong></div>
+        <div class="row row--between"><span style="font-size: var(--text-sm);">St. Paul Food Pantry</span><strong>1,964 lbs</strong></div>
+        <div class="row row--between"><span style="font-size: var(--text-sm);">Other (34 partners)</span><strong>4,488 lbs</strong></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding: var(--s-6);">
+      <span class="eyebrow">Top donor farms</span>
+      <div class="mt-4 stack">
+        <div class="row row--between"><span style="font-size: var(--text-sm);">Sterling Trust Farms</span><strong>4 animals</strong></div>
+        <div class="row row--between"><span style="font-size: var(--text-sm);">Rolling Hills Ranch</span><strong>3 animals</strong></div>
+        <div class="row row--between"><span style="font-size: var(--text-sm);">Heritage Pork Co.</span><strong>3 animals</strong></div>
+        <div class="row row--between"><span style="font-size: var(--text-sm);">Iron Range Farm</span><strong>2 animals</strong></div>
+        <div class="row row--between"><span style="font-size: var(--text-sm);">North Star Sheep</span><strong>2 animals</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Donate to the fund CTA -->
+  <div class="card mt-8" style="padding: var(--s-8); text-align: center; background: var(--brand-grad); color: var(--ink-inverse);">
+    <h3 class="display-md" style="color: white;">Help fund a kill fee</h3>
+    <p style="opacity: 0.85; max-width: 50ch; margin: var(--s-3) auto var(--s-6);">$95 covers a USDA kill fee. $770 covers full processing of a beef quarter. Every dollar moves real protein to a real local table.</p>
+    <button class="btn btn--apple-pay btn--lg" onclick="showToast('Apple Pay donation modal opens')">Donate $95</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showView(v) {
+  document.querySelectorAll('.role-bar button').forEach((b,i) => {
+    const map = ['farmer','confirm','letter','admin','impact'];
+    b.classList.toggle('active', map[i] === v);
+  });
+  ['farmer','confirm','letter','admin','impact'].forEach(id => {
+    document.getElementById('view-'+id).classList.toggle('hidden', id !== v);
+  });
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('is-visible');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
+}
+</script>
+</body>
+</html>

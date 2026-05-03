@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Protein Outfitters — Farm-direct meat, cut to order</title>
+<meta name="description" content="Reserve a fraction of an animal from a local farm. Customize the cut. Pickup or shipped cold. Three taps from listing to confirmed." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+
+<style>
+/* ---------- Page-specific layout ---------- */
+body { background: var(--bg); }
+
+/* Top nav */
+.po-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); padding: 14px 0; }
+.po-logo { display: flex; align-items: center; gap: var(--s-2); font-weight: 900; font-size: 16px; letter-spacing: var(--tracking-snug); text-transform: uppercase; }
+.po-logo svg { width: 26px; height: 26px; }
+.po-nav-links { display: flex; gap: var(--s-6); align-items: center; }
+.po-nav-links a { font-size: var(--text-sm); font-weight: 600; color: var(--ink-2); transition: color var(--dur-fast); }
+.po-nav-links a:hover { color: var(--ink); }
+.po-nav-cta { display: flex; gap: var(--s-2); }
+@media (max-width: 800px) { .po-nav-links { display: none; } }
+
+/* Hero */
+.hero {
+  position: relative;
+  min-height: min(720px, 88vh);
+  display: grid; align-items: center;
+  background:
+    radial-gradient(ellipse at 70% 0%, rgba(207,233,211,0.5) 0%, transparent 60%),
+    linear-gradient(160deg, #f4f5f3 0%, #e3e8e2 50%, #cdd5cc 100%);
+  overflow: hidden;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] .hero, :root[data-theme="dark"] .hero {
+    background:
+      radial-gradient(ellipse at 70% 0%, rgba(47,125,73,0.25) 0%, transparent 60%),
+      linear-gradient(160deg, #0a0d0b 0%, #131815 50%, #0a0d0b 100%);
+  }
+}
+.hero-bg-photo {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 65% 35%, rgba(122,140,74,0.4) 0%, transparent 55%),
+    radial-gradient(ellipse at 30% 70%, rgba(74,40,32,0.3) 0%, transparent 50%),
+    linear-gradient(180deg, transparent 60%, rgba(12,20,16,0.4) 100%);
+  pointer-events: none;
+}
+.hero-content {
+  position: relative; z-index: 2;
+  display: grid; gap: var(--s-8);
+  padding-block: var(--s-16);
+}
+.hero-content h1 { margin: 0; max-width: 16ch; }
+.hero-content p { margin: 0; max-width: 50ch; font-size: var(--text-lg); color: var(--ink-2); line-height: 1.5; }
+.hero-actions { display: flex; gap: var(--s-3); flex-wrap: wrap; }
+.hero-meta { display: flex; gap: var(--s-6); flex-wrap: wrap; }
+.hero-meta .stat { display: flex; flex-direction: column; gap: 2px; }
+.hero-meta .stat strong { font-size: var(--text-xl); font-weight: 800; letter-spacing: var(--tracking-tight); }
+.hero-meta .stat span { font-size: var(--text-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); font-weight: 700; }
+
+@media (min-width: 900px) {
+  .hero-content { grid-template-columns: 1.5fr 1fr; align-items: end; }
+  .hero-content > div:last-child { justify-self: end; align-self: end; }
+}
+
+/* Filter bar */
+.filter-bar {
+  position: sticky; top: 60px; z-index: 40;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--hairline);
+  padding: var(--s-3) 0;
+}
+.filter-bar-inner { display: flex; align-items: center; gap: var(--s-3); overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+.filter-bar-inner::-webkit-scrollbar { display: none; }
+
+/* Search */
+.search-input {
+  display: flex; align-items: center; gap: var(--s-2);
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: var(--r-pill); padding: 8px 16px;
+  flex: 1; min-width: 180px; max-width: 320px;
+}
+.search-input svg { width: 16px; height: 16px; color: var(--ink-3); flex-shrink: 0; }
+.search-input input { border: 0; background: transparent; outline: 0; flex: 1; font-size: var(--text-sm); }
+
+/* Section titling */
+.section-title-row { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); margin-bottom: var(--s-6); }
+.section-title-row h2 { margin: 0; }
+
+/* How it works */
+.steps-grid {
+  display: grid; gap: var(--s-6);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) { .steps-grid { grid-template-columns: repeat(3, 1fr); } }
+.step-card {
+  padding: var(--s-6);
+  display: flex; flex-direction: column; gap: var(--s-3);
+}
+.step-num {
+  width: 36px; height: 36px;
+  border-radius: var(--r-2);
+  background: var(--accent-soft); color: var(--brand);
+  display: grid; place-items: center;
+  font-weight: 900; font-size: var(--text-md);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Trust strip */
+.trust-strip {
+  display: grid; gap: var(--s-4);
+  grid-template-columns: 1fr 1fr;
+}
+@media (min-width: 700px) { .trust-strip { grid-template-columns: repeat(4, 1fr); } }
+.trust-item {
+  text-align: center;
+  padding: var(--s-5) var(--s-4);
+}
+.trust-item .num { font-size: var(--text-3xl); font-weight: 900; letter-spacing: var(--tracking-tight); display: block; }
+.trust-item .label { font-size: var(--text-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); font-weight: 700; margin-top: 4px; display: block; }
+
+/* Footer */
+.footer { background: var(--brand); color: var(--ink-inverse); padding-block: var(--s-16); margin-top: var(--s-20); }
+.footer .container { display: grid; gap: var(--s-8); grid-template-columns: 1fr; }
+@media (min-width: 700px) { .footer .container { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+.footer h4 { font-size: var(--text-sm); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); font-weight: 800; margin: 0 0 var(--s-3); opacity: 0.8; }
+.footer ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.footer a { color: rgba(255,255,255,0.85); font-size: var(--text-sm); }
+.footer a:hover { color: white; }
+.footer .brand-block p { color: rgba(255,255,255,0.7); font-size: var(--text-sm); line-height: 1.55; max-width: 32ch; }
+
+/* Listing detail (modal) */
+.listing-sheet { padding: 0; }
+.listing-sheet-hero {
+  height: 320px;
+  background-size: cover; background-position: center;
+  position: relative;
+}
+@media (min-width: 768px) { .listing-sheet-hero { height: 420px; } }
+.listing-sheet-hero::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6) 100%);
+}
+.listing-sheet-close {
+  position: absolute; top: 16px; right: 16px; z-index: 1;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--glass-bg-strong); backdrop-filter: blur(10px);
+  display: grid; place-items: center; cursor: pointer;
+  font-size: 20px; font-weight: 700;
+}
+.listing-sheet-title {
+  position: absolute; bottom: var(--s-5); left: var(--s-5); right: var(--s-5); z-index: 1;
+  color: white;
+}
+.listing-sheet-body { padding: var(--s-6); display: grid; gap: var(--s-6); }
+@media (min-width: 768px) { .listing-sheet-body { grid-template-columns: 1.4fr 1fr; padding: var(--s-8); } }
+
+/* Yield estimator block */
+.yield-block { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-2); padding: var(--s-4) 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.yield-block .col { display: flex; flex-direction: column; gap: 2px; }
+.yield-block .col strong { font-size: var(--text-xl); font-weight: 800; letter-spacing: var(--tracking-tight); }
+.yield-block .col strong span { font-size: var(--text-xs); color: var(--ink-3); margin-left: 2px; font-weight: 600; }
+.yield-block .col em { font-size: var(--text-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); font-weight: 700; font-style: normal; }
+.yield-bar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; margin-top: var(--s-2); }
+.yield-bar > div { height: 100%; background: var(--accent); }
+
+/* Fraction selector */
+.fractions { display: grid; gap: var(--s-2); }
+.fraction-card {
+  background: var(--surface); border-radius: var(--r-3);
+  padding: var(--s-4) var(--s-5);
+  display: grid; grid-template-columns: 1fr auto; gap: var(--s-3);
+  cursor: pointer; transition: all var(--dur-base) var(--ease-out);
+  border: 1.5px solid var(--hairline);
+}
+.fraction-card:hover { border-color: var(--ink-3); }
+.fraction-card.is-selected { border-color: var(--brand); background: linear-gradient(180deg, var(--surface) 0%, rgba(47,125,73,0.04) 100%); }
+.fraction-card.is-disabled { opacity: 0.4; cursor: not-allowed; }
+.fraction-card .name { font-size: var(--text-md); font-weight: 800; letter-spacing: var(--tracking-snug); }
+.fraction-card .meta { font-size: var(--text-xs); color: var(--ink-3); margin-top: 2px; }
+.fraction-card .price { text-align: right; font-size: var(--text-md); font-weight: 800; }
+.fraction-card .price small { display: block; font-size: var(--text-xs); color: var(--ink-3); font-weight: 500; margin-top: 2px; }
+
+/* Compliance score */
+.score { display: grid; grid-template-columns: 56px 1fr; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); background: var(--accent-subtle); border-radius: var(--r-3); }
+.score .score-circle {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: conic-gradient(var(--accent) 0% 92%, var(--surface-2) 92% 100%);
+  display: grid; place-items: center; position: relative;
+}
+.score .score-circle::after {
+  content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--surface);
+}
+.score .score-circle strong { position: relative; z-index: 1; font-weight: 900; font-size: var(--text-md); }
+.score .label-block strong { font-size: var(--text-md); font-weight: 800; }
+.score .label-block span { font-size: var(--text-xs); color: var(--ink-2); display: block; }
+
+/* Animal detail strip */
+.detail-strip { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.detail-strip > div { padding: var(--s-3) var(--s-4); background: var(--surface-2); border-radius: var(--r-3); }
+.detail-strip em { display: block; font-size: var(--text-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); font-weight: 700; font-style: normal; margin-bottom: 2px; }
+.detail-strip strong { font-size: var(--text-base); font-weight: 700; }
+
+/* Quick reserve panel */
+.quick-reserve {
+  position: sticky; top: 110px;
+  padding: var(--s-5);
+  display: flex; flex-direction: column; gap: var(--s-4);
+}
+.quick-reserve .price-line { display: flex; justify-content: space-between; align-items: baseline; }
+.quick-reserve .price-line strong { font-size: var(--text-3xl); font-weight: 900; letter-spacing: var(--tracking-tight); }
+.quick-reserve .price-line span { font-size: var(--text-sm); color: var(--ink-3); }
+.quick-reserve .clicks {
+  display: flex; gap: var(--s-2); padding: var(--s-3); background: var(--accent-subtle); border-radius: var(--r-3); align-items: center;
+  font-size: var(--text-xs); font-weight: 700; color: var(--brand);
+}
+.quick-reserve .clicks-count { width: 24px; height: 24px; background: var(--brand); color: var(--ink-inverse); border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 900; }
+
+/* Checkout sheet (in-page) */
+.checkout-sheet { padding: var(--s-6); display: grid; gap: var(--s-5); max-width: 540px; margin: 0 auto; }
+.checkout-summary {
+  padding: var(--s-4) var(--s-5);
+  background: var(--surface-2);
+  border-radius: var(--r-3);
+}
+.checkout-summary .row { padding: 6px 0; }
+.checkout-summary .row:not(:last-child) { border-bottom: 1px solid var(--hairline); }
+.checkout-summary .total { font-size: var(--text-lg); font-weight: 900; letter-spacing: var(--tracking-tight); padding-top: var(--s-3); }
+
+/* Confetti / success state */
+.success-screen { padding: var(--s-12) var(--s-6); text-align: center; max-width: 460px; margin: 0 auto; }
+.success-check { width: 88px; height: 88px; border-radius: 50%; background: var(--accent); margin: 0 auto var(--s-6);
+  display: grid; place-items: center; color: white; font-size: 44px; font-weight: 900; box-shadow: var(--sh-cta); }
+.success-screen h2 { font-size: var(--text-3xl); font-weight: 900; letter-spacing: var(--tracking-tight); margin: 0 0 var(--s-3); }
+.success-screen p { color: var(--ink-2); margin-bottom: var(--s-6); }
+
+/* Tesla-style badge */
+.tesla-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  background: var(--brand); color: var(--ink-inverse);
+  border-radius: var(--r-pill);
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: var(--tracking-extra-wide);
+}
+.tesla-badge::before { content: '⚡'; font-size: 9px; }
+
+/* Animations */
+.fade-in { animation: fadeInUp var(--dur-slow) var(--ease-out); }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP NAV (glass) ============ -->
+<header class="glass-nav">
+  <div class="container">
+    <nav class="po-nav">
+      <a href="#" class="po-logo">
+        <svg viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#061b0e"/>
+          <path d="M9 10c0-1 1-2 2-2h10c1 0 2 1 2 2v12c0 1-1 2-2 2H11c-1 0-2-1-2-2V10z" stroke="#cfe9d3" stroke-width="1.5" fill="none"/>
+          <path d="M12 14h8M12 17h8M12 20h5" stroke="#cfe9d3" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Protein Outfitters
+      </a>
+      <div class="po-nav-links">
+        <a href="#marketplace">Marketplace</a>
+        <a href="#how">How it works</a>
+        <a href="#trust">Trust</a>
+        <a href="#farms">For farms</a>
+        <a href="#processors">For processors</a>
+      </div>
+      <div class="po-nav-cta">
+        <button class="btn btn--ghost btn--sm">Sign in</button>
+        <button class="btn btn--primary btn--sm">Reserve now</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ LIVE TICKER ============ -->
+<div class="ticker">
+  <div class="ticker-row">
+    <span class="ticker-item">🐄 Beef <strong>$13.75/lb</strong> <span class="up arrow">▲</span></span>
+    <span class="ticker-item">🐖 Pork <strong>$9.25/lb</strong> <span class="up arrow">▲</span></span>
+    <span class="ticker-item">🐑 Lamb <strong>$14.50/lb</strong> <span class="arrow">→</span></span>
+    <span class="ticker-item">🦌 Venison <strong>$18.00/lb</strong> <span class="up arrow">▲</span></span>
+    <span class="ticker-item">🐔 Poultry <strong>$4.20/lb</strong> <span class="down arrow">▼</span></span>
+    <span class="ticker-item"><strong>12,842</strong> active shares</span>
+    <span class="ticker-item"><strong>+12.4%</strong> this week</span>
+    <span class="ticker-item">🐄 Beef <strong>$13.75/lb</strong> <span class="up arrow">▲</span></span>
+    <span class="ticker-item">🐖 Pork <strong>$9.25/lb</strong> <span class="up arrow">▲</span></span>
+    <span class="ticker-item">🐑 Lamb <strong>$14.50/lb</strong> <span class="arrow">→</span></span>
+    <span class="ticker-item">🦌 Venison <strong>$18.00/lb</strong> <span class="up arrow">▲</span></span>
+    <span class="ticker-item">🐔 Poultry <strong>$4.20/lb</strong> <span class="down arrow">▼</span></span>
+  </div>
+</div>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-bg-photo"></div>
+  <div class="container hero-content">
+    <div class="stack gap-6 fade-in">
+      <span class="eyebrow">Farm to fork marketplace</span>
+      <h1 class="display-2xl">Real meat from a real farm. Cut your way.</h1>
+      <p>Reserve a fraction of an animal months before it's processed. Customize the cuts. Pickup at the processor or have it shipped cold to your door. Three taps from this page to confirmed.</p>
+      <div class="hero-actions">
+        <a href="#marketplace" class="btn btn--primary btn--lg">Browse animals →</a>
+        <a href="#how" class="btn btn--secondary btn--lg">How it works</a>
+      </div>
+      <div class="hero-meta">
+        <div class="stat"><strong>3</strong><span>Taps to reserve</span></div>
+        <div class="stat"><strong>21 days</strong><span>Free cancellation</span></div>
+        <div class="stat"><strong>USDA</strong><span>Inspected</span></div>
+      </div>
+    </div>
+    <div class="glass" style="padding: var(--s-5); display: none;">
+      <!-- reserved for desktop hero artwork / featured tile preview -->
+    </div>
+  </div>
+</section>
+
+<!-- ============ FILTER BAR ============ -->
+<div class="filter-bar">
+  <div class="container">
+    <div class="filter-bar-inner">
+      <div class="search-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" placeholder="Search breeds, ranches, cuts…" />
+      </div>
+      <button class="pill pill--active" data-cat="all" onclick="filterCat(event)">All</button>
+      <button class="pill" data-cat="beef" onclick="filterCat(event)">🐄 Beef</button>
+      <button class="pill" data-cat="hog" onclick="filterCat(event)">🐖 Hog</button>
+      <button class="pill" data-cat="lamb" onclick="filterCat(event)">🐑 Lamb</button>
+      <button class="pill" data-cat="venison" onclick="filterCat(event)">🦌 Venison</button>
+      <button class="pill" data-cat="poultry" onclick="filterCat(event)">🐔 Poultry</button>
+      <span style="flex:1"></span>
+      <button class="btn btn--ghost btn--sm">Map view</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MARKETPLACE GRID ============ -->
+<section id="marketplace" class="section">
+  <div class="container">
+    <div class="section-title-row">
+      <div>
+        <span class="eyebrow">Available now</span>
+        <h2 class="display-md mt-2">8 animals taking reservations</h2>
+      </div>
+      <a href="#" class="btn btn--ghost btn--sm">See all →</a>
+    </div>
+
+    <div class="grid grid-cols-4" id="marketplace-grid">
+      <!-- Tiles injected by JS so we can wire click handlers cleanly -->
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how" class="section" style="background: var(--surface);">
+  <div class="container">
+    <div class="section-title-row" style="flex-direction: column; align-items: flex-start;">
+      <span class="eyebrow">How it works</span>
+      <h2 class="display-lg mt-2">Three steps. That's it.</h2>
+      <p class="body" style="max-width: 50ch;">We took a process that traditionally takes a half-dozen phone calls and an Excel spreadsheet, and turned it into something you can do during a coffee break.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="card card--lifted step-card">
+        <div class="step-num">1</div>
+        <h3 class="h2">Pick your share</h3>
+        <p class="body">Browse animals from local farms. Pick a quarter, a half, or whole. Your price-per-pound is locked in the moment you reserve.</p>
+        <small class="text-faint mono">~ 1 tap</small>
+      </div>
+      <div class="card card--lifted step-card">
+        <div class="step-num">2</div>
+        <h3 class="h2">Customize the cut</h3>
+        <p class="body">Pick a preset (Family Pack, Premium Steaks, Restaurant Cuts) or tweak per-cut. Or skip and let the processor use their default. Either way, you get great meat.</p>
+        <small class="text-faint mono">~ 1 tap (or skip)</small>
+      </div>
+      <div class="card card--lifted step-card">
+        <div class="step-num">3</div>
+        <h3 class="h2">Apple Pay → done</h3>
+        <p class="body">Reserve with a 25% deposit; balance posts a week before drop-off. Pickup at the processor or have it shipped cold to your door. Quality issues in the first 7 days? We make it right.</p>
+        <small class="text-faint mono">~ 1 tap</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRUST STRIP ============ -->
+<section id="trust" class="section">
+  <div class="container">
+    <div class="section-title-row" style="flex-direction: column; align-items: center; text-align: center;">
+      <span class="eyebrow">What we built into the platform</span>
+      <h2 class="display-md mt-2 text-center" style="max-width: 30ch; margin-inline: auto;">Trust isn't a tagline.</h2>
+    </div>
+    <div class="trust-strip">
+      <div class="trust-item card">
+        <span class="num">100%</span>
+        <span class="label">USDA Inspected</span>
+      </div>
+      <div class="trust-item card">
+        <span class="num">$25k</span>
+        <span class="label">Condemnation reserve</span>
+      </div>
+      <div class="trust-item card">
+        <span class="num">21 days</span>
+        <span class="label">Free cancellation</span>
+      </div>
+      <div class="trust-item card">
+        <span class="num">94+</span>
+        <span class="label">Avg compliance score</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="brand-block">
+      <strong style="font-size: var(--text-md); display:block; margin-bottom: var(--s-2);">Protein Outfitters</strong>
+      <p>Farm-direct meat marketplace · Bemidji, MN</p>
+      <p class="mt-4">Working with Stittsworth Meats since 1937 (4 generations).</p>
+    </div>
+    <div>
+      <h4>Buy</h4>
+      <ul>
+        <li><a href="#marketplace">Marketplace</a></li>
+        <li><a href="#">How it works</a></li>
+        <li><a href="#">Pickup vs ship</a></li>
+        <li><a href="#">Customize cuts</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Sell</h4>
+      <ul>
+        <li><a href="#farms">For farms</a></li>
+        <li><a href="#processors">For processors</a></li>
+        <li><a href="#">Hardware</a></li>
+        <li><a href="#">Donation program</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>About</h4>
+      <ul>
+        <li><a href="#">Company</a></li>
+        <li><a href="#">Refund policy</a></li>
+        <li><a href="#">Terms</a></li>
+        <li><a href="#">Press</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ LISTING DETAIL SHEET ============ -->
+<div class="sheet-overlay" id="listing-sheet" onclick="if(event.target===this) closeSheet('listing-sheet')">
+  <div class="sheet listing-sheet">
+    <div class="listing-sheet-hero" id="listing-hero">
+      <button class="listing-sheet-close" onclick="closeSheet('listing-sheet')">×</button>
+      <div class="listing-sheet-title">
+        <span class="pill pill--accent" id="listing-breed">Black Angus</span>
+        <h2 class="display-lg" id="listing-name" style="margin: 8px 0 4px;">Premium Angus Steer #402</h2>
+        <p style="margin: 0; opacity: 0.85;" id="listing-loc">Rolling Hills Ranch · Billings, MT · 1,250 lbs live</p>
+      </div>
+    </div>
+    <div class="listing-sheet-body">
+      <div class="stack gap-4">
+        <!-- Compliance score -->
+        <div class="score">
+          <div class="score-circle"><strong>92</strong></div>
+          <div class="label-block">
+            <strong>Excellent</strong>
+            <span>USDA Certified · Grass-Fed · Non-GMO</span>
+          </div>
+        </div>
+
+        <!-- AI yield -->
+        <div>
+          <span class="eyebrow">AI Yield Estimator</span>
+          <div class="yield-block">
+            <div class="col">
+              <strong>1,250<span>lbs</span></strong>
+              <em>Live wt</em>
+            </div>
+            <div class="col">
+              <strong>750<span>lbs</span></strong>
+              <em>Dressed</em>
+            </div>
+            <div class="col">
+              <strong>563<span>lbs</span></strong>
+              <em>Take-home</em>
+            </div>
+          </div>
+          <div class="yield-bar"><div style="width: 60%"></div></div>
+          <small class="text-faint">60% take-home yield estimated</small>
+        </div>
+
+        <!-- Animal details -->
+        <div>
+          <span class="eyebrow">About this animal</span>
+          <div class="detail-strip mt-2">
+            <div><em>Breed</em><strong>Black Angus</strong></div>
+            <div><em>Gender</em><strong>Steer</strong></div>
+            <div><em>Feed</em><strong>Grass + Grain</strong></div>
+            <div><em>Available</em><strong>May 2025</strong></div>
+          </div>
+        </div>
+
+        <!-- Story -->
+        <div>
+          <span class="eyebrow">Farmer's note</span>
+          <p class="body mt-2">"#402 was raised on rotational pasture from day one, finished on a small grain ration the last 90 days for marbling. He's our highest-grading steer of the season — really happy with this one." — Arthur Sterling</p>
+        </div>
+      </div>
+
+      <!-- Quick Reserve panel -->
+      <aside class="card card--floating quick-reserve">
+        <div>
+          <span class="eyebrow">Reserve a share</span>
+          <div class="price-line mt-2">
+            <strong>$<span id="reserve-amount">2,142</span></strong>
+            <span>≈ <span id="reserve-lbs">282</span> lbs take-home</span>
+          </div>
+        </div>
+
+        <div class="fractions">
+          <button class="fraction-card" data-fraction="quarter" onclick="selectFraction('quarter')">
+            <div>
+              <div class="name">¼ Beef</div>
+              <div class="meta">≈ 140 lbs · feeds 2–3, 6 mo</div>
+            </div>
+            <div class="price">$1,134<small>+ processing</small></div>
+          </button>
+          <button class="fraction-card is-selected" data-fraction="half" onclick="selectFraction('half')">
+            <div>
+              <div class="name">½ Beef <span class="pill pill--warn" style="margin-left: 6px; padding: 2px 8px; font-size: 9px;">1 left</span></div>
+              <div class="meta">≈ 282 lbs · feeds 4, 12 mo</div>
+            </div>
+            <div class="price">$2,142<small>+ processing</small></div>
+          </button>
+          <button class="fraction-card is-disabled" data-fraction="whole">
+            <div>
+              <div class="name">Whole <span class="pill" style="margin-left: 6px; padding: 2px 8px; font-size: 9px; background: var(--surface-2); color: var(--ink-3);">Sold</span></div>
+              <div class="meta">≈ 563 lbs · stocks 2 freezers</div>
+            </div>
+            <div class="price">$4,158<small>sold out</small></div>
+          </button>
+        </div>
+
+        <!-- Tesla-style click counter -->
+        <div class="clicks">
+          <span class="clicks-count">3</span>
+          <span>3-tap reserve · returning Apple Pay buyers</span>
+        </div>
+
+        <button class="btn btn--apple-pay btn--lg btn--block" onclick="quickReserve()">
+          Reserve with Apple Pay
+        </button>
+        <button class="btn btn--secondary btn--block" onclick="customizeReserve()">
+          Customize cuts first
+        </button>
+
+        <small class="text-faint" style="font-size: 11px; line-height: 1.5;">
+          25% deposit today, balance posts 7 days before drop-off. Free cancellation up to 21 days out.
+        </small>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TESLA-STYLE 3-TAP CHECKOUT ============ -->
+<div class="sheet-overlay" id="checkout-sheet" onclick="if(event.target===this) closeSheet('checkout-sheet')">
+  <div class="sheet">
+    <div class="checkout-sheet">
+      <div class="row row--between">
+        <button class="btn btn--ghost btn--sm" onclick="closeSheet('checkout-sheet')">← Back</button>
+        <span class="tesla-badge">3-tap reserve</span>
+      </div>
+      <h2 class="display-md">Confirm your reservation</h2>
+      <div class="checkout-summary">
+        <div class="row row--between"><span class="label">½ Premium Angus Steer #402</span><span class="font-bold">$2,142.00</span></div>
+        <div class="row row--between"><span class="label">Processing (est.)</span><span class="font-bold">$385.00</span></div>
+        <div class="row row--between"><span class="label">Platform fee (3%)</span><span class="font-bold">$62.18</span></div>
+        <div class="row row--between"><span class="label">Pickup at processor</span><span class="font-bold text-accent">FREE</span></div>
+        <div class="row row--between total"><span>Total</span><span>$2,589.18</span></div>
+        <div class="row row--between" style="padding-top: 8px;">
+          <span class="label">Today (25% deposit)</span><strong style="font-size: var(--text-lg);">$647.30</strong>
+        </div>
+      </div>
+
+      <div class="card" style="padding: var(--s-3) var(--s-4);">
+        <div class="row gap-3">
+          <span style="font-size: 24px;">✓</span>
+          <div>
+            <strong style="font-size: var(--text-sm); display: block;">Family Pack cut sheet auto-applied</strong>
+            <small class="text-faint">Tap to customize · or trust the default</small>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn--apple-pay btn--xl btn--block" onclick="payNow()">
+        Pay $647.30 with Apple Pay
+      </button>
+      <small class="text-faint text-center" style="font-size: 11px;">
+        🔒 256-bit SSL · Touch ID required · Refundable up to 21 days before drop-off
+      </small>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SUCCESS SHEET ============ -->
+<div class="sheet-overlay" id="success-sheet">
+  <div class="sheet">
+    <div class="success-screen">
+      <div class="success-check">✓</div>
+      <h2>You're booked.</h2>
+      <p>½ of Premium Angus Steer #402 is reserved for you. Drop-off at Hilltop Custom Meats · Thu Jun 21.<br>You'll get an email when each milestone happens.</p>
+      <div class="row gap-3" style="justify-content: center;">
+        <button class="btn btn--primary" onclick="closeSheet('success-sheet')">View reservation</button>
+        <button class="btn btn--secondary" onclick="closeSheet('success-sheet')">Keep browsing</button>
+      </div>
+      <p class="text-faint" style="margin-top: var(--s-8); font-size: var(--text-xs);">Tap-count: <strong id="tap-count">3</strong>. We're working on getting that lower.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ DATA ============
+const ANIMALS = [
+  { id:'402', breed:'Black Angus', cat:'beef', name:'Premium Angus Steer #402', ranch:'Rolling Hills Ranch', loc:'Billings, MT', liveLbs:1250, pricePerLb:4.50, fracLeft:'½ left', month:'May 2025', img:'photo-bg-angus' },
+  { id:'339', breed:'Hereford', cat:'beef', name:'Hereford #339', ranch:'Sterling Trust Farms', loc:'Bemidji, MN', liveLbs:1300, pricePerLb:4.25, fracLeft:'¼ + ½ avail', month:'Jun 2025', img:'photo-bg-hereford' },
+  { id:'102', breed:'Wagyu Cross', cat:'beef', name:'Wagyu Cross #102', ranch:'Agri-Credit Union', loc:'Fargo, ND', liveLbs:1150, pricePerLb:7.85, fracLeft:'¼ avail', month:'Jul 2025', img:'photo-bg-wagyu' },
+  { id:'88', breed:'Berkshire', cat:'hog', name:'Berkshire Hog #88', ranch:'Heritage Pork Co.', loc:'Hinckley, MN', liveLbs:285, pricePerLb:3.20, fracLeft:'½ + whole', month:'Jun 2025', img:'photo-bg-hog' },
+  { id:'92', breed:'Tamworth', cat:'hog', name:'Tamworth Hog #92', ranch:'Iron Range Farm', loc:'Hibbing, MN', liveLbs:310, pricePerLb:3.50, fracLeft:'whole only', month:'Jul 2025', img:'photo-bg-hog' },
+  { id:'L20', breed:'Suffolk', cat:'lamb', name:'Suffolk Lamb #L20', ranch:'North Star Sheep', loc:'Park Rapids, MN', liveLbs:135, pricePerLb:6.50, fracLeft:'½ avail', month:'Jun 2025', img:'photo-bg-lamb' },
+  { id:'V07', breed:'Whitetail', cat:'venison', name:'Whitetail Doe #V07', ranch:'Itasca Wild Game', loc:'Grand Rapids, MN', liveLbs:160, pricePerLb:8.50, fracLeft:'½ avail', month:'Aug 2025', img:'photo-bg-grass' },
+  { id:'P01', breed:'Heritage', cat:'poultry', name:'Pasture Heritage Birds', ranch:'Sunset Coop', loc:'Bemidji, MN', liveLbs:5, pricePerLb:4.20, fracLeft:'min 6 birds', month:'May 2025', img:'photo-bg-poultry' }
+];
+
+let currentAnimal = ANIMALS[0];
+let currentFraction = 'half';
+let tapCount = 0;
+
+// ============ RENDER ============
+function renderGrid() {
+  const grid = document.getElementById('marketplace-grid');
+  const filter = document.querySelector('.pill--active')?.dataset.cat || 'all';
+  const list = filter === 'all' ? ANIMALS : ANIMALS.filter(a => a.cat === filter);
+  grid.innerHTML = list.map(a => `
+    <article class="tile lift fade-in" onclick="openListing('${a.id}')">
+      <div class="tile-photo ${a.img}">
+        <span class="pill pill--accent tile-badge">${a.fracLeft}</span>
+        <button class="tile-heart" onclick="event.stopPropagation();showToast('Saved to favorites')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>
+        </button>
+      </div>
+      <div class="tile-info">
+        <span class="breed">${a.breed}</span>
+        <span class="title">${a.name}</span>
+        <span class="meta">${a.ranch} · ${a.loc}</span>
+        <div class="price">
+          <span><span class="price-amount">$${a.pricePerLb.toFixed(2)}</span><span class="price-unit">/lb hanging</span></span>
+          <span class="price-status">${a.month}</span>
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
+
+function filterCat(e) {
+  document.querySelectorAll('.filter-bar-inner .pill').forEach(p => p.classList.remove('pill--active'));
+  e.currentTarget.classList.add('pill--active');
+  renderGrid();
+}
+
+function openListing(id) {
+  currentAnimal = ANIMALS.find(a => a.id === id) || ANIMALS[0];
+  document.getElementById('listing-breed').textContent = currentAnimal.breed;
+  document.getElementById('listing-name').textContent = currentAnimal.name;
+  document.getElementById('listing-loc').textContent = `${currentAnimal.ranch} · ${currentAnimal.loc} · ${currentAnimal.liveLbs} lbs live`;
+  const hero = document.getElementById('listing-hero');
+  hero.className = 'listing-sheet-hero ' + currentAnimal.img;
+  document.getElementById('listing-sheet').classList.add('is-open');
+  tapCount = 1;
+}
+
+function selectFraction(f) {
+  if (f === 'whole') return; // disabled
+  currentFraction = f;
+  document.querySelectorAll('.fraction-card').forEach(c => {
+    c.classList.toggle('is-selected', c.dataset.fraction === f);
+  });
+  const map = { quarter: { lbs: 140, amt: 1134 }, half: { lbs: 282, amt: 2142 } };
+  document.getElementById('reserve-amount').textContent = map[f].amt.toLocaleString();
+  document.getElementById('reserve-lbs').textContent = map[f].lbs;
+}
+
+function quickReserve() {
+  closeSheet('listing-sheet');
+  setTimeout(() => {
+    document.getElementById('checkout-sheet').classList.add('is-open');
+    tapCount = 2;
+  }, 200);
+}
+
+function customizeReserve() {
+  showToast('In real flow → 4-step Reserve & Customize wizard');
+}
+
+function payNow() {
+  // Tesla 3-tap moment: tap fraction → tap Apple Pay → tap biometric (this) = 3
+  tapCount = 3;
+  document.getElementById('tap-count').textContent = tapCount;
+  closeSheet('checkout-sheet');
+  setTimeout(() => {
+    document.getElementById('success-sheet').classList.add('is-open');
+  }, 200);
+}
+
+function closeSheet(id) {
+  document.getElementById(id).classList.remove('is-open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('is-visible');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
+}
+
+// init
+renderGrid();
+</script>
+</body>
+</html>

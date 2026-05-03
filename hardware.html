@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Protein Outfitters — Hardware (Friesla MPUs)</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+
+<style>
+.page-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: var(--r-3); box-shadow: var(--sh-0); max-width: 460px; margin: var(--s-6) auto; flex-wrap: wrap; }
+.page-tabs button { flex: 1; padding: 10px 12px; border-radius: var(--r-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+.page-tabs button.active { background: var(--brand); color: var(--ink-inverse); }
+
+/* Hero */
+.hw-hero {
+  position: relative;
+  min-height: 520px;
+  display: grid; align-items: center;
+  background:
+    radial-gradient(ellipse at 70% 20%, rgba(207,233,211,0.4) 0%, transparent 50%),
+    linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%);
+  color: var(--ink-inverse);
+  overflow: hidden;
+}
+.hw-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 80% 50%, rgba(74,40,32,0.4) 0%, transparent 60%),
+    linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.4) 100%);
+}
+.hw-hero-content { position: relative; z-index: 2; padding-block: var(--s-16); }
+.hw-hero h1 { color: white; max-width: 18ch; }
+.hw-hero p { color: rgba(255,255,255,0.85); max-width: 50ch; font-size: var(--text-lg); }
+
+/* SKU tiles */
+.sku-grid { display: grid; gap: var(--s-5); grid-template-columns: 1fr; padding-block: var(--s-12); }
+@media (min-width: 768px) { .sku-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.sku {
+  background: var(--surface);
+  border-radius: var(--r-5);
+  overflow: hidden;
+  box-shadow: var(--sh-1);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  display: flex; flex-direction: column;
+  cursor: pointer;
+}
+.sku:hover { transform: translateY(-3px); box-shadow: var(--sh-3); }
+.sku-photo {
+  height: 220px;
+  position: relative;
+  overflow: hidden;
+}
+.sku-photo.ps1 { background: linear-gradient(135deg, #4a4f4d 0%, #2a2e2c 50%, #1a1e1c 100%); }
+.sku-photo.cut-wrap { background: linear-gradient(135deg, #5a5048 0%, #3a3028 50%, #1f1812 100%); }
+.sku-photo.aging { background: linear-gradient(135deg, #4a5d52 0%, #2a382f 50%, #131a16 100%); }
+.sku-photo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.4) 100%);
+}
+.sku-photo .sku-tag {
+  position: absolute; top: var(--s-3); left: var(--s-3); z-index: 1;
+}
+.sku-body { padding: var(--s-6); display: flex; flex-direction: column; gap: var(--s-2); flex: 1; }
+.sku-body h3 { margin: 0; font-size: var(--text-xl); font-weight: 800; letter-spacing: var(--tracking-snug); }
+.sku-body .price { font-size: var(--text-2xl); font-weight: 900; letter-spacing: var(--tracking-tight); }
+.sku-body .price-note { font-size: var(--text-xs); color: var(--ink-3); margin-top: -2px; }
+.sku-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); margin-top: var(--s-3); padding: var(--s-3); background: var(--surface-2); border-radius: var(--r-2); }
+.sku-stats div { font-size: var(--text-xs); }
+.sku-stats em { display: block; color: var(--ink-3); text-transform: uppercase; letter-spacing: var(--tracking-wide); font-weight: 700; font-style: normal; margin-bottom: 2px; }
+.sku-stats strong { font-size: var(--text-sm); font-weight: 700; }
+.sku-cta { margin-top: auto; padding-top: var(--s-3); }
+
+/* Bundle banner */
+.bundle-banner {
+  background: var(--brand-grad);
+  color: var(--ink-inverse);
+  padding: var(--s-8) var(--s-6);
+  border-radius: var(--r-5);
+  display: grid; gap: var(--s-4);
+  grid-template-columns: 1fr;
+  align-items: center;
+  box-shadow: var(--sh-3);
+  margin-block: var(--s-12);
+}
+@media (min-width: 768px) { .bundle-banner { grid-template-columns: 2fr 1fr; padding: var(--s-12); } }
+.bundle-banner h2 { color: white; margin: 0 0 var(--s-2); }
+.bundle-banner p { opacity: 0.9; }
+.bundle-stats { display: flex; gap: var(--s-6); margin-top: var(--s-4); flex-wrap: wrap; }
+.bundle-stats .stat strong { display: block; font-size: var(--text-2xl); font-weight: 900; letter-spacing: var(--tracking-tight); }
+.bundle-stats .stat span { font-size: var(--text-xs); opacity: 0.7; text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); font-weight: 700; }
+
+/* Specs comparison */
+.specs-card { padding: var(--s-6); overflow-x: auto; }
+.specs-table { width: 100%; border-collapse: collapse; }
+.specs-table th, .specs-table td { padding: 10px 12px; font-size: var(--text-sm); text-align: left; }
+.specs-table th { font-size: var(--text-xs); font-weight: 800; text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); color: var(--ink-3); }
+.specs-table tr { border-bottom: 1px solid var(--hairline); }
+.specs-table tr:last-child { border: 0; }
+
+/* Product detail */
+.detail-layout { display: grid; gap: var(--s-8); grid-template-columns: 1fr; }
+@media (min-width: 900px) { .detail-layout { grid-template-columns: 1.5fr 1fr; } }
+.detail-photo {
+  height: 360px; border-radius: var(--r-5);
+  background: linear-gradient(135deg, #4a4f4d 0%, #2a2e2c 50%, #1a1e1c 100%);
+  position: relative;
+}
+.detail-photo .controls {
+  position: absolute; bottom: var(--s-3); left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px;
+}
+.detail-photo .controls span { width: 24px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; }
+.detail-photo .controls span.active { background: white; width: 36px; }
+.detail-aside {
+  position: sticky; top: var(--s-12);
+  padding: var(--s-6);
+  display: flex; flex-direction: column; gap: var(--s-4);
+}
+.detail-aside .price-line strong { font-size: var(--text-3xl); font-weight: 900; letter-spacing: var(--tracking-tight); }
+.detail-aside .price-line span { font-size: var(--text-sm); color: var(--ink-3); }
+
+.spec-row { display: flex; justify-content: space-between; padding: var(--s-3) 0; border-bottom: 1px solid var(--hairline); font-size: var(--text-sm); }
+.spec-row:last-child { border: 0; }
+.spec-row .spec-label { color: var(--ink-2); }
+.spec-row .spec-value { font-weight: 700; }
+
+/* Configurator */
+.config-step { padding: var(--s-6); border-bottom: 1px solid var(--hairline); }
+.config-step:last-child { border: 0; }
+.config-step h3 { margin: 0 0 var(--s-4); font-size: var(--text-lg); }
+.option-row {
+  display: grid; grid-template-columns: 24px 1fr auto;
+  gap: var(--s-3); align-items: center;
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface-2);
+  border-radius: var(--r-2);
+  cursor: pointer;
+  transition: background var(--dur-base);
+  margin-bottom: 6px;
+}
+.option-row:hover { background: var(--surface-3); }
+.option-row.is-selected { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--brand); }
+.option-row .opt-name { font-size: var(--text-sm); font-weight: 600; }
+.option-row .opt-meta { font-size: var(--text-xs); color: var(--ink-3); margin-top: 2px; }
+.option-row .opt-price { font-size: var(--text-sm); font-weight: 800; }
+
+.running-total {
+  position: sticky; bottom: 0;
+  background: var(--brand-grad); color: var(--ink-inverse);
+  padding: var(--s-4) var(--s-6);
+  border-radius: var(--r-4);
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: var(--sh-3);
+  margin-top: var(--s-6);
+}
+.running-total strong { font-size: var(--text-2xl); font-weight: 900; letter-spacing: var(--tracking-tight); }
+
+/* Quote form */
+.quote-layout { display: grid; gap: var(--s-6); grid-template-columns: 1fr; }
+@media (min-width: 900px) { .quote-layout { grid-template-columns: 1.5fr 1fr; } }
+.form-row { display: grid; gap: var(--s-1); margin-bottom: var(--s-4); }
+.form-row label { font-size: var(--text-sm); font-weight: 600; }
+.form-row .hint { font-size: var(--text-xs); color: var(--ink-3); }
+
+.config-summary {
+  background: var(--surface-2);
+  padding: var(--s-5);
+  border-radius: var(--r-3);
+}
+.config-summary-line { display: flex; justify-content: space-between; padding: 6px 0; font-size: var(--text-sm); border-bottom: 1px solid var(--hairline); }
+.config-summary-line:last-of-type { border: 0; }
+.config-summary-total { display: flex; justify-content: space-between; padding-top: var(--s-3); margin-top: var(--s-2); border-top: 2px solid var(--ink); font-weight: 900; font-size: var(--text-lg); }
+
+.what-next {
+  padding: var(--s-6);
+  background: var(--accent-subtle);
+  border-radius: var(--r-4);
+}
+.what-next h4 { margin: 0 0 var(--s-3); font-size: var(--text-md); font-weight: 800; }
+.what-next ol { padding-left: var(--s-5); margin: 0; }
+.what-next li { margin-bottom: 8px; font-size: var(--text-sm); color: var(--ink-2); }
+
+/* Confirmation */
+.confirm-page { text-align: center; padding-block: var(--s-12); }
+.confirm-page .check { width: 88px; height: 88px; border-radius: 50%; background: var(--accent); color: white; font-size: 44px; font-weight: 900; display: grid; place-items: center; margin: 0 auto var(--s-6); box-shadow: var(--sh-cta); }
+
+/* Customer story */
+.story-card {
+  padding: var(--s-6);
+  display: flex; flex-direction: column; gap: var(--s-3);
+}
+.story-quote { font-size: var(--text-md); font-style: italic; color: var(--ink); line-height: 1.6; }
+.story-attr { display: flex; align-items: center; gap: var(--s-3); }
+.story-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6b3c2c, #2a160e); }
+.story-attr strong { font-size: var(--text-sm); display: block; }
+.story-attr small { font-size: var(--text-xs); color: var(--ink-3); }
+
+.calendly-mock {
+  background: var(--surface);
+  padding: var(--s-6);
+  border-radius: var(--r-4);
+  text-align: center;
+  border: 2px dashed var(--hairline);
+}
+.calendly-mock .icon { font-size: 36px; margin-bottom: var(--s-3); }
+</style>
+</head>
+<body>
+
+<header class="glass-nav">
+  <div class="container">
+    <nav class="row row--between" style="padding: 14px 0;">
+      <a href="#" style="font-weight: 900; font-size: 16px; text-transform: uppercase;">Protein Outfitters</a>
+      <span class="pill" style="font-size: 10px;">HARDWARE</span>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="page-tabs">
+    <button class="active" onclick="showPage('catalog')">Catalog</button>
+    <button onclick="showPage('detail')">Detail</button>
+    <button onclick="showPage('config')">Configure</button>
+    <button onclick="showPage('quote')">Quote</button>
+    <button onclick="showPage('confirm')">Confirmed</button>
+  </div>
+</div>
+
+<!-- ============ CATALOG ============ -->
+<section id="page-catalog">
+  <section class="hw-hero">
+    <div class="container hw-hero-content">
+      <span class="eyebrow" style="color: var(--accent-soft);">Friesla Modular Processing</span>
+      <h1 class="display-2xl mt-4">USDA-grade processing on your land. In 90 days.</h1>
+      <p>The PS1 mobile harvest unit is a fully-equipped, federally-inspectable processing facility on a 36-foot trailer. Drop it in, hook up power and water, start processing. Built by a 4th-generation meat cutter who got tired of the bottleneck.</p>
+      <div class="row gap-3 mt-6" style="flex-wrap: wrap;">
+        <button class="btn btn--apple-pay btn--lg" onclick="showPage('quote')">Get a quote</button>
+        <button class="btn btn--secondary btn--lg" onclick="showPage('detail')" style="background: rgba(255,255,255,0.1); color: white; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);">See PS1 spec sheet</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="section-head text-center mt-12">
+      <span class="eyebrow">Three product lines</span>
+      <h2 class="display-md mt-2">Modular by design</h2>
+      <p class="body" style="max-width: 50ch; margin: var(--s-3) auto 0;">Buy one. Buy all three. Add modules later. Each unit is independent and integrates with PO marketplace booking out of the box.</p>
+    </div>
+
+    <div class="sku-grid">
+      <article class="sku" onclick="showPage('detail')">
+        <div class="sku-photo ps1">
+          <span class="pill pill--accent sku-tag">Most popular</span>
+        </div>
+        <div class="sku-body">
+          <span class="eyebrow">PS1</span>
+          <h3>Mobile Harvest Unit</h3>
+          <div class="price">$145k <small style="font-size: 12px; color: var(--ink-3);">starting at</small></div>
+          <p class="body-sm">Fully-equipped USDA-inspectable kill floor on a 36' trailer. Drop in, hook up, harvest.</p>
+          <div class="sku-stats">
+            <div><em>Footprint</em><strong>36' trailer</strong></div>
+            <div><em>Throughput</em><strong>4 beef/day</strong></div>
+            <div><em>Power</em><strong>200 amp · 480V</strong></div>
+            <div><em>Water</em><strong>15 gpm</strong></div>
+          </div>
+          <div class="sku-cta"><button class="btn btn--secondary btn--block">Learn more →</button></div>
+        </div>
+      </article>
+
+      <article class="sku" onclick="showPage('detail')">
+        <div class="sku-photo cut-wrap"></div>
+        <div class="sku-body">
+          <span class="eyebrow">PS1 Cut &amp; Wrap</span>
+          <h3>Cut &amp; Wrap Module</h3>
+          <div class="price">$85k <small style="font-size: 12px; color: var(--ink-3);">starting at</small></div>
+          <p class="body-sm">24' module for finishing — vacuum sealer, grinder, smoker option. Pairs with PS1 or stand-alone.</p>
+          <div class="sku-stats">
+            <div><em>Footprint</em><strong>24' trailer</strong></div>
+            <div><em>Throughput</em><strong>1,200 lbs/day</strong></div>
+            <div><em>Power</em><strong>100 amp · 240V</strong></div>
+            <div><em>Add</em><strong>Smoke +$28k</strong></div>
+          </div>
+          <div class="sku-cta"><button class="btn btn--secondary btn--block">Learn more →</button></div>
+        </div>
+      </article>
+
+      <article class="sku" onclick="showPage('detail')">
+        <div class="sku-photo aging"></div>
+        <div class="sku-body">
+          <span class="eyebrow">PS1 Aging</span>
+          <h3>Aging + Cold Storage</h3>
+          <div class="price">$65k <small style="font-size: 12px; color: var(--ink-3);">starting at</small></div>
+          <p class="body-sm">1,200 cu ft aging cooler. Adds 60 days of dry-aging capacity. Stand-alone or in-line with PS1.</p>
+          <div class="sku-stats">
+            <div><em>Footprint</em><strong>16' module</strong></div>
+            <div><em>Capacity</em><strong>1,200 cu ft</strong></div>
+            <div><em>Power</em><strong>50 amp · 240V</strong></div>
+            <div><em>Range</em><strong>32–55°F</strong></div>
+          </div>
+          <div class="sku-cta"><button class="btn btn--secondary btn--block">Learn more →</button></div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Bundle -->
+    <div class="bundle-banner">
+      <div>
+        <span class="eyebrow" style="color: var(--accent-soft);">Recommended for new operators</span>
+        <h2 class="display-lg">Full Pipeline Package</h2>
+        <p>PS1 + Cut &amp; Wrap + Aging — bundled at $260k (~12% off list). Adds 18 months of Standard SaaS subscription, free integration with PO marketplace booking, and priority site-visit scheduling.</p>
+        <div class="bundle-stats">
+          <div class="stat"><strong>$260k</strong><span>Bundle price</span></div>
+          <div class="stat"><strong>$35k</strong><span>You save</span></div>
+          <div class="stat"><strong>18 mo</strong><span>SaaS included</span></div>
+        </div>
+      </div>
+      <div class="row gap-3" style="flex-direction: column; align-items: stretch;">
+        <button class="btn btn--apple-pay btn--lg" onclick="showPage('config')">Configure my bundle →</button>
+        <button class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);" onclick="showPage('quote')">Talk to Mychal directly</button>
+      </div>
+    </div>
+
+    <!-- Specs comparison -->
+    <div class="section">
+      <div class="section-head text-center">
+        <span class="eyebrow">At a glance</span>
+        <h2 class="display-md">Compare the three</h2>
+      </div>
+      <div class="card specs-card">
+        <table class="specs-table">
+          <thead>
+            <tr><th>Spec</th><th>PS1 Harvest</th><th>Cut &amp; Wrap</th><th>Aging</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Lead price</td><td><strong>$145k</strong></td><td><strong>$85k</strong></td><td><strong>$65k</strong></td></tr>
+            <tr><td>Footprint</td><td>36' trailer</td><td>24' trailer</td><td>16' module</td></tr>
+            <tr><td>Beef/day</td><td>4</td><td>—</td><td>—</td></tr>
+            <tr><td>Hog/day</td><td>8</td><td>—</td><td>—</td></tr>
+            <tr><td>Lamb/day</td><td>20</td><td>—</td><td>—</td></tr>
+            <tr><td>Cut &amp; wrap</td><td>—</td><td>1,200 lbs/day</td><td>—</td></tr>
+            <tr><td>Aging capacity</td><td>—</td><td>—</td><td>1,200 cu ft (60 day)</td></tr>
+            <tr><td>USDA inspectable</td><td>✓ (with package)</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Power</td><td>200A · 480V</td><td>100A · 240V</td><td>50A · 240V</td></tr>
+            <tr><td>Water</td><td>15 gpm</td><td>5 gpm</td><td>None</td></tr>
+            <tr><td>Lead time to delivery</td><td>90–120 days</td><td>60–90 days</td><td>45–60 days</td></tr>
+            <tr><td>Warranty</td><td>2 yr full</td><td>2 yr full</td><td>3 yr cooling</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Customer story -->
+    <div class="section">
+      <div class="section-head text-center">
+        <span class="eyebrow">Customer story</span>
+        <h2 class="display-md">Stittsworth Meats deployed PS1 in 90 days</h2>
+      </div>
+      <div class="grid grid-cols-3" style="gap: var(--s-5);">
+        <div class="card story-card">
+          <p class="story-quote">"We were turning away 6-8 farmers a week because our schedule was booked out 18 months. The PS1 added enough capacity that we cleared the waitlist in 4 months."</p>
+          <div class="story-attr">
+            <div class="story-avatar"></div>
+            <div>
+              <strong>Mychal Stittsworth</strong>
+              <small>Stittsworth Meats · Bemidji, MN</small>
+            </div>
+          </div>
+        </div>
+        <div class="card story-card">
+          <p class="story-quote">"On-site harvest cut our customers' transport costs by 40% — and the animals were dramatically less stressed at slaughter, which we could literally taste in the finished product."</p>
+          <div class="story-attr">
+            <div class="story-avatar" style="background: linear-gradient(135deg,#5a7268,#8aa395);"></div>
+            <div>
+              <strong>Sarah Lindgren</strong>
+              <small>Lindgren Highland Ranch · MT</small>
+            </div>
+          </div>
+        </div>
+        <div class="card story-card">
+          <p class="story-quote">"USDA inspector came out the day after install to certify. Started running federal product the same week. The compliance package paid for itself in 60 days."</p>
+          <div class="story-attr">
+            <div class="story-avatar" style="background: linear-gradient(135deg,#7d4c4c,#a86b6b);"></div>
+            <div>
+              <strong>Tom Whitfield</strong>
+              <small>Whitfield Custom Processing · WI</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="section text-center">
+      <h2 class="display-lg mb-4">Six figures is a serious commitment.</h2>
+      <p class="body" style="max-width: 50ch; margin: 0 auto var(--s-8);">Book a 30-minute discovery call. We'll talk about your operation, throughput needs, USDA path, financing options, and timing. No sales pitch — just figure out if this fits.</p>
+      <div class="row gap-3" style="justify-content: center;">
+        <button class="btn btn--primary btn--xl" onclick="showPage('quote')">Get a quote</button>
+        <button class="btn btn--secondary btn--xl" onclick="showToast('Calendly inline booking opens')">Book the call</button>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ============ DETAIL ============ -->
+<section id="page-detail" class="hidden">
+  <div class="container py-12">
+    <button class="btn btn--ghost btn--sm mb-6" onclick="showPage('catalog')">← All hardware</button>
+
+    <div class="detail-layout">
+      <div>
+        <div class="detail-photo">
+          <div class="controls">
+            <span class="active"></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <span class="eyebrow">PS1 Mobile Harvest Unit</span>
+          <h1 class="display-lg mt-2">USDA-inspectable harvest on a trailer.</h1>
+          <p class="body mt-4">The PS1 is a complete, federally-inspectable kill floor in a 36-foot insulated trailer. Designed by a 4th-generation meat cutter who needed something that solved real-world problems: capacity bottlenecks, animal welfare, transport costs, and compliance complexity.</p>
+          <p class="body">It includes a knock pen, hoist, dressing rail, evisceration table, USDA inspector workstation, hot-water sanitation, a cooler bay, and CIP-clean drainage. Drop it on a level pad. Hook up 200-amp three-phase power and a 15-gpm water supply. You're processing within 24 hours of arrival.</p>
+        </div>
+
+        <div class="card mt-8" style="padding: var(--s-6);">
+          <span class="eyebrow">What's included</span>
+          <div class="grid grid-cols-2 gap-3 mt-4">
+            <div>✓ Stainless rail system (8,000 lb capacity)</div>
+            <div>✓ Hydraulic hoist + dressing platform</div>
+            <div>✓ Three-zone cooler (0–34°F)</div>
+            <div>✓ USDA inspector workstation</div>
+            <div>✓ Hot-water + steam sanitation</div>
+            <div>✓ CIP drainage with grease trap</div>
+            <div>✓ Evisceration + offal handling</div>
+            <div>✓ HVAC + ventilation</div>
+            <div>✓ Knock pen with restraint</div>
+            <div>✓ Air-gap potable water</div>
+            <div>✓ LED task lighting (5,000K)</div>
+            <div>✓ 12-month software included</div>
+          </div>
+        </div>
+
+        <div class="card mt-4 specs-card">
+          <span class="eyebrow">Full specs</span>
+          <div class="spec-row"><span class="spec-label">Trailer length</span><span class="spec-value">36 ft (40' / 48' optional)</span></div>
+          <div class="spec-row"><span class="spec-label">Width / height</span><span class="spec-value">8.5 ft / 13.5 ft</span></div>
+          <div class="spec-row"><span class="spec-label">Total weight (loaded)</span><span class="spec-value">28,500 lbs</span></div>
+          <div class="spec-row"><span class="spec-label">Beef/day capacity</span><span class="spec-value">4 head</span></div>
+          <div class="spec-row"><span class="spec-label">Hog/day capacity</span><span class="spec-value">8 head</span></div>
+          <div class="spec-row"><span class="spec-label">Lamb/day capacity</span><span class="spec-value">20 head</span></div>
+          <div class="spec-row"><span class="spec-label">Power requirement</span><span class="spec-value">200 amp 3-phase 480V</span></div>
+          <div class="spec-row"><span class="spec-label">Water requirement</span><span class="spec-value">15 gpm potable + drain</span></div>
+          <div class="spec-row"><span class="spec-label">Pad requirement</span><span class="spec-value">42' × 12' level concrete or compacted gravel</span></div>
+          <div class="spec-row"><span class="spec-label">Climate range</span><span class="spec-value">−20°F to 110°F operational</span></div>
+          <div class="spec-row"><span class="spec-label">USDA inspectable</span><span class="spec-value">Yes (with +$15k upgrade package)</span></div>
+          <div class="spec-row"><span class="spec-label">Lead time</span><span class="spec-value">90–120 days from PO</span></div>
+          <div class="spec-row"><span class="spec-label">Warranty</span><span class="spec-value">2 years full + 5 years structural</span></div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card card--floating detail-aside">
+          <span class="eyebrow">PS1 Mobile Harvest Unit</span>
+          <div class="price-line"><strong>$145,000</strong><br><span>starting at · before customizations</span></div>
+
+          <button class="btn btn--apple-pay btn--lg btn--block" onclick="showPage('config')">Configure your MPU</button>
+          <button class="btn btn--secondary btn--block" onclick="showPage('quote')">Get a quote</button>
+
+          <div class="card" style="background: var(--accent-subtle); padding: var(--s-4); margin-top: var(--s-3);">
+            <strong style="font-size: var(--text-xs); display: block; color: var(--brand);">12 months of SaaS included</strong>
+            <p style="font-size: var(--text-xs); color: var(--ink-2); margin: 4px 0 0; line-height: 1.5;">Any MPU purchase ≥ $50k includes 12 months of Standard tier (queue view, cut sheets, customer comms — $79/mo value).</p>
+          </div>
+
+          <div class="card" style="padding: var(--s-4); margin-top: var(--s-3);">
+            <strong style="font-size: var(--text-xs); display: block;">Need financing?</strong>
+            <p style="font-size: var(--text-xs); color: var(--ink-2); margin: 4px 0 0; line-height: 1.5;">USDA FSA loans, Compeer Financial equipment leasing, and Stearns Bank ag loans available. We pre-vet partners.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONFIGURATOR ============ -->
+<section id="page-config" class="hidden">
+  <div class="container container--narrow py-12">
+    <button class="btn btn--ghost btn--sm mb-6" onclick="showPage('detail')">← Back to PS1</button>
+
+    <div class="text-center mb-8">
+      <span class="eyebrow">Configure your build</span>
+      <h1 class="display-lg mt-2">Build your unit</h1>
+    </div>
+
+    <div class="card">
+      <!-- Step 1 -->
+      <div class="config-step">
+        <h3>Step 1 of 4 · Pick your base</h3>
+        <div class="option-row" data-base="ps1" data-price="145000" onclick="selectOption(this, 'base')">
+          <span style="font-size: 18px;">○</span>
+          <div><div class="opt-name">PS1 Harvest only</div><div class="opt-meta">36' trailer · 4 beef/day</div></div>
+          <div class="opt-price">$145,000</div>
+        </div>
+        <div class="option-row" data-base="cut-wrap" data-price="85000" onclick="selectOption(this, 'base')">
+          <span style="font-size: 18px;">○</span>
+          <div><div class="opt-name">Cut &amp; Wrap only</div><div class="opt-meta">24' trailer · 1,200 lbs/day finishing</div></div>
+          <div class="opt-price">$85,000</div>
+        </div>
+        <div class="option-row is-selected" data-base="bundle" data-price="260000" onclick="selectOption(this, 'base')">
+          <span style="font-size: 18px;">●</span>
+          <div><div class="opt-name">Full Pipeline Package <span class="pill pill--accent" style="margin-left: 6px; padding: 2px 8px;">~12% off</span></div><div class="opt-meta">PS1 + Cut &amp; Wrap + Aging · 18mo SaaS</div></div>
+          <div class="opt-price">$260,000</div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="config-step">
+        <h3>Step 2 of 4 · Add modules</h3>
+        <div class="option-row" data-add="smoke" data-price="28000" onclick="toggleOption(this)">
+          <span style="font-size: 16px;">☐</span>
+          <div><div class="opt-name">Smoke / cure room</div><div class="opt-meta">Adds smoking, curing, and brine workflows</div></div>
+          <div class="opt-price">+$28,000</div>
+        </div>
+        <div class="option-row" data-add="brine" data-price="12000" onclick="toggleOption(this)">
+          <span style="font-size: 16px;">☐</span>
+          <div><div class="opt-name">Brine injection station</div><div class="opt-meta">For value-added products like hams and bacon</div></div>
+          <div class="opt-price">+$12,000</div>
+        </div>
+        <div class="option-row" data-add="aging-bay" data-price="18000" onclick="toggleOption(this)">
+          <span style="font-size: 16px;">☐</span>
+          <div><div class="opt-name">Extra aging bay</div><div class="opt-meta">+50% aging capacity over standard module</div></div>
+          <div class="opt-price">+$18,000</div>
+        </div>
+        <div class="option-row is-selected" data-add="usda" data-price="15000" onclick="toggleOption(this)">
+          <span style="font-size: 16px;">☑</span>
+          <div><div class="opt-name">USDA upgrade package</div><div class="opt-meta">Inspector workstation upgrades + compliance docs</div></div>
+          <div class="opt-price">+$15,000</div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="config-step">
+        <h3>Step 3 of 4 · Floor plan</h3>
+        <div class="option-row is-selected" data-floor="36" data-price="0" onclick="selectOption(this, 'floor')">
+          <span style="font-size: 18px;">●</span>
+          <div><div class="opt-name">Standard 36' trailer</div><div class="opt-meta">Most common · road-legal everywhere</div></div>
+          <div class="opt-price">included</div>
+        </div>
+        <div class="option-row" data-floor="40" data-price="12000" onclick="selectOption(this, 'floor')">
+          <span style="font-size: 18px;">○</span>
+          <div><div class="opt-name">Extended 40' trailer</div><div class="opt-meta">More working space · check state road permits</div></div>
+          <div class="opt-price">+$12,000</div>
+        </div>
+        <div class="option-row" data-floor="48" data-price="22000" onclick="selectOption(this, 'floor')">
+          <span style="font-size: 18px;">○</span>
+          <div><div class="opt-name">Extended 48' trailer</div><div class="opt-meta">Maximum capacity · escort permits required some states</div></div>
+          <div class="opt-price">+$22,000</div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="config-step">
+        <h3>Step 4 of 4 · Operations</h3>
+        <div class="form-row">
+          <label>Estimated weekly throughput</label>
+          <input type="number" class="input" placeholder="e.g. 8 head/week" />
+        </div>
+        <div class="form-row">
+          <label>Operating state</label>
+          <select class="select">
+            <option>Minnesota</option>
+            <option>North Dakota</option>
+            <option>Wisconsin</option>
+            <option>Montana</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>USDA inspection desired?</label>
+          <div class="row gap-3">
+            <label class="row gap-2"><input type="radio" name="usda" checked /> <span style="font-size: var(--text-sm);">Yes</span></label>
+            <label class="row gap-2"><input type="radio" name="usda" /> <span style="font-size: var(--text-sm);">No</span></label>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Integrate with PO marketplace booking?</label>
+          <div class="row gap-3">
+            <label class="row gap-2"><input type="radio" name="po" checked /> <span style="font-size: var(--text-sm);">Yes (free)</span></label>
+            <label class="row gap-2"><input type="radio" name="po" /> <span style="font-size: var(--text-sm);">No</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="running-total">
+      <div>
+        <div style="font-size: var(--text-xs); opacity: 0.7;">Estimated total</div>
+        <strong id="config-total">$275,000</strong>
+        <div style="font-size: var(--text-xs); opacity: 0.7; margin-top: 4px;">includes 18mo Standard SaaS · final pricing on quote</div>
+      </div>
+      <button class="btn btn--apple-pay btn--lg" onclick="showPage('quote')">Get a quote →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUOTE FORM ============ -->
+<section id="page-quote" class="hidden">
+  <div class="container py-12">
+    <button class="btn btn--ghost btn--sm mb-6" onclick="showPage('config')">← Back to configurator</button>
+
+    <div class="quote-layout">
+      <div>
+        <div class="text-center mb-8" style="text-align: left;">
+          <span class="eyebrow">Quote request</span>
+          <h1 class="display-md mt-2">Tell us about you</h1>
+          <p class="body">Mychal personally reviews every hardware quote. You'll hear back within 24 hours.</p>
+        </div>
+
+        <div class="config-summary mb-6">
+          <strong style="font-size: var(--text-sm); display: block; margin-bottom: var(--s-3);">Your configuration</strong>
+          <div class="config-summary-line"><span>Full Pipeline Package</span><span>$260,000</span></div>
+          <div class="config-summary-line"><span>USDA upgrade package</span><span>+$15,000</span></div>
+          <div class="config-summary-line"><span>Standard 36' floor plan</span><span>included</span></div>
+          <div class="config-summary-line"><span>18 mo Standard SaaS</span><span>included</span></div>
+          <div class="config-summary-total"><span>Estimated total</span><span>$275,000</span></div>
+        </div>
+
+        <form>
+          <div class="form-row"><label>Full name</label><input type="text" class="input" placeholder="Arthur Sterling" required /></div>
+          <div class="form-row"><label>Email</label><input type="email" class="input" placeholder="arthur@sterlingfarms.com" required /></div>
+          <div class="form-row"><label>Phone</label><input type="tel" class="input" placeholder="(218) 555-0142" required /></div>
+          <div class="form-row">
+            <label>Role</label>
+            <select class="select">
+              <option>Farm owner</option>
+              <option>Processor</option>
+              <option>Locker operator</option>
+              <option>Co-op</option>
+              <option>Investor</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Operating state</label>
+            <select class="select">
+              <option>Minnesota</option>
+              <option>North Dakota</option>
+              <option>Wisconsin</option>
+              <option>Montana</option>
+              <option>Iowa</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Existing facility?</label>
+            <div class="row gap-3">
+              <label class="row gap-2"><input type="radio" name="facility" /> <span style="font-size: var(--text-sm);">Yes — adding capacity</span></label>
+              <label class="row gap-2"><input type="radio" name="facility" /> <span style="font-size: var(--text-sm);">No — building new</span></label>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Timeline</label>
+            <div class="row gap-2" style="flex-wrap: wrap;">
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> 0–3 months</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> 3–6 months</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> 6–12 months</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> 12+ months</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> Just exploring</label>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="row gap-2"><input type="checkbox" /> <span style="font-size: var(--text-sm);">I'd like help with financing options (USDA FSA, equipment leasing)</span></label>
+          </div>
+          <div class="form-row">
+            <label>Anything else? <span class="hint">(optional)</span></label>
+            <textarea class="textarea" placeholder="Tell us about your operation — current throughput, why now, anything specific you want covered on the call."></textarea>
+          </div>
+
+          <button type="button" class="btn btn--primary btn--xl btn--block mt-6" onclick="showPage('confirm')">Submit &amp; schedule a call</button>
+          <p class="text-faint text-center mt-3" style="font-size: 11px;">By submitting you agree to our privacy policy. We don't share your contact info with anyone.</p>
+        </form>
+      </div>
+
+      <aside>
+        <div class="what-next">
+          <h4>What happens next</h4>
+          <ol>
+            <li>Mychal reviews your config and timeline (within 24 hours)</li>
+            <li>30-min discovery call to understand your operation</li>
+            <li>Site-visit scheduled if you're 0–6 months out</li>
+            <li>Custom proposal with timeline, pricing, financing options, USDA path</li>
+            <li>You decide. No pressure, no follow-up calls if you say "not now"</li>
+          </ol>
+        </div>
+
+        <div class="card mt-4" style="padding: var(--s-5);">
+          <div class="row gap-3">
+            <div class="story-avatar" style="width: 56px; height: 56px;"></div>
+            <div>
+              <strong style="font-size: var(--text-sm); display: block;">Mychal Stittsworth</strong>
+              <small class="text-faint">Founder · 4th-gen meat cutter</small>
+            </div>
+          </div>
+          <p class="body-sm mt-3">"I built the PS1 because the 18-month wait at custom processors was killing the small farms in our area. If I can save you that wait, that's the whole point."</p>
+        </div>
+
+        <div class="card mt-4" style="padding: var(--s-5); background: var(--accent-subtle);">
+          <strong style="font-size: var(--text-sm); display: block;">Or skip the form</strong>
+          <p class="body-sm mt-2">Book directly on Mychal's calendar. Same outcome, faster.</p>
+          <button class="btn btn--secondary btn--block btn--sm mt-4" onclick="showToast('Calendly inline opens')">Book a call →</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONFIRMATION ============ -->
+<section id="page-confirm" class="hidden">
+  <div class="container container--narrow confirm-page">
+    <div class="check">✓</div>
+    <h2 class="display-lg mb-3">Got it. We'll be in touch within 24 hours.</h2>
+    <p class="body" style="max-width: 50ch; margin: 0 auto var(--s-8);">Mychal personally reviews every hardware quote and will reach out by phone or email — your choice. While you wait:</p>
+
+    <div class="calendly-mock mb-6">
+      <div class="icon">📅</div>
+      <h3 class="h2">Skip the wait — book the call now</h3>
+      <p class="body-sm" style="max-width: 40ch; margin: var(--s-3) auto 0;">Pick a 30-minute slot on Mychal's calendar. No pressure, no commitment.</p>
+      <button class="btn btn--primary btn--lg mt-4" onclick="showToast('Calendly inline iframe loads here')">View available times →</button>
+    </div>
+
+    <div class="card text-left" style="padding: var(--s-6); max-width: 540px; margin: 0 auto;">
+      <span class="eyebrow">What we'll discuss</span>
+      <ul class="mt-4" style="font-size: var(--text-sm); list-style: none; padding: 0;">
+        <li class="row gap-3 mb-3">✓ Your current operation, throughput goals, bottlenecks</li>
+        <li class="row gap-3 mb-3">✓ The right configuration for your throughput and inspection path</li>
+        <li class="row gap-3 mb-3">✓ Site visit logistics — when and where</li>
+        <li class="row gap-3 mb-3">✓ Financing options and USDA loan partners</li>
+        <li class="row gap-3 mb-3">✓ Timeline from PO to running unit</li>
+      </ul>
+    </div>
+
+    <p class="text-faint mt-8" style="font-size: var(--text-xs);">Reference: HW-1842 · Saved configuration locked for 30 days</p>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showPage(p) {
+  ['catalog','detail','config','quote','confirm'].forEach(id => {
+    document.getElementById('page-'+id).classList.toggle('hidden', id !== p);
+  });
+  document.querySelectorAll('.page-tabs button').forEach((b,i) => {
+    const map = ['catalog','detail','config','quote','confirm'];
+    b.classList.toggle('active', map[i] === p);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectOption(el, group) {
+  el.parentElement.querySelectorAll(`.option-row[data-${group}]`).forEach(r => {
+    r.classList.remove('is-selected');
+    r.querySelector('span').textContent = '○';
+  });
+  el.classList.add('is-selected');
+  el.querySelector('span').textContent = '●';
+  recalcTotal();
+}
+
+function toggleOption(el) {
+  el.classList.toggle('is-selected');
+  el.querySelector('span').textContent = el.classList.contains('is-selected') ? '☑' : '☐';
+  recalcTotal();
+}
+
+function recalcTotal() {
+  let total = 0;
+  document.querySelectorAll('.option-row.is-selected').forEach(r => {
+    total += parseInt(r.dataset.price || '0', 10);
+  });
+  document.getElementById('config-total').textContent = '$' + total.toLocaleString();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('is-visible');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
+}
+</script>
+</body>
+</html>

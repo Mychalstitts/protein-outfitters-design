@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Protein Outfitters — Cut Sheet (Prototype)</title>
+<style>
+:root {
+  --bg: #f9f9f8;
+  --surface: #ffffff;
+  --surface-2: #f3f4f3;
+  --ink: #0c1410;
+  --ink-2: #5b6660;
+  --ink-3: #8b9590;
+  --hairline: rgba(12,20,16,0.08);
+  --brand: #061b0e;
+  --brand-2: #1b3022;
+  --accent: #2f7d49;
+  --accent-soft: #cfe9d3;
+  --warn: #b1641a;
+  --warn-soft: #fbe8d2;
+  --over: #b03333;
+  --over-soft: #fadcdc;
+  --shadow: 0 24px 40px -16px rgba(12,20,16,0.12), 0 4px 12px -4px rgba(12,20,16,0.06);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+.app { max-width: 460px; min-height: 100vh; margin: 0 auto; background: var(--bg);
+  position: relative; padding-bottom: 220px; }
+header.nav {
+  position: sticky; top: 0; z-index: 20; background: rgba(249,249,248,0.85);
+  backdrop-filter: saturate(140%) blur(18px); padding: 16px 20px 12px;
+  display: flex; align-items: center; gap: 12px; }
+.back-btn { width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface); display: grid; place-items: center;
+  cursor: pointer; box-shadow: 0 1px 0 var(--hairline); border: 0; }
+.back-btn:hover { background: var(--surface-2); }
+.step-title { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; flex: 1; }
+.step-meta { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+.summary-bar { margin: 0 20px 16px; padding: 12px 14px; background: var(--surface);
+  border-radius: 16px; box-shadow: 0 1px 0 var(--hairline);
+  display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; }
+.summary-bar .thumb { width: 56px; height: 56px; border-radius: 12px;
+  background: linear-gradient(135deg, #1b3022, #2f7d49); }
+.summary-bar h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+.summary-bar p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); }
+.summary-bar .meta { text-align: right; font-size: 11px; color: var(--ink-3); }
+.summary-bar .meta strong { display: block; font-size: 13px; color: var(--ink); font-weight: 700; }
+
+.section { margin: 22px 20px 0; }
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--ink-3); margin-bottom: 10px; padding-left: 4px; }
+.card { background: var(--surface); border-radius: 18px; box-shadow: 0 1px 0 var(--hairline);
+  overflow: hidden; }
+.card + .card { margin-top: 10px; }
+
+.preset-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 4px 14px;
+  margin: -4px -20px 0; padding-left: 20px; padding-right: 20px;
+  scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; }
+.preset-row::-webkit-scrollbar { display: none; }
+.preset { scroll-snap-align: start; min-width: 168px; padding: 14px 14px 12px;
+  background: var(--surface); border-radius: 16px; cursor: pointer;
+  border: 1.5px solid transparent; transition: all 0.15s ease; }
+.preset:hover { transform: translateY(-1px); }
+.preset.is-selected { border-color: var(--brand); background: linear-gradient(180deg,#fff,#f6faf7); }
+.preset h4 { margin: 0 0 4px; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+.preset p { margin: 0; font-size: 11px; color: var(--ink-2); line-height: 1.4; }
+.preset .icon { width: 28px; height: 28px; border-radius: 8px;
+  background: var(--surface-2); margin-bottom: 8px; display: grid; place-items: center;
+  font-size: 14px; }
+
+.applied-banner { margin: 10px 0 0; padding: 10px 12px; background: var(--accent-soft);
+  border-radius: 12px; font-size: 12px; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.applied-banner b { font-weight: 700; }
+
+.row { padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--hairline); }
+.row:last-child { border-bottom: 0; }
+.row .label { flex: 1; }
+.row .label-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.row .label-sub { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.row .photo { width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, #d8c2a0, #b08a5a); }
+.row .photo.beef { background: radial-gradient(circle at 30% 30%, #b54848, #6b1f1f); }
+.row .photo.pork { background: radial-gradient(circle at 30% 30%, #f0b6a8, #b6644f); }
+.row .photo.lamb { background: radial-gradient(circle at 30% 30%, #c89690, #7d4c4c); }
+.row .photo.poultry { background: radial-gradient(circle at 30% 30%, #f5e1a4, #b08a3a); }
+
+.qty { display: flex; align-items: center; gap: 6px; }
+.qty button { width: 28px; height: 28px; border-radius: 50%; border: 0;
+  background: var(--surface-2); cursor: pointer; font-size: 16px;
+  display: grid; place-items: center; color: var(--ink); }
+.qty button:hover { background: #e6e9e7; }
+.qty button:disabled { opacity: 0.35; cursor: not-allowed; }
+.qty .n { min-width: 22px; text-align: center; font-weight: 700; font-size: 14px; }
+
+.toggle { width: 44px; height: 26px; border-radius: 13px;
+  background: var(--surface-2); position: relative; cursor: pointer; flex-shrink: 0;
+  transition: background 0.15s ease; }
+.toggle::after { content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%; background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: transform 0.15s ease; }
+.toggle.on { background: var(--brand); }
+.toggle.on::after { transform: translateX(18px); }
+
+.select-pill { padding: 8px 12px; background: var(--surface-2); border: 0;
+  border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; appearance: none; padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23000' fill='none' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; }
+
+.species-tabs { display: flex; gap: 6px; margin: 10px 20px 0; }
+.species-tabs button { flex: 1; padding: 10px; border: 0; background: var(--surface);
+  border-radius: 10px; font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; color: var(--ink-2); }
+.species-tabs button.is-active { background: var(--brand); color: white; }
+
+.subprimal { padding: 14px 16px; }
+.subprimal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.subprimal-head .anatomy {
+  width: 36px; height: 36px; border-radius: 10px; background: var(--surface-2);
+  display: grid; place-items: center; font-size: 16px; font-weight: 800;
+  color: var(--ink-2); flex-shrink: 0; }
+.subprimal-head h4 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.02em; flex: 1; }
+.subprimal-cuts { padding-left: 48px; }
+.subprimal-cuts .row { padding: 10px 0; border-bottom: 1px dashed var(--hairline); }
+.subprimal-cuts .row:last-child { border-bottom: 0; }
+
+.csr-card { padding: 14px 16px; }
+.csr-card label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 8px; }
+.csr-card textarea { width: 100%; min-height: 80px; padding: 12px;
+  border: 1px solid var(--hairline); border-radius: 12px; font-family: inherit;
+  font-size: 13px; resize: vertical; background: var(--surface-2); color: var(--ink); }
+.csr-card textarea:focus { outline: 2px solid var(--brand); outline-offset: 1px; background: white; }
+
+.yield-meter { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+  max-width: 460px; margin: 0 auto; background: rgba(255,255,255,0.94);
+  backdrop-filter: saturate(140%) blur(18px); padding: 14px 18px 18px;
+  border-top: 1px solid var(--hairline); box-shadow: var(--shadow); }
+.yield-meter .top { display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 13px; margin-bottom: 8px; }
+.yield-meter .top strong { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.yield-meter .bar { height: 8px; background: var(--surface-2); border-radius: 4px;
+  overflow: hidden; }
+.yield-meter .bar-fill { height: 100%; background: var(--accent);
+  transition: width 0.3s ease, background 0.2s ease; }
+.yield-meter.over .bar-fill { background: var(--over); }
+.yield-meter.warn .bar-fill { background: var(--warn); }
+.yield-meter .breakdown { font-size: 11px; color: var(--ink-2); margin-top: 8px;
+  display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.yield-meter .alert { font-size: 12px; font-weight: 600; margin-top: 6px;
+  padding: 6px 10px; border-radius: 8px; display: none; }
+.yield-meter .alert.show { display: block; }
+.yield-meter .alert.over { background: var(--over-soft); color: var(--over); }
+.yield-meter .alert.warn { background: var(--warn-soft); color: var(--warn); }
+.yield-meter .actions { display: flex; gap: 8px; margin-top: 12px; }
+.yield-meter .btn-primary { flex: 1; padding: 14px; background: var(--brand);
+  color: white; border: 0; border-radius: 14px; font-family: inherit;
+  font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: -0.01em;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  box-shadow: 0 8px 24px -8px rgba(6,27,14,0.4); }
+.yield-meter .btn-secondary { padding: 14px 16px; background: transparent;
+  color: var(--ink); border: 0; border-radius: 14px;
+  font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+.upcharge { font-size: 11px; color: var(--warn); font-weight: 600; }
+
+/* details modal styling */
+.modal-bg { position: fixed; inset: 0; background: rgba(12,20,16,0.55);
+  z-index: 50; display: none; align-items: flex-end; justify-content: center; }
+.modal-bg.show { display: flex; }
+.modal { width: 100%; max-width: 460px; background: white; border-radius: 24px 24px 0 0;
+  padding: 18px 20px 24px; max-height: 80vh; overflow: auto; }
+.modal h3 { margin: 0 0 8px; font-size: 18px; }
+.modal p { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.modal .photo-big { width: 100%; height: 160px; border-radius: 14px; margin: 8px 0 14px; }
+.modal-close { float: right; background: var(--surface-2); border: 0; border-radius: 50%;
+  width: 32px; height: 32px; cursor: pointer; font-size: 18px; }
+.toast { position: fixed; bottom: 240px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: white; padding: 10px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s ease, bottom 0.2s ease; z-index: 100; }
+.toast.show { opacity: 1; bottom: 250px; }
+
+/* mobile feel */
+@media (max-width: 460px) {
+  .app { padding-bottom: 240px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="nav">
+    <button class="back-btn" aria-label="Back" onclick="alert('In real flow: back to Step 2 (processor). Your selections preserved.')">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M9 1L3 7l6 6" stroke="#0c1410" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="step-title">Customize your cuts</div>
+      <div class="step-meta">Step 3 of 4 · Premium Angus Steer #402</div>
+    </div>
+  </header>
+
+  <div class="summary-bar">
+    <div class="thumb"></div>
+    <div>
+      <h3>Premium Angus Steer #402</h3>
+      <p>Rolling Hills Ranch · ½ Share · Hilltop Custom Meats</p>
+    </div>
+    <div class="meta">
+      <strong id="takehome-display">282 lbs</strong>
+      take-home
+    </div>
+  </div>
+
+  <div class="species-tabs" role="tablist" aria-label="Switch species (preview)">
+    <button class="is-active" data-sp="beef" onclick="switchSpecies('beef')">Beef</button>
+    <button data-sp="hog" onclick="switchSpecies('hog')">Hog</button>
+    <button data-sp="lamb" onclick="switchSpecies('lamb')">Lamb</button>
+    <button data-sp="poultry" onclick="switchSpecies('poultry')">Poultry</button>
+  </div>
+
+  <!-- 5a Smart Preset -->
+  <section class="section">
+    <div class="section-label">Smart Preset</div>
+    <div class="preset-row" id="presets">
+      <button class="preset" data-preset="premium_steaks" onclick="applyPreset('premium_steaks')">
+        <div class="icon">P</div>
+        <h4>Premium Steaks</h4>
+        <p>Maximize prime cuts. Less ground.</p>
+      </button>
+      <button class="preset is-selected" data-preset="family_pack" onclick="applyPreset('family_pack')">
+        <div class="icon">F</div>
+        <h4>Family Pack</h4>
+        <p>Balanced roasts, steaks, and ground.</p>
+      </button>
+      <button class="preset" data-preset="restaurant" onclick="applyPreset('restaurant')">
+        <div class="icon">R</div>
+        <h4>Restaurant Cuts</h4>
+        <p>Steaks, tenderloin, brisket emphasized.</p>
+      </button>
+      <button class="preset" data-preset="budget_ground" onclick="applyPreset('budget_ground')">
+        <div class="icon">G</div>
+        <h4>Budget Ground</h4>
+        <p>Maximize ground beef and stew meat.</p>
+      </button>
+      <button class="preset" data-preset="custom" onclick="applyPreset('custom')">
+        <div class="icon">C</div>
+        <h4>Custom</h4>
+        <p>Build it yourself below.</p>
+      </button>
+    </div>
+    <div class="applied-banner" id="banner">Applied: <b>Family Pack</b> — tap any cut to tweak.</div>
+  </section>
+
+  <!-- 5b Order Defaults -->
+  <section class="section">
+    <div class="section-label">Order Defaults</div>
+    <div class="card">
+      <div class="row"><div class="label"><div class="label-title">Roast size</div><div class="label-sub">Used wherever a roast is selected</div></div>
+        <select class="select-pill" id="def-roast" onchange="recompute()">
+          <option>2 lb</option><option selected>3 lb</option><option>4 lb</option>
+        </select></div>
+      <div class="row"><div class="label"><div class="label-title">Steak thickness</div><div class="label-sub">Applied across all steak cuts</div></div>
+        <select class="select-pill" id="def-thick" onchange="recompute()">
+          <option>3/4"</option><option selected>1"</option><option>1 1/4"</option><option>1 1/2"</option>
+        </select></div>
+      <div class="row"><div class="label"><div class="label-title">Steaks per pack</div></div>
+        <select class="select-pill" id="def-pack" onchange="recompute()">
+          <option>1</option><option selected>2</option><option>4</option>
+        </select></div>
+      <div class="row"><div class="label"><div class="label-title">Ground packaging</div></div>
+        <select class="select-pill" id="def-ground" onchange="recompute()">
+          <option selected>1 lb packs</option><option>1.5 lb</option><option>2 lb</option>
+        </select></div>
+      <div class="row"><div class="label"><div class="label-title">Lean ratio</div><div class="label-sub">Beef only</div></div>
+        <select class="select-pill" id="def-lean" onchange="recompute()">
+          <option selected>80/20</option><option>85/15</option><option>90/10</option>
+        </select></div>
+    </div>
+  </section>
+
+  <!-- 5c Sub-primals -->
+  <section class="section">
+    <div class="section-label">Cuts by Sub-Primal</div>
+    <div id="subprimals"></div>
+  </section>
+
+  <!-- 5d Specialty + Organs + CSR -->
+  <section class="section">
+    <div class="section-label">Specialty &amp; Byproducts</div>
+    <div class="card">
+      <div class="row"><div class="photo beef"></div><div class="label">
+        <div class="label-title">Soup bones</div><div class="label-sub">~6 lbs</div></div>
+        <div class="toggle" onclick="this.classList.toggle('on'); recompute()"></div></div>
+      <div class="row"><div class="photo beef"></div><div class="label">
+        <div class="label-title">Suet / tallow trim</div><div class="label-sub">For rendering · ~4 lbs</div></div>
+        <div class="toggle" onclick="this.classList.toggle('on'); recompute()"></div></div>
+      <div class="row"><div class="photo beef"></div><div class="label">
+        <div class="label-title">Smoked brats <span class="upcharge">+$2/lb</span></div>
+        <div class="label-sub">Made from trim · 1 lb packs</div></div>
+        <div class="toggle" onclick="this.classList.toggle('on'); recompute()"></div></div>
+      <div class="row"><div class="photo beef"></div><div class="label">
+        <div class="label-title">Snack sticks <span class="upcharge">+$3/lb</span></div>
+        <div class="label-sub">Original or jalapeño-cheddar</div></div>
+        <div class="toggle" onclick="this.classList.toggle('on'); recompute()"></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Organs &amp; Offal</div>
+    <div class="card">
+      <div class="row"><div class="photo beef"></div><div class="label">
+        <div class="label-title">Heart</div><div class="label-sub">~3 lbs · whole</div></div>
+        <div class="toggle on" onclick="this.classList.toggle('on'); recompute()"></div></div>
+      <div class="row"><div class="photo beef"></div><div class="label">
+        <div class="label-title">Liver</div><div class="label-sub">~10 lbs · sliced</div></div>
+        <div class="toggle" onclick="this.classList.toggle('on'); recompute()"></div></div>
+      <div class="row"><div class="photo beef"></div><div class="label">
+        <div class="label-title">Tongue</div><div class="label-sub">~3 lbs · whole</div></div>
+        <div class="toggle" onclick="this.classList.toggle('on'); recompute()"></div></div>
+      <div class="row"><div class="photo beef"></div><div class="label">
+        <div class="label-title">Oxtail</div><div class="label-sub">~2 lbs · sectioned</div></div>
+        <div class="toggle" onclick="this.classList.toggle('on'); recompute()"></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Customer Special Request</div>
+    <div class="card csr-card">
+      <label for="csr">Anything not on this sheet?</label>
+      <textarea id="csr" placeholder="e.g. extra-thick ribeyes, save beef cheeks, no liver, cut tenderloin into medallions"></textarea>
+      <p style="font-size:11px;color:var(--ink-3);margin:6px 0 0">Your processor will call you if a request isn't feasible.</p>
+    </div>
+  </section>
+</div>
+
+<!-- Sticky yield meter -->
+<div class="yield-meter" id="meter">
+  <div class="top">
+    <span>Allocated</span>
+    <span><strong id="alloc-lbs">0</strong> of <span id="total-lbs">282</span> lbs</span>
+  </div>
+  <div class="bar"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
+  <div class="alert" id="alert"></div>
+  <div class="breakdown" id="breakdown"></div>
+  <div class="actions">
+    <button class="btn-secondary" onclick="skipToProcessorChoice()">Skip — Processor's Choice</button>
+    <button class="btn-primary" onclick="goToPay()">Save &amp; Pay →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>
+    <div class="photo-big" id="modalPhoto"></div>
+    <h3 id="modalTitle">Cut detail</h3>
+    <p id="modalBody">Detail goes here.</p>
+  </div>
+</div>
+
+<script>
+// ----- Data: animal-aware sub-primals + cuts -----
+const SUBPRIMALS = {
+  beef: [
+    { id:'chuck', name:'Chuck', hint:'Shoulder · braising & ground',
+      cuts: [
+        { id:'chuck_roast', name:'Chuck roast', sub:'Slow-cook · uses Roast size', defaultQty:2, lbsPerUnit: 3 },
+        { id:'chuck_steak', name:'Chuck steak', sub:'Family steak · uses Thickness', defaultQty:4, lbsPerUnit: 1.2 },
+        { id:'short_ribs', name:'Short ribs', sub:'3-bone slabs', defaultQty:2, lbsPerUnit: 3, toggle: true }
+      ] },
+    { id:'rib', name:'Rib', hint:'Premium steaks',
+      cuts: [
+        { id:'ribeye', name:'Ribeye', sub:'Bone-in or boneless', defaultQty:8, lbsPerUnit: 1, premium: true },
+        { id:'rib_roast', name:'Standing rib roast', sub:'Holiday cut', defaultQty:1, lbsPerUnit: 6, toggle: true }
+      ] },
+    { id:'short_loin', name:'Short Loin', hint:'NY Strip + tenderloin',
+      cuts: [
+        { id:'ny_strip', name:'NY Strip', sub:'Steakhouse classic', defaultQty:8, lbsPerUnit: 0.9, premium: true },
+        { id:'tbone', name:'T-Bone / Porterhouse', sub:'Strip + tenderloin combo', defaultQty:0, lbsPerUnit: 1.5, toggle: true },
+        { id:'tenderloin', name:'Filet Mignon', sub:'Cut from tenderloin', defaultQty:6, lbsPerUnit: 0.5, premium: true }
+      ] },
+    { id:'sirloin', name:'Sirloin', hint:'Versatile lean cuts',
+      cuts: [
+        { id:'top_sirloin', name:'Top Sirloin steak', sub:'Lean · grill', defaultQty:6, lbsPerUnit: 1 },
+        { id:'tritip', name:'Tri-tip roast', sub:'Santa Maria style', defaultQty:1, lbsPerUnit: 2.5, toggle: true },
+        { id:'sirloin_tip_roast', name:'Sirloin tip roast', sub:'Lean roast', defaultQty:1, lbsPerUnit: 3 }
+      ] },
+    { id:'round', name:'Round', hint:'Lean roasts & ground',
+      cuts: [
+        { id:'rump_roast', name:'Rump roast', defaultQty:1, lbsPerUnit: 3 },
+        { id:'eye_round', name:'Eye of round', sub:'Lean · slice thin', defaultQty:1, lbsPerUnit: 3 },
+        { id:'round_steak', name:'Round steak', defaultQty:4, lbsPerUnit: 1 }
+      ] },
+    { id:'brisket', name:'Brisket', hint:'BBQ',
+      cuts: [
+        { id:'brisket_whole', name:'Whole brisket', sub:'Point + flat, ~10 lbs', defaultQty:1, lbsPerUnit: 10, toggle: true }
+      ] },
+    { id:'plate_flank', name:'Plate & Flank', hint:'Flavorful thin cuts',
+      cuts: [
+        { id:'flank', name:'Flank steak', sub:'Marinade & sear', defaultQty:1, lbsPerUnit: 1.8, toggle: true },
+        { id:'skirt', name:'Skirt steak', sub:'Fajita classic', defaultQty:1, lbsPerUnit: 1.2, toggle: true }
+      ] },
+    { id:'ground', name:'Ground & Stew', hint:'Where unallocated trim goes',
+      cuts: [
+        { id:'ground', name:'Ground beef', sub:'Uses Lean ratio + Pack size', defaultQty:30, lbsPerUnit: 1, isGround: true },
+        { id:'stew', name:'Stew meat', sub:'1" cubes · 1 lb packs', defaultQty:6, lbsPerUnit: 1 }
+      ] }
+  ],
+  hog: [
+    { id:'shoulder', name:'Shoulder (Boston butt + picnic)', hint:'Pulled pork country',
+      cuts: [
+        { id:'boston_butt', name:'Boston butt roast', defaultQty:2, lbsPerUnit: 5 },
+        { id:'picnic_roast', name:'Picnic roast', defaultQty:1, lbsPerUnit: 5 },
+        { id:'pork_steak', name:'Pork steak', defaultQty:4, lbsPerUnit: 1 }
+      ] },
+    { id:'loin', name:'Loin', hint:'Chops + tenderloin',
+      cuts: [
+        { id:'pork_chop', name:'Pork chops', sub:'Bone-in, uses Thickness', defaultQty:12, lbsPerUnit: 0.7 },
+        { id:'pork_tenderloin', name:'Pork tenderloin', defaultQty:2, lbsPerUnit: 1.2, premium: true },
+        { id:'loin_roast', name:'Boneless loin roast', defaultQty:1, lbsPerUnit: 4, toggle: true }
+      ] },
+    { id:'belly', name:'Belly', hint:'Bacon &amp; side',
+      cuts: [
+        { id:'bacon', name:'Bacon (smoked, sliced)', sub:'Cured + smoked +$1.50/lb', defaultQty:12, lbsPerUnit: 1, premium: true },
+        { id:'side_pork', name:'Fresh side pork', sub:'Uncured', defaultQty:0, lbsPerUnit: 1, toggle: true }
+      ] },
+    { id:'ham', name:'Ham', hint:'Whole or smoked',
+      cuts: [
+        { id:'whole_ham_smoked', name:'Smoked ham (whole)', sub:'+$1.50/lb cure', defaultQty:1, lbsPerUnit: 14, premium: true },
+        { id:'fresh_ham', name:'Fresh ham roast', defaultQty:0, lbsPerUnit: 14, toggle: true }
+      ] },
+    { id:'ribs', name:'Spare Ribs &amp; Hocks',
+      cuts: [
+        { id:'spare_ribs', name:'Spare ribs', defaultQty:2, lbsPerUnit: 3 },
+        { id:'baby_back', name:'Baby back ribs', defaultQty:2, lbsPerUnit: 1.8, toggle: true },
+        { id:'hocks', name:'Ham hocks (smoked)', defaultQty:4, lbsPerUnit: 1, toggle: true }
+      ] },
+    { id:'sausage', name:'Sausage &amp; Ground',
+      cuts: [
+        { id:'breakfast_sausage', name:'Breakfast sausage', sub:'Mild · 1 lb packs', defaultQty:8, lbsPerUnit: 1 },
+        { id:'italian_sausage', name:'Italian sausage links', sub:'Mild or hot · +$1/lb', defaultQty:4, lbsPerUnit: 1 },
+        { id:'ground_pork', name:'Ground pork', sub:'Plain', defaultQty:6, lbsPerUnit: 1, isGround: true }
+      ] }
+  ],
+  lamb: [
+    { id:'shoulder', name:'Shoulder',
+      cuts: [
+        { id:'shoulder_roast', name:'Shoulder roast', defaultQty:1, lbsPerUnit: 3 },
+        { id:'lamb_chops_blade', name:'Blade chops', defaultQty:4, lbsPerUnit: 0.7 }
+      ] },
+    { id:'rack', name:'Rack',
+      cuts: [
+        { id:'rack_lamb', name:'Frenched rack of lamb', defaultQty:1, lbsPerUnit: 1.6, premium: true },
+        { id:'lamb_chops_rib', name:'Rib chops', defaultQty:6, lbsPerUnit: 0.4, toggle: true }
+      ] },
+    { id:'loin', name:'Loin',
+      cuts: [
+        { id:'loin_chop', name:'Loin chops', defaultQty:6, lbsPerUnit: 0.5 },
+        { id:'saddle', name:'Saddle of lamb', defaultQty:0, lbsPerUnit: 4, toggle: true }
+      ] },
+    { id:'leg', name:'Leg',
+      cuts: [
+        { id:'leg_bone_in', name:'Bone-in leg', defaultQty:1, lbsPerUnit: 7 },
+        { id:'leg_steaks', name:'Leg steaks', defaultQty:0, lbsPerUnit: 0.8, toggle: true }
+      ] },
+    { id:'shank_breast', name:'Shank &amp; Breast',
+      cuts: [
+        { id:'shanks', name:'Lamb shanks', defaultQty:4, lbsPerUnit: 1.2 },
+        { id:'breast', name:'Lamb breast', defaultQty:1, lbsPerUnit: 2.5, toggle: true }
+      ] },
+    { id:'ground_lamb', name:'Ground &amp; Trim',
+      cuts: [
+        { id:'ground_lamb', name:'Ground lamb', sub:'1 lb packs', defaultQty:6, lbsPerUnit: 1, isGround: true }
+      ] }
+  ],
+  poultry: [
+    { id:'whole', name:'Whole bird', hint:'Min order: 6 birds',
+      cuts: [
+        { id:'whole_bird', name:'Whole bird', sub:'~5 lbs each', defaultQty:6, lbsPerUnit: 5 },
+        { id:'spatchcock', name:'Spatchcocked', sub:'Backbone removed', defaultQty:0, lbsPerUnit: 5, toggle: true },
+        { id:'quartered', name:'Quartered (8 pieces)', sub:'2 breasts, 2 thighs, 2 legs, 2 wings', defaultQty:0, lbsPerUnit: 5, toggle: true }
+      ] }
+  ]
+};
+
+// presets per species (which cuts get on/off, quantities scaled)
+const PRESETS = {
+  beef: {
+    family_pack: { ribeye:6, ny_strip:6, tenderloin:4, chuck_roast:2, chuck_steak:4, top_sirloin:6, rump_roast:1, sirloin_tip_roast:1, round_steak:4, brisket_whole:1, ground:30, stew:6, short_ribs:2 },
+    premium_steaks: { ribeye:14, ny_strip:14, tenderloin:8, tbone:4, top_sirloin:8, ground:14, stew:0, brisket_whole:0, chuck_roast:0, chuck_steak:0, rump_roast:0, sirloin_tip_roast:0, eye_round:0, round_steak:0, rib_roast:1 },
+    restaurant: { ribeye:10, ny_strip:10, tenderloin:10, tbone:6, brisket_whole:1, flank:1, skirt:1, top_sirloin:6, tritip:1, ground:18, stew:2 },
+    budget_ground: { ribeye:2, ny_strip:2, tenderloin:0, chuck_roast:1, chuck_steak:2, top_sirloin:2, rump_roast:1, ground:55, stew:14, eye_round:1 },
+    custom: 'leave-as-is'
+  },
+  hog: {
+    family_pack: { boston_butt:2, picnic_roast:1, pork_chop:12, pork_tenderloin:2, bacon:12, whole_ham_smoked:1, spare_ribs:2, breakfast_sausage:8, ground_pork:6 },
+    premium_steaks: { pork_chop:16, pork_tenderloin:4, bacon:16, whole_ham_smoked:1, italian_sausage:4 },
+    restaurant: { pork_tenderloin:4, pork_chop:12, bacon:8, baby_back:4, italian_sausage:6 },
+    budget_ground: { boston_butt:3, pork_chop:6, breakfast_sausage:14, ground_pork:14, italian_sausage:6 },
+    custom: 'leave-as-is'
+  },
+  lamb: {
+    family_pack: { shoulder_roast:1, rack_lamb:1, loin_chop:6, leg_bone_in:1, shanks:4, ground_lamb:6 },
+    premium_steaks: { rack_lamb:2, loin_chop:10, lamb_chops_rib:8, leg_bone_in:1, ground_lamb:2 },
+    restaurant: { rack_lamb:2, loin_chop:8, saddle:1, leg_bone_in:1, shanks:4, ground_lamb:4 },
+    budget_ground: { shoulder_roast:1, lamb_chops_blade:4, leg_bone_in:1, shanks:4, ground_lamb:14 },
+    custom: 'leave-as-is'
+  },
+  poultry: {
+    family_pack: { whole_bird:6 },
+    premium_steaks: { whole_bird:6, spatchcock:0 },
+    restaurant: { whole_bird:8, spatchcock:2, quartered:0 },
+    budget_ground: { whole_bird:6 },
+    custom: 'leave-as-is'
+  }
+};
+
+const FRACTION_LBS = { quarter:140, half:282, whole:563 };
+const SPECIES_TARGET = { beef: 282, hog: 165, lamb: 32, poultry: 30 };
+
+let state = {
+  species: 'beef',
+  preset: 'family_pack',
+  qty: {},   // cutId -> qty
+  toggleOn: {},  // cutId -> bool (for toggle items)
+  fraction: 'half'
+};
+
+// ----- Render -----
+function renderSubprimals() {
+  const root = document.getElementById('subprimals');
+  root.innerHTML = '';
+  const list = SUBPRIMALS[state.species];
+  for (const sp of list) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.padding = '14px 16px';
+    let inner = `<div class="subprimal-head">
+      <div class="anatomy">${sp.name[0]}</div>
+      <h4>${sp.name}</h4>
+      <div class="toggle on" onclick="this.classList.toggle('on'); recompute()"></div>
+    </div>`;
+    if (sp.hint) inner += `<div class="label-sub" style="margin-left:48px;margin-bottom:6px">${sp.hint}</div>`;
+    inner += '<div class="subprimal-cuts">';
+    for (const c of sp.cuts) {
+      const photoCls = state.species;
+      if (c.toggle) {
+        const on = !!state.toggleOn[c.id];
+        inner += `<div class="row">
+          <div class="photo ${photoCls}" onclick="openModal('${c.id}','${c.name}')"></div>
+          <div class="label">
+            <div class="label-title">${c.name} ${c.premium ? '<span class="upcharge">premium</span>' : ''}</div>
+            ${c.sub ? `<div class="label-sub">${c.sub}</div>` : ''}
+          </div>
+          <div class="toggle ${on?'on':''}" onclick="toggleCut('${c.id}')"></div>
+        </div>`;
+      } else {
+        const q = state.qty[c.id] ?? 0;
+        inner += `<div class="row">
+          <div class="photo ${photoCls}" onclick="openModal('${c.id}','${c.name}')"></div>
+          <div class="label">
+            <div class="label-title">${c.name} ${c.premium ? '<span class="upcharge">premium</span>' : ''}</div>
+            ${c.sub ? `<div class="label-sub">${c.sub}</div>` : ''}
+          </div>
+          <div class="qty">
+            <button onclick="bumpQty('${c.id}',-1)" ${q===0?'disabled':''}>−</button>
+            <span class="n" id="qty-${c.id}">${q}</span>
+            <button onclick="bumpQty('${c.id}',1)">+</button>
+          </div>
+        </div>`;
+      }
+    }
+    inner += '</div>';
+    card.innerHTML = inner;
+    root.appendChild(card);
+  }
+}
+
+function bumpQty(id, d) {
+  state.qty[id] = Math.max(0, (state.qty[id] ?? 0) + d);
+  document.getElementById('qty-'+id).textContent = state.qty[id];
+  recompute();
+}
+
+function toggleCut(id) {
+  state.toggleOn[id] = !state.toggleOn[id];
+  renderSubprimals();
+  recompute();
+}
+
+function applyPreset(name) {
+  state.preset = name;
+  document.querySelectorAll('.preset').forEach(el => {
+    el.classList.toggle('is-selected', el.dataset.preset === name);
+  });
+  document.getElementById('banner').innerHTML = `Applied: <b>${prettyPreset(name)}</b> — tap any cut to tweak.`;
+
+  if (name === 'custom') {
+    showToast('Custom mode — set everything yourself.');
+    recompute();
+    return;
+  }
+  const map = PRESETS[state.species][name];
+  if (map === 'leave-as-is') return;
+  // reset all qty/toggles, then apply preset
+  state.qty = {};
+  state.toggleOn = {};
+  const all = SUBPRIMALS[state.species].flatMap(sp => sp.cuts);
+  for (const c of all) {
+    if (c.toggle) state.toggleOn[c.id] = (map[c.id] ?? 0) > 0;
+    else state.qty[c.id] = map[c.id] ?? 0;
+  }
+  renderSubprimals();
+  recompute();
+  showToast('Applied: ' + prettyPreset(name));
+}
+
+function prettyPreset(n) {
+  return ({premium_steaks:'Premium Steaks', family_pack:'Family Pack', restaurant:'Restaurant Cuts', budget_ground:'Budget Ground', custom:'Custom'})[n];
+}
+
+function switchSpecies(sp) {
+  state.species = sp;
+  state.preset = 'family_pack';
+  state.qty = {}; state.toggleOn = {};
+  document.querySelectorAll('.species-tabs button').forEach(b => b.classList.toggle('is-active', b.dataset.sp === sp));
+  document.querySelectorAll('.preset').forEach(el => el.classList.toggle('is-selected', el.dataset.preset === 'family_pack'));
+  document.getElementById('total-lbs').textContent = SPECIES_TARGET[sp];
+  document.getElementById('takehome-display').textContent = SPECIES_TARGET[sp] + ' lbs';
+  document.getElementById('banner').innerHTML = 'Applied: <b>Family Pack</b> — tap any cut to tweak.';
+  applyPreset('family_pack');
+}
+
+function recompute() {
+  const total = SPECIES_TARGET[state.species];
+  let used = 0;
+  let pieces = { steaks: 0, roasts: 0, ground: 0, packs: 0, specialty: 0 };
+  const all = SUBPRIMALS[state.species].flatMap(sp => sp.cuts);
+  for (const c of all) {
+    if (c.toggle) {
+      if (state.toggleOn[c.id]) used += c.lbsPerUnit;
+    } else {
+      const q = state.qty[c.id] ?? 0;
+      used += q * c.lbsPerUnit;
+      if (c.isGround) pieces.ground += q * c.lbsPerUnit;
+      if (c.id.includes('roast')) pieces.roasts += q;
+      if (c.id.includes('steak') || c.id.includes('chop') || c.id === 'ribeye' || c.id === 'ny_strip' || c.id==='tenderloin' || c.id === 'tbone') pieces.steaks += q;
+    }
+  }
+  const remaining = total - used;
+  const pct = Math.min(100, (used / total) * 100);
+  const meter = document.getElementById('meter');
+  const fill = document.getElementById('bar-fill');
+  fill.style.width = pct + '%';
+  meter.classList.remove('over','warn');
+  const alert = document.getElementById('alert');
+  alert.classList.remove('show','over','warn');
+  if (used > total) {
+    meter.classList.add('over');
+    alert.classList.add('show','over');
+    alert.textContent = `Over by ${(used-total).toFixed(1)} lbs — reduce a category.`;
+  } else if (remaining > 30) {
+    meter.classList.add('warn');
+    alert.classList.add('show','warn');
+    alert.textContent = `${remaining.toFixed(0)} lbs unallocated → routes to ground beef`;
+  }
+  document.getElementById('alloc-lbs').textContent = used.toFixed(0);
+  const groundFromTrim = Math.max(0, total - used);
+  document.getElementById('breakdown').innerHTML =
+    `<span><strong>${pieces.steaks}</strong> steaks/chops</span>` +
+    `<span><strong>${pieces.roasts}</strong> roasts</span>` +
+    `<span><strong>${(pieces.ground + groundFromTrim).toFixed(0)}</strong> lbs ground</span>` +
+    `<span>est. processing $${Math.round(used*1.1 + 95)}</span>`;
+}
+
+// ----- Modal -----
+function openModal(id, name) {
+  document.getElementById('modalTitle').textContent = name;
+  document.getElementById('modalBody').innerHTML =
+    `Photo + cooking guidance for <b>${name}</b> would render here in production. ` +
+    `Includes: typical weight per piece, recommended cooking method, suggested seasoning, ` +
+    `internal temperature, and links to recipes.`;
+  const photo = document.getElementById('modalPhoto');
+  photo.style.background = `linear-gradient(135deg, ${randHex()}, ${randHex()})`;
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal() { document.getElementById('modalBg').classList.remove('show'); }
+function randHex() {
+  const palette = ['#b54848','#6b1f1f','#cf7a3a','#5e3a14','#a86045','#d8c2a0'];
+  return palette[Math.floor(Math.random()*palette.length)];
+}
+
+// ----- Toast -----
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 1700);
+}
+
+function skipToProcessorChoice() {
+  showToast("Got it. Processor's Choice — they'll use their default cuts.");
+  setTimeout(() => alert('In real flow → Step 4 (Pay) with cutSheet.preset = "processors_choice".'), 800);
+}
+
+function goToPay() {
+  alert('In real flow → Step 4 (Pay): split-payment summary + Apple Pay sheet.');
+}
+
+// init
+applyPreset('family_pack');
+recompute();
+</script>
+</body>
+</html>
