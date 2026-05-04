@@ -1,0 +1,10 @@
+{
+  "name": "protein-outfitters-design",
+  "version": "1.0.0",
+  "description": "Protein Outfitters marketplace — static site + Vercel serverless API",
+  "private": true,
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "resend": "^4.0.1"
+  }
+}

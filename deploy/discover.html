@@ -194,21 +194,43 @@
   </main>
 
   <script src="/po-shell.js"></script>
+  <script src="/po-api.js"></script>
   <script>
-    const LISTINGS = [
-      { id:'l1', name:'#118 · Half Black Angus',  farm:'Northfield Pastures',     farmSlug:'northfield-pastures', species:'cattle', practice:['grass-fed','regenerative'], certs:['organic','aga','amwa'], identity:['family'], priceLb:7.85, distance:42, ready:'2026-07-15', img:'/img/cattle-pasture.jpg', new:true, instant:true },
-      { id:'l2', name:'#214 · Quarter Hereford',  farm:'Twin Pines Ranch',        farmSlug:'twin-pines',         species:'cattle', practice:['grass-fed'], certs:['amwa','usda-insp'], identity:['veteran'], priceLb:6.95, distance:78, ready:'2026-06-30', img:'/img/hero-pasture.jpg', new:false, instant:true },
-      { id:'l3', name:'#41 · Whole Berkshire Hog',farm:'Cedar Hollow Farm',       farmSlug:'cedar-hollow',       species:'hog', practice:['heritage','pasture-raised'], certs:['non-gmo'], identity:['woman','family'], priceLb:5.50, distance:110, ready:'2026-06-15', img:'/img/premium-pig.jpg', new:false, instant:false },
-      { id:'l4', name:'#7 · Half Wagyu (F1)',     farm:'Northfield Pastures',     farmSlug:'northfield-pastures', species:'cattle', practice:['grain-finished','dry-aged'], certs:['amwa'], identity:['family'], priceLb:14.25, distance:42, ready:'2026-08-10', img:'/img/wagyu.jpg', new:true, instant:true },
-      { id:'l5', name:'#88 · Whole Lamb',         farm:'Iron Range Lambworks',    farmSlug:'iron-range',         species:'lamb', practice:['pasture-raised','heritage'], certs:['organic','amwa'], identity:['indigenous'], priceLb:9.10, distance:165, ready:'2026-07-01', img:'/img/premium-sheep.jpg', new:false, instant:true },
-      { id:'l6', name:'#312 · Half Red Angus',    farm:'Twin Pines Ranch',        farmSlug:'twin-pines',         species:'cattle', practice:['grass-fed','regenerative'], certs:['aga','organic'], identity:['veteran'], priceLb:7.40, distance:78, ready:'2026-09-05', img:'/img/cattle-pasture.jpg', new:false, instant:false },
-      { id:'l7', name:'#19 · Whole Mangalitsa',   farm:'Cedar Hollow Farm',       farmSlug:'cedar-hollow',       species:'hog', practice:['heritage','pasture-raised'], certs:['non-gmo'], identity:['woman'], priceLb:7.85, distance:110, ready:'2026-08-20', img:'/img/premium-pig.jpg', new:true, instant:false },
-      { id:'l8', name:'#2 · Quarter Highland',    farm:'Headwaters Heritage',     farmSlug:'headwaters-heritage', species:'cattle', practice:['grass-fed','heritage'], certs:['organic','aga','amwa'], identity:['family'], priceLb:8.95, distance:215, ready:'2026-07-22', img:'/img/cattle-pasture.jpg', new:false, instant:true },
-      { id:'l9', name:'#55 · Half Hampshire Hog', farm:'Wildflower Acres',        farmSlug:'wildflower',         species:'hog', practice:['pasture-raised'], certs:['usda-insp'], identity:['woman','bipoc'], priceLb:4.75, distance:55, ready:'2026-06-01', img:'/img/premium-pig.jpg', new:true, instant:true },
-      { id:'l10',name:'#9 · Half Bison',          farm:'Prairie Wind Bison Co.',  farmSlug:'prairie-wind',       species:'bison', practice:['grass-fed','regenerative'], certs:['organic','amwa'], identity:['indigenous','family'], priceLb:11.50, distance:295, ready:'2026-08-15', img:'/img/cattle-pasture.jpg', new:false, instant:false },
-      { id:'l11',name:'#220 · Half Charolais',    farm:'Twin Pines Ranch',        farmSlug:'twin-pines',         species:'cattle', practice:['grain-finished'], certs:['usda-insp'], identity:['veteran'], priceLb:6.25, distance:78, ready:'2026-07-08', img:'/img/hero-pasture.jpg', new:false, instant:true },
-      { id:'l12',name:'#33 · Whole Lamb',         farm:'Iron Range Lambworks',    farmSlug:'iron-range',         species:'lamb', practice:['pasture-raised'], certs:['amwa'], identity:['indigenous'], priceLb:8.50, distance:165, ready:'2026-09-12', img:'/img/premium-sheep.jpg', new:false, instant:true }
+    // Live listings from /api/listings — falls back to demo data if API unreachable.
+    let LISTINGS = [];
+    const FALLBACK_LISTINGS = [
+      { id:'l1', name:'#118 · Half Black Angus', farm:'Northfield Pastures', farmSlug:'northfield-pastures', species:'cattle', practice:['grass-fed','regenerative'], certs:['organic','aga','amwa'], identity:['family'], priceLb:7.85, distance:42, ready:'2026-07-15', img:'/img/cattle-pasture.jpg', new:true, instant:true }
     ];
+    function listingFromRow(row) {
+      const sharePrice = row.shares?.half?.price || row.shares?.whole?.price || row.shares?.quarter?.price || row.price_per_lb || 0;
+      const photo = (row.photos && row.photos[0]) || (row.species === 'hog' ? '/img/premium-pig.jpg' : row.species === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg');
+      return {
+        id: row.id,
+        name: `${row.number ? row.number + ' · ' : ''}${row.breed || row.species} ${row.sex ? '('+row.sex+')' : ''}`.trim(),
+        farm: row.farm_name,
+        farmSlug: row.farm_slug,
+        species: row.species,
+        practice: row.practice || [],
+        certs: row.certs || [],
+        identity: row.farm_identity || [],
+        priceLb: parseFloat(sharePrice) || 0,
+        distance: 100, // TODO compute via zip
+        ready: row.expected_finish_date,
+        img: photo,
+        new: (Date.now() - new Date(row.created_at).getTime()) < 7 * 86400000,
+        instant: row.instant_reserve !== false
+      };
+    }
+    async function loadListings() {
+      try {
+        const r = await window.PO_API.listings({ limit: 60 });
+        LISTINGS = (r.listings || []).map(listingFromRow);
+        if (!LISTINGS.length) LISTINGS = FALLBACK_LISTINGS;
+      } catch {
+        LISTINGS = FALLBACK_LISTINGS;
+      }
+      render();
+    }
 
     const state = { species:'all', practice:new Set(), certs:new Set(), identity:new Set(), window:null, priceMin:null, priceMax:null, distance:200, instant:false, newOnly:false, sort:'best', saved:new Set(JSON.parse(localStorage.getItem('po_saved')||'[]')) };
 
@@ -414,9 +436,10 @@
     const params = new URLSearchParams(location.search);
     if (params.get('q')) {
       document.getElementById('aiSearch').value = params.get('q');
-      runAISearch(params.get('q'));
     }
-    render();
+    loadListings().then(() => {
+      if (params.get('q')) runAISearch(params.get('q'));
+    });
   </script>
 </body>
 </html>
