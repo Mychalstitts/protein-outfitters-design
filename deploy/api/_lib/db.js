@@ -1,7 +1,19 @@
 // Shared DB + auth + utility helpers for serverless functions.
-import { neon } from '@neondatabase/serverless';
+import { neon, Pool } from '@neondatabase/serverless';
 
 export const sql = neon(process.env.DATABASE_URL);
+
+// Pool exposes pool.query(text, params) for dynamic / multi-row work.
+let _pool;
+export function getPool() {
+  if (!_pool) _pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  return _pool;
+}
+export async function rawQuery(text, params = []) {
+  const pool = getPool();
+  const r = await pool.query(text, params);
+  return r.rows;
+}
 
 // ─── JSON response helper ──────────────────────────────────
 export function json(data, init = {}) {
