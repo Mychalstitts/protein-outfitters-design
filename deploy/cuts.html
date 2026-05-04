@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Custom Cut Sheet | Protein Outfitters</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "tertiary-fixed-dim": "#ffb3ac",
+                "background": "#fbf9f5",
+                "primary": "#000000",
+                "on-primary-fixed": "#0a2012",
+                "on-error-container": "#93000a",
+                "on-secondary-fixed": "#151d17",
+                "on-primary-container": "#728a77",
+                "tertiary-container": "#410003",
+                "primary-fixed": "#cfe9d3",
+                "primary-container": "#0a2012",
+                "tertiary": "#000000",
+                "surface-container-low": "#f5f3ef",
+                "on-tertiary": "#ffffff",
+                "on-primary-fixed-variant": "#364c3c",
+                "error-container": "#ffdad6",
+                "surface-container": "#f0eeea",
+                "secondary-fixed-dim": "#c0c9bf",
+                "on-surface": "#1b1c1a",
+                "surface-container-highest": "#e4e2de",
+                "on-secondary-container": "#5c655d",
+                "on-secondary": "#ffffff",
+                "on-error": "#ffffff",
+                "primary-fixed-dim": "#b4cdb8",
+                "surface-dim": "#dbdad6",
+                "on-tertiary-container": "#f04440",
+                "surface": "#fbf9f5",
+                "on-tertiary-fixed-variant": "#930010",
+                "surface-bright": "#fbf9f5",
+                "surface-tint": "#4d6452",
+                "error": "#ba1a1a",
+                "inverse-surface": "#30312e",
+                "secondary-container": "#d9e2d8",
+                "on-tertiary-fixed": "#410003",
+                "outline-variant": "#c3c8c1",
+                "outline": "#737972",
+                "tertiary-fixed": "#ffdad6"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(251, 249, 245, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+        }
+        .glass-badge {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fbf9f5;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+</head>
+<body class="text-on-surface antialiased overflow-x-hidden pb-40">
+<!-- Top Navigation Anchor (Shared Component Mapping) -->
+<header class="fixed top-0 w-full z-50 bg-stone-50/80 dark:bg-emerald-950/80 backdrop-blur-xl flex items-center justify-between px-6 py-4 w-full shadow-[0_1px_10px_rgba(0,0,0,0.02)]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-emerald-950 cursor-pointer" onclick="window.location.href='/discover'">arrow_back</span>
+<h1 class="font-bold tracking-tight text-lg text-emerald-950">Custom Cut Sheet</h1>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<span class="text-emerald-900 font-bold cursor-pointer">Cut Sheet</span>
+<span class="text-stone-500 hover:opacity-70 transition-opacity cursor-pointer">Order Details</span>
+<span class="text-stone-500 hover:opacity-70 transition-opacity cursor-pointer">Delivery</span>
+</div>
+<div class="text-emerald-900 font-black tracking-tighter">
+            Black Angus 1/4 Share
+        </div>
+</header>
+<main class="max-w-6xl mx-auto px-6 pt-24">
+<!-- Hero Section: The Verdant Monolith -->
+<section class="relative h-[400px] mb-16 rounded-[2rem] overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary-container to-on-primary-fixed"></div>
+<!-- Silhouetted Steer Image -->
+<div class="absolute right-0 bottom-0 h-full w-full md:w-2/3 flex items-end justify-end pointer-events-none">
+<img alt="Silhouetted black angus steer against a dark moody forest background with atmospheric fog" class="h-[120%] object-contain object-right-bottom transform translate-y-20 translate-x-10 scale-110" data-alt="silhouetted black angus steer standing majestically against a dark moody forest background with atmospheric fog and soft morning light" src="/angus.jpg"/>
+</div>
+<div class="relative z-10 p-12 h-full flex flex-col justify-center max-w-2xl">
+<div class="flex gap-3 mb-6">
+<span class="glass-badge px-4 py-1.5 rounded-full text-white text-xs font-bold tracking-widest uppercase">1/4 Share Reserved</span>
+<span class="glass-badge px-4 py-1.5 rounded-full text-white text-xs font-bold tracking-widest uppercase">Prairie Edge Farm</span>
+</div>
+<h2 class="text-white text-6xl font-black tracking-tighter leading-none mb-4">
+                    Protein<br/>Outfitters
+                </h2>
+<p class="text-on-primary-container text-xl font-medium max-w-md">
+                    Curating your custom artisan harvest. Every cut, precisely to your standard.
+                </p>
+</div>
+</section>
+<!-- Customization Grid (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Left Column: Steak Customization -->
+<div class="md:col-span-8 space-y-8">
+<div class="bg-surface-container-low rounded-[2rem] p-10">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="text-3xl font-bold tracking-tight mb-2">Steak Selection</h3>
+<p class="text-secondary font-medium">Fine-tune your prime table cuts</p>
+</div>
+<span class="material-symbols-outlined text-primary-container scale-150" data-icon="restaurant">restaurant</span>
+</div>
+<!-- Thickness Customization -->
+<div class="mb-12">
+<label class="block text-sm font-black tracking-widest uppercase mb-6 text-outline">Standard Thickness</label>
+<div class="flex gap-4">
+<button class="flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center ring-4 ring-primary-container ring-offset-4 ring-offset-surface-container-low transition-all scale-100 active:scale-95 group">
+<span class="text-2xl font-black mb-1">1"</span>
+<span class="text-xs font-bold text-outline group-hover:text-primary transition-colors">The Classic</span>
+</button>
+<button class="flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center transition-all scale-100 active:scale-95 group hover:bg-surface-container-high">
+<span class="text-2xl font-black mb-1 text-on-surface">1.25"</span>
+<span class="text-xs font-bold text-outline group-hover:text-primary transition-colors">Butcher's Cut</span>
+</button>
+<button class="flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center transition-all scale-100 active:scale-95 group hover:bg-surface-container-high">
+<span class="text-2xl font-black mb-1 text-on-surface">1.5"</span>
+<span class="text-xs font-bold text-outline group-hover:text-primary transition-colors">Steakhouse</span>
+</button>
+</div>
+</div>
+<!-- Volume Strategy -->
+<div>
+<div class="flex justify-between items-end mb-6">
+<label class="block text-sm font-black tracking-widest uppercase text-outline">Harvest Strategy</label>
+<span class="text-primary-container font-black">Balanced</span>
+</div>
+<input class="w-full h-3 bg-surface-container-high rounded-full appearance-none cursor-pointer accent-primary-container" max="100" min="0" type="range" value="50"/>
+<div class="flex justify-between mt-4 text-[10px] font-black uppercase tracking-widest text-outline">
+<span>More Steaks</span>
+<span>More Roasts</span>
+</div>
+</div>
+</div>
+<!-- Ground Meat Section -->
+<div class="bg-surface-container-low rounded-[2rem] p-10">
+<div class="flex items-center justify-between mb-10">
+<h3 class="text-3xl font-bold tracking-tight">Roasts &amp; Ground</h3>
+<div class="bg-emerald-900 text-white px-6 py-2 rounded-full text-xs font-black tracking-widest uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span> Grind into Burger
+                        </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-surface-container-lowest p-8 rounded-3xl relative overflow-hidden group">
+<label class="block text-xs font-black tracking-widest uppercase mb-4 text-outline">Fat Ratio</label>
+<div class="flex flex-wrap gap-3">
+<span class="px-5 py-2 bg-primary-container text-white rounded-full text-sm font-bold shadow-lg">85/15</span>
+<span class="px-5 py-2 bg-surface-container-high text-on-surface rounded-full text-sm font-bold hover:bg-surface-container-highest transition-colors cursor-pointer">90/10</span>
+<span class="px-5 py-2 bg-surface-container-high text-on-surface rounded-full text-sm font-bold hover:bg-surface-container-highest transition-colors cursor-pointer">80/20</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-3xl relative overflow-hidden group">
+<label class="block text-xs font-black tracking-widest uppercase mb-4 text-outline">Chuck Roast Option</label>
+<div class="flex gap-4">
+<div class="flex-1 flex items-center justify-center py-3 bg-surface-container-high rounded-xl text-sm font-bold text-outline opacity-50">Whole</div>
+<div class="flex-1 flex items-center justify-center py-3 bg-primary-container text-white rounded-xl text-sm font-bold">Grind</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Specialty & Details -->
+<div class="md:col-span-4 space-y-8">
+<!-- Specialty Cuts Card -->
+<div class="bg-surface-container-low rounded-[2rem] p-8">
+<h3 class="text-xl font-bold tracking-tight mb-6">Specialty Options</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-5 bg-surface-container-lowest rounded-2xl group cursor-pointer hover:bg-white transition-all">
+<span class="font-bold text-on-surface">Whole Brisket</span>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-5 bg-surface-container-lowest rounded-2xl group cursor-pointer hover:bg-white transition-all">
+<span class="font-bold text-on-surface">Short Ribs</span>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-5 bg-surface-container-low border border-outline-variant/20 rounded-2xl group cursor-pointer hover:bg-surface-container-high transition-all">
+<span class="font-bold text-outline">Beef Shank</span>
+<div class="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center"></div>
+</div>
+</div>
+</div>
+<!-- Packaging Card -->
+<div class="bg-primary-container rounded-[2rem] p-8 text-white relative overflow-hidden">
+<img alt="Vacuum sealed premium beef steak with rosemary sprig" class="absolute inset-0 w-full h-full object-cover opacity-20" data-alt="top-down view of a thick vacuum sealed raw ribeye steak with a sprig of rosemary inside the packaging on a clean dark surface" src="/angus.jpg"/>
+<div class="relative z-10">
+<div class="glass-badge w-fit px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest mb-4">Preferred Storage</div>
+<h3 class="text-2xl font-bold mb-2">Vacuum Sealed</h3>
+<p class="text-on-primary-container text-sm leading-relaxed mb-6">Double-bonded medical grade plastic for 24-month freezer longevity.</p>
+<div class="flex items-center gap-2 text-primary-fixed-dim font-bold">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            Selected
+                        </div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Yield Estimator -->
+<footer class="fixed bottom-0 left-0 w-full z-50">
+<div class="max-w-6xl mx-auto px-6 pb-8">
+<div class="glass-panel p-8 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="flex items-center gap-8 w-full md:w-auto">
+<div class="relative">
+<div class="absolute inset-0 bg-primary-container/10 rounded-full animate-ping"></div>
+<div class="relative bg-primary-container text-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-xl">
+<span class="text-3xl font-black leading-none">124</span>
+<span class="text-[10px] font-black uppercase tracking-tighter">lbs net</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-8">
+<div>
+<span class="block text-[10px] font-black uppercase tracking-widest text-outline mb-1">Steaks</span>
+<span class="text-2xl font-black text-emerald-950">42<span class="text-xs font-medium ml-1">lbs</span></span>
+</div>
+<div>
+<span class="block text-[10px] font-black uppercase tracking-widest text-outline mb-1">Ground</span>
+<span class="text-2xl font-black text-emerald-950">58<span class="text-xs font-medium ml-1">lbs</span></span>
+</div>
+<div>
+<span class="block text-[10px] font-black uppercase tracking-widest text-outline mb-1">Roasts</span>
+<span class="text-2xl font-black text-emerald-950">24<span class="text-xs font-medium ml-1">lbs</span></span>
+</div>
+</div>
+</div>
+<button class="w-full md:w-auto px-12 py-6 rounded-full bg-gradient-to-r from-primary-container to-[#1b3022] text-white text-lg font-black tracking-tight shadow-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 group" onclick="window.location.href='/discover'">
+                    Save Cut Sheet
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</footer>
+<!-- Bottom Navigation Component (Shared Component Mapping) -->
+<!-- Hidden on main page to prioritize the sticky CTA footer for this specific journey -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-stone-50/80 dark:bg-emerald-950/80 backdrop-blur-xl flex justify-around items-center px-4 pb-8 pt-4 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] z-[40] pointer-events-none opacity-0">
+<div class="flex flex-col items-center justify-center text-stone-400 px-4 py-2">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-emerald-900 text-stone-50 rounded-full px-5 py-2 scale-110 shadow-lg">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+<span class="text-[10px] font-bold uppercase tracking-widest mt-1">Market</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 px-4 py-2">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-bold uppercase tracking-widest mt-1">Profile</span>
+</div>
+</nav>
+</body></html>
