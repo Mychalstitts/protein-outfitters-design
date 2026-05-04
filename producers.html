@@ -1,258 +1,276 @@
-<!DOCTYPE html>
-
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>The Monolith | Producers &amp; Estates</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "on-primary-fixed-variant": "#364c3c",
-              "secondary-fixed": "#dce5da",
-              "on-surface-variant": "#434843",
-              "surface-bright": "#fbf9f5",
-              "surface-container": "#f0eeea",
-              "error-container": "#ffdad6",
-              "outline": "#737972",
-              "on-tertiary-fixed": "#410003",
-              "inverse-primary": "#b4cdb8",
-              "tertiary-fixed": "#ffdad6",
-              "secondary": "#586158",
-              "outline-variant": "#c3c8c1",
-              "on-tertiary-fixed-variant": "#930010",
-              "on-secondary-fixed": "#151d17",
-              "on-background": "#1b1c1a",
-              "tertiary": "#000000",
-              "secondary-fixed-dim": "#c0c9bf",
-              "primary-fixed": "#cfe9d3",
-              "inverse-on-surface": "#f2f0ec",
-              "error": "#ba1a1a",
-              "on-secondary": "#ffffff",
-              "on-primary": "#ffffff",
-              "on-error-container": "#93000a",
-              "background": "#fbf9f5",
-              "tertiary-container": "#410003",
-              "on-primary-fixed": "#0a2012",
-              "surface-dim": "#dbdad6",
-              "on-tertiary": "#ffffff",
-              "tertiary-fixed-dim": "#ffb3ac",
-              "surface-tint": "#4d6452",
-              "on-tertiary-container": "#f04440",
-              "on-error": "#ffffff",
-              "surface-container-lowest": "#ffffff",
-              "primary-fixed-dim": "#b4cdb8",
-              "primary-container": "#0a2012",
-              "on-primary-container": "#728a77",
-              "surface-variant": "#e4e2de",
-              "surface-container-high": "#eae8e4",
-              "primary": "#000000",
-              "inverse-surface": "#30312e",
-              "secondary-container": "#d9e2d8",
-              "surface-container-highest": "#e4e2de",
-              "surface-container-low": "#f5f3ef",
-              "surface": "#fbf9f5",
-              "on-secondary-fixed-variant": "#404941",
-              "on-surface": "#1b1c1a",
-              "on-secondary-container": "#5c655d"
-            },
-            fontFamily: {
-              "headline": ["Inter"],
-              "body": ["Inter"],
-              "label": ["Inter"]
-            },
-            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-          },
-        },
-      }
-    </script>
-<style>
-      body { font-family: 'Inter', sans-serif; }
-      .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      }
-      .ease-spring {
-        transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
-    </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<title>Producers · Protein Outfitters</title>
+<meta name="description" content="Meet the ranchers behind every animal. Browse all verified producers on Protein Outfitters and follow the ones that match your values." />
+<meta property="og:title" content="Producers · Protein Outfitters" />
+<meta property="og:description" content="Meet the verified producers behind every animal." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/producers" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:title" content="Producers · Protein Outfitters" />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.pp-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.pp-inner { max-width: 1320px; margin: 0 auto; }
+
+.pp-hero { padding: clamp(48px, 6vw, 80px) 0; }
+.pp-h1 { font-size: clamp(40px, 6.5vw, 80px); font-weight: 900; letter-spacing: -0.04em; line-height: 0.95; margin: 0 0 16px; max-width: 22ch; }
+.pp-lead { font-size: clamp(17px, 1.5vw, 22px); color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 0; }
+
+/* Filter chips */
+.filters { position: sticky; top: 64px; z-index: 60; background: rgba(251, 249, 245, 0.92); backdrop-filter: blur(12px); padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.04); margin-bottom: clamp(32px, 4vw, 48px); }
+.filters-inner { display: flex; gap: 8px; align-items: center; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+.filters-inner::-webkit-scrollbar { display: none; }
+.chip { background: var(--surface); border: 1px solid rgba(0,0,0,0.06); border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; transition: background .25s, color .25s, border-color .25s; }
+.chip:hover { color: var(--ink); border-color: rgba(0,0,0,0.14); }
+.chip.active { background: var(--brand); color: #fbf9f5; border-color: var(--brand); }
+.chip.divider { background: transparent; border: 0; pointer-events: none; padding: 0 4px; color: var(--ink-3); font-size: 11px; }
+
+/* Producer cards */
+.farm-grid { display: grid; gap: clamp(20px, 2vw, 28px); grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.farm-card { background: #fff; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s; }
+.farm-card:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(0,0,0,0.10); }
+.farm-cover { aspect-ratio: 16/10; background-color: #1a0d08; background-size: cover; background-position: center; position: relative; }
+.farm-avatar { position: absolute; bottom: -28px; left: 22px; width: 64px; height: 64px; border-radius: 18px; background: #fff; padding: 4px; box-shadow: 0 8px 18px rgba(0,0,0,0.16); }
+.farm-avatar > div { width: 100%; height: 100%; border-radius: 14px; background-size: cover; background-position: center; }
+.farm-meta { padding: 40px 22px 24px; display: flex; flex-direction: column; gap: 6px; }
+.farm-meta h3 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.022em; }
+.farm-meta .where { font-size: 13px; color: var(--ink-2); }
+.farm-meta .stats { display: flex; gap: 14px; padding-top: 14px; margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 13px; }
+.farm-meta .stats .v { font-weight: 800; color: var(--ink); }
+.farm-meta .stats .lab { color: var(--ink-2); margin-left: 4px; }
+.farm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.farm-tag { background: var(--accent-soft); color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+
+/* Hero map embed */
+.map-strip { background: linear-gradient(180deg, var(--surface) 0%, #fff 100%); border-radius: 28px; padding: clamp(24px, 3vw, 40px); margin-bottom: clamp(40px, 5vw, 64px); display: grid; gap: clamp(20px, 2vw, 32px); grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 800px) { .map-strip { grid-template-columns: 1fr 1.4fr; } }
+.map-strip h2 { margin: 0 0 8px; font-size: clamp(24px, 3vw, 36px); font-weight: 900; letter-spacing: -0.03em; }
+.map-strip p { margin: 0 0 18px; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+.map-strip a { display: inline-block; background: var(--brand); color: #fbf9f5; padding: 12px 22px; border-radius: 999px; font-size: 13px; font-weight: 700; text-decoration: none; }
+.map-strip a:hover { background: #0a2614; }
+.map-img { aspect-ratio: 16/9; background: url('/ranch.jpg') center/cover; border-radius: 18px; }
+</style>
 </head>
-<body class="bg-background text-on-background selection:bg-primary-fixed-dim">
-<!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 backdrop-blur-xl flex justify-between items-center px-8 py-6 max-w-full">
-<div class="flex items-center gap-4">
-<button class="text-[#061b0e] dark:text-[#fbf9f5] scale-95 active:scale-90 transition-transform">
-<span class="material-symbols-outlined text-3xl" data-icon="menu">menu</span>
-</button>
-<h1 class="text-2xl font-black tracking-tighter text-[#061b0e] dark:text-[#fbf9f5] uppercase font-headline">The Monolith</h1>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/#how">How it works</a><a href="/producers" class="active">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button data-open-sheet>Reserve</button></div>
+  </nav>
 </div>
-<div class="hidden md:flex items-center gap-8">
-<nav class="flex gap-6">
-<a class="text-[#061b0e] dark:text-[#fbf9f5] font-bold transition-opacity duration-300 hover:opacity-80" href="#">Producers</a>
-<a class="text-[#061b0e]/60 dark:text-[#fbf9f5]/60 font-bold transition-opacity duration-300 hover:opacity-80" href="#">Selection</a>
-<a class="text-[#061b0e]/60 dark:text-[#fbf9f5]/60 font-bold transition-opacity duration-300 hover:opacity-80" href="#">Vault</a>
-</nav>
-</div>
-<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden shadow-sm">
-<img alt="User profile" data-alt="Close-up portrait of a professional man in a dark minimalist studio with soft rim lighting and sophisticated atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWlF9zIkXA-6myTC1wcB6s8TGe0ItbRYtlYqIipcMtmXExPv6GViL_FzGi19AY2-Yn1akz8bciH6TppBJ-b979yJqI0DXV97mZ-15J7gcZR-UFmYRD1Lm_4YKBFB7t3CcVv_gtXsxDj3VwVL0zvYu0g2law3vmEzCJuNl8oR8BuDEyHmcRvYyvydVkDNro4eLeoDZdmNFagnXpyrluzY9VVO09q5nVrG1hGEUph_C4Cee_Z5Sey8qBvnwYXM7weZGvTYP4AOnhjDfG"/>
-</div>
-</header>
-<main class="pt-32 pb-32 px-6 md:px-12 max-w-7xl mx-auto">
-<!-- Hero Editorial Section -->
-<section class="relative w-full mb-16 group">
-<div class="relative h-[618px] w-full rounded-[2.75rem] overflow-hidden shadow-2xl">
-<img alt="Northfield Pastures" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Wide panoramic shot of a misty emerald green valley with ancient oak trees at dawn and soft volumetric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAKocX2Xhjj8fL_OYrOxpDvevs8N7l4fXp2WAZDI7gag9MmOo_gIoWTuUnyef6x-jbT1-6dFPCsmXRzR1_VRHauELvDjerBNNull9bjNkkNR9rqyp1qKo-bR9ioXXtG3NfXnoDoAu_OY_WgoRAfNJlGOpLH8kVtU3gqQ0Biv4mY4sULkqKo1F-TkHO182Eze7J8_dxZGmTYUoJl2KkfmcA2xrT36OdaobCZTFr1kHTlP0mdTij_13kSg9V5qjHyyllq9nlHCWjPfiO"/>
-<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent"></div>
-<!-- Featured Badge -->
-<div class="absolute top-8 left-8 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-<span class="text-white text-xs font-black tracking-[0.2em] uppercase font-label">Featured Estate</span>
-</div>
-<!-- Overlapping Content -->
-<div class="absolute bottom-12 left-8 md:left-12 right-8 md:right-12">
-<div class="max-w-2xl">
-<h2 class="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4 font-headline">Northfield Pastures</h2>
-<div class="flex items-center gap-4 mb-6">
-<span class="px-4 py-1.5 bg-primary-container text-on-primary-container rounded-full text-xs font-bold font-label uppercase tracking-widest">Wiltshire, UK</span>
-<span class="text-white/80 text-sm font-medium">Est. 1842 • 1,200 Hectares</span>
-</div>
-<button class="bg-white text-primary px-8 py-4 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all ease-spring flex items-center gap-3">
-                            Experience the Provenance
-                            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
-</button>
-</div>
-</div>
-</div>
+
+<section class="pp-shell">
+  <div class="pp-inner">
+
+    <div class="pp-hero">
+      <p class="po-eyebrow">Producers · Northland</p>
+      <h1 class="pp-h1">Meet the ranchers behind your meat.</h1>
+      <p class="pp-lead">Twelve verified producers across Minnesota, Wisconsin, and the Dakotas. Each one named the animal they're raising. Follow the operations whose values match yours.</p>
+    </div>
+
+    <div class="filters">
+      <div class="filters-inner">
+        <button class="chip active" data-filter="all">All · 12</button>
+        <span class="chip divider">By state</span>
+        <button class="chip" data-filter="mn">Minnesota</button>
+        <button class="chip" data-filter="wi">Wisconsin</button>
+        <button class="chip" data-filter="nd">North Dakota</button>
+        <button class="chip" data-filter="sd">South Dakota</button>
+        <span class="chip divider">By practice</span>
+        <button class="chip" data-filter="grass">Grass-fed</button>
+        <button class="chip" data-filter="organic">Organic</button>
+        <button class="chip" data-filter="regen">Regenerative</button>
+        <button class="chip" data-filter="heritage">Heritage breeds</button>
+      </div>
+    </div>
+
+    <div class="farm-grid">
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn grass regen">
+        <div class="farm-cover" style="background-image: url('/ranch.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Northfield Pastures</h3>
+          <span class="where">Bemidji, MN · 320 acres · since 2004</span>
+          <div class="stats"><span><span class="v">3</span><span class="lab">listings</span></span><span><span class="v">847</span><span class="lab">followers</span></span><span><span class="v">4.9★</span><span class="lab">128 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Grass-fed</span><span class="farm-tag">AGA Verified</span><span class="farm-tag">GAP Step 4</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn grass">
+        <div class="farm-cover" style="background-image: url('/hereford.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Crow Wing Cattle Co</h3>
+          <span class="where">Brainerd, MN · 480 acres · since 1998</span>
+          <div class="stats"><span><span class="v">2</span><span class="lab">listings</span></span><span><span class="v">412</span><span class="lab">followers</span></span><span><span class="v">4.7★</span><span class="lab">76 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Grass-fed</span><span class="farm-tag">USDA Verified</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn heritage">
+        <div class="farm-cover" style="background-image: url('/wagyu.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Northern Lights Wagyu</h3>
+          <span class="where">Park Rapids, MN · 200 acres · since 2014</span>
+          <div class="stats"><span><span class="v">1</span><span class="lab">listing</span></span><span><span class="v">1.2k</span><span class="lab">followers</span></span><span><span class="v">5.0★</span><span class="lab">42 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Heritage</span><span class="farm-tag">AWA member</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn heritage organic">
+        <div class="farm-cover" style="background-image: url('/hog.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Mississippi Headwaters Farm</h3>
+          <span class="where">Bemidji, MN · 140 acres · since 2010</span>
+          <div class="stats"><span><span class="v">2</span><span class="lab">listings</span></span><span><span class="v">324</span><span class="lab">followers</span></span><span><span class="v">4.8★</span><span class="lab">58 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Berkshire</span><span class="farm-tag">Heritage</span><span class="farm-tag">Pasture-raised</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn grass regen organic">
+        <div class="farm-cover" style="background-image: url('/lamb.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Boreal Pastures</h3>
+          <span class="where">Cass Lake, MN · 220 acres · since 2008</span>
+          <div class="stats"><span><span class="v">4</span><span class="lab">listings</span></span><span><span class="v">298</span><span class="lab">followers</span></span><span><span class="v">4.9★</span><span class="lab">64 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Lamb</span><span class="farm-tag">USDA Organic</span><span class="farm-tag">ROC</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn">
+        <div class="farm-cover" style="background-image: url('/venison.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Itasca Wilds</h3>
+          <span class="where">Grand Rapids, MN · 1,400 acres · since 2002</span>
+          <div class="stats"><span><span class="v">1</span><span class="lab">listing</span></span><span><span class="v">186</span><span class="lab">followers</span></span><span><span class="v">4.8★</span><span class="lab">29 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Venison</span><span class="farm-tag">Wild-harvest</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="wi grass">
+        <div class="farm-cover" style="background-image: url('/angus.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Driftless Hills Beef</h3>
+          <span class="where">La Crosse, WI · 240 acres · since 2007</span>
+          <div class="stats"><span><span class="v">3</span><span class="lab">listings</span></span><span><span class="v">510</span><span class="lab">followers</span></span><span><span class="v">4.8★</span><span class="lab">88 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Grass-fed</span><span class="farm-tag">AGA</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="wi heritage">
+        <div class="farm-cover" style="background-image: url('/hog.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Door County Heritage Pork</h3>
+          <span class="where">Sturgeon Bay, WI · 80 acres · since 2015</span>
+          <div class="stats"><span><span class="v">2</span><span class="lab">listings</span></span><span><span class="v">240</span><span class="lab">followers</span></span><span><span class="v">4.9★</span><span class="lab">36 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Mangalitsa</span><span class="farm-tag">Heritage</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="nd grass">
+        <div class="farm-cover" style="background-image: url('/hereford.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Red River Hereford Co</h3>
+          <span class="where">Fargo, ND · 1,200 acres · since 1962</span>
+          <div class="stats"><span><span class="v">5</span><span class="lab">listings</span></span><span><span class="v">760</span><span class="lab">followers</span></span><span><span class="v">4.7★</span><span class="lab">142 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Hereford</span><span class="farm-tag">4 generations</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="nd grass regen">
+        <div class="farm-cover" style="background-image: url('/ranch.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Prairie Wind Ranch</h3>
+          <span class="where">Bismarck, ND · 3,200 acres · since 1989</span>
+          <div class="stats"><span><span class="v">8</span><span class="lab">listings</span></span><span><span class="v">1.4k</span><span class="lab">followers</span></span><span><span class="v">4.8★</span><span class="lab">204 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Regenerative</span><span class="farm-tag">Land to Market</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="sd grass">
+        <div class="farm-cover" style="background-image: url('/angus.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Black Hills Angus Co</h3>
+          <span class="where">Rapid City, SD · 800 acres · since 1995</span>
+          <div class="stats"><span><span class="v">4</span><span class="lab">listings</span></span><span><span class="v">622</span><span class="lab">followers</span></span><span><span class="v">4.9★</span><span class="lab">96 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Certified Angus</span><span class="farm-tag">Grass-fed</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="sd organic">
+        <div class="farm-cover" style="background-image: url('/poultry.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Sage Creek Poultry</h3>
+          <span class="where">Sioux Falls, SD · 60 acres · since 2018</span>
+          <div class="stats"><span><span class="v">6</span><span class="lab">listings</span></span><span><span class="v">182</span><span class="lab">followers</span></span><span><span class="v">5.0★</span><span class="lab">22 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Heritage poultry</span><span class="farm-tag">USDA Organic</span></div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Map strip -->
+    <div class="map-strip" style="margin-top: clamp(48px, 6vw, 80px);">
+      <div>
+        <p class="po-eyebrow">Browse by location</p>
+        <h2>Find a ranch within 90 minutes of you.</h2>
+        <p>Pickup is local — most buyers drive less than an hour to get their meat. Open the map and find what's close.</p>
+        <a href="/map">Open the farm map →</a>
+      </div>
+      <div class="map-img"></div>
+    </div>
+
+  </div>
 </section>
-<!-- Asymmetrical Magazine Grid -->
-<div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-<!-- Left Column: Blackwood Estates (Large Card) -->
-<div class="md:col-span-7">
-<div class="bg-surface-container-low rounded-[2.75rem] p-10 relative overflow-hidden group hover:bg-surface-container transition-colors duration-500">
-<div class="relative z-10 flex flex-col h-full justify-between min-h-[400px]">
-<div>
-<div class="flex justify-between items-start mb-12">
-<div>
-<h3 class="text-3xl font-black tracking-tight text-on-background font-headline mb-2">Blackwood Estates</h3>
-<span class="px-3 py-1 bg-surface-container-highest text-secondary font-bold text-[10px] uppercase tracking-widest rounded-full">Highland Heritage</span>
-</div>
-<span class="material-symbols-outlined text-4xl text-primary/10" data-icon="temp_preferences_custom">temp_preferences_custom</span>
-</div>
-<p class="text-on-surface-variant leading-relaxed text-lg max-w-md mb-8">
-                                Generations of dedicated land stewardship in the rugged Scottish Highlands. Home to the rarest heritage breeds and crystalline spring waters.
-                            </p>
-</div>
-<button class="w-fit px-6 py-3 bg-transparent border border-outline-variant/30 text-on-background font-bold rounded-xl hover:bg-surface-container-highest transition-all">
-                            View Profile
-                        </button>
-</div>
-<!-- Bleed Image -->
-<div class="absolute -right-20 -bottom-10 w-80 h-80 opacity-20 grayscale group-hover:grayscale-0 group-hover:opacity-40 transition-all duration-700">
-<img alt="Blackwood Animal" data-alt="A silhouette of a majestic highland cow with long horns standing against a foggy dark green forest background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3y81sCG1tGIE4DJ96NfUwpLE9SyVBM9bMsHdHZ11JpWVO3k7BA77Ku_Q6djexwL7REVmXUqeeImHEg5GAAD4OGMN9gsU54yZAo4qbFqYEn7_AR0fh5bkrnwUFZUdYFOopP8WjiOVohlRJsPUJ8PCzHMFlN3Of3Azjv-z4591pSVq04LpnqWHKY25aLUvi_vLeacIRM7aQtjFewieOkVCnkdwnS1P_mbrh_QHWX9eLJ5NIs8Ty6VeIEt6W8ph16tq2zsci9fmVDiiI"/>
-</div>
-</div>
-</div>
-<!-- Right Column: List and Stats -->
-<div class="md:col-span-5 space-y-10">
-<!-- Riverbend Farm Card -->
-<div class="bg-surface-container-lowest rounded-[2.75rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.02)] group">
-<div class="flex items-center gap-6 mb-6">
-<div class="w-20 h-20 rounded-3xl overflow-hidden bg-surface-container">
-<img alt="Riverbend" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Lush green river bank with weeping willows reflecting in calm water during a bright spring morning" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT3RG8dWS3y6FaWN0hLvkpjr1LIacke7wHBIeCVGGyzcg47S6psz0ZVVpDgsyas65GxCokx419qUs8ATaQmDzIDYMZE_XUzfiPwPtfPO4Aaiz1-sugJV7UB7IUL0BOrKB7Vx1TGkGbDLNxjKMlbAGuZaQljO8btoi6IA0zGNIjgQLnLJjJZoslRwxbv0MmVYWb7zJLD97PH8asUFtKGMRrerXBQtCED5SZwykKav-RJ-MoHysmNXDPPXRtMFIT5Iayvhwt8Sie2i_n"/>
-</div>
-<div>
-<h4 class="text-xl font-bold tracking-tight font-headline">Riverbend Farm</h4>
-<p class="text-on-surface-variant text-sm font-label uppercase tracking-widest">Organic Viticulture</p>
-</div>
-</div>
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant text-sm italic">Loire Valley, France</span>
-<button class="p-2 text-primary hover:bg-surface-container rounded-full transition-colors">
-<span class="material-symbols-outlined" data-icon="north_east">north_east</span>
-</button>
-</div>
-</div>
-<!-- Elderwood Organics Card -->
-<div class="bg-surface-container-low rounded-[2.75rem] p-8 group">
-<div class="flex items-center gap-6 mb-6">
-<div class="w-20 h-20 rounded-3xl overflow-hidden bg-surface-container">
-<img alt="Elderwood" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="A small rustic vegetable garden with deep purple kale and bright orange pumpkins in soft afternoon sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvd1Fx9sl8o6N2MwqZ6fV41ZZh46LmDVC35i-PDlWI-kklHKHsgEuOWbGSnH_ACZkQ9UPO-kGzILVZSTYbPIUMsDt4So3Ze2CkI6HuLuee5IhhscD3yARhOkdHD2XQCbR4iCMnGQvs6FsD0G11rGQAzPVYcFlcSDqrZbwQg1jK81ucViH92GZeYyXhFR1NM8VQ4xxvZeQahUgMIsoMGv8y7bSM3jRKHXOvM5Rj06GW4gdoR7TXgp29BCxfsVNArHkOCUuCX-wCEpTO"/>
-</div>
-<div>
-<h4 class="text-xl font-bold tracking-tight font-headline">Elderwood Organics</h4>
-<p class="text-on-surface-variant text-sm font-label uppercase tracking-widest">Boutique Foraging</p>
-</div>
-</div>
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant text-sm italic">Oregon, USA</span>
-<button class="p-2 text-primary hover:bg-surface-container rounded-full transition-colors">
-<span class="material-symbols-outlined" data-icon="north_east">north_east</span>
-</button>
-</div>
-</div>
-<!-- Stats/Insight Bento -->
-<div class="bg-primary-container p-8 rounded-[2.75rem] text-on-primary-container">
-<span class="material-symbols-outlined text-4xl mb-6 block" data-icon="verified_user" style="font-variation-settings: 'FILL' 1;">verified_user</span>
-<h5 class="text-2xl font-black font-headline tracking-tighter mb-2">Curated Standards</h5>
-<p class="text-on-primary-container/70 text-sm leading-relaxed mb-6">Every producer in the Monolith network undergoes a 12-month vetting process for soil health and carbon sequestration.</p>
-<div class="flex -space-x-3">
-<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-container overflow-hidden">
-<img data-alt="Portrait of a farm manager" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkrSBBX77bpKqtGLnpVjKYglPbB-j76z7sHmo55fBgmwz0-O1pb-_ypqBhEdCW2g9-iBS2JDX0s598iv86pikVBuAdfUI328c687ycqOoPyXjdt7h5xy35WmJ1otZ0HI0xglyqSYqLi1iANwqQcp7wbYNssz7-8V4kU3jCHKN_TBbwfUiPmnUv3RmCgGmBC2lTpjW6S6c47pRaZ5NhdDN2LD-4xU4vyoV3Bs7hX2qV0gueEpOg4WPH29muqD0uwCfp4vDdNmo6QQEk"/>
-</div>
-<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-container overflow-hidden">
-<img data-alt="Portrait of a female agriculturist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPH2Wc-IV5miBeS1TNn0ugDl-CyBL60sPDB4jsneJpWQoo5SRTAmYpDWmPEWvYP0BqLLtwycM9J-nCP6KFCYhbR8FrU7xNlAlmEGTaHEyUcaQOxgYJNClJLl_0ZkZv_3Q1w1__hvh4VeY5AyReILrrZRVauh2ZTQVYDL0lcHZFQpGoJM8hwLOimS_c3_oPVENkz9hE9qsDDdqm-KHOf1xdfEX_T8vlKZ7Qs22Wr83ZKuK-9ghTs1lHxb_y0DGwOPmzjvkwsIWuCDTE"/>
-</div>
-<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-container overflow-hidden">
-<img data-alt="Portrait of a land scientist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDikSn4of_A5xY8Fc6rE8p4nMuMNwyNunuHW8tywdWKuWi5V87p_Kd3CYsqHHhl0Qq6Tt3QICpe2T6-RwnrbUSwnXry9u_pxm9h1igbJuWVWZA3q9reiweqUlWuGqKCv-O7fXgwjLU-RZXExnEfGGRfIq_pNcTKqPoPDIxJfY3I9uEUplNruQ4BIXo5ToQRu_6Jc-0FyG7UB8-Yd3xWcsZpxLVUcnJpdVfMQXSB0TIQMYcTGu8hwC6MreHJMZNGHprwlF1o3wIDsSQ"/>
-</div>
-<div class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-primary-container bg-surface-container-high text-[10px] font-bold">
-                            +42
-                        </div>
-</div>
-</div>
-</div>
-</div>
-</main>
-<!-- BottomNavBar -->
-<nav class="fixed bottom-0 left-0 w-full h-24 flex justify-around items-center px-10 pb-4 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 backdrop-blur-2xl z-50 rounded-t-[2.75rem] shadow-[0_-10px_40px_rgba(27,28,26,0.04)]">
-<!-- Discover -->
-<a class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] scale-110 active:scale-95 transition-all" href="#">
-<span class="material-symbols-outlined" data-icon="explore">explore</span>
-<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Discover</span>
-</a>
-<!-- Provenance (Active) -->
-<a class="flex flex-col items-center justify-center bg-[#061b0e] dark:bg-[#fbf9f5] text-[#fbf9f5] dark:text-[#061b0e] rounded-full w-14 h-14 transition-all duration-500 ease-spring scale-110 shadow-2xl" href="#">
-<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
-<span class="hidden">Provenance</span>
-</a>
-<!-- Selection -->
-<a class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] scale-110 active:scale-95 transition-all" href="#">
-<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
-<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Selection</span>
-</a>
-<!-- Vault -->
-<a class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] scale-110 active:scale-95 transition-all" href="#">
-<span class="material-symbols-outlined" data-icon="shield_person">shield_person</span>
-<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Vault</span>
-</a>
-</nav>
-</body></html>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script>
+(function () {
+  document.querySelectorAll('.chip[data-filter]').forEach(chip => chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const f = chip.dataset.filter;
+    document.querySelectorAll('.farm-card').forEach(card => {
+      const tags = (card.dataset.tags || '').split(' ');
+      card.style.display = (f === 'all' || tags.includes(f)) ? '' : 'none';
+    });
+  }));
+})();
+</script>
+</body>
+</html>

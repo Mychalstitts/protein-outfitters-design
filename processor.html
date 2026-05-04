@@ -1,386 +1,313 @@
-<!DOCTYPE html>
-
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>Protein Outfitters | Processor Dashboard</title>
-<!-- Google Fonts: Inter -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<!-- Material Symbols -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "on-surface": "#1b1c1a",
-              "surface-container-lowest": "#ffffff",
-              "on-primary-fixed-variant": "#364c3c",
-              "surface-dim": "#dbdad6",
-              "primary-fixed": "#cfe9d3",
-              "primary-container": "#0a2012",
-              "tertiary": "#000000",
-              "inverse-surface": "#30312e",
-              "on-tertiary-fixed-variant": "#930010",
-              "surface": "#fbf9f5",
-              "on-primary": "#ffffff",
-              "secondary": "#586158",
-              "secondary-fixed": "#dce5da",
-              "error": "#ba1a1a",
-              "tertiary-fixed-dim": "#ffb3ac",
-              "on-tertiary-container": "#f04440",
-              "on-secondary-fixed-variant": "#404941",
-              "surface-container": "#f0eeea",
-              "surface-bright": "#fbf9f5",
-              "surface-container-highest": "#e4e2de",
-              "on-primary-fixed": "#0a2012",
-              "tertiary-container": "#410003",
-              "surface-container-high": "#eae8e4",
-              "on-tertiary": "#ffffff",
-              "surface-tint": "#4d6452",
-              "on-error-container": "#93000a",
-              "error-container": "#ffdad6",
-              "on-background": "#1b1c1a",
-              "inverse-on-surface": "#f2f0ec",
-              "secondary-container": "#d9e2d8",
-              "outline-variant": "#c3c8c1",
-              "primary": "#000000",
-              "background": "#fbf9f5",
-              "primary-fixed-dim": "#b4cdb8",
-              "on-secondary": "#ffffff",
-              "on-primary-container": "#728a77",
-              "on-surface-variant": "#434843",
-              "tertiary-fixed": "#ffdad6",
-              "secondary-fixed-dim": "#c0c9bf",
-              "surface-variant": "#e4e2de",
-              "on-secondary-fixed": "#151d17",
-              "surface-container-low": "#f5f3ef",
-              "outline": "#737972",
-              "on-secondary-container": "#5c655d",
-              "on-error": "#ffffff",
-              "inverse-primary": "#b4cdb8",
-              "on-tertiary-fixed": "#410003"
-            },
-            fontFamily: {
-              "headline": ["Inter", "sans-serif"],
-              "body": ["Inter", "sans-serif"],
-              "label": ["Inter", "sans-serif"]
-            },
-            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px"},
-            transitionTimingFunction: {
-              "spring": "cubic-bezier(0.16, 1, 0.3, 1)"
-            }
-          },
-        },
-      }
-    </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .ease-spring { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-        .ios-haptic:active { transform: scale(0.96); }
-        .no-line-architecture { border: none !important; }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
-    </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<title>My plant · Protein Outfitters</title>
+<meta name="description" content="Processor dashboard. Today's queue, drop-offs, pickups, capacity, and operations." />
+<meta property="og:title" content="My plant · Protein Outfitters" />
+<meta property="og:description" content="Processor dashboard for Protein Outfitters." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/processor" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:title" content="My plant · Protein Outfitters" />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.pr-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.pr-inner { max-width: 1320px; margin: 0 auto; }
+
+.pr-hero { display: grid; gap: clamp(20px, 3vw, 32px); grid-template-columns: 1fr; margin-bottom: clamp(32px, 4vw, 48px); }
+@media (min-width: 900px) { .pr-hero { grid-template-columns: 1.6fr 1fr; align-items: end; } }
+.pr-greeting .eye { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px; }
+.pr-greeting h1 { margin: 0; font-size: clamp(36px, 5.5vw, 64px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; max-width: 22ch; }
+.pr-greeting p { margin: 14px 0 0; font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 50ch; }
+
+.pr-standing { background: var(--brand); color: #fbf9f5; border-radius: 22px; padding: 24px 26px; display: flex; flex-direction: column; gap: 16px; }
+.pr-standing-row { display: flex; align-items: center; gap: 16px; }
+.pr-standing-avatar { width: 56px; height: 56px; border-radius: 16px; background: url('/processor.jpg') center/cover; flex-shrink: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+.pr-standing-meta .role { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
+.pr-standing-meta .name { margin: 4px 0 0; font-size: 18px; font-weight: 900; letter-spacing: -0.018em; }
+.pr-standing-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding-top: 14px; border-top: 1px solid rgba(251,249,245,0.18); }
+.pr-standing-stat .v { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
+.pr-standing-stat .lab { font-size: 11px; color: rgba(251,249,245,0.65); margin-top: 4px; line-height: 1.3; }
+
+.qa-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); margin-bottom: clamp(32px, 4vw, 48px); }
+@media (min-width: 700px) { .qa-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1100px) { .qa-grid { grid-template-columns: repeat(6, 1fr); } }
+.qa { background: #fff; border-radius: 22px; padding: 22px 20px; display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s, border-color .25s; border: 1px solid transparent; }
+.qa:hover { transform: translateY(-3px); border-color: var(--brand); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+.qa-glyph { width: 44px; height: 44px; border-radius: 13px; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; }
+.qa-glyph .ico { width: 22px; height: 22px; }
+.qa h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
+.qa p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.qa-pip { font-size: 11px; font-weight: 800; color: #fbf9f5; background: var(--brand); padding: 3px 8px; border-radius: 99px; align-self: flex-start; letter-spacing: 0.04em; }
+.qa-pip.warn { background: #f5e1ad; color: #7a5a08; }
+
+.pr-section { margin-bottom: clamp(32px, 4vw, 48px); }
+.pr-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+.pr-section-head h2 { margin: 0; font-size: clamp(22px, 2.5vw, 28px); font-weight: 800; letter-spacing: -0.025em; }
+.pr-section-head .more { font-size: 13px; font-weight: 700; color: var(--accent-2); text-decoration: none; }
+.pr-section-head .more:hover { color: var(--brand); text-decoration: underline; }
+
+/* Outlook-style queue */
+.queue { background: #fff; border-radius: 22px; padding: 4px 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.queue-row { display: grid; grid-template-columns: 56px 1fr auto auto; gap: 14px; align-items: center; padding: 14px; border-top: 1px solid rgba(0,0,0,0.06); transition: background .2s; }
+.queue-row:first-child { border-top: 0; }
+.queue-row:hover { background: var(--surface); }
+.queue-img { width: 48px; height: 48px; border-radius: 12px; background-size: cover; background-position: center; }
+.queue-meta h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.014em; }
+.queue-meta p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.queue-when { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.queue-when .sub { display: block; font-size: 11px; color: var(--ink-3); font-weight: 600; margin-top: 2px; }
+.queue-status { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+.queue-status.scheduled { background: var(--accent-soft); color: var(--brand); }
+.queue-status.checked-in { background: #cfe9d3; color: var(--brand); }
+.queue-status.processing { background: #f5e1ad; color: #7a5a08; }
+.queue-status.ready { background: #fef3c7; color: #7a5a08; }
+.queue-status.picked-up { background: var(--surface); color: var(--ink-2); }
+.queue-status.alert { background: #fee2e2; color: #ba1a1a; }
+
+.week-stats { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 700px) { .week-stats { grid-template-columns: repeat(4, 1fr); } }
+.week-stat { background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.week-stat .lab { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+.week-stat .v { font-size: 28px; font-weight: 900; letter-spacing: -0.025em; margin: 6px 0 0; line-height: 1; }
+.week-stat .v .delta { font-size: 13px; font-weight: 700; margin-left: 6px; }
+.week-stat .v .up { color: var(--brand); }
+.week-stat .s { font-size: 12px; color: var(--ink-3); margin: 4px 0 0; }
+
+.activity { background: #fff; border-radius: 22px; padding: 6px 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.activity-row { display: flex; align-items: center; gap: 14px; padding: 14px; border-top: 1px solid rgba(0,0,0,0.06); }
+.activity-row:first-child { border-top: 0; }
+.activity-glyph { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); color: var(--ink-2); display: grid; place-items: center; flex-shrink: 0; }
+.activity-glyph .ico { width: 18px; height: 18px; }
+.activity-glyph.brand { background: var(--accent-soft); color: var(--brand); }
+.activity-meta { flex: 1; min-width: 0; }
+.activity-meta h4 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.014em; }
+.activity-meta h4 strong { font-weight: 800; }
+.activity-time { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+</style>
 </head>
-<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed overflow-x-hidden">
-<!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 bg-stone-50/80 dark:bg-emerald-950/80 backdrop-blur-xl flex justify-between items-center px-8 py-4 max-w-full shadow-2xl shadow-emerald-950/5 no-line-architecture">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-emerald-950 dark:text-emerald-50 text-2xl" data-icon="hub">hub</span>
-<h1 class="text-xl font-black text-emerald-950 dark:text-emerald-50 tracking-tighter font-headline">Protein Outfitters</h1>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/processor" class="active">My plant</a><a href="/finance">Finance</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a href="/processor-schedule" style="text-decoration:none;"><button>Open queue</button></a></div>
+  </nav>
 </div>
-<nav class="hidden md:flex items-center gap-8">
-<a class="text-emerald-900 dark:text-emerald-100 font-bold border-b-2 border-emerald-900 dark:border-emerald-100 pb-1 hover:text-emerald-800 dark:hover:text-emerald-200 transition-all duration-300 ease-spring" href="#">Schedule</a>
-<a class="text-stone-500 dark:text-stone-400 font-medium hover:text-emerald-800 dark:hover:text-emerald-200 transition-all duration-300 ease-spring" href="#">Capacity</a>
-<a class="text-stone-500 dark:text-stone-400 font-medium hover:text-emerald-800 dark:hover:text-emerald-200 transition-all duration-300 ease-spring" href="#">Invoices</a>
-<a class="text-stone-500 dark:text-stone-400 font-medium hover:text-emerald-800 dark:hover:text-emerald-200 transition-all duration-300 ease-spring" href="#">Profile</a>
-</nav>
-<div class="flex items-center gap-4">
-<a class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden ios-haptic cursor-pointer" href="{{DATA:SCREEN:SCREEN_2}}">
-<img class="w-full h-full object-cover" data-alt="close up portrait of a professional male facility manager" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuODczFh6OkQpIcOqJvVHsxcanPy4gARPyr6iXBP992E9vz0VmYofMzBT6Qyn590mk7G1-o8KyoWEyGhqlGkTJ3tn-H6_j2-GATiVv7Yc1dfGkdLseqOj46ymIisThjO7ug4kbdGmMVQobxq7FjkEOs2G-wR3kVVafzHTtfI5sUaNuf9CZqVABhypFNDRhDl3L5rAY9r0x-PY5JEcaccL-0eaUfPraRBPYyCm0Cw9bgUa4FIQKvpSh2zkFHIs-tUhfy9ibvxUelV8W"/>
-</a>
-</div>
-</header>
-<main class="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto">
-<!-- Hero Stats Cluster -->
-<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-<div class="bg-surface-container-low p-8 rounded-3xl ios-haptic transition-all duration-500 ease-spring group">
-<div class="flex justify-between items-start mb-6">
-<span class="text-stone-500 font-semibold tracking-tight uppercase text-xs">Upcoming Slaughters</span>
-<span class="material-symbols-outlined text-emerald-900" data-icon="restaurant">restaurant</span>
-</div>
-<div class="text-6xl font-black tracking-tighter text-emerald-950 group-hover:scale-105 transition-transform duration-500 origin-left">8</div>
-<p class="mt-4 text-stone-500 text-sm font-medium">Scheduled for next 48 hours</p>
-</div>
-<div class="bg-surface-container-low p-8 rounded-3xl ios-haptic transition-all duration-500 ease-spring">
-<div class="flex justify-between items-start mb-6">
-<span class="text-stone-500 font-semibold tracking-tight uppercase text-xs">Daily Capacity</span>
-<span class="material-symbols-outlined text-emerald-900" data-icon="analytics">analytics</span>
-</div>
-<div class="flex items-end gap-2 mb-4">
-<span class="text-6xl font-black tracking-tighter text-emerald-950">85</span>
-<span class="text-2xl font-bold text-stone-400 pb-1">%</span>
-</div>
-<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
-<div class="h-full bg-emerald-900 rounded-full w-[85%]"></div>
-</div>
-</div>
-<div class="bg-surface-container-low p-8 rounded-3xl ios-haptic transition-all duration-500 ease-spring group">
-<div class="flex justify-between items-start mb-6">
-<span class="text-stone-500 font-semibold tracking-tight uppercase text-xs">Pending Cuts</span>
-<span class="material-symbols-outlined text-emerald-900" data-icon="content_cut">content_cut</span>
-</div>
-<div class="text-6xl font-black tracking-tighter text-emerald-950 group-hover:scale-105 transition-transform duration-500 origin-left">14</div>
-<p class="mt-4 text-stone-500 text-sm font-medium">Awaiting butcher confirmation</p>
-</div>
+
+<section class="pr-shell">
+  <div class="pr-inner">
+
+    <div class="pr-hero">
+      <div class="pr-greeting">
+        <p class="eye">Tuesday · May 5</p>
+        <h1>Good morning, Plant 04.</h1>
+        <p>You've got <strong>3 drop-offs</strong> on the calendar today, <strong>2 animals</strong> hanging in cooler 3, and <strong>4 pickups</strong> ready for buyers.</p>
+      </div>
+      <div class="pr-standing">
+        <div class="pr-standing-row">
+          <div class="pr-standing-avatar"></div>
+          <div class="pr-standing-meta">
+            <p class="role">Plant 04 · Bemidji, MN · USDA</p>
+            <p class="name">4.8★ · 92 reviews · 19 yrs</p>
+          </div>
+        </div>
+        <div class="pr-standing-stats">
+          <div class="pr-standing-stat"><div class="v">14</div><div class="lab">In queue</div></div>
+          <div class="pr-standing-stat"><div class="v">87%</div><div class="lab">Capacity used</div></div>
+          <div class="pr-standing-stat"><div class="v">$12k</div><div class="lab">This week</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-grid">
+      <a href="/processor-schedule" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
+        <h4>Schedule + capacity</h4>
+        <p>Weekly hours, calendar overrides, capabilities.</p>
+      </a>
+      <a href="/processor-pricing" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></span>
+        <h4>Pricing</h4>
+        <p>Kill, cut, wrap, smoke, cure fees.</p>
+      </a>
+      <a href="#queue" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#clipboard"/></svg></span>
+        <h4>Today's queue</h4>
+        <p>Drop-offs · processing · ready for pickup.</p>
+        <span class="qa-pip">14 active</span>
+      </a>
+      <a href="/credentials" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></span>
+        <h4>Credentials</h4>
+        <p>USDA + state inspections, special lines.</p>
+        <span class="qa-pip warn">USDA renewal in 60d</span>
+      </a>
+      <a href="/reviews" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></span>
+        <h4>Reviews</h4>
+        <p>Rate farmers + buyers · check yours.</p>
+        <span class="qa-pip">2 to leave</span>
+      </a>
+      <a href="/finance" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#package"/></svg></span>
+        <h4>Finance + payouts</h4>
+        <p>Wallet, transfers, 1099-K.</p>
+      </a>
+    </div>
+
+    <!-- Today's queue -->
+    <section class="pr-section" id="queue">
+      <div class="pr-section-head">
+        <h2>Today's queue</h2>
+        <a class="more" href="/processor-schedule">Open full calendar →</a>
+      </div>
+      <div class="queue">
+        <div class="queue-row">
+          <div class="queue-img" style="background-image: url('/angus.jpg');"></div>
+          <div class="queue-meta">
+            <h4>#2598 · Black Angus · Northfield Pastures</h4>
+            <p>Drop-off scheduled · Mychal Stittsworth · 1,180 lb live</p>
+          </div>
+          <div class="queue-when">7:00 AM<span class="sub">in 2 hours</span></div>
+          <span class="queue-status scheduled">Scheduled</span>
+        </div>
+        <div class="queue-row">
+          <div class="queue-img" style="background-image: url('/hereford.jpg');"></div>
+          <div class="queue-meta">
+            <h4>#2702 · Hereford · Crow Wing Cattle Co</h4>
+            <p>Drop-off scheduled · Jenna T. · 980 lb live</p>
+          </div>
+          <div class="queue-when">8:30 AM<span class="sub">in 3.5 hours</span></div>
+          <span class="queue-status scheduled">Scheduled</span>
+        </div>
+        <div class="queue-row">
+          <div class="queue-img" style="background-image: url('/hog.jpg');"></div>
+          <div class="queue-meta">
+            <h4>Berkshire hog · Mississippi Headwaters</h4>
+            <p>Drop-off scheduled · 280 lb · ⚠ first-time producer</p>
+          </div>
+          <div class="queue-when">10:00 AM<span class="sub">in 5 hours</span></div>
+          <span class="queue-status alert">First-time</span>
+        </div>
+        <div class="queue-row">
+          <div class="queue-img" style="background-image: url('/angus.jpg');"></div>
+          <div class="queue-meta">
+            <h4>#2549 · Angus · Northfield Pastures</h4>
+            <p>Hanging · Cooler 3 · day 12 of 14 of dry-age</p>
+          </div>
+          <div class="queue-when">Day 12<span class="sub">cut Friday</span></div>
+          <span class="queue-status processing">Hanging</span>
+        </div>
+        <div class="queue-row">
+          <div class="queue-img" style="background-image: url('/wagyu.jpg');"></div>
+          <div class="queue-meta">
+            <h4>Wagyu × Angus · Northern Lights</h4>
+            <p>Cutting today · custom sheet from 4 buyers</p>
+          </div>
+          <div class="queue-when">Today<span class="sub">on the floor</span></div>
+          <span class="queue-status processing">Cutting</span>
+        </div>
+        <div class="queue-row">
+          <div class="queue-img" style="background-image: url('/lamb.jpg');"></div>
+          <div class="queue-meta">
+            <h4>Katahdin lamb · Boreal Pastures</h4>
+            <p>Ready for pickup · Mark K. notified · 64 lb of cuts</p>
+          </div>
+          <div class="queue-when">Today<span class="sub">window 8a–5p</span></div>
+          <span class="queue-status ready">Ready</span>
+        </div>
+        <div class="queue-row">
+          <div class="queue-img" style="background-image: url('/angus.jpg');"></div>
+          <div class="queue-meta">
+            <h4>#2532 · Black Angus · Northfield Pastures</h4>
+            <p>Picked up by Sarah R. · 4-quarter share complete</p>
+          </div>
+          <div class="queue-when">10:14 AM<span class="sub">2 hours ago</span></div>
+          <span class="queue-status picked-up">Picked up</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- This week stats -->
+    <section class="pr-section">
+      <div class="pr-section-head">
+        <h2>This week</h2>
+        <a class="more" href="/finance">Full report →</a>
+      </div>
+      <div class="week-stats">
+        <div class="week-stat">
+          <p class="lab">Animals processed</p>
+          <p class="v">12 <span class="delta up">+2</span></p>
+          <p class="s">8 beef · 3 pork · 1 lamb</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">Revenue</p>
+          <p class="v">$12,940 <span class="delta up">+18%</span></p>
+          <p class="s">vs last week</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">Capacity used</p>
+          <p class="v">87% <span class="delta up">+9%</span></p>
+          <p class="s">12/14 slots filled this week</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">Avg lead time</p>
+          <p class="v">10 days <span class="delta up">−2</span></p>
+          <p class="s">faster than industry avg of 21</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity feed -->
+    <section class="pr-section">
+      <div class="pr-section-head">
+        <h2>Activity</h2>
+        <a class="more" href="#">View all →</a>
+      </div>
+      <div class="activity">
+        <div class="activity-row">
+          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check"/></svg></div>
+          <div class="activity-meta"><h4>Sarah R. <strong>checked in</strong> for #2598 pickup</h4></div>
+          <span class="activity-time">14m ago</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></div>
+          <div class="activity-meta"><h4>New booking · <strong>Berkshire hog</strong> on May 22 from Mississippi Headwaters</h4></div>
+          <span class="activity-time">2h ago</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></div>
+          <div class="activity-meta"><h4>Northfield Pastures left a <strong>5-star review</strong></h4></div>
+          <span class="activity-time">Yesterday</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#clipboard"/></svg></div>
+          <div class="activity-meta"><h4>USDA inspector on-site for <strong>quarterly review</strong></h4></div>
+          <span class="activity-time">Yesterday</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
+          <div class="activity-meta"><h4>Stripe payout · <strong>$3,200</strong> deposited to Wells Fargo</h4></div>
+          <span class="activity-time">2 days ago</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
 </section>
-<!-- Bento Layout: Calendar and Today's Jobs -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
-<!-- Calendar Section (Left) -->
-<div class="lg:col-span-4 bg-surface-container-low p-8 rounded-3xl">
-<div class="flex justify-between items-center mb-8">
-<h2 class="text-xl font-bold tracking-tight text-emerald-950">October</h2>
-<div class="flex gap-2">
-<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-high ios-haptic transition-colors">
-<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-</button>
-<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-high ios-haptic transition-colors">
-<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-</button>
-</div>
-</div>
-<div class="grid grid-cols-7 gap-y-4 text-center">
-<span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">S</span>
-<span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">M</span>
-<span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">T</span>
-<span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">W</span>
-<span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">T</span>
-<span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">F</span>
-<span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">S</span>
-<!-- Calendar Grid -->
-<span class="text-sm py-2 text-stone-300">29</span>
-<span class="text-sm py-2 text-stone-300">30</span>
-<span class="text-sm py-2 font-medium">1</span>
-<span class="text-sm py-2 font-medium">2</span>
-<span class="text-sm py-2 font-medium">3</span>
-<span class="text-sm py-2 font-medium">4</span>
-<span class="text-sm py-2 font-medium">5</span>
-<span class="text-sm py-2 font-medium">6</span>
-<span class="text-sm py-2 font-medium">7</span>
-<span class="text-sm py-2 font-medium relative flex justify-center items-center">
-                        8 <span class="absolute bottom-1 w-1 h-1 bg-emerald-600 rounded-full"></span>
-</span>
-<span class="text-sm py-2 font-medium">9</span>
-<span class="text-sm py-2 font-medium">10</span>
-<span class="text-sm py-2 font-medium relative flex justify-center items-center">
-                        11 <span class="absolute bottom-1 w-1 h-1 bg-emerald-600 rounded-full"></span>
-</span>
-<span class="text-sm py-2 font-bold bg-emerald-950 text-white rounded-xl ios-haptic cursor-pointer">12</span>
-<span class="text-sm py-2 font-medium">13</span>
-<span class="text-sm py-2 font-medium">14</span>
-<span class="text-sm py-2 font-medium">15</span>
-<span class="text-sm py-2 font-medium">16</span>
-<span class="text-sm py-2 font-medium">17</span>
-<span class="text-sm py-2 font-medium">18</span>
-<span class="text-sm py-2 font-medium">19</span>
-</div>
-<div class="mt-10 p-5 bg-surface-container-highest rounded-2xl">
-<div class="flex items-center gap-3 mb-3">
-<div class="w-2 h-2 rounded-full bg-emerald-600"></div>
-<span class="text-xs font-bold uppercase tracking-wider text-emerald-900">Today's Focus</span>
-</div>
-<p class="text-sm text-stone-600 leading-relaxed">Processing batch for Northfield Pastures (Beef). 3 heavy steers ready for movement to primary cooler.</p>
-</div>
-</div>
-<!-- Today's Jobs (Right) -->
-<div class="lg:col-span-8 flex flex-col gap-6">
-<h2 class="text-2xl font-black tracking-tighter text-emerald-950">Today's Jobs</h2>
-<!-- Bento Job Card 1 -->
-<div class="bg-surface-container-lowest p-6 rounded-3xl flex flex-col md:flex-row gap-6 shadow-2xl shadow-emerald-950/5 group">
-<div class="w-full md:w-48 h-48 rounded-2xl overflow-hidden flex-shrink-0">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="high contrast artistic photograph of a black angus steer standing in a misty golden morning pasture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo-EUYT6YIqvnBxLEHg_Pz5zMGrR1hazVM_nos6usWW2Vb3J1JsJz5RgF3g8lffFj4-74ZcaSTefniFDf5UiB2Ytmz1ay1GCBnXIPmq61Zz_53YosVmTM2H9MLarCa8JWAGAvZaofpiY9gt3ud7b8Y0FvRa4WU9xIo5kg0akCN-8P9uY9K10aulnBFZrVYgflt4GADfMfiBPhmUzQ0eQpLZk32ICH7kxTLOuys9iYsCZX-ID3O_dH82gxXVBDLKUP2cFqm1T_NhdtH"/>
-</div>
-<div class="flex-grow flex flex-col justify-between py-2">
-<div>
-<div class="flex justify-between items-start mb-2">
-<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Beef • Northfield Pastures</span>
-<span class="px-3 py-1 bg-emerald-100 text-emerald-900 text-[10px] font-black uppercase tracking-widest rounded-full">Awaiting Slaughter</span>
-</div>
-<h3 class="text-xl font-bold text-emerald-950 tracking-tight">Grass-fed Angus Steer #422</h3>
-<p class="text-stone-500 text-sm mt-1">Arrival weight: 1,240 lbs • Premium Feed Program</p>
-</div>
-<div class="mt-6 flex items-center gap-4">
-<button class="bg-gradient-to-br from-[#061b0e] to-[#1b3022] text-white px-8 py-3 rounded-full font-bold text-sm ios-haptic shadow-lg shadow-emerald-950/20 hover:shadow-xl hover:translate-y-[-2px] transition-all ease-spring">Process</button>
-<button class="text-stone-500 font-bold text-sm px-4 py-3 hover:text-emerald-900 transition-colors">Details</button>
-</div>
-</div>
-</div>
-<!-- Bento Job Card 2 -->
-<div class="bg-surface-container-low p-6 rounded-3xl flex flex-col md:flex-row gap-6 group">
-<div class="w-full md:w-48 h-48 rounded-2xl overflow-hidden flex-shrink-0">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="extreme close up of high quality heritage pork side hanging in a modern stainless steel temperature controlled cooler with soft blue lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvvehY5HFLrGV2XevA3ICzhiPwR8QFqIqHEwAUpTWOVjjkcMQ1NAI_gJTUHOZPXwgvDbWUE-6fLh41Li-xqbr7qDiuykD5dGnI4BhHJJyanR0mQFpIjC9ZASi2FQ6RsOpGuSS6xGorfrW-6ET4N--Et7bnmhp2i_7WEjN4Ug9PpzeBjoOFrZYO9q623Jdie4zCBAwWXWf128DZFhN8-owoxcc9CiMjqOn6V6xuZc0bVqSagVvmRvKelE8jos2SCO01tFN61z56q5iw"/>
-</div>
-<div class="flex-grow flex flex-col justify-between py-2">
-<div>
-<div class="flex justify-between items-start mb-2">
-<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Pork • Prairie Edge Farm</span>
-<span class="px-3 py-1 bg-surface-container-highest text-stone-500 text-[10px] font-black uppercase tracking-widest rounded-full">In Cooler</span>
-</div>
-<h3 class="text-xl font-bold text-emerald-950 tracking-tight">Heritage Pork #08</h3>
-<p class="text-stone-500 text-sm mt-1">Dry aging started: Oct 10 • Current temp: 34°F</p>
-</div>
-<div class="mt-6 flex items-center gap-4">
-<button class="bg-surface-container-high text-emerald-950 px-8 py-3 rounded-full font-bold text-sm ios-haptic hover:bg-surface-container-highest transition-all ease-spring">View Logs</button>
-<button class="text-stone-500 font-bold text-sm px-4 py-3 hover:text-emerald-900 transition-colors">Adjust Temp</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Lower Cluster: Capacity Gauge & Invoices -->
-<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
-<!-- Capacity Gauge (Asymmetrical) -->
-<div class="md:col-span-5 bg-gradient-to-br from-[#061b0e] to-[#1b3022] p-8 rounded-3xl text-white relative overflow-hidden">
-<div class="relative z-10">
-<h2 class="text-xl font-bold tracking-tight mb-2">Cooler Capacity</h2>
-<p class="text-emerald-200/60 text-sm mb-10">Total facility utilization</p>
-<div class="flex items-center gap-8 mb-10">
-<div class="relative w-32 h-32 flex items-center justify-center">
-<svg class="w-full h-full transform -rotate-90">
-<circle class="text-emerald-900/50" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle>
-<circle class="text-emerald-400" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="94.7" stroke-width="8"></circle>
-</svg>
-<span class="absolute text-3xl font-black">74%</span>
-</div>
-<div>
-<div class="text-sm font-bold text-emerald-200 mb-1">Status: Stable</div>
-<p class="text-xs text-emerald-400/80">6 Units available for intake tomorrow.</p>
-</div>
-</div>
-<button class="w-full bg-emerald-400 text-emerald-950 py-4 rounded-2xl font-black text-xs uppercase tracking-widest ios-haptic hover:bg-white transition-colors">
-                        Open Slots
-                    </button>
-</div>
-<!-- Abstract visual element -->
-<div class="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-800/20 blur-3xl rounded-full"></div>
-</div>
-<!-- Invoices Asymmetrical Layout -->
-<div class="md:col-span-7 flex flex-col gap-6">
-<div class="flex justify-between items-end mb-2">
-<h2 class="text-2xl font-black tracking-tighter text-emerald-950">Recent Invoices</h2>
-<a class="text-sm font-bold text-stone-400 hover:text-emerald-900 transition-colors" href="#">View All</a>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<!-- Invoice Card 1 -->
-<div class="bg-surface-container-low p-6 rounded-3xl ios-haptic group cursor-pointer hover:bg-surface-container-high transition-all">
-<div class="flex justify-between mb-4">
-<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
-<span class="material-symbols-outlined text-emerald-900" data-icon="description">description</span>
-</div>
-<span class="text-[10px] font-black uppercase text-stone-400 tracking-widest">Paid</span>
-</div>
-<div class="text-lg font-bold text-emerald-950 mb-1">#INV-9902</div>
-<div class="text-stone-500 text-sm mb-4">Northfield Pastures</div>
-<div class="text-2xl font-black tracking-tight text-emerald-950">$452.00</div>
-</div>
-<!-- Invoice Card 2 -->
-<div class="bg-surface-container-low p-6 rounded-3xl ios-haptic group cursor-pointer hover:bg-surface-container-high transition-all">
-<div class="flex justify-between mb-4">
-<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
-<span class="material-symbols-outlined text-stone-400" data-icon="description">description</span>
-</div>
-<span class="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Pending</span>
-</div>
-<div class="text-lg font-bold text-emerald-950 mb-1">#INV-9898</div>
-<div class="text-stone-500 text-sm mb-4">Prairie Edge Farm</div>
-<div class="text-2xl font-black tracking-tight text-emerald-950">$320.50</div>
-</div>
-</div>
-<!-- Broad Asymmetrical Card -->
-<div class="bg-surface-container p-6 rounded-3xl flex items-center justify-between group cursor-pointer hover:bg-emerald-50 transition-all no-line-architecture">
-<div class="flex items-center gap-4">
-<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-emerald-900">
-<span class="material-symbols-outlined" data-icon="add_chart">add_chart</span>
-</div>
-<div>
-<div class="font-bold text-emerald-950">Weekly Settlement Report</div>
-<div class="text-xs text-stone-500">Auto-generated for Oct 05 - Oct 12</div>
-</div>
-</div>
-<span class="material-symbols-outlined text-stone-400 group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
-</div>
-</div>
-</div>
-</main>
-<!-- NavigationDrawer (Desktop Side) -->
-<aside class="fixed left-0 top-0 h-full w-64 hidden xl:block bg-stone-100 dark:bg-emerald-950 z-40 no-line-architecture shadow-xl">
-<div class="flex flex-col gap-2 p-8 pt-24">
-<a class="mb-10 flex items-center gap-4 hover:opacity-80 transition-opacity" href="{{DATA:SCREEN:SCREEN_52}}">
-<div class="w-12 h-12 rounded-2xl overflow-hidden bg-emerald-900">
-<img class="w-full h-full object-cover opacity-80" data-alt="vibrant green logo featuring a minimalist stylized steer head icon with clean geometric lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnedYVtdM_nJHFc7WZ0lPi3rJjInUZnQ9-sEuNV8f0rsIiMTrMXJQhuu8HdWyA1bV5HZ0WFm4IyQIaxz2ALRvNQ5wHRapfsrOuMr0al9eSRL_oD_L2XUtEuyX7JNxj3W4igVKQ-SxeJEKHOEBJvDa-4GCJW2Om7pQMMboylvRuYwfjPMSzAtukkdAgSvHLQS-egwDu3qYIaIYcclKH1yFlk-OrF_hzt--Cwm6RMGrOoXA1VOkRe92l1G_azU_znXVq14pTQRL64jSX"/>
-</div>
-<div>
-<div class="text-sm font-black text-emerald-950 dark:text-emerald-50">Switch Role</div>
-<div class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Lead Processor</div>
-</div>
-</a>
-<a class="flex items-center gap-4 p-4 bg-white dark:bg-emerald-900 text-emerald-950 dark:text-emerald-50 rounded-xl shadow-sm transition-all duration-200 ios-haptic" href="{{DATA:SCREEN:SCREEN_71}}">
-<span class="material-symbols-outlined text-xl" data-icon="calendar_today">calendar_today</span>
-<span class="text-sm font-semibold">Schedule</span>
-</a>
-<a class="flex items-center gap-4 p-4 text-stone-500 dark:text-stone-400 hover:translate-x-1 transition-all duration-200 ios-haptic hover:bg-stone-200 dark:hover:bg-emerald-900/40 rounded-xl" href="#">
-<span class="material-symbols-outlined text-xl" data-icon="bar_chart">bar_chart</span>
-<span class="text-sm font-semibold">Capacity</span>
-</a>
-<a class="flex items-center gap-4 p-4 text-stone-500 dark:text-stone-400 hover:translate-x-1 transition-all duration-200 ios-haptic hover:bg-stone-200 dark:hover:bg-emerald-900/40 rounded-xl" href="#">
-<span class="material-symbols-outlined text-xl" data-icon="description">description</span>
-<span class="text-sm font-semibold">Invoices</span>
-</a>
-<a class="flex items-center gap-4 p-4 text-stone-500 dark:text-stone-400 hover:translate-x-1 transition-all duration-200 ios-haptic hover:bg-stone-200 dark:hover:bg-emerald-900/40 rounded-xl" href="{{DATA:SCREEN:SCREEN_2}}">
-<span class="material-symbols-outlined text-xl" data-icon="person">person</span>
-<span class="text-sm font-semibold">Profile</span>
-</a>
-</div>
-</aside>
-<!-- BottomNavBar (Mobile) -->
-<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-3 md:hidden bg-stone-50/90 dark:bg-emerald-950/90 backdrop-blur-lg rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)] no-line-architecture">
-<a class="flex flex-col items-center justify-center bg-emerald-100 dark:bg-emerald-800/50 text-emerald-950 dark:text-emerald-50 rounded-xl px-4 py-2 ios-haptic" href="{{DATA:SCREEN:SCREEN_71}}">
-<span class="material-symbols-outlined text-xl mb-1" data-icon="calendar_today">calendar_today</span>
-<span class="text-[8px] font-bold uppercase tracking-widest">Schedule</span>
-</a>
-<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-4 py-2 ios-haptic" href="#">
-<span class="material-symbols-outlined text-xl mb-1" data-icon="Bar_chart">bar_chart</span>
-<span class="text-[8px] font-bold uppercase tracking-widest">Capacity</span>
-</a>
-<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-4 py-2 ios-haptic" href="#">
-<span class="material-symbols-outlined text-xl mb-1" data-icon="description">description</span>
-<span class="text-[8px] font-bold uppercase tracking-widest">Invoices</span>
-</a>
-<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-4 py-2 ios-haptic" href="{{DATA:SCREEN:SCREEN_2}}">
-<span class="material-symbols-outlined text-xl mb-1" data-icon="person">person</span>
-<span class="text-[8px] font-bold uppercase tracking-widest">Profile</span>
-</a>
-</nav>
-</body></html>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+</body>
+</html>
