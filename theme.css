@@ -411,15 +411,19 @@ a { color: inherit; text-decoration: none; }
 .section-head h2 { margin: 0; }
 
 /* ---------- Photo placeholders (gradients standing in for real photography) ---------- */
-.photo-bg-beef { background: linear-gradient(135deg, #6b3c2c 0%, #2a160e 60%, #110804 100%); }
-.photo-bg-angus { background: radial-gradient(ellipse at 30% 30%, #4a2820 0%, #1a0d08 80%); }
-.photo-bg-wagyu { background: linear-gradient(160deg, #8a4a2a 0%, #3a1a0c 60%, #160805 100%); }
-.photo-bg-hereford { background: linear-gradient(140deg, #a06040 0%, #4a2010 60%, #200806 100%); }
-.photo-bg-hog { background: linear-gradient(135deg, #d68b75 0%, #7a4438 60%, #2c1612 100%); }
-.photo-bg-lamb { background: linear-gradient(135deg, #c89890 0%, #6c4040 60%, #2c1414 100%); }
-.photo-bg-poultry { background: linear-gradient(135deg, #d4b675 0%, #75552a 60%, #2c1f0c 100%); }
-.photo-bg-grass { background: radial-gradient(ellipse at 50% 30%, #7a8c4a 0%, #2c3a1c 60%, #0e1206 100%); }
-.photo-bg-sunset { background: linear-gradient(180deg, #f0a560 0%, #8b3a30 35%, #2c1418 65%, #0a0608 100%); }
+/* Real photography from Adobe Stock — licensed for commercial use */
+.photo-bg-beef { background: #1a0d08 url('/ribeye.jpg') center/cover; }
+.photo-bg-angus { background: #1a0d08 url('/angus.jpg') center/cover; }
+.photo-bg-wagyu { background: #160805 url('/wagyu.jpg') center/cover; }
+.photo-bg-hereford { background: #200806 url('/hereford.jpg') center/cover; }
+.photo-bg-hog { background: #2c1612 url('/hog.jpg') center/cover; }
+.photo-bg-lamb { background: #2c1414 url('/lamb.jpg') center/cover; }
+.photo-bg-poultry { background: #2c1f0c url('/poultry.jpg') center/cover; }
+.photo-bg-grass { background: #0e1206 url('/ranch.jpg') center/cover; }
+.photo-bg-sunset { background: #0a0608 url('/ranch.jpg') center/cover; }
+.photo-bg-venison { background: #1a1208 url('/venison.jpg') center/cover; }
+.photo-bg-processor { background: #1a1a1a url('/processor.jpg') center/cover; }
+.photo-bg-farmer { background: #2a1a14 url('/farmer.jpg') center/cover; }
 
 /* ---------- Phone-frame container (mobile-app prototypes look good on desktop) ---------- */
 .phone-frame {

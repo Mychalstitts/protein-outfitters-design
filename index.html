@@ -25,31 +25,27 @@ body { background: var(--bg); }
 .po-nav-cta { display: flex; gap: var(--s-2); }
 @media (max-width: 800px) { .po-nav-links { display: none; } }
 
-/* Hero */
+/* Hero — real Adobe Stock photography (Black Angus on pasture) */
 .hero {
   position: relative;
   min-height: min(720px, 88vh);
   display: grid; align-items: center;
-  background:
-    radial-gradient(ellipse at 70% 0%, rgba(207,233,211,0.5) 0%, transparent 60%),
-    linear-gradient(160deg, #f4f5f3 0%, #e3e8e2 50%, #cdd5cc 100%);
+  background: #1a0d08 url('/angus.jpg') center/cover;
   overflow: hidden;
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-theme="auto"] .hero, :root[data-theme="dark"] .hero {
-    background:
-      radial-gradient(ellipse at 70% 0%, rgba(47,125,73,0.25) 0%, transparent 60%),
-      linear-gradient(160deg, #0a0d0b 0%, #131815 50%, #0a0d0b 100%);
-  }
+  color: white;
 }
 .hero-bg-photo {
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse at 65% 35%, rgba(122,140,74,0.4) 0%, transparent 55%),
-    radial-gradient(ellipse at 30% 70%, rgba(74,40,32,0.3) 0%, transparent 50%),
-    linear-gradient(180deg, transparent 60%, rgba(12,20,16,0.4) 100%);
+    linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,0.55) 100%),
+    linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 60%);
   pointer-events: none;
 }
+.hero h1, .hero p, .hero .eyebrow, .hero .stat strong, .hero .stat span { color: white; }
+.hero .eyebrow, .hero .stat span { opacity: 0.85; }
+.hero p { color: rgba(255,255,255,0.92); }
+.hero .btn--secondary { background: rgba(255,255,255,0.92); color: var(--ink); }
+.hero .btn--secondary:hover { background: white; }
 .hero-content {
   position: relative; z-index: 2;
   display: grid; gap: var(--s-8);
@@ -644,7 +640,7 @@ const ANIMALS = [
   { id:'88', breed:'Berkshire', cat:'hog', name:'Berkshire Hog #88', ranch:'Heritage Pork Co.', loc:'Hinckley, MN', liveLbs:285, pricePerLb:3.20, fracLeft:'½ + whole', month:'Jun 2025', img:'photo-bg-hog' },
   { id:'92', breed:'Tamworth', cat:'hog', name:'Tamworth Hog #92', ranch:'Iron Range Farm', loc:'Hibbing, MN', liveLbs:310, pricePerLb:3.50, fracLeft:'whole only', month:'Jul 2025', img:'photo-bg-hog' },
   { id:'L20', breed:'Suffolk', cat:'lamb', name:'Suffolk Lamb #L20', ranch:'North Star Sheep', loc:'Park Rapids, MN', liveLbs:135, pricePerLb:6.50, fracLeft:'½ avail', month:'Jun 2025', img:'photo-bg-lamb' },
-  { id:'V07', breed:'Whitetail', cat:'venison', name:'Whitetail Doe #V07', ranch:'Itasca Wild Game', loc:'Grand Rapids, MN', liveLbs:160, pricePerLb:8.50, fracLeft:'½ avail', month:'Aug 2025', img:'photo-bg-grass' },
+  { id:'V07', breed:'Whitetail', cat:'venison', name:'Whitetail Doe #V07', ranch:'Itasca Wild Game', loc:'Grand Rapids, MN', liveLbs:160, pricePerLb:8.50, fracLeft:'½ avail', month:'Aug 2025', img:'photo-bg-venison' },
   { id:'P01', breed:'Heritage', cat:'poultry', name:'Pasture Heritage Birds', ranch:'Sunset Coop', loc:'Bemidji, MN', liveLbs:5, pricePerLb:4.20, fracLeft:'min 6 birds', month:'May 2025', img:'photo-bg-poultry' }
 ];
 
