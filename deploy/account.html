@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>My account · Protein Outfitters</title>
+<meta name="description" content="Your reservations, cut sheets, pickup tickets, followed farms, and saved cards — all in one place." />
+<meta property="og:title" content="My account · Protein Outfitters" />
+<meta property="og:description" content="Buyer account dashboard for Protein Outfitters." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/account" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="My account · Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.ac-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.ac-inner { max-width: 1320px; margin: 0 auto; }
+
+.ac-hero { display: grid; gap: clamp(20px, 3vw, 32px); grid-template-columns: 1fr; margin-bottom: clamp(32px, 4vw, 48px); }
+@media (min-width: 900px) { .ac-hero { grid-template-columns: 1.6fr 1fr; align-items: end; } }
+.ac-greeting .eye { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px; }
+.ac-greeting h1 { margin: 0; font-size: clamp(36px, 5.5vw, 64px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; max-width: 22ch; }
+.ac-greeting p { margin: 14px 0 0; font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 50ch; }
+
+.ac-summary { background: var(--brand); color: #fbf9f5; border-radius: 22px; padding: 26px 28px; }
+.ac-summary .lab { font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0 0 6px; }
+.ac-summary .v { font-size: 36px; font-weight: 900; letter-spacing: -0.025em; line-height: 1; }
+.ac-summary .v small { font-size: 16px; opacity: 0.7; }
+.ac-summary .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(251,249,245,0.18); }
+.ac-summary .row .stat .v { font-size: 22px; }
+.ac-summary .row .stat .lab { margin-top: 4px; font-size: 10px; }
+
+.qa-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); margin-bottom: clamp(32px, 4vw, 48px); }
+@media (min-width: 700px) { .qa-grid { grid-template-columns: repeat(4, 1fr); } }
+.qa { background: #fff; border-radius: 22px; padding: 22px 20px; display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s, border-color .25s; border: 1px solid transparent; }
+.qa:hover { transform: translateY(-3px); border-color: var(--brand); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+.qa-glyph { width: 44px; height: 44px; border-radius: 13px; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; }
+.qa-glyph .ico { width: 22px; height: 22px; }
+.qa h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
+.qa p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.qa-pip { font-size: 11px; font-weight: 800; color: #fbf9f5; background: var(--brand); padding: 3px 8px; border-radius: 99px; align-self: flex-start; }
+
+.ac-section { margin-bottom: clamp(32px, 4vw, 48px); }
+.ac-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+.ac-section-head h2 { margin: 0; font-size: clamp(22px, 2.5vw, 28px); font-weight: 800; letter-spacing: -0.025em; }
+.ac-section-head .more { font-size: 13px; font-weight: 700; color: var(--accent-2); text-decoration: none; }
+
+/* Reservation rows */
+.res-list { background: #fff; border-radius: 22px; padding: 4px 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.res-row { display: grid; grid-template-columns: 64px 1fr auto auto; gap: 14px; align-items: center; padding: 16px 14px; border-top: 1px solid rgba(0,0,0,0.06); }
+.res-row:first-child { border-top: 0; }
+@media (max-width: 700px) { .res-row { grid-template-columns: 1fr auto; gap: 8px 12px; } .res-row > .res-img { grid-row: span 2; } }
+.res-img { width: 56px; height: 56px; border-radius: 14px; background-size: cover; background-position: center; }
+.res-meta h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.014em; }
+.res-meta p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.res-stat { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.res-stat .sub { display: block; font-size: 11px; color: var(--ink-3); font-weight: 600; margin-top: 2px; }
+.res-cta { background: var(--brand); color: #fbf9f5; border: 0; padding: 9px 14px; font-size: 12px; font-weight: 700; border-radius: 99px; text-decoration: none; cursor: pointer; }
+.res-cta.ghost { background: var(--surface); color: var(--ink); }
+
+/* Followed farms */
+.follow-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.follow-card { background: #fff; border-radius: 18px; padding: 16px 18px; display: flex; gap: 12px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); text-decoration: none; color: inherit; transition: transform .25s, box-shadow .25s; }
+.follow-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+.follow-avatar { width: 44px; height: 44px; border-radius: 12px; background-size: cover; background-position: center; flex-shrink: 0; }
+.follow-meta h4 { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: -0.014em; }
+.follow-meta p { margin: 2px 0 0; font-size: 11px; color: var(--ink-2); }
+
+/* Cards (payment) */
+.card-list { display: grid; gap: 12px; grid-template-columns: 1fr; margin-bottom: 12px; }
+@media (min-width: 700px) { .card-list { grid-template-columns: 1fr 1fr; } }
+.pay-card { background: var(--surface); border-radius: 16px; padding: 18px 22px; display: flex; align-items: center; gap: 14px; }
+.pay-card.primary { background: linear-gradient(135deg, var(--accent-soft) 0%, #fff 100%); border: 1px solid rgba(6,27,14,0.10); }
+.pay-glyph { width: 44px; height: 44px; border-radius: 12px; background: #fff; color: var(--brand); display: grid; place-items: center; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.pay-meta { flex: 1; min-width: 0; }
+.pay-meta h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
+.pay-meta p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); }
+.pay-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; background: var(--brand); color: #fbf9f5; }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/account" class="active">My account</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button data-open-sheet>Reserve</button></div>
+  </nav>
+</div>
+
+<section class="ac-shell">
+  <div class="ac-inner">
+
+    <div class="ac-hero">
+      <div class="ac-greeting">
+        <p class="eye">Tuesday · May 5</p>
+        <h1>Hi, Sarah.</h1>
+        <p>Your <strong>quarter of #2641</strong> drops at Plant 04 in 23 days. Cut sheet is filled out. Pickup window opens around June 11.</p>
+      </div>
+      <div class="ac-summary">
+        <p class="lab">Active reservations</p>
+        <p class="v">2 <small>animals</small></p>
+        <div class="row">
+          <div class="stat"><div class="v">3</div><div class="lab">Followed farms</div></div>
+          <div class="stat"><div class="v">$3,033</div><div class="lab">YTD spend</div></div>
+          <div class="stat"><div class="v">12</div><div class="lab">Total orders</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="qa-grid">
+      <a href="/cut-sheet" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></span>
+        <h4>Cut sheets</h4>
+        <p>Customize how each animal is cut.</p>
+        <span class="qa-pip">1 pending</span>
+      </a>
+      <a href="/discover" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#cow"/></svg></span>
+        <h4>Browse animals</h4>
+        <p>See what's reserving now.</p>
+      </a>
+      <a href="/producers" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#users"/></svg></span>
+        <h4>Followed farms</h4>
+        <p>3 ranches in your feed.</p>
+      </a>
+      <a href="/reviews" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></span>
+        <h4>Reviews</h4>
+        <p>Leave reviews · see yours.</p>
+        <span class="qa-pip">1 to leave</span>
+      </a>
+    </div>
+
+    <!-- Sign-in banner (shown when anonymous) -->
+    <div id="acSigninBanner" style="display:none; background:linear-gradient(135deg,#061b0e,#0e2c19); color:#fbf9f5; border-radius:16px; padding:18px 22px; margin-bottom:24px; display:none; align-items:center; justify-content:space-between; gap:14px;">
+      <div style="font:500 14px/1.4 'Inter',system-ui,sans-serif"><strong style="font-weight:700">You're not signed in.</strong> &nbsp;Sign in to see your real reservations, cut sheets, and saved farms.</div>
+      <button id="acSigninBtn" style="background:#fbf9f5;color:#061b0e;border:0;border-radius:999px;padding:10px 18px;font:700 13px/1 'Inter';cursor:pointer">Sign in →</button>
+    </div>
+
+    <!-- Active reservations -->
+    <section class="ac-section">
+      <div class="ac-section-head">
+        <h2>Active reservations</h2>
+        <a class="more" href="#">All orders →</a>
+      </div>
+      <div class="res-list" id="acActiveList">
+        <div style="text-align:center; padding:40px 20px; opacity:.55; font:500 14px/1.5 'Inter',system-ui,sans-serif;">Loading your reservations…</div>
+      </div>
+    </section>
+
+    <!-- Past orders -->
+    <section class="ac-section">
+      <div class="ac-section-head">
+        <h2>Past orders · 2025</h2>
+        <a class="more" href="/finance">Tax docs →</a>
+      </div>
+      <div class="res-list">
+        <div class="res-row">
+          <div class="res-img" style="background-image: url('/angus.jpg');"></div>
+          <div class="res-meta">
+            <h4>Quarter share · #2598 · Black Angus</h4>
+            <p>Northfield Pastures · picked up June 11, 2025 · 110 lb of cuts</p>
+          </div>
+          <div class="res-stat">$1,395<span class="sub">cleared</span></div>
+          <a class="res-cta ghost" href="/reviews">Leave review →</a>
+        </div>
+        <div class="res-row">
+          <div class="res-img" style="background-image: url('/hereford.jpg');"></div>
+          <div class="res-meta">
+            <h4>Half share · #2549 · Hereford</h4>
+            <p>Crow Wing Cattle Co · picked up Sept 3, 2025 · 220 lb of cuts</p>
+          </div>
+          <div class="res-stat">$2,470<span class="sub">cleared</span></div>
+          <a class="res-cta ghost" href="#">Receipt →</a>
+        </div>
+        <div class="res-row">
+          <div class="res-img" style="background-image: url('/hog.jpg');"></div>
+          <div class="res-meta">
+            <h4>Whole · Berkshire hog</h4>
+            <p>Mississippi Headwaters · picked up Nov 14, 2025 · 180 lb of cuts</p>
+          </div>
+          <div class="res-stat">$1,380<span class="sub">cleared</span></div>
+          <a class="res-cta ghost" href="#">Receipt →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Followed farms -->
+    <section class="ac-section">
+      <div class="ac-section-head">
+        <h2>Following</h2>
+        <a class="more" href="/producers">Discover more →</a>
+      </div>
+      <div class="follow-grid">
+        <a href="/farm/northfield-pastures" class="follow-card">
+          <div class="follow-avatar" style="background-image: url('/farmer.jpg');"></div>
+          <div class="follow-meta"><h4>Northfield Pastures</h4><p>Bemidji, MN · 3 listings</p></div>
+        </a>
+        <a href="/farm/northfield-pastures" class="follow-card">
+          <div class="follow-avatar" style="background-image: url('/hereford.jpg');"></div>
+          <div class="follow-meta"><h4>Crow Wing Cattle Co</h4><p>Brainerd, MN · 2 listings</p></div>
+        </a>
+        <a href="/farm/northfield-pastures" class="follow-card">
+          <div class="follow-avatar" style="background-image: url('/lamb.jpg');"></div>
+          <div class="follow-meta"><h4>Boreal Pastures</h4><p>Cass Lake, MN · 4 listings</p></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Payment + Address -->
+    <section class="ac-section">
+      <div class="ac-section-head">
+        <h2>Payment + delivery</h2>
+        <a class="more" href="#">+ Add card</a>
+      </div>
+      <div class="card-list">
+        <div class="pay-card primary">
+          <div class="pay-glyph"><svg class="ico ico-md" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
+          <div class="pay-meta"><h4>Visa ending 4242</h4><p>Sarah R. · expires 11/28</p></div>
+          <span class="pay-tag">Default</span>
+        </div>
+        <div class="pay-card">
+          <div class="pay-glyph"><svg class="ico ico-md" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
+          <div class="pay-meta"><h4>Apple Pay</h4><p>iPhone · auto-link</p></div>
+          <a href="#" style="font-size: 12px; font-weight: 700; color: var(--accent-2); text-decoration: none;">Make default →</a>
+        </div>
+      </div>
+      <div class="card-list">
+        <div class="pay-card">
+          <div class="pay-glyph"><svg class="ico ico-md" aria-hidden="true"><use href="/icons.svg#house"/></svg></div>
+          <div class="pay-meta"><h4>Pickup address</h4><p>Sarah R. · 412 Lakeview Dr · Bemidji, MN 56601</p></div>
+        </div>
+        <div class="pay-card">
+          <div class="pay-glyph"><svg class="ico ico-md" aria-hidden="true"><use href="/icons.svg#package"/></svg></div>
+          <div class="pay-meta"><h4>Freezer space on file</h4><p>14 cu ft chest freezer · garage</p></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script src="./po-api.js"></script>
+<script>
+(async () => {
+  const list = document.getElementById('acActiveList');
+  const banner = document.getElementById('acSigninBanner');
+  const signinBtn = document.getElementById('acSigninBtn');
+  signinBtn?.addEventListener('click', () => window.PO_API.openAuth('Sign in to your account', 'buyer'));
+
+  let me;
+  try { me = await window.PO_API.me(); } catch { me = { user: null }; }
+
+  if (!me.user) {
+    banner.style.display = 'flex';
+    list.innerHTML = `<div style="text-align:center; padding:60px 20px;">
+      <div style="font:700 20px/1.3 'Inter';margin-bottom:10px;">Sign in to see your reservations</div>
+      <div style="opacity:.65;font:500 14px/1.5 'Inter';max-width:380px;margin:0 auto 18px;">Reservations are tied to your email. Sign in with a magic link — no passwords.</div>
+      <button onclick="window.PO_API.openAuth('Sign in', 'buyer')" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer">Sign in</button>
+    </div>`;
+    return;
+  }
+
+  // Update header greeting if there's a name field
+  const nameEls = document.querySelectorAll('[data-user-name]');
+  nameEls.forEach(e => e.textContent = me.user.name || me.user.email.split('@')[0]);
+
+  let reservations;
+  try { const r = await window.PO_API.reservations(); reservations = r.reservations || []; }
+  catch { reservations = []; }
+
+  if (!reservations.length) {
+    list.innerHTML = `<div style="text-align:center; padding:60px 20px;">
+      <div style="font:700 20px/1.3 'Inter';margin-bottom:10px;">No reservations yet</div>
+      <div style="opacity:.65;font:500 14px/1.5 'Inter';max-width:380px;margin:0 auto 18px;">Browse the marketplace to find a half or quarter beef from a farm near you.</div>
+      <a href="/discover" style="background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';display:inline-block">Browse listings →</a>
+    </div>`;
+    return;
+  }
+
+  const photoFor = sp => sp === 'hog' ? '/img/premium-pig.jpg' : sp === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg';
+  const labelShare = s => s === 'whole' ? 'Whole' : s === 'half' ? 'Half' : s === 'quarter' ? 'Quarter' : 'Eighth';
+  const labelStatus = s => ({pending:'Pending', 'deposit-paid':'Deposit paid', paid:'Paid', processing:'In processing', ready:'Ready for pickup', 'picked-up':'Picked up', cancelled:'Cancelled', refunded:'Refunded'}[s] || s);
+
+  list.innerHTML = reservations.map(r => `
+    <div class="res-row">
+      <div class="res-img" style="background-image:url('${(r.photos && r.photos[0]) || photoFor(r.species)}');"></div>
+      <div class="res-meta">
+        <h4>${labelShare(r.share_size)} share · ${r.number || ''} · ${r.breed || r.species}</h4>
+        <p>${r.farm_name} · ${r.farm_city}, ${r.farm_state} · ready ${r.expected_finish_date ? new Date(r.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
+      </div>
+      <div class="res-stat">${r.total_estimate ? '$' + Number(r.total_estimate).toFixed(0) : '—'}<span class="sub">${labelStatus(r.status)}</span></div>
+      <a class="res-cta" href="/cut-sheet?id=${r.id}">Cut sheet →</a>
+    </div>
+  `).join('');
+})();
+</script>
+</body>
+</html>

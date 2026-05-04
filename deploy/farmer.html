@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>My ranch · Protein Outfitters</title>
+<meta name="description" content="Your producer dashboard. Manage listings, schedule, credentials, reviews, and your public farm profile in one place." />
+<meta property="og:title" content="My ranch · Protein Outfitters" />
+<meta property="og:description" content="Producer dashboard for Protein Outfitters." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/farmer" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="My ranch · Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.fm-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.fm-inner { max-width: 1320px; margin: 0 auto; }
+
+/* Greeting + standing hero */
+.fm-hero { display: grid; gap: clamp(20px, 3vw, 32px); grid-template-columns: 1fr; margin-bottom: clamp(32px, 4vw, 48px); }
+@media (min-width: 900px) { .fm-hero { grid-template-columns: 1.6fr 1fr; align-items: end; } }
+.fm-greeting .eye { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px; }
+.fm-greeting h1 { margin: 0; font-size: clamp(36px, 5.5vw, 64px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; max-width: 22ch; }
+.fm-greeting p { margin: 14px 0 0; font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 50ch; }
+
+.fm-standing { background: var(--brand); color: #fbf9f5; border-radius: 22px; padding: 24px 26px; display: flex; flex-direction: column; gap: 16px; }
+.fm-standing-row { display: flex; align-items: center; gap: 16px; }
+.fm-standing-avatar { width: 56px; height: 56px; border-radius: 16px; background: url('/farmer.jpg') center/cover; flex-shrink: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+.fm-standing-meta .role { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
+.fm-standing-meta .name { margin: 4px 0 0; font-size: 18px; font-weight: 900; letter-spacing: -0.018em; color: #fbf9f5; }
+.fm-standing-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding-top: 14px; border-top: 1px solid rgba(251,249,245,0.18); }
+.fm-standing-stat .v { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; color: #fbf9f5; line-height: 1; }
+.fm-standing-stat .lab { font-size: 11px; color: rgba(251,249,245,0.65); margin-top: 4px; line-height: 1.3; }
+
+/* Quick actions */
+.qa-grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: clamp(32px, 4vw, 48px);
+}
+@media (min-width: 700px) { .qa-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1100px) { .qa-grid { grid-template-columns: repeat(6, 1fr); } }
+
+.qa {
+  background: #fff; border-radius: 22px; padding: 22px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  text-decoration: none; color: inherit;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s, border-color .25s;
+  border: 1px solid transparent;
+}
+.qa:hover { transform: translateY(-3px); border-color: var(--brand); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+.qa-glyph { width: 44px; height: 44px; border-radius: 13px; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; }
+.qa-glyph .ico { width: 22px; height: 22px; }
+.qa h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
+.qa p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.qa-pip { font-size: 11px; font-weight: 800; color: #fbf9f5; background: var(--brand); padding: 3px 8px; border-radius: 99px; align-self: flex-start; letter-spacing: 0.04em; }
+.qa-pip.warn { background: #f5e1ad; color: #7a5a08; }
+
+/* Section heads */
+.fm-section { margin-bottom: clamp(32px, 4vw, 48px); }
+.fm-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+.fm-section-head h2 { margin: 0; font-size: clamp(22px, 2.5vw, 28px); font-weight: 800; letter-spacing: -0.025em; }
+.fm-section-head .more { font-size: 13px; font-weight: 700; color: var(--accent-2); text-decoration: none; }
+.fm-section-head .more:hover { color: var(--brand); text-decoration: underline; }
+
+/* Today list */
+.today-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 800px) { .today-grid { grid-template-columns: 1fr 1fr; } }
+.today-card { background: #fff; border-radius: 18px; padding: 18px 22px; display: flex; gap: 14px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); border-left: 4px solid var(--brand); }
+.today-card.warn { border-left-color: #f5b400; }
+.today-card.alert { border-left-color: #ba1a1a; }
+.today-card.ok { border-left-color: #cfe9d3; }
+.today-glyph { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; flex-shrink: 0; }
+.today-glyph .ico { width: 20px; height: 20px; }
+.today-meta { flex: 1; min-width: 0; }
+.today-meta h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
+.today-meta p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.today-cta { font-size: 12px; font-weight: 700; color: var(--brand); text-decoration: none; white-space: nowrap; padding: 6px 12px; border-radius: 99px; background: var(--surface); }
+.today-cta:hover { background: var(--accent-soft); }
+
+/* Active listings grid */
+.listings-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.fm-add-listing {
+  background: var(--accent-soft);
+  border: 2px dashed rgba(6,27,14,0.20);
+  border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 10px;
+  text-decoration: none; color: var(--brand);
+  font-size: 14px; font-weight: 800;
+  min-height: 180px;
+  transition: background .25s, border-color .25s, transform .25s cubic-bezier(.2,.9,.3,1.4);
+}
+.fm-add-listing:hover { background: #b8d9be; border-color: var(--brand); transform: translateY(-3px); }
+.fm-add-listing .ico { width: 32px; height: 32px; }
+
+/* This week stats */
+.week-stats { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 700px) { .week-stats { grid-template-columns: repeat(4, 1fr); } }
+.week-stat { background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.week-stat .lab { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+.week-stat .v { font-size: 28px; font-weight: 900; letter-spacing: -0.025em; margin: 6px 0 0; line-height: 1; color: var(--ink); }
+.week-stat .v .delta { font-size: 13px; font-weight: 700; margin-left: 6px; }
+.week-stat .v .up { color: var(--brand); }
+.week-stat .v .dn { color: #ba1a1a; }
+.week-stat .s { font-size: 12px; color: var(--ink-3); margin: 4px 0 0; }
+
+/* Activity feed */
+.activity { background: #fff; border-radius: 22px; padding: 6px 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.activity-row { display: flex; align-items: center; gap: 14px; padding: 14px 14px; border-top: 1px solid rgba(0,0,0,0.06); }
+.activity-row:first-child { border-top: 0; }
+.activity-glyph { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); color: var(--ink-2); display: grid; place-items: center; flex-shrink: 0; }
+.activity-glyph .ico { width: 18px; height: 18px; }
+.activity-glyph.brand { background: var(--accent-soft); color: var(--brand); }
+.activity-meta { flex: 1; min-width: 0; }
+.activity-meta h4 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.014em; }
+.activity-meta h4 strong { font-weight: 800; }
+.activity-time { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/farmer" class="active">My ranch</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a href="/list-animal" style="text-decoration:none;"><button>List an animal</button></a></div>
+  </nav>
+</div>
+
+<section class="fm-shell">
+  <div class="fm-inner">
+
+    <!-- Hero -->
+    <div class="fm-hero">
+      <div class="fm-greeting">
+        <p class="eye">Tuesday · May 5</p>
+        <h1>Good morning, Mychal.</h1>
+        <p>You've got <strong>3 reservations</strong> waiting on cut sheets, <strong>2 reviews</strong> ready to leave, and <strong>#2641</strong> drops at Plant 04 in 23 days.</p>
+      </div>
+      <div class="fm-standing">
+        <div class="fm-standing-row">
+          <div class="fm-standing-avatar"></div>
+          <div class="fm-standing-meta">
+            <p class="role">Northfield Pastures · Bemidji, MN</p>
+            <p class="name">4.9★ · 128 reviews · 22 yrs</p>
+          </div>
+        </div>
+        <div class="fm-standing-stats">
+          <div class="fm-standing-stat"><div class="v">3</div><div class="lab">Active listings</div></div>
+          <div class="fm-standing-stat"><div class="v">847</div><div class="lab">Followers</div></div>
+          <div class="fm-standing-stat"><div class="v">$48k</div><div class="lab">YTD revenue</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="qa-grid">
+      <a href="/list-animal" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></span>
+        <h4>List an animal</h4>
+        <p>5-step wizard with auto-description.</p>
+      </a>
+      <a href="/processor-schedule" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
+        <h4>Schedule</h4>
+        <p>Drop-off windows + processor capacity.</p>
+      </a>
+      <a href="/processor-pricing" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></span>
+        <h4>Pricing</h4>
+        <p>Per-share rates + fees.</p>
+      </a>
+      <a href="/credentials" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></span>
+        <h4>Credentials</h4>
+        <p>Certifications + claims.</p>
+        <span class="qa-pip warn">2 expiring</span>
+      </a>
+      <a href="/reviews" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></span>
+        <h4>Reviews</h4>
+        <p>Mutual rating system.</p>
+        <span class="qa-pip">3 to leave</span>
+      </a>
+      <a href="/farm/northfield-pastures" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#house"/></svg></span>
+        <h4>Public profile</h4>
+        <p>What buyers see.</p>
+      </a>
+    </div>
+
+    <!-- Today -->
+    <section class="fm-section">
+      <div class="fm-section-head">
+        <h2>Today</h2>
+        <a class="more" href="#">View all 7 →</a>
+      </div>
+      <div class="today-grid">
+        <div class="today-card warn">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#alert"/></svg></div>
+          <div class="today-meta">
+            <h4>Buyer flag · Tyler W. reserved #2671</h4>
+            <p>3.2★ · 2 no-shows in 12mo · 1 dispute</p>
+          </div>
+          <a href="/reviews" class="today-cta">Review →</a>
+        </div>
+        <div class="today-card">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></div>
+          <div class="today-meta">
+            <h4>3 cut sheets pending</h4>
+            <p>#2641 (Sarah) · #2658 (Alex) · #2671 (Mark)</p>
+          </div>
+          <a href="/cut-sheet" class="today-cta">Review →</a>
+        </div>
+        <div class="today-card ok">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></div>
+          <div class="today-meta">
+            <h4>Drop-off in 23 days · #2641 → Plant 04</h4>
+            <p>May 28, 7:00 AM · QR ticket ready</p>
+          </div>
+          <a href="#" class="today-cta">Open ticket →</a>
+        </div>
+        <div class="today-card">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></div>
+          <div class="today-meta">
+            <h4>2 reviews waiting on yours</h4>
+            <p>Sarah R. + Plant 04 already submitted</p>
+          </div>
+          <a href="/reviews" class="today-cta">Write →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active listings -->
+    <section class="fm-section">
+      <div class="fm-section-head">
+        <h2>Active listings</h2>
+        <a class="more" href="/farm/northfield-pastures">See public view →</a>
+      </div>
+      <div class="listings-grid" id="fmListingsGrid">
+        <a href="/list-animal" class="fm-add-listing">
+          <svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg>
+          List a new animal
+        </a>
+      </div>
+    </section>
+
+    <!-- This week -->
+    <section class="fm-section">
+      <div class="fm-section-head">
+        <h2>This week</h2>
+        <a class="more" href="#">Full report →</a>
+      </div>
+      <div class="week-stats">
+        <div class="week-stat">
+          <p class="lab">Revenue</p>
+          <p class="v">$8,420 <span class="delta up">+18%</span></p>
+          <p class="s">vs last week</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">New reservations</p>
+          <p class="v">5 <span class="delta up">+2</span></p>
+          <p class="s">2 quarters · 2 halves · 1 whole</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">Customer satisfaction</p>
+          <p class="v">4.9 <span class="delta up">+0.1</span></p>
+          <p class="s">12 new reviews</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">Profile views</p>
+          <p class="v">312 <span class="delta up">+24</span></p>
+          <p class="s">847 followers · +14 this week</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity feed -->
+    <section class="fm-section">
+      <div class="fm-section-head">
+        <h2>Activity</h2>
+        <a class="more" href="#">View all →</a>
+      </div>
+      <div class="activity">
+        <div class="activity-row">
+          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check"/></svg></div>
+          <div class="activity-meta"><h4>Sarah R. <strong>reserved a quarter</strong> of #2641</h4></div>
+          <span class="activity-time">14m ago</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></div>
+          <div class="activity-meta"><h4>Plant 04 <strong>left a 5-star review</strong></h4></div>
+          <span class="activity-time">2h ago</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
+          <div class="activity-meta"><h4>Stripe payout · <strong>$1,395.00</strong> deposited</h4></div>
+          <span class="activity-time">Yesterday</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#users"/></svg></div>
+          <div class="activity-meta"><h4>Alex P. <strong>followed your ranch</strong></h4></div>
+          <span class="activity-time">Yesterday</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></div>
+          <div class="activity-meta"><h4>Auto-description generated for <strong>#2671</strong></h4></div>
+          <span class="activity-time">2 days ago</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></div>
+          <div class="activity-meta"><h4>USDA Process Verified <strong>renewal due in 60 days</strong></h4></div>
+          <span class="activity-time">3 days ago</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script src="./po-api.js"></script>
+<script>
+(async () => {
+  const grid = document.getElementById('fmListingsGrid');
+  const addLink = grid.querySelector('.fm-add-listing');
+
+  let me;
+  try { me = await window.PO_API.me(); } catch { me = { user: null }; }
+
+  if (!me.user) {
+    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:#fff; border-radius:16px; border:1px solid rgba(6,27,14,.08)">
+      <div style="font:700 22px/1.3 'Inter';margin-bottom:10px;">Sign in to your producer dashboard</div>
+      <div style="opacity:.65;font:500 14px/1.5 'Inter';max-width:380px;margin:0 auto 18px;">Manage your farm, animal listings, reservations, and payouts.</div>
+      <button onclick="window.PO_API.openAuth('Sign in', 'producer')" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer">Sign in as a producer</button>
+    </div>`;
+    return;
+  }
+
+  // Get my farms
+  let myFarms;
+  try { const r = await window.PO_API.myFarms(); myFarms = r.farms || []; } catch { myFarms = []; }
+
+  if (!myFarms.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:#fff; border-radius:16px; border:1px solid rgba(6,27,14,.08)">
+      <div style="font:700 22px/1.3 'Inter';margin-bottom:10px;">Set up your farm profile first</div>
+      <div style="opacity:.65;font:500 14px/1.5 'Inter';max-width:380px;margin:0 auto 18px;">A farm profile is your public-facing page. You can list multiple animals from one farm.</div>
+      <button onclick="createFarmFlow()" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer">Create farm profile</button>
+    </div>`;
+    return;
+  }
+
+  // Pull all listings for all my farms
+  const allListings = [];
+  for (const farm of myFarms) {
+    try {
+      const r = await window.PO_API.farm(farm.slug);
+      (r.listings || []).forEach(l => allListings.push({ ...l, farm_slug: farm.slug, farm_name: farm.name }));
+    } catch {}
+  }
+
+  // Render
+  const photoFor = sp => sp === 'hog' ? '/img/premium-pig.jpg' : sp === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg';
+  const cards = allListings.map(l => {
+    const totShares = ['whole','half','quarter'].reduce((s, k) => s + (l.shares?.[k]?.available || 0) + (l.shares?.[k]?.reserved || 0), 0);
+    const reservedShares = ['whole','half','quarter'].reduce((s, k) => s + (l.shares?.[k]?.reserved || 0), 0);
+    const fromPrice = l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || '—';
+    const photo = (l.photos && l.photos[0]) || photoFor(l.species);
+    return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
+      <div class="product-photo" style="background-image: url('${photo}');"><span class="product-tag">Reserving · ${reservedShares}/${totShares || '?'}</span></div>
+      <div class="product-meta">
+        <span class="product-eyebrow">${l.species[0].toUpperCase()+l.species.slice(1)}${l.practice && l.practice.length ? ' · ' + l.practice[0] : ''}</span>
+        <h3 class="product-name">${l.number ? l.number + ' — ' : ''}${l.breed || l.species}</h3>
+        <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
+        <div class="product-foot"><span class="product-price">From <strong>$${typeof fromPrice === 'number' ? fromPrice.toFixed(2) + '/lb' : fromPrice}</strong></span><span class="product-cta">Manage →</span></div>
+      </div>
+    </button>`;
+  }).join('');
+
+  grid.innerHTML = cards + addLink.outerHTML;
+})();
+
+async function createFarmFlow() {
+  const name = prompt("What's the name of your farm?");
+  if (!name || !name.trim()) return;
+  try {
+    await window.PO_API.createFarm({ name: name.trim() });
+    location.reload();
+  } catch (e) { alert('Could not create farm: ' + e.message); }
+}
+window.createFarmFlow = createFarmFlow;
+</script>
+</body>
+</html>

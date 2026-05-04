@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>List an animal · Protein Outfitters</title>
+<meta name="description" content="List a real animal in 90 seconds. Auto-generated description, live finish-weight calculator, smooth flow." />
+<meta property="og:title" content="List an animal · Protein Outfitters" />
+<meta property="og:description" content="Auto-description + finish calculator — list in 90 seconds." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/list-animal" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="List an animal · Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.wiz-shell { padding: clamp(48px, 6vw, 88px) var(--shell-pad) clamp(64px, 8vw, 120px); min-height: calc(100vh - 80px); display: flex; align-items: flex-start; justify-content: center; }
+.wiz { width: 100%; max-width: 720px; }
+
+/* Progress bar */
+.wiz-progress { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 32px; }
+.wiz-progress .dot { width: 32px; height: 4px; border-radius: 99px; background: var(--surface-2); transition: background .35s cubic-bezier(.2,.9,.3,1.05), width .35s cubic-bezier(.2,.9,.3,1.05); }
+.wiz-progress .dot.active { background: var(--brand); width: 56px; }
+.wiz-progress .dot.done { background: var(--brand); }
+
+/* Stage that holds the steps with slide animation */
+.wiz-stage { position: relative; min-height: 580px; }
+.wiz-step {
+  background: #fff; border-radius: 28px; padding: clamp(28px, 4vw, 48px);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
+  position: absolute; inset: 0; opacity: 0;
+  transform: translateX(40px) scale(0.985);
+  transition: transform .55s cubic-bezier(.2,.9,.3,1.05), opacity .35s ease;
+  pointer-events: none;
+  visibility: hidden;
+}
+.wiz-step.active { opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; visibility: visible; }
+.wiz-step.exit-left { transform: translateX(-60px) scale(0.97); opacity: 0; }
+.wiz-step.enter-from-left { transform: translateX(-60px) scale(0.985); }
+
+.wiz-step h1 {
+  margin: 0 0 8px; font-size: clamp(28px, 3.4vw, 40px); font-weight: 900;
+  letter-spacing: -0.03em; line-height: 1.05;
+  animation: stepIn .65s cubic-bezier(.2,.9,.3,1.05) both;
+}
+.wiz-step .lead { margin: 0 0 28px; color: var(--ink-2); font-size: 16px; line-height: 1.5; animation: stepIn .65s cubic-bezier(.2,.9,.3,1.05) both .06s; }
+.wiz-step > .field, .wiz-step > .row-2, .wiz-step > .row-3, .wiz-step > .species-grid, .wiz-step > .price-grid, .wiz-step > .review-card {
+  animation: stepIn .65s cubic-bezier(.2,.9,.3,1.05) both .12s;
+}
+@keyframes stepIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Field primitives */
+.field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.field label { font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+.field input, .field select, .field textarea {
+  background: var(--surface); border: 1px solid transparent; border-radius: 14px;
+  padding: 14px 16px; font: inherit; font-size: 16px; color: var(--ink);
+  transition: border-color .25s ease, background .25s ease, transform .15s ease;
+}
+.field input:hover, .field select:hover { background: var(--surface-2); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 0; border-color: var(--brand); background: #fff; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(6,27,14,0.05); }
+.field textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+.field .help { font-size: 12px; color: var(--ink-3); }
+
+.row-2 { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .row-2 { grid-template-columns: 1fr 1fr; } }
+.row-3 { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .row-3 { grid-template-columns: 1fr 1fr 1fr; } }
+
+/* Species cards */
+.species-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 18px; }
+.species-card {
+  background: var(--surface); border: 1px solid transparent; border-radius: 18px;
+  padding: 22px 18px; cursor: pointer; text-align: center;
+  transition: border-color .25s ease, transform .35s cubic-bezier(.2,.9,.3,1.4), background .2s;
+  font: inherit; color: inherit;
+}
+.species-card:hover { transform: translateY(-3px) scale(1.02); border-color: rgba(6,27,14,0.32); }
+.species-card.selected { border-color: var(--brand); background: var(--accent-soft); transform: scale(1.04); }
+.species-card .species-ico { color: var(--brand); transition: transform .4s cubic-bezier(.2,.9,.3,1.4); display: block; margin: 0 auto 8px; }
+.species-card.selected .species-ico { transform: rotate(-6deg) scale(1.1); }
+.species-card .name { display: block; font-size: 14px; font-weight: 700; margin-top: 8px; letter-spacing: -0.01em; }
+
+/* Photo upload */
+.photo-drop {
+  background: var(--surface); border: 2px dashed rgba(0,0,0,0.12); border-radius: 18px;
+  padding: 36px 24px; text-align: center; cursor: pointer;
+  transition: border-color .25s ease, background .25s ease, transform .25s cubic-bezier(.2,.9,.3,1.05);
+}
+.photo-drop:hover { border-color: var(--brand); background: var(--accent-soft); transform: scale(1.01); }
+.photo-drop .glyph { font-size: 32px; opacity: 0.6; margin-bottom: 8px; }
+.photo-drop .t { font-size: 14px; font-weight: 700; color: var(--ink); }
+.photo-drop .s { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.photo-grid { display: grid; gap: 8px; grid-template-columns: repeat(4, 1fr); margin-top: 12px; }
+.photo-thumb { aspect-ratio: 1; background-size: cover; background-position: center; border-radius: 12px; transition: transform .35s cubic-bezier(.2,.9,.3,1.4); }
+.photo-thumb:hover { transform: scale(1.04); }
+
+/* Pricing cards */
+.price-grid { display: grid; gap: 12px; grid-template-columns: 1fr; margin-bottom: 18px; }
+.price-card {
+  background: var(--surface); border-radius: 18px; padding: 18px 22px;
+  display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center;
+  transition: transform .3s cubic-bezier(.2,.9,.3,1.05);
+}
+.price-card:hover { transform: translateY(-2px); }
+.price-card .glyph { width: 48px; height: 48px; border-radius: 12px; background: var(--brand); color: #fbf9f5; display: grid; place-items: center; font-size: 24px; font-weight: 900; letter-spacing: -0.04em; }
+.price-card .meta .t { font-size: 15px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
+.price-card .meta .s { font-size: 12px; color: var(--ink-3); margin: 2px 0 0; }
+.price-card input { background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 10px 14px; font: inherit; font-size: 15px; font-weight: 700; width: 110px; text-align: right; }
+.price-card input::placeholder { color: var(--ink-3); font-weight: 600; }
+.price-card.suggested input { background: var(--accent-soft); border-color: rgba(6,27,14,0.18); }
+
+/* Market hint */
+.market-hint {
+  background: linear-gradient(135deg, var(--accent-soft) 0%, #fff 100%);
+  border: 1px solid rgba(6,27,14,0.10); border-radius: 16px;
+  padding: 14px 18px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 14px;
+  animation: stepIn .65s cubic-bezier(.2,.9,.3,1.05) both;
+}
+.market-hint-ico { font-size: 22px; line-height: 1; }
+.market-hint-text { display: flex; flex-direction: column; gap: 2px; }
+.market-hint-text strong { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; color: var(--brand); }
+.market-hint-text span { font-size: 12px; color: var(--ink-2); line-height: 1.4; }
+.price-suggested-tag { font-size: 11px; color: var(--brand); font-weight: 700; opacity: 0.85; }
+.reset-link {
+  background: transparent; border: 0; padding: 8px 14px;
+  font: inherit; font-size: 13px; font-weight: 700; color: var(--accent-2);
+  cursor: pointer; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background .2s, color .2s;
+}
+.reset-link:hover { background: var(--accent-soft); color: var(--brand); }
+.price-actions { display: flex; justify-content: flex-end; margin-top: -8px; margin-bottom: 18px; }
+
+/* Review card */
+.review-card { background: var(--surface); border-radius: 18px; padding: 22px 26px; margin-bottom: 14px; }
+.review-card h4 { margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+.review-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+.review-row .k { color: var(--ink-2); }
+.review-row .v { color: var(--ink); font-weight: 700; }
+
+/* Foot */
+.wiz-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
+.wiz-back { background: transparent; border: 0; padding: 12px 16px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); border-radius: 999px; transition: color .2s, transform .2s; }
+.wiz-back:disabled { opacity: 0; pointer-events: none; }
+.wiz-back:hover:not(:disabled) { color: var(--ink); transform: translateX(-2px); }
+.wiz-next { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 14px 28px; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; border-radius: 999px; transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s, opacity .2s; }
+.wiz-next:disabled { opacity: 0.4; cursor: not-allowed; }
+.wiz-next:hover:not(:disabled) { transform: scale(1.05) translateX(2px); background: #0a2614; }
+.wiz-next:active:not(:disabled) { transform: scale(0.98); }
+
+/* Published */
+.wiz-published { text-align: center; padding: 40px 20px; }
+.wiz-published .mark {
+  width: 96px; height: 96px; border-radius: 50%; background: var(--accent-soft); color: var(--brand);
+  display: grid; place-items: center; margin: 0 auto 24px; font-size: 44px;
+  animation: markPop .8s cubic-bezier(.2,.9,.3,1.4) both;
+}
+@keyframes markPop {
+  0% { opacity: 0; transform: scale(0.4); }
+  60% { opacity: 1; transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.wiz-published h2 {
+  font-size: clamp(28px, 3.4vw, 40px); font-weight: 900; letter-spacing: -0.03em; margin: 0 0 14px;
+  animation: stepIn .65s cubic-bezier(.2,.9,.3,1.05) both .25s;
+}
+.wiz-published p {
+  font-size: 16px; color: var(--ink-2); line-height: 1.55; max-width: 38ch; margin: 0 auto 24px;
+  animation: stepIn .65s cubic-bezier(.2,.9,.3,1.05) both .35s;
+}
+
+/* ========== Live Calculator Card (sticks below the wizard) ========== */
+.calc-card {
+  background: var(--brand); color: #fbf9f5; border-radius: 24px; padding: 24px 28px;
+  margin-top: 18px; display: grid; grid-template-columns: 1fr; gap: 18px;
+  box-shadow: 0 12px 32px rgba(6,27,14,0.16);
+  animation: stepIn .55s cubic-bezier(.2,.9,.3,1.05) both;
+}
+@media (min-width: 720px) { .calc-card { grid-template-columns: 1fr 1fr 1fr; } }
+.calc-stat .lab { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
+.calc-stat .val { margin: 4px 0 0; font-size: 28px; font-weight: 900; letter-spacing: -0.025em; color: #fbf9f5; line-height: 1; transition: color .25s; }
+.calc-stat .sub { margin: 4px 0 0; font-size: 12px; color: rgba(251,249,245,0.7); }
+.calc-stat .val.flash { animation: numFlash .8s ease; }
+@keyframes numFlash { 0% { color: #cfe9d3; } 100% { color: #fbf9f5; } }
+
+/* ========== Auto-Description Card ========== */
+.desc-card { background: var(--surface); border-radius: 18px; padding: 18px 20px; margin-bottom: 18px; }
+.desc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.desc-head h4 { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+.desc-regen {
+  background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 999px;
+  padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s;
+}
+.desc-regen:hover { transform: scale(1.04); background: var(--accent-soft); }
+.desc-regen .star { display: inline-block; transition: transform .5s ease; }
+.desc-regen:hover .star { transform: rotate(180deg); }
+.desc-text {
+  background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 14px;
+  padding: 16px 18px; font: inherit; font-size: 15px; line-height: 1.6;
+  color: var(--ink); width: 100%; min-height: 130px; resize: vertical;
+  transition: border-color .25s ease, background .25s ease;
+}
+.desc-text:focus { outline: 0; border-color: var(--brand); }
+.desc-fade { animation: descRefresh .6s ease; }
+@keyframes descRefresh {
+  0% { background: var(--accent-soft); }
+  100% { background: #fff; }
+}
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/farmer" class="active">My ranch</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<section class="wiz-shell">
+  <div class="wiz" id="wiz">
+    <div class="wiz-progress" aria-hidden="true">
+      <span class="dot active" data-d="1"></span>
+      <span class="dot" data-d="2"></span>
+      <span class="dot" data-d="3"></span>
+      <span class="dot" data-d="4"></span>
+      <span class="dot" data-d="5"></span>
+    </div>
+
+    <div class="wiz-stage" id="wizStage">
+
+      <!-- STEP 1 — Species + Breed + Sex + ID -->
+      <section class="wiz-step active" data-step="1">
+        <h1>What are you listing?</h1>
+        <p class="lead">Pick a species. We'll auto-tune everything from the breed list to the predicted finish weight.</p>
+
+        <div class="species-grid">
+          <button class="species-card selected" data-species="beef"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#cow"/></svg><span class="name">Beef</span></button>
+          <button class="species-card" data-species="pork"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#pig"/></svg><span class="name">Pork</span></button>
+          <button class="species-card" data-species="lamb"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#sheep"/></svg><span class="name">Lamb</span></button>
+          <button class="species-card" data-species="venison"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#deer"/></svg><span class="name">Venison</span></button>
+          <button class="species-card" data-species="poultry"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#rooster"/></svg><span class="name">Poultry</span></button>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label>Breed</label>
+            <select id="breed">
+              <optgroup label="Beef" id="og-beef">
+                <option>Black Angus</option><option>Red Angus</option><option>Hereford</option>
+                <option>Charolais</option><option>Simmental</option><option>Wagyu</option>
+                <option>Wagyu × Angus</option><option>Highland</option><option>Belted Galloway</option>
+                <option>Shorthorn</option><option>Texas Longhorn</option><option>Mixed / Cross</option>
+              </optgroup>
+              <optgroup label="Pork" id="og-pork" hidden>
+                <option>Berkshire</option><option>Duroc</option><option>Yorkshire</option>
+                <option>Hampshire</option><option>Tamworth</option><option>Mangalitsa</option>
+                <option>Mixed / Cross</option>
+              </optgroup>
+              <optgroup label="Lamb" id="og-lamb" hidden>
+                <option>Katahdin</option><option>Dorper</option><option>Suffolk</option>
+                <option>Polypay</option><option>Icelandic</option><option>Mixed / Cross</option>
+              </optgroup>
+              <optgroup label="Venison" id="og-venison" hidden>
+                <option>Whitetail</option><option>Mule</option><option>Red deer</option><option>Elk</option>
+              </optgroup>
+              <optgroup label="Poultry" id="og-poultry" hidden>
+                <option>Broiler</option><option>Heritage</option><option>Cornish Cross</option>
+                <option>Freedom Ranger</option><option>Turkey</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <label>Sex</label>
+            <select id="sex">
+              <option>Steer</option><option>Heifer</option><option>Cow</option><option>Bull</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Animal ID or name</label>
+          <input type="text" id="animalId" placeholder="e.g. #2641 or Buster">
+          <span class="help">Buyers see this on their reservation.</span>
+        </div>
+      </section>
+
+      <!-- STEP 2 — Specs + Feed (live calculator below) -->
+      <section class="wiz-step" data-step="2">
+        <h1>How were they raised?</h1>
+        <p class="lead">Three feed questions and a birth date. We'll calculate the predicted finish weight and harvest date in real time.</p>
+
+        <div class="row-2">
+          <div class="field"><label>Birth date</label><input type="date" id="birthDate" value="2024-03-15"></div>
+          <div class="field"><label>Current live weight (lb · optional)</label><input type="number" id="currentWeight" placeholder="auto-calculated" min="0"></div>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label>Feed type (life)</label>
+            <select id="feedType">
+              <option>100% grass + hay</option>
+              <option>Grass + supplemental grain</option>
+              <option>Pasture-raised, mostly grain</option>
+              <option>Forage + barn finishing</option>
+              <option>Conventional grain</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Finish feed (last 60–90 days)</label>
+            <select id="finishFeed">
+              <option>100% grass</option>
+              <option>Grass + small grain ration</option>
+              <option>Mostly grain</option>
+              <option>Acorn / forest mast</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label>Antibiotics</label>
+            <select id="antibiotics"><option>Never</option><option>Therapeutic only</option><option>Sub-therapeutic OK</option></select>
+          </div>
+          <div class="field">
+            <label>Hormones</label>
+            <select id="hormones"><option>Never</option><option>Implant program</option></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Certifications (optional)</label>
+          <select id="certs" multiple size="4">
+            <option>USDA Organic</option>
+            <option>USDA Process Verified</option>
+            <option>AGA Grass-Fed</option>
+            <option>Animal Welfare Approved</option>
+            <option>GAP Step 4 / 5+</option>
+            <option>Regenerative Organic</option>
+            <option>Certified Naturally Grown</option>
+          </select>
+          <span class="help">Hold ⌘ / Ctrl to pick more than one.</span>
+        </div>
+
+        <!-- LIVE CALCULATOR -->
+        <div class="calc-card">
+          <div class="calc-stat">
+            <p class="lab">Predicted finish weight</p>
+            <p class="val" id="calcWeight">1,180 <span style="font-size: 14px; opacity: .7;">lb</span></p>
+            <p class="sub" id="calcWeightSub">Based on Black Angus steer · grass-fed · grass finish</p>
+          </div>
+          <div class="calc-stat">
+            <p class="lab">Predicted harvest date</p>
+            <p class="val" id="calcDate">May 28, 2026</p>
+            <p class="sub" id="calcDateSub">~28 months · 1.6 lb/day average gain</p>
+          </div>
+          <div class="calc-stat">
+            <p class="lab">Estimated take-home</p>
+            <p class="val" id="calcTake">~440 <span style="font-size: 14px; opacity: .7;">lb</span></p>
+            <p class="sub">Whole animal · 37% of live weight in cuts</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3 — Photos + AUTO-Description + Location/Processor -->
+      <section class="wiz-step" data-step="3">
+        <h1>Tell their story.</h1>
+        <p class="lead">We auto-write a description from your selections. Tap "Regenerate" if you want a new spin, or edit any line.</p>
+
+        <div class="field">
+          <label>Photos</label>
+          <div class="photo-drop">
+            <div class="glyph">📷</div>
+            <div class="t">Drag photos here or tap to upload</div>
+            <div class="s">First photo is the cover. JPG or PNG. Up to 8.</div>
+          </div>
+          <div class="photo-grid">
+            <div class="photo-thumb" style="background-image: url('/angus.jpg');"></div>
+            <div class="photo-thumb" style="background-image: url('/ranch.jpg');"></div>
+            <div class="photo-thumb" style="background-image: url('/farmer.jpg');"></div>
+            <div class="photo-thumb" style="background: var(--surface); border: 2px dashed rgba(0,0,0,0.1);"></div>
+          </div>
+        </div>
+
+        <!-- AUTO-DESCRIPTION CARD -->
+        <div class="desc-card">
+          <div class="desc-head">
+            <h4>Auto-generated description</h4>
+            <button class="desc-regen" id="regenBtn"><svg class="ico star" aria-hidden="true" style="color: var(--brand);"><use href="/icons.svg#sparkles"/></svg> Regenerate</button>
+          </div>
+          <textarea class="desc-text" id="descText" rows="6"></textarea>
+          <span class="help" style="display:block; margin-top: 8px; font-size: 12px; color: var(--ink-3);">Updates from your selections in step 1 + 2. Edit anything by hand.</span>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label>Pasture / Location</label>
+            <select id="location">
+              <option>Bemidji, MN · Beltrami County</option>
+              <option>Brainerd, MN · Crow Wing County</option>
+              <option>Park Rapids, MN · Hubbard County</option>
+              <option>Cass Lake, MN · Cass County</option>
+              <option>Other (search)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Processor pairing</label>
+            <select id="processor">
+              <option>Plant 04 · Bemidji, MN (12 mi)</option>
+              <option>Plant 17 · Cass Lake, MN (38 mi)</option>
+              <option>Plant 22 · Brainerd, MN (62 mi)</option>
+              <option>Buyer chooses (pricing varies)</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 4 — Pricing -->
+      <section class="wiz-step" data-step="4">
+        <h1>Price the shares.</h1>
+        <p class="lead">Industry-suggested numbers based on your breed, feed, and predicted finish weight. Click any field to type your own — or leave the suggestion.</p>
+
+        <!-- Live market hint -->
+        <div class="market-hint">
+          <span class="market-hint-ico"><svg class="ico ico-lg" style="color: var(--brand);" aria-hidden="true"><use href="/icons.svg#lightbulb"/></svg></span>
+          <span class="market-hint-text">
+            <strong id="marketTitle">Industry-suggested · Grass-fed Black Angus</strong>
+            <span id="marketSub">$12.50/lb take-home · 2026 average for direct-to-consumer in MN/WI/ND/SD</span>
+          </span>
+        </div>
+
+        <div class="price-grid">
+          <div class="price-card suggested">
+            <span class="glyph">¼</span>
+            <div class="meta">
+              <p class="t">Quarter share</p>
+              <p class="s">~<span id="cutsQ">110</span> lb · <span class="price-suggested-tag">suggested $<span id="suggQ">1,395</span></span></p>
+            </div>
+            <input type="number" id="priceQ" placeholder="1395" min="0">
+          </div>
+          <div class="price-card suggested">
+            <span class="glyph">½</span>
+            <div class="meta">
+              <p class="t">Half share</p>
+              <p class="s">~<span id="cutsH">220</span> lb · <span class="price-suggested-tag">suggested $<span id="suggH">2,690</span></span></p>
+            </div>
+            <input type="number" id="priceH" placeholder="2690" min="0">
+          </div>
+          <div class="price-card suggested">
+            <span class="glyph">1</span>
+            <div class="meta">
+              <p class="t">Whole animal</p>
+              <p class="s">~<span id="cutsW">440</span> lb · <span class="price-suggested-tag">suggested $<span id="suggW">5,180</span></span></p>
+            </div>
+            <input type="number" id="priceW" placeholder="5180" min="0">
+          </div>
+        </div>
+
+        <div class="price-actions">
+          <button type="button" class="reset-link" id="resetPrices">↺ Use suggested prices</button>
+        </div>
+
+        <div class="field">
+          <label>Available shares</label>
+          <select>
+            <option>4 quarters (4 quarter buyers)</option>
+            <option>2 halves (2 half buyers)</option>
+            <option>1 whole animal (1 buyer)</option>
+            <option>Mix: 1 half + 2 quarters</option>
+            <option>Custom</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Donation toggle</label>
+          <select>
+            <option>No donation</option>
+            <option>Donate 5% to Producer Partnership 501(c)(3)</option>
+            <option>Donate 10% to Producer Partnership</option>
+            <option>Custom</option>
+          </select>
+          <span class="help">Donations are tax-deductible. Issued from PO's nonprofit arm.</span>
+        </div>
+      </section>
+
+      <!-- STEP 5 — Review -->
+      <section class="wiz-step" data-step="5">
+        <h1>Looks good?</h1>
+        <p class="lead">Quick scan. Edit any step or publish.</p>
+
+        <div class="review-card">
+          <h4>The animal</h4>
+          <div class="review-row"><span class="k">Species · Breed</span><span class="v" id="rvSpec">Beef · Black Angus</span></div>
+          <div class="review-row"><span class="k">Sex</span><span class="v" id="rvSex">Steer</span></div>
+          <div class="review-row"><span class="k">ID</span><span class="v" id="rvId">—</span></div>
+        </div>
+        <div class="review-card">
+          <h4>Specs (auto-calculated)</h4>
+          <div class="review-row"><span class="k">Predicted finish weight</span><span class="v" id="rvWeight">1,180 lb</span></div>
+          <div class="review-row"><span class="k">Predicted harvest date</span><span class="v" id="rvDate">May 28, 2026</span></div>
+          <div class="review-row"><span class="k">Feed</span><span class="v" id="rvFeed">100% grass + hay</span></div>
+          <div class="review-row"><span class="k">Finish</span><span class="v" id="rvFinish">100% grass</span></div>
+        </div>
+        <div class="review-card">
+          <h4>Pricing</h4>
+          <div class="review-row"><span class="k">Quarter</span><span class="v">$1,395 × 4 available</span></div>
+          <div class="review-row"><span class="k">Half</span><span class="v">$2,690 × 0 available</span></div>
+          <div class="review-row"><span class="k">Whole</span><span class="v">$5,180 × 0 available</span></div>
+        </div>
+      </section>
+
+      <!-- STEP 6 — Published -->
+      <section class="wiz-step" data-step="6">
+        <div class="wiz-published">
+          <div class="mark">✓</div>
+          <h2>Listed.</h2>
+          <p id="publishedBody">#2641 is live on the marketplace. We'll text the moment your first reserve hits.</p>
+          <a href="/farm/northfield-pastures" class="btn-xl btn-xl--dark">View on your ranch profile →</a>
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="wiz-foot">
+      <button class="wiz-back" id="wizBack" disabled>← Back</button>
+      <button class="wiz-next" id="wizNext">Continue →</button>
+    </footer>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script src="./po-api.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ============ STATE ============
+  const S = {
+    species: 'beef',
+    breed: 'Black Angus',
+    sex: 'Steer',
+    animalId: '#2641',
+    birthDate: '2024-03-15',
+    feedType: '100% grass + hay',
+    finishFeed: '100% grass',
+    antibiotics: 'Never',
+    hormones: 'Never',
+    certs: [],
+    location: 'Bemidji, MN · Beltrami County',
+    processor: 'Plant 04 · Bemidji, MN (12 mi)'
+  };
+
+  // ============ STEP NAVIGATION (slide animations) ============
+  const dots = document.querySelectorAll('.wiz-progress .dot');
+  const steps = document.querySelectorAll('.wiz-step');
+  const back = document.getElementById('wizBack');
+  const next = document.getElementById('wizNext');
+  let n = 1;
+
+  function setStep(i, dir) {
+    const tgt = document.querySelector(`.wiz-step[data-step="${i}"]`);
+    if (!tgt) return;
+    // Clear all step state synchronously
+    document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('active', 'enter-from-left', 'exit-left'));
+    // Set initial state for slide direction (back = enter from left, forward = enter from right via default CSS)
+    if (dir === 'back') tgt.classList.add('enter-from-left');
+    // Force reflow so the transform applies before .active triggers transition back
+    void tgt.offsetWidth;
+    tgt.classList.remove('enter-from-left');
+    tgt.classList.add('active');
+    n = i;
+    dots.forEach((d, idx) => { d.classList.toggle('active', idx === n - 1); d.classList.toggle('done', idx < n - 1); });
+    back.disabled = n === 1 || n === 6;
+    if (n === 6) {
+      next.style.visibility = 'hidden'; back.style.visibility = 'hidden';
+      document.querySelector('.wiz-progress').style.display = 'none';
+    } else {
+      next.style.visibility = 'visible'; back.style.visibility = 'visible';
+      next.textContent = n === 5 ? 'Publish listing →' : 'Continue →';
+    }
+    if (i === 5) refreshReview();
+  }
+
+  back.addEventListener('click', () => { if (n > 1) setStep(n - 1, 'back'); });
+  next.addEventListener('click', async () => {
+    if (n < 5) { setStep(n + 1, 'forward'); return; }
+    if (n === 5) {
+      // Publish — save to DB
+      next.disabled = true;
+      next.textContent = 'Publishing…';
+      try {
+        await publishListing();
+        setStep(6, 'forward');
+      } catch (e) {
+        next.disabled = false;
+        next.textContent = 'Publish listing →';
+        if (e.status === 401) {
+          window.PO_API.openAuth('Sign in to publish your listing', 'producer');
+        } else if (e.status === 400 && /farm_id required/i.test(e.message)) {
+          // No farm — prompt to create one
+          await promptCreateFarm();
+        } else {
+          alert('Publish failed: ' + e.message);
+        }
+      }
+    }
+  });
+
+  // ============ PUBLISH TO DB ============
+  // Map wizard species labels → DB enum
+  const SPECIES_MAP = { beef: 'cattle', cattle: 'cattle', hog: 'hog', pig: 'hog', pork: 'hog', lamb: 'lamb', sheep: 'lamb', poultry: 'poultry', chicken: 'poultry', bison: 'bison', goat: 'goat', venison: 'venison' };
+
+  async function ensureFarmId() {
+    // If user has at least one farm, use the first one. Else prompt to create.
+    const me = await window.PO_API.me().catch(() => ({ user: null }));
+    if (!me.user) {
+      const e = new Error('Not authenticated'); e.status = 401; throw e;
+    }
+    const myFarms = await window.PO_API.myFarms().catch(() => ({ farms: [] }));
+    if (myFarms.farms && myFarms.farms.length) return myFarms.farms[0].id;
+    // No farm — caller should handle
+    const e = new Error('farm_id required'); e.status = 400; throw e;
+  }
+
+  async function promptCreateFarm() {
+    const name = prompt("Looks like you don't have a farm profile yet. What's the name of your farm?\n\n(You'll be able to add a bio, location, and certifications after publishing.)");
+    if (!name || !name.trim()) return;
+    try {
+      const r = await window.PO_API.createFarm({ name: name.trim(), state: 'MN', city: 'Bemidji' });
+      // Now retry publish
+      next.disabled = true;
+      next.textContent = 'Publishing…';
+      await publishListing(r.farm.id);
+      setStep(6, 'forward');
+    } catch (e) {
+      alert('Could not create farm: ' + e.message);
+      next.disabled = false;
+      next.textContent = 'Publish listing →';
+    }
+  }
+
+  async function publishListing(forcedFarmId) {
+    const farm_id = forcedFarmId || await ensureFarmId();
+    const sp = SPECIES_MAP[(S.species || '').toLowerCase()] || 'cattle';
+    const practice = [];
+    if (/grass/i.test(S.feedType)) practice.push('grass-fed');
+    if (/grain/i.test(S.feedType)) practice.push('grain-finished');
+    if (/pasture/i.test(S.feedType)) practice.push('pasture-raised');
+    const certs = (S.certs || []).map(c => c.toLowerCase());
+
+    // Build shares from current step-4 inputs (best-effort)
+    const wholePrice = parseFloat(document.getElementById('priceWhole')?.value || S.priceWhole || 0);
+    const halfPrice = parseFloat(document.getElementById('priceHalf')?.value || S.priceHalf || 0);
+    const quarterPrice = parseFloat(document.getElementById('priceQuarter')?.value || S.priceQuarter || 0);
+    const shares = {
+      whole:   { available: 1, reserved: 0, price: wholePrice || 0 },
+      half:    { available: 2, reserved: 0, price: halfPrice || 0 },
+      quarter: { available: 4, reserved: 0, price: quarterPrice || 0 }
+    };
+
+    const body = {
+      farm_id,
+      number: S.animalId || null,
+      species: sp,
+      breed: S.breed || null,
+      sex: S.sex ? S.sex.toLowerCase() : null,
+      birth_date: S.birthDate || null,
+      expected_finish_date: document.getElementById('rvFinishDate')?.textContent ?
+        toIsoDate(document.getElementById('rvFinishDate').textContent) : null,
+      estimated_hanging_weight: parseInt(document.getElementById('calcWeight')?.textContent?.replace(/[^\d]/g, '') || 0) || null,
+      price_per_lb: halfPrice || wholePrice || quarterPrice || null,
+      description: (document.getElementById('descBody')?.value || '').trim() || null,
+      practice,
+      certs,
+      shares,
+      photos: [],
+      status: 'active'
+    };
+    return await window.PO_API.createListing(body);
+  }
+
+  function toIsoDate(human) {
+    // "Aug 14, 2026" → "2026-08-14"
+    try { const d = new Date(human); return isNaN(d) ? null : d.toISOString().slice(0, 10); }
+    catch { return null; }
+  }
+
+  // ============ SPECIES + DROPDOWNS ============
+  document.querySelectorAll('.species-card').forEach(card => card.addEventListener('click', () => {
+    document.querySelectorAll('.species-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    const sp = card.dataset.species;
+    S.species = sp;
+    document.querySelectorAll('#breed optgroup').forEach(og => og.hidden = og.id !== `og-${sp}`);
+    const visible = document.querySelector(`#og-${sp}`);
+    if (visible && visible.firstElementChild) {
+      document.getElementById('breed').value = visible.firstElementChild.value;
+      S.breed = visible.firstElementChild.value;
+    }
+    recompute();
+  }));
+
+  ['breed','sex','animalId','birthDate','feedType','finishFeed','antibiotics','hormones','location','processor','currentWeight'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.addEventListener('change', () => { S[id] = el.value; recompute(); });
+    el.addEventListener('input', () => { S[id] = el.value; recompute(); });
+  });
+
+  // ============ ADG + FINISH WEIGHT LOOKUP TABLES ============
+  const BIRTH_WEIGHT = { beef: 80, pork: 3, lamb: 9, venison: 8, poultry: 0.1 };
+
+  // Average daily gain (lb/day), keyed by species
+  const ADG = {
+    beef: {
+      base: 1.6,
+      bySex: { Steer: 1.7, Heifer: 1.4, Cow: 1.0, Bull: 1.9 },
+      byFeed: { '100% grass + hay': 1.4, 'Grass + supplemental grain': 2.0, 'Pasture-raised, mostly grain': 2.6, 'Forage + barn finishing': 2.4, 'Conventional grain': 2.9 },
+      byBreed: { 'Black Angus': 1.0, 'Red Angus': 1.0, 'Hereford': 0.95, 'Charolais': 1.1, 'Simmental': 1.1, 'Wagyu': 0.85, 'Wagyu × Angus': 0.95, 'Highland': 0.8, 'Belted Galloway': 0.85, 'Shorthorn': 0.95, 'Texas Longhorn': 0.8, 'Mixed / Cross': 1.0 }
+    },
+    pork: { base: 1.5, bySex: { Steer: 1.0, Heifer: 1.0, Cow: 1.0, Bull: 1.0 }, byFeed: { '100% grass + hay': 0.8, 'Grass + supplemental grain': 1.4, 'Pasture-raised, mostly grain': 1.9, 'Forage + barn finishing': 2.0, 'Conventional grain': 2.1 }, byBreed: { 'Berkshire': 1.0, 'Duroc': 1.05, 'Yorkshire': 1.05, 'Hampshire': 1.0, 'Tamworth': 0.9, 'Mangalitsa': 0.7, 'Mixed / Cross': 1.0 } },
+    lamb: { base: 0.55, bySex: { Steer: 1.0, Heifer: 1.0, Cow: 1.0, Bull: 1.0 }, byFeed: { '100% grass + hay': 0.5, 'Grass + supplemental grain': 0.7, 'Pasture-raised, mostly grain': 0.85, 'Forage + barn finishing': 0.8, 'Conventional grain': 0.9 }, byBreed: { 'Katahdin': 1.0, 'Dorper': 1.05, 'Suffolk': 1.1, 'Polypay': 1.0, 'Icelandic': 0.85, 'Mixed / Cross': 1.0 } },
+    venison: { base: 0.4, bySex: { Steer: 1.0, Heifer: 1.0, Cow: 1.0, Bull: 1.0 }, byFeed: {}, byBreed: { 'Whitetail': 1.0, 'Mule': 1.05, 'Red deer': 1.2, 'Elk': 1.4 } },
+    poultry: { base: 0.07, bySex: {}, byFeed: {}, byBreed: { 'Broiler': 1.0, 'Heritage': 0.6, 'Cornish Cross': 1.2, 'Freedom Ranger': 0.9, 'Turkey': 0.8 } }
+  };
+
+  // Target finish weight (lb), by species + sex + breed
+  const TARGET_WEIGHT = {
+    beef: { Steer: 1180, Heifer: 1050, Cow: 1300, Bull: 1500 },
+    pork: { Steer: 280, Heifer: 270, Cow: 320, Bull: 400 },
+    lamb: { Steer: 110, Heifer: 105, Cow: 130, Bull: 145 },
+    venison: { Steer: 200, Heifer: 165, Cow: 200, Bull: 230 },
+    poultry: { Steer: 6, Heifer: 6, Cow: 6, Bull: 12 }
+  };
+
+  // ============ INDUSTRY-SUGGESTED $/lb (take-home cuts) ============
+  // Direct-to-consumer 2026 averages, MN/WI/ND/SD region.
+  // Keys: grass = 100% grass life + grass finish. mixed = grass + grain. grain = mostly grain.
+  const PRICE_PER_LB = {
+    beef: {
+      'Black Angus':       { grass: 12.50, mixed: 10.00, grain:  9.00 },
+      'Red Angus':         { grass: 12.50, mixed: 10.00, grain:  9.00 },
+      'Hereford':          { grass: 11.50, mixed:  9.50, grain:  8.50 },
+      'Charolais':         { grass: 11.00, mixed:  9.00, grain:  8.00 },
+      'Simmental':         { grass: 11.00, mixed:  9.00, grain:  8.00 },
+      'Wagyu':             { grass: 22.00, mixed: 19.00, grain: 17.00 },
+      'Wagyu × Angus':     { grass: 17.00, mixed: 14.50, grain: 13.00 },
+      'Highland':          { grass: 14.00, mixed: 11.00, grain: 10.00 },
+      'Belted Galloway':   { grass: 13.50, mixed: 10.50, grain:  9.50 },
+      'Shorthorn':         { grass: 11.00, mixed:  9.00, grain:  8.00 },
+      'Texas Longhorn':    { grass: 11.00, mixed:  9.00, grain:  8.00 },
+      'Mixed / Cross':     { grass: 11.00, mixed:  9.00, grain:  8.00 }
+    },
+    pork: {
+      'Berkshire':         { grass: 14.00, mixed: 11.00, grain:  9.50 },
+      'Duroc':             { grass: 12.00, mixed:  9.50, grain:  8.50 },
+      'Yorkshire':         { grass: 11.00, mixed:  8.50, grain:  7.50 },
+      'Hampshire':         { grass: 11.00, mixed:  8.50, grain:  7.50 },
+      'Tamworth':          { grass: 14.50, mixed: 11.50, grain: 10.00 },
+      'Mangalitsa':        { grass: 22.00, mixed: 18.00, grain: 16.00 },
+      'Mixed / Cross':     { grass: 11.00, mixed:  9.00, grain:  8.00 }
+    },
+    lamb: {
+      'Katahdin':          { grass: 13.00, mixed: 11.00, grain: 10.00 },
+      'Dorper':            { grass: 13.50, mixed: 11.50, grain: 10.50 },
+      'Suffolk':           { grass: 12.50, mixed: 10.50, grain:  9.50 },
+      'Polypay':           { grass: 12.00, mixed: 10.00, grain:  9.00 },
+      'Icelandic':         { grass: 16.00, mixed: 13.50, grain: 12.00 },
+      'Mixed / Cross':     { grass: 12.50, mixed: 10.50, grain:  9.50 }
+    },
+    venison: {
+      'Whitetail':         { grass: 16.00, mixed: 16.00, grain: 16.00 },
+      'Mule':              { grass: 16.00, mixed: 16.00, grain: 16.00 },
+      'Red deer':          { grass: 18.00, mixed: 18.00, grain: 18.00 },
+      'Elk':               { grass: 19.00, mixed: 19.00, grain: 19.00 }
+    },
+    poultry: {
+      'Broiler':           { grass:  6.50, mixed:  5.50, grain:  4.50 },
+      'Heritage':          { grass:  9.50, mixed:  8.00, grain:  6.50 },
+      'Cornish Cross':     { grass:  7.00, mixed:  6.00, grain:  5.00 },
+      'Freedom Ranger':    { grass:  8.50, mixed:  7.00, grain:  6.00 },
+      'Turkey':            { grass:  7.50, mixed:  6.50, grain:  5.50 }
+    }
+  };
+
+  // Wagyu/Highland/Belted = smaller finishes, Charolais/Simmental = bigger
+  const BREED_WEIGHT_MULT = {
+    'Wagyu': 1.05, 'Wagyu × Angus': 1.05, 'Highland': 0.85, 'Belted Galloway': 0.88,
+    'Charolais': 1.10, 'Simmental': 1.08, 'Hereford': 1.0, 'Texas Longhorn': 0.85,
+    'Mangalitsa': 0.85, 'Tamworth': 0.92, 'Heritage': 0.7, 'Cornish Cross': 1.1, 'Elk': 1.7, 'Red deer': 1.3
+  };
+
+  function recompute() {
+    const sp = S.species;
+    const adgT = ADG[sp];
+    if (!adgT) return;
+    const sexMult = adgT.bySex[S.sex] || 1.0;
+    const feedADG = adgT.byFeed[S.feedType] !== undefined ? adgT.byFeed[S.feedType] : adgT.base;
+    const breedMult = adgT.byBreed[S.breed] || 1.0;
+    const adg = +(feedADG * sexMult * breedMult).toFixed(2);
+
+    let target = (TARGET_WEIGHT[sp] && TARGET_WEIGHT[sp][S.sex]) || 1180;
+    target = Math.round(target * (BREED_WEIGHT_MULT[S.breed] || 1.0));
+
+    const birth = BIRTH_WEIGHT[sp] || 80;
+    const days = Math.round((target - birth) / Math.max(0.05, adg));
+    const months = (days / 30.44).toFixed(1);
+
+    let harvestStr = '—';
+    if (S.birthDate) {
+      const d = new Date(S.birthDate);
+      d.setDate(d.getDate() + days);
+      harvestStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    const takeHome = Math.round(target * 0.37);
+
+    // Animate value changes
+    flashSet('calcWeight', target.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
+    flashSet('calcWeightSub', `${S.breed} ${S.sex.toLowerCase()} · ${S.feedType.toLowerCase()} · ${S.finishFeed.toLowerCase()} finish`, false);
+    flashSet('calcDate', harvestStr, true);
+    flashSet('calcDateSub', `~${months} months · ${adg} lb/day average gain`, false);
+    flashSet('calcTake', '~' + takeHome.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
+
+    // Recompute industry-suggested prices (drives step 4)
+    suggestPrices(target, takeHome);
+
+    // Update auto-description
+    autoDescribe();
+  }
+
+  // ============ SUGGESTED PRICING ENGINE ============
+  function feedKey() {
+    const ff = S.finishFeed || '';
+    if (ff.toLowerCase().includes('grass') && !ff.toLowerCase().includes('grain')) return 'grass';
+    if (ff.toLowerCase().includes('mostly grain') || ff.toLowerCase().includes('conventional')) return 'grain';
+    return 'mixed';
+  }
+  function roundTo(n, step) { return Math.round(n / step) * step; }
+
+  function suggestPrices(targetLive, takeHome) {
+    const tbl = PRICE_PER_LB[S.species] || {};
+    const byBreed = tbl[S.breed] || tbl['Mixed / Cross'] || { grass: 10, mixed: 9, grain: 8 };
+    const fk = feedKey();
+    const $perLb = byBreed[fk];
+
+    const wholeLb = Math.max(20, takeHome);
+    const halfLb = Math.round(wholeLb * 0.50);
+    const quarterLb = Math.round(wholeLb * 0.25);
+
+    // Per-share price = lbs × $/lb, rounded to nearest $5
+    // Whole gets 5% volume discount
+    const qPrice = roundTo(quarterLb * $perLb, 5);
+    const hPrice = roundTo(halfLb * $perLb, 5);
+    const wPrice = roundTo(wholeLb * $perLb * 0.95, 5);
+
+    setTextById('cutsQ', quarterLb);
+    setTextById('cutsH', halfLb);
+    setTextById('cutsW', wholeLb);
+    setTextById('suggQ', qPrice.toLocaleString());
+    setTextById('suggH', hPrice.toLocaleString());
+    setTextById('suggW', wPrice.toLocaleString());
+
+    const pQ = document.getElementById('priceQ');
+    const pH = document.getElementById('priceH');
+    const pW = document.getElementById('priceW');
+    if (pQ) pQ.placeholder = String(qPrice);
+    if (pH) pH.placeholder = String(hPrice);
+    if (pW) pW.placeholder = String(wPrice);
+
+    // Mark cards "suggested" only if user hasn't typed their own value
+    [['priceQ', 'cardQ'], ['priceH', 'cardH'], ['priceW', 'cardW']].forEach(([iid]) => {
+      const inp = document.getElementById(iid); if (!inp) return;
+      const card = inp.closest('.price-card');
+      if (!card) return;
+      card.classList.toggle('suggested', !inp.value);
+    });
+
+    // Update market hint
+    const t = document.getElementById('marketTitle');
+    const sub = document.getElementById('marketSub');
+    if (t) t.textContent = `Industry-suggested · ${S.feedType.toLowerCase().includes('grass') && !S.feedType.toLowerCase().includes('grain') ? 'Grass-fed' : S.feedType.toLowerCase().includes('grain') && !S.feedType.toLowerCase().includes('grass') ? 'Grain-finished' : 'Pasture-raised'} ${S.breed}`;
+    if (sub) sub.textContent = `$${$perLb.toFixed(2)}/lb take-home · 2026 average for direct-to-consumer in MN/WI/ND/SD`;
+  }
+  function setTextById(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
+
+  // Toggle "suggested" tint on the price cards as the user types
+  ['priceQ', 'priceH', 'priceW'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.addEventListener('input', () => {
+      const card = el.closest('.price-card');
+      if (card) card.classList.toggle('suggested', !el.value);
+    });
+  });
+
+  // Reset to suggested
+  const resetBtn = document.getElementById('resetPrices');
+  if (resetBtn) resetBtn.addEventListener('click', () => {
+    ['priceQ','priceH','priceW'].forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      el.value = '';
+      const card = el.closest('.price-card'); if (card) card.classList.add('suggested');
+    });
+  });
+
+  function flashSet(id, val, doFlash) {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = val;
+    if (doFlash) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  }
+
+  // ============ AUTO-GENERATED DESCRIPTION ============
+  const TEMPLATES = [
+    (s, h, take) => `${s.animalId || 'This animal'} was born ${niceDate(s.birthDate)} on ${s.location.split(' · ')[0]}, raised by hand from day one. He's a ${s.breed.toLowerCase()} ${s.sex.toLowerCase()}, finished on ${s.finishFeed.toLowerCase()} after a life on ${s.feedType.toLowerCase()}.${s.antibiotics === 'Never' ? ' No antibiotics.' : ''}${s.hormones === 'Never' ? ' No growth hormones.' : ''} Predicted to dress out at ${target(s).toLocaleString()} lb live, with roughly ${take} lb of take-home cuts. Harvest is scheduled for ${h} at ${s.processor.split(' (')[0]}.`,
+    (s, h, take) => `Meet ${s.animalId || 'this animal'} — a ${s.breed.toLowerCase()} ${s.sex.toLowerCase()} born ${niceDate(s.birthDate)}. Raised on ${s.feedType.toLowerCase()} and finished on ${s.finishFeed.toLowerCase()}, this is the kind of animal you can taste the pasture in. ${s.antibiotics === 'Never' ? 'Never received antibiotics. ' : ''}${s.hormones === 'Never' ? 'Never given growth hormones. ' : ''}Estimated finish weight is ${target(s).toLocaleString()} lb live, dressing out to about ${take} lb of cuts. Harvest at ${s.processor.split(' (')[0]} on ${h}.`,
+    (s, h, take) => `${s.breed} ${s.sex.toLowerCase()} from ${s.location.split(' · ')[0]}. Born ${niceDate(s.birthDate)}. Lifetime feed: ${s.feedType.toLowerCase()}. Final 60–90 days on ${s.finishFeed.toLowerCase()}. ${s.antibiotics === 'Never' && s.hormones === 'Never' ? 'Antibiotic- and hormone-free.' : ''} Predicted finish: ${target(s).toLocaleString()} lb live → ${take} lb of cuts, harvested ${h} at ${s.processor.split(' (')[0]}.`
+  ];
+  let templateIdx = 0;
+
+  function target(s) {
+    const sp = s.species;
+    let t = (TARGET_WEIGHT[sp] && TARGET_WEIGHT[sp][s.sex]) || 1180;
+    t = Math.round(t * (BREED_WEIGHT_MULT[s.breed] || 1.0));
+    return t;
+  }
+
+  function niceDate(iso) {
+    if (!iso) return 'recently';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function autoDescribe() {
+    const desc = document.getElementById('descText'); if (!desc) return;
+    const adgT = ADG[S.species]; if (!adgT) return;
+    const sexMult = adgT.bySex[S.sex] || 1.0;
+    const feedADG = adgT.byFeed[S.feedType] !== undefined ? adgT.byFeed[S.feedType] : adgT.base;
+    const breedMult = adgT.byBreed[S.breed] || 1.0;
+    const adg = +(feedADG * sexMult * breedMult).toFixed(2);
+    const t = target(S);
+    const birth = BIRTH_WEIGHT[S.species] || 80;
+    const days = Math.round((t - birth) / Math.max(0.05, adg));
+    const take = Math.round(t * 0.37);
+    let h = 'soon';
+    if (S.birthDate) {
+      const d = new Date(S.birthDate); d.setDate(d.getDate() + days);
+      h = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    desc.value = TEMPLATES[templateIdx](S, h, take);
+    desc.classList.remove('desc-fade'); void desc.offsetWidth; desc.classList.add('desc-fade');
+  }
+
+  document.getElementById('regenBtn').addEventListener('click', () => {
+    templateIdx = (templateIdx + 1) % TEMPLATES.length;
+    autoDescribe();
+  });
+
+  // ============ Review ============
+  function refreshReview() {
+    document.getElementById('rvSpec').textContent = `${cap(S.species)} · ${S.breed}`;
+    document.getElementById('rvSex').textContent = S.sex;
+    document.getElementById('rvId').textContent = S.animalId || '—';
+    document.getElementById('rvWeight').textContent = target(S).toLocaleString() + ' lb';
+    document.getElementById('rvDate').textContent = document.getElementById('calcDate').textContent;
+    document.getElementById('rvFeed').textContent = S.feedType;
+    document.getElementById('rvFinish').textContent = S.finishFeed;
+    document.getElementById('publishedBody').textContent = `${S.animalId || 'This animal'} is live on the marketplace. We'll text the moment your first reserve hits.`;
+  }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // Initial run
+  recompute();
+})();
+</script>
+</body>
+</html>

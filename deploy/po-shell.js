@@ -178,12 +178,66 @@
     backdrop.addEventListener('click', close);
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     backBtn.addEventListener('click', () => { if (state.step > 1) setStep(state.step - 1); });
-    nextBtn.addEventListener('click', () => {
-      if (state.step < 3) setStep(state.step + 1);
-      else if (state.step === 3) {
-        confirmTitle.textContent = 'Reserved.';
-        confirmBody.textContent = `We just held the ${state.share.key === 'q' ? 'quarter' : state.share.key === 'h' ? 'half' : 'whole'} share of ${state.animal.name.replace(/^#?\d+\s·\s/, '')} for you. Cut sheet builder is in your inbox.`;
-        setStep(4);
+    nextBtn.addEventListener('click', async () => {
+      if (state.step < 3) { setStep(state.step + 1); return; }
+      if (state.step === 3) {
+        // Submit reservation to /api/reservations
+        nextBtn.disabled = true;
+        const origText = nextBtn.textContent;
+        nextBtn.textContent = 'Reserving…';
+
+        const shareKeyMap = { q: 'quarter', h: 'half', w: 'whole' };
+        const share_size = shareKeyMap[state.share?.key] || 'half';
+
+        // Get email — from current user or prompt
+        let email = null, name = null;
+        try {
+          if (window.PO_API) {
+            const me = await window.PO_API.me();
+            if (me.user) { email = me.user.email; name = me.user.name; }
+          }
+        } catch {}
+
+        if (!email) {
+          email = prompt('Enter your email so we can confirm your reservation:');
+          if (!email || !email.includes('@')) {
+            nextBtn.disabled = false; nextBtn.textContent = origText;
+            return;
+          }
+        }
+
+        try {
+          const totalEstimate = (state.share?.price || 0) + 225 + 18;
+          const payload = {
+            listing_id: state.animal.id,
+            share_size,
+            buyer_email: email,
+            buyer_name: name,
+            processor_id: null, // processor selection currently uses string label, future: real UUID
+            total_estimate: totalEstimate,
+            deposit_amount: Math.round(totalEstimate * 0.1 * 100) / 100,
+            notes: state.processor ? ('Processor: ' + state.processor) : null
+          };
+          const r = await fetch('/api/reservations', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            nextBtn.disabled = false; nextBtn.textContent = origText;
+            alert('Could not reserve: ' + (data.error || ('HTTP ' + r.status)));
+            return;
+          }
+          confirmTitle.textContent = 'Reserved.';
+          const animalLabel = (state.animal.name || '').replace(/^#?\d+\s·\s/, '') || 'this animal';
+          confirmBody.textContent = `We held the ${share_size} share of ${animalLabel} for you. Confirmation sent to ${email}. Cut-sheet builder follows.`;
+          setStep(4);
+        } catch (e) {
+          nextBtn.disabled = false; nextBtn.textContent = origText;
+          alert('Network error: ' + e.message);
+        }
       }
     });
     document.getElementById('payApple').addEventListener('click', () => nextBtn.click());
