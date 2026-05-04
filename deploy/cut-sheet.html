@@ -25,7 +25,7 @@
 @media (min-width: 1100px) { .cs-inner { grid-template-columns: 1fr 360px; align-items: start; } }
 
 .cs-context { background: #fff; border-radius: 22px; padding: 18px 22px; display: flex; gap: 16px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: clamp(20px, 2vw, 28px); flex-wrap: wrap; }
-.cs-context-img { width: 56px; height: 56px; border-radius: 14px; background: url('/angus.jpg') center/cover; flex-shrink: 0; }
+.cs-context-img { width: 56px; height: 56px; border-radius: 14px; background: url('/img/angus.jpg') center/cover; flex-shrink: 0; }
 .cs-context-text { flex: 1; min-width: 0; }
 .cs-context-text h2 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: -0.018em; }
 .cs-context-text p { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
@@ -148,7 +148,7 @@
 .modal-bd { position: fixed; inset: 0; z-index: 90; background: rgba(6,27,14,0.45); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 24px; }
 .modal-bd.open { display: flex; }
 .modal { background: #fff; border-radius: 24px; max-width: 480px; width: 100%; padding: 28px; box-shadow: 0 24px 64px rgba(0,0,0,0.18); }
-.modal-photo { width: 100%; aspect-ratio: 16/10; border-radius: 16px; background: url('/ribeye.jpg') center/cover; margin-bottom: 18px; }
+.modal-photo { width: 100%; aspect-ratio: 16/10; border-radius: 16px; background: url('/img/ribeye.jpg') center/cover; margin-bottom: 18px; }
 .modal h3 { margin: 0 0 6px; font-size: 22px; font-weight: 900; letter-spacing: -0.022em; }
 .modal-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 6px; }
 .modal-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; border-top: 1px solid rgba(0,0,0,0.06); }
@@ -708,9 +708,9 @@
 
   // ===== Cut detail modal =====
   const CUT_INFO = {
-    'ribeye': { eyebrow: 'Beef · Rib', title: 'Ribeye steak', desc: 'Marbled, beefy, forgiving. The steakhouse classic.', photo: '/ribeye.jpg', yield: '8–12 lb per quarter', cook: 'Reverse-sear, grill, cast-iron', temp: '130°F · medium-rare', piece: '12–16 oz · 1″ thick' },
-    'tenderloin': { eyebrow: 'Beef · Loin', title: 'Tenderloin (filet)', desc: 'The most tender cut on the animal. Lean, mild — best with high heat and minimal seasoning.', photo: '/ribeye.jpg', yield: '3–5 lb per quarter', cook: 'Pan-sear, grill, beef Wellington', temp: '130°F · medium-rare', piece: '6–8 oz medallion · 1½″ thick' },
-    'chuck-roast': { eyebrow: 'Beef · Chuck', title: 'Chuck roast', desc: 'Heavily marbled with connective tissue. Becomes glorious in a Dutch oven.', photo: '/ribeye.jpg', yield: '6–10 lb per quarter', cook: 'Braise, slow-cooker, smoker', temp: '203°F internal for fall-apart', piece: '3 lb roast · 4–6 servings' }
+    'ribeye': { eyebrow: 'Beef · Rib', title: 'Ribeye steak', desc: 'Marbled, beefy, forgiving. The steakhouse classic.', photo: '/img/ribeye.jpg', yield: '8–12 lb per quarter', cook: 'Reverse-sear, grill, cast-iron', temp: '130°F · medium-rare', piece: '12–16 oz · 1″ thick' },
+    'tenderloin': { eyebrow: 'Beef · Loin', title: 'Tenderloin (filet)', desc: 'The most tender cut on the animal. Lean, mild — best with high heat and minimal seasoning.', photo: '/img/ribeye.jpg', yield: '3–5 lb per quarter', cook: 'Pan-sear, grill, beef Wellington', temp: '130°F · medium-rare', piece: '6–8 oz medallion · 1½″ thick' },
+    'chuck-roast': { eyebrow: 'Beef · Chuck', title: 'Chuck roast', desc: 'Heavily marbled with connective tissue. Becomes glorious in a Dutch oven.', photo: '/img/ribeye.jpg', yield: '6–10 lb per quarter', cook: 'Braise, slow-cooker, smoker', temp: '203°F internal for fall-apart', piece: '3 lb roast · 4–6 servings' }
   };
   const bd = document.getElementById('modalBd');
   document.querySelectorAll('.cut-info-btn').forEach(b => b.addEventListener('click', e => {
