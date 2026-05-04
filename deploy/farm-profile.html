@@ -123,7 +123,7 @@
     const titleEl = document.getElementById('fpListingsTitle');
     if (!listings.length) {
       titleEl.textContent = 'No listings yet';
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;background:#fff;border-radius:14px;font:500 14px/1.5 'Inter';opacity:.7">This farm doesn't have any animals reserving right now.</div>`;
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 24px;background:#fff;border-radius:14px;"><img src="/brand/logo-monogram.svg" alt="" width="56" height="56" style="display:block;margin:0 auto 14px;border-radius:13px;box-shadow:0 6px 18px rgba(6,27,14,.12);" /><div style="font:500 14px/1.5 'Inter';opacity:.7">This farm doesn't have any animals reserving right now.</div></div>`;
     } else {
       titleEl.textContent = listings.length === 1 ? '1 animal reserving' : `${listings.length} animals reserving`;
       grid.innerHTML = listings.map(l => {

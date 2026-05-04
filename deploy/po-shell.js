@@ -265,7 +265,7 @@
   <header class="poc-head">
     <div class="poc-head-l">
       <div class="poc-avatar">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>
+        <img src="/brand/logo-monogram.svg" alt="" width="36" height="36" style="display:block;border-radius:9px"/>
       </div>
       <div>
         <div class="poc-title">Concierge</div>
