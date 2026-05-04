@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Cut sheet · Protein Outfitters</title>
-<meta name="description" content="Tell your processor exactly how you want every cut. Two-tier builder, real-time yield meter, animal-aware branching." />
+<meta name="description" content="Tell your processor exactly how you want every cut. Visual cow diagram, family-size tuning, real-time yield meter." />
 <meta property="og:title" content="Cut sheet · Protein Outfitters" />
-<meta property="og:description" content="Two-tier cut sheet with real-time yield meter." />
+<meta property="og:description" content="Visual cow diagram + real-time yield meter cut sheet." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/cut-sheet" />
 <meta property="og:type" content="website" />
@@ -24,7 +24,7 @@
 .cs-inner { max-width: 1320px; margin: 0 auto; display: grid; gap: clamp(24px, 3vw, 36px); grid-template-columns: 1fr; }
 @media (min-width: 1100px) { .cs-inner { grid-template-columns: 1fr 360px; align-items: start; } }
 
-.cs-context { background: #fff; border-radius: 22px; padding: 18px 22px; display: flex; gap: 16px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: clamp(20px, 2vw, 28px); }
+.cs-context { background: #fff; border-radius: 22px; padding: 18px 22px; display: flex; gap: 16px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: clamp(20px, 2vw, 28px); flex-wrap: wrap; }
 .cs-context-img { width: 56px; height: 56px; border-radius: 14px; background: url('/angus.jpg') center/cover; flex-shrink: 0; }
 .cs-context-text { flex: 1; min-width: 0; }
 .cs-context-text h2 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: -0.018em; }
@@ -33,7 +33,7 @@
 .cs-skip:hover { background: var(--surface-2); color: var(--ink); }
 
 .cs-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
-.cs-lead { font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 36px; }
+.cs-lead { font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 24px; }
 
 /* Animal switcher */
 .species-tabs { display: flex; gap: 6px; padding: 4px; background: var(--surface); border-radius: 999px; margin-bottom: 28px; max-width: 100%; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
@@ -47,6 +47,33 @@
 .cs-block-head h3 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.022em; }
 .cs-block-head p { margin: 0; font-size: 13px; color: var(--ink-2); }
 
+/* Quick start */
+.qs-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .qs-grid { grid-template-columns: 1fr 1fr; } }
+.qs-question { display: flex; flex-direction: column; gap: 8px; }
+.qs-question .q { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; }
+.qs-question .qsub { font-size: 12px; color: var(--ink-3); }
+
+.seg { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: 999px; }
+.seg button { flex: 1; background: transparent; border: 0; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 999px; transition: background .2s, color .2s; white-space: nowrap; }
+.seg button.active { background: var(--brand); color: #fbf9f5; }
+
+/* Cow diagram */
+.cow-block { background: #fff; border-radius: 22px; padding: clamp(22px, 2.5vw, 28px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 18px; }
+.cow-wrap { background: linear-gradient(180deg, #f5f3ef 0%, #ffffff 100%); border-radius: 18px; padding: clamp(16px, 2vw, 28px); position: relative; }
+.cow-svg { display: block; width: 100%; max-width: 760px; height: auto; margin: 0 auto; }
+.cow-svg .body { fill: #061b0e; }
+.cow-svg .primal { cursor: pointer; transition: fill .2s, transform .2s; transform-origin: center; transform-box: fill-box; }
+.cow-svg .primal:hover { fill: #f5e1ad !important; }
+.cow-svg .primal.has-cuts { fill: #cfe9d3; }
+.cow-svg .primal.empty { fill: #4d6452; }
+.cow-svg .label { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 11px; letter-spacing: 0.08em; pointer-events: none; user-select: none; fill: #061b0e; text-anchor: middle; text-transform: uppercase; }
+.cow-svg .label-on-dark { fill: #fbf9f5; }
+.cow-svg .count { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 9px; pointer-events: none; user-select: none; fill: var(--ink-2); text-anchor: middle; }
+.cow-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 14px 6px 4px; font-size: 12px; color: var(--ink-2); }
+.cow-legend-item { display: flex; align-items: center; gap: 6px; }
+.cow-legend-swatch { width: 12px; height: 12px; border-radius: 3px; }
+
 /* Presets */
 .preset-row { display: grid; gap: 10px; grid-template-columns: 1fr; }
 @media (min-width: 600px) { .preset-row { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); } }
@@ -56,19 +83,11 @@
 .preset .name { font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
 .preset .desc { font-size: 12px; color: var(--ink-2); line-height: 1.4; }
 
-/* Order defaults */
-.defaults-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
-@media (min-width: 600px) { .defaults-grid { grid-template-columns: 1fr 1fr; } }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field label { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
-.seg { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: 999px; }
-.seg button { flex: 1; background: transparent; border: 0; padding: 10px 14px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 999px; transition: background .2s, color .2s; }
-.seg button.active { background: var(--brand); color: #fbf9f5; }
-
 /* Sub-primal cards */
 .subp-grid { display: grid; gap: 12px; }
-.subp { background: var(--surface); border-radius: 18px; overflow: hidden; transition: background .2s; }
-.subp.has-conflict { background: #fff5e8; }
+.subp { background: var(--surface); border-radius: 18px; overflow: hidden; transition: background .2s; scroll-margin-top: 90px; }
+.subp.flash { animation: flash 1s ease; }
+@keyframes flash { 0%, 100% { box-shadow: 0 0 0 0 rgba(6,27,14,0); } 30% { box-shadow: 0 0 0 6px rgba(6,27,14,0.18); } }
 .subp-head { display: flex; align-items: center; gap: 14px; padding: 18px 20px; cursor: pointer; user-select: none; }
 .subp-head .arrow { font-size: 12px; color: var(--ink-3); transition: transform .25s; }
 .subp.open .subp-head .arrow { transform: rotate(90deg); }
@@ -94,7 +113,7 @@
 .cut-pref { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 0 4px 36px; }
 .cut-pref select { background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 12px; color: var(--ink); }
 
-/* Toggle pills (offal/specialty) */
+/* Toggle pills */
 .pill-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill-toggle { background: var(--surface); border: 1px solid transparent; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
 .pill-toggle:hover { border-color: rgba(0,0,0,0.12); }
@@ -125,7 +144,7 @@
 .cs-cta--ghost { background: transparent; color: rgba(251,249,245,0.85); border: 1px solid rgba(251,249,245,0.25); }
 .cs-cta--ghost:hover { background: rgba(251,249,245,0.08); color: #fbf9f5; }
 
-/* Cut detail modal */
+/* Modal */
 .modal-bd { position: fixed; inset: 0; z-index: 90; background: rgba(6,27,14,0.45); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 24px; }
 .modal-bd.open { display: flex; }
 .modal { background: #fff; border-radius: 24px; max-width: 480px; width: 100%; padding: 28px; box-shadow: 0 24px 64px rgba(0,0,0,0.18); }
@@ -137,9 +156,7 @@
 .modal-row .k { color: var(--ink-2); }
 .modal-row .v { color: var(--ink); font-weight: 700; }
 .modal-close { background: var(--surface); border: 0; padding: 10px 18px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 16px; }
-.modal-close:hover { background: var(--surface-2); }
 
-/* Quarter toggle (beef only) */
 .quarter-toggle { display: flex; gap: 0; padding: 4px; background: var(--surface); border-radius: 14px; margin-bottom: 18px; max-width: 360px; }
 .quarter-toggle button { flex: 1; background: transparent; border: 0; padding: 14px 18px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 10px; }
 .quarter-toggle button.active { background: var(--brand); color: #fbf9f5; }
@@ -162,13 +179,13 @@
       <h2>Quarter share · #2641 · Black Angus steer</h2>
       <p>Northfield Pastures · Bemidji, MN · Estimated 110 lb of cuts · Submit by May 21</p>
     </div>
-    <button class="cs-skip" onclick="document.querySelector('.cs-meter-msg').textContent='Got it. We\\'ll process this as the Processor\\'s Choice — you\\'ll get a balanced mix of steaks, roasts, and ground.'">Skip → Processor's Choice</button>
+    <button class="cs-skip" id="skipBtn">Skip → Processor's Choice</button>
   </div>
 
   <div class="cs-inner">
     <div>
       <h1 class="cs-h1">Tell the processor exactly how you want every cut.</h1>
-      <p class="cs-lead">Pick a starting preset, fine-tune what matters to you, and we'll fire this off to <strong>Plant 04</strong>. Should take five minutes. We auto-save as you go.</p>
+      <p class="cs-lead">Answer the four big questions first. Tap the cow to drill into any section. We auto-save as you go.</p>
 
       <!-- Species switcher -->
       <div class="species-tabs">
@@ -186,11 +203,195 @@
         <button data-q="hind">Hind quarter</button>
       </div>
 
-      <!-- Presets -->
+      <!-- ============ QUICK START — first decisions ============ -->
       <div class="cs-block">
         <div class="cs-block-head">
-          <h3>Start with a preset</h3>
-          <p>Tweak from there.</p>
+          <h3>Quick start · the four big ones</h3>
+          <p>These set sensible defaults for every cut.</p>
+        </div>
+        <div class="qs-grid">
+
+          <div class="qs-question">
+            <span class="q">How many in your household?</span>
+            <span class="qsub">We'll size packages so meals don't have to be split.</span>
+            <div class="seg" data-seg="family">
+              <button>1–2</button>
+              <button class="active">3–4</button>
+              <button>5–6</button>
+              <button>7+</button>
+            </div>
+          </div>
+
+          <div class="qs-question">
+            <span class="q">Burger pack size</span>
+            <span class="qsub">How much ground per pack — single dinner vs. batch.</span>
+            <div class="seg" data-seg="patty">
+              <button>None (loose)</button>
+              <button>¼ lb</button>
+              <button class="active">⅓ lb</button>
+              <button>½ lb</button>
+              <button>1 lb</button>
+            </div>
+          </div>
+
+          <div class="qs-question">
+            <span class="q">Steak thickness</span>
+            <span class="qsub">Applies to ribeye, NY strip, sirloin, T-bone.</span>
+            <div class="seg" data-seg="thick">
+              <button>½″</button>
+              <button>¾″</button>
+              <button class="active">1″</button>
+              <button>1¼″</button>
+              <button>1½″</button>
+            </div>
+          </div>
+
+          <div class="qs-question">
+            <span class="q">Roast size</span>
+            <span class="qsub">Chuck, prime rib, rump, sirloin tip.</span>
+            <div class="seg" data-seg="roast">
+              <button>2 lb</button>
+              <button class="active">3 lb</button>
+              <button>4 lb</button>
+              <button>5+ lb</button>
+            </div>
+          </div>
+
+          <div class="qs-question">
+            <span class="q">Wrap</span>
+            <span class="qsub">Vacuum-sealed lasts 2× longer in the freezer.</span>
+            <div class="seg" data-seg="wrap">
+              <button>Butcher paper</button>
+              <button class="active">Vacuum sealed</button>
+              <button>Both</button>
+            </div>
+          </div>
+
+          <div class="qs-question">
+            <span class="q">Smoke / cure</span>
+            <span class="qsub">Mostly relevant for brisket, short ribs, pork.</span>
+            <div class="seg" data-seg="smoke">
+              <button class="active">Fresh only</button>
+              <button>Smoke some</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ COW DIAGRAM ============ -->
+      <div class="cow-block">
+        <div class="cs-block-head">
+          <h3>The animal · tap a section to dive in</h3>
+          <p>Green = cuts kept · gray = mostly ground</p>
+        </div>
+        <div class="cow-wrap">
+          <svg class="cow-svg" viewBox="0 0 760 360" role="img" aria-label="Beef primal cuts diagram">
+            <!-- Cow body silhouette -->
+            <path class="body" d="M 110 230
+              C 100 215 95 195 100 175
+              C 105 155 122 140 145 138
+              C 155 125 165 118 178 116
+              C 195 115 205 124 210 138
+              L 615 138
+              C 622 130 632 122 645 122
+              C 650 130 645 145 638 154
+              C 645 162 656 168 658 178
+              L 658 200
+              L 670 215 L 678 245 L 670 250 L 660 240
+              L 658 240
+              L 655 280 L 650 320 L 645 340 L 633 340 L 632 285 L 622 280
+              L 525 280
+              L 524 320 L 520 340 L 508 340 L 506 285
+              L 248 285
+              L 248 320 L 244 340 L 232 340 L 230 285
+              L 222 280
+              L 218 280
+              L 175 280 L 170 285 L 168 320 L 156 340 L 144 340 L 143 285 L 138 280
+              L 130 280 Z"/>
+
+            <!-- Belly cutout (so primals don't paint over the legs/belly area) — handled by primals -->
+
+            <!-- ================== PRIMALS ================== -->
+
+            <!-- CHUCK (front shoulder) -->
+            <path class="primal has-cuts" data-primal="chuck"
+              d="M 175 145 L 285 145 L 285 235 L 220 240 L 175 240 Z"/>
+
+            <!-- RIB (top middle) -->
+            <path class="primal has-cuts" data-primal="rib"
+              d="M 285 145 L 380 145 L 380 220 L 285 220 Z"/>
+
+            <!-- LOIN (top, behind rib) -->
+            <path class="primal has-cuts" data-primal="loin"
+              d="M 380 145 L 480 145 L 480 215 L 380 215 Z"/>
+
+            <!-- SIRLOIN (top rear) -->
+            <path class="primal" data-primal="sirloin"
+              d="M 480 145 L 555 145 L 555 215 L 480 215 Z"/>
+
+            <!-- ROUND (rear) -->
+            <path class="primal" data-primal="round"
+              d="M 555 145 L 640 150 L 645 200 L 632 240 L 555 240 Z"/>
+
+            <!-- BRISKET / PLATE (lower front) -->
+            <path class="primal has-cuts" data-primal="brisket"
+              d="M 175 240 L 220 240 L 285 235 L 285 275 L 175 275 Z"/>
+
+            <!-- FLANK (lower middle) -->
+            <path class="primal" data-primal="flank"
+              d="M 285 220 L 380 220 L 380 275 L 285 275 Z"/>
+
+            <!-- PLATE/SHORT RIBS (between brisket and flank — already covered) -->
+            <!-- Bottom of loin/round: short plate -->
+            <path class="primal" data-primal="plate"
+              d="M 380 215 L 555 215 L 555 275 L 380 275 Z"/>
+
+            <!-- SHANK (legs) -->
+            <path class="primal has-cuts" data-primal="shank"
+              d="M 138 280 L 175 280 L 170 285 L 168 320 L 156 340 L 144 340 L 143 285 Z
+                 M 222 280 L 248 285 L 248 320 L 244 340 L 232 340 L 230 285 Z
+                 M 506 285 L 525 280 L 524 320 L 520 340 L 508 340 Z
+                 M 622 280 L 658 240 L 660 240 L 670 250 L 655 280 L 645 340 L 633 340 L 632 285 Z" />
+
+            <!-- ================== LABELS ================== -->
+            <text class="label label-on-dark" x="230" y="195">CHUCK</text>
+            <text class="count" x="230" y="210" fill="#9ab0a1">3 cuts</text>
+
+            <text class="label label-on-dark" x="332" y="185">RIB</text>
+            <text class="count" x="332" y="200" fill="#9ab0a1">2 cuts</text>
+
+            <text class="label label-on-dark" x="430" y="185">LOIN</text>
+            <text class="count" x="430" y="200" fill="#9ab0a1">3 cuts</text>
+
+            <text class="label label-on-dark" x="517" y="185">SIRLOIN</text>
+
+            <text class="label label-on-dark" x="595" y="195">ROUND</text>
+
+            <text class="label label-on-dark" x="230" y="260">BRISKET</text>
+
+            <text class="label label-on-dark" x="332" y="252">FLANK</text>
+
+            <text class="label label-on-dark" x="467" y="252">PLATE / SHORT RIB</text>
+
+            <text class="label label-on-dark" x="158" y="315">SHANK</text>
+            <text class="label label-on-dark" x="595" y="315">SHANK</text>
+          </svg>
+
+          <div class="cow-legend">
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #cfe9d3;"></span>Cuts kept</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #4d6452;"></span>Mostly ground</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #f5e1ad;"></span>Hover</span>
+            <span style="margin-left:auto; font-style: italic;">Click any region to set its cuts.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ PRESETS ============ -->
+      <div class="cs-block">
+        <div class="cs-block-head">
+          <h3>Or grab a preset</h3>
+          <p>Skip the picking — start from a known recipe.</p>
         </div>
         <div class="preset-row">
           <button class="preset selected" data-preset="family"><span class="name">🥩 Family Pack</span><span class="desc">Balanced mix. Steakhouse-grade plus weeknight ground.</span></button>
@@ -201,85 +402,34 @@
         </div>
       </div>
 
-      <!-- Order Defaults (Tier 1) -->
+      <!-- ============ Per Sub-Primal cuts ============ -->
       <div class="cs-block">
         <div class="cs-block-head">
-          <h3>Defaults for every cut</h3>
-          <p>Tier 1 · how cuts are wrapped + sized</p>
-        </div>
-        <div class="defaults-grid">
-          <div class="field">
-            <label>Steak thickness</label>
-            <div class="seg" data-seg="thick">
-              <button>½″</button><button>¾″</button><button class="active">1″</button><button>1¼″</button><button>1½″</button>
-            </div>
-          </div>
-          <div class="field">
-            <label>Steaks per package</label>
-            <div class="seg" data-seg="ppk">
-              <button>1</button><button class="active">2</button><button>4</button>
-            </div>
-          </div>
-          <div class="field">
-            <label>Roast size (lb)</label>
-            <div class="seg" data-seg="roast">
-              <button>2</button><button class="active">3</button><button>4</button><button>5+</button>
-            </div>
-          </div>
-          <div class="field">
-            <label>Ground patty size</label>
-            <div class="seg" data-seg="patty">
-              <button>None (loose)</button><button>¼ lb</button><button class="active">⅓ lb</button><button>½ lb</button>
-            </div>
-          </div>
-          <div class="field">
-            <label>Wrap</label>
-            <div class="seg" data-seg="wrap">
-              <button>Butcher paper</button><button class="active">Vacuum sealed</button><button>Both</button>
-            </div>
-          </div>
-          <div class="field">
-            <label>Smoke / cure</label>
-            <div class="seg" data-seg="smoke">
-              <button class="active">Fresh only</button><button>Smoke some</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Per Sub-Primal cuts (Tier 2) — BEEF -->
-      <div class="cs-block">
-        <div class="cs-block-head">
-          <h3>The cuts</h3>
+          <h3>Drill into any section</h3>
           <p>Tier 2 · pick what to keep, what to grind</p>
         </div>
         <div class="subp-grid" id="subpGrid">
 
-          <!-- CHUCK -->
-          <div class="subp open" data-primal="chuck">
+          <div class="subp open" data-primal="chuck" id="subp-chuck">
             <div class="subp-head"><span class="arrow">▶</span><span class="glyph">CHK</span><div class="meta"><h4>Chuck (front)</h4><p>~28 lb · the workhorse: roasts + grind</p></div><span class="right">3 cuts on</span></div>
             <div class="subp-body">
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="6"></label><div><span class="cut-name">Chuck roast <button class="cut-info-btn" data-info="chuck-roast">Info</button></span><span class="cut-desc">Slow-braise. ~3 lb each.</span></div><span class="cut-yield">~6 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="4"></label><div><span class="cut-name">Chuck steaks</span><span class="cut-desc">Bone-in 7-bones, perfect for grilling marinade.</span></div><span class="cut-yield">~4 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="3"></label><div><span class="cut-name">Stew meat</span><span class="cut-desc">1″ cubes, packaged in 1 lb units.</span></div><span class="cut-yield">~3 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="2"></label><div><span class="cut-name">Country-style ribs</span><span class="cut-desc">Cut from chuck eye, ideal for low-and-slow.</span></div><span class="cut-yield">~2 lb</span></div>
-              <div class="cut-pref"><select><option>Bone-in</option><option>Boneless</option></select><select><option>Wrap: vacuum</option><option>Wrap: butcher paper</option></select></div>
             </div>
           </div>
 
-          <!-- RIB -->
-          <div class="subp open" data-primal="rib">
+          <div class="subp open" data-primal="rib" id="subp-rib">
             <div class="subp-head"><span class="arrow">▶</span><span class="glyph">RIB</span><div class="meta"><h4>Rib (front)</h4><p>~15 lb · the marquee — ribeyes</p></div><span class="right">2 cuts on</span></div>
             <div class="subp-body">
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="9"></label><div><span class="cut-name">Ribeye steaks <button class="cut-info-btn" data-info="ribeye">Info</button></span><span class="cut-desc">Bone-in or boneless. 1″ default.</span></div><span class="cut-yield">~9 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">Prime rib roast</span><span class="cut-desc">Whole, frenched, 4-bone or 7-bone.</span></div><span class="cut-yield">~6 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="3"></label><div><span class="cut-name">Short ribs</span><span class="cut-desc">English-cut, 3-bone packs.</span></div><span class="cut-yield">~3 lb</span></div>
-              <div class="cut-pref"><select><option>Bone-in</option><option>Boneless</option></select><select><option>Whole roast first</option><option>All to steaks</option></select></div>
             </div>
           </div>
 
-          <!-- BRISKET -->
-          <div class="subp" data-primal="brisket">
+          <div class="subp" data-primal="brisket" id="subp-brisket">
             <div class="subp-head"><span class="arrow">▶</span><span class="glyph">BRK</span><div class="meta"><h4>Brisket (front)</h4><p>~8 lb · whole packer for smoking</p></div><span class="right">1 cut on</span></div>
             <div class="subp-body">
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="8"></label><div><span class="cut-name">Whole brisket (packer)</span><span class="cut-desc">Point + flat. Untrimmed for the BBQ purist.</span></div><span class="cut-yield">~8 lb</span></div>
@@ -287,40 +437,51 @@
             </div>
           </div>
 
-          <!-- LOIN -->
-          <div class="subp open" data-primal="loin">
+          <div class="subp open" data-primal="loin" id="subp-loin">
             <div class="subp-head"><span class="arrow">▶</span><span class="glyph">LON</span><div class="meta"><h4>Loin (hind)</h4><p>~22 lb · tenderloin + strips + T-bones</p></div><span class="right">3 cuts on</span></div>
             <div class="subp-body">
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="4"></label><div><span class="cut-name">Tenderloin (filet) <button class="cut-info-btn" data-info="tenderloin">Info</button></span><span class="cut-desc">Whole or 1½″ medallions.</span></div><span class="cut-yield">~4 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="8"></label><div><span class="cut-name">NY strip steaks</span><span class="cut-desc">Boneless. 1″ default.</span></div><span class="cut-yield">~8 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">T-bone / Porterhouse</span><span class="cut-desc">Strip + tenderloin in one cut. Replaces NY strip + filet.</span></div><span class="cut-yield">~6 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="4"></label><div><span class="cut-name">Sirloin steaks</span><span class="cut-desc">Top sirloin. Great for grilling.</span></div><span class="cut-yield">~4 lb</span></div>
-              <div class="cut-pref"><select><option>Tenderloin: whole</option><option>Tenderloin: medallions</option></select><select><option>Steaks: 1″ thick</option><option>Steaks: 1¼″</option><option>Steaks: 1½″</option></select></div>
             </div>
           </div>
 
-          <!-- ROUND -->
-          <div class="subp" data-primal="round">
-            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">RND</span><div class="meta"><h4>Round (hind)</h4><p>~22 lb · roasts + jerky + grind</p></div><span class="right">2 cuts on</span></div>
+          <div class="subp" data-primal="sirloin" id="subp-sirloin">
+            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">SIR</span><div class="meta"><h4>Sirloin (hind)</h4><p>~10 lb · top sirloin + tri-tip</p></div><span class="right">0 cuts on</span></div>
             <div class="subp-body">
-              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="6"></label><div><span class="cut-name">Rump roast</span><span class="cut-desc">Whole top round, 3-4 lb each.</span></div><span class="cut-yield">~6 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">Top sirloin steaks</span><span class="cut-desc">Lean, big-flavor cuts. 1″ default.</span></div><span class="cut-yield">~6 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" data-cut data-w="3"></label><div><span class="cut-name">Tri-tip roast</span><span class="cut-desc">Whole triangular cut, Santa Maria style.</span></div><span class="cut-yield">~3 lb</span></div>
+            </div>
+          </div>
+
+          <div class="subp" data-primal="round" id="subp-round">
+            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">RND</span><div class="meta"><h4>Round (hind)</h4><p>~22 lb · roasts + jerky + grind</p></div><span class="right">0 cuts on</span></div>
+            <div class="subp-body">
+              <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">Rump roast</span><span class="cut-desc">Whole top round, 3-4 lb each.</span></div><span class="cut-yield">~6 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">Round steaks</span><span class="cut-desc">Tenderized for cube steak or pounded thin.</span></div><span class="cut-yield">~6 lb</span></div>
-              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="4"></label><div><span class="cut-name">Sirloin tip roast</span><span class="cut-desc">Lean, great for slow-roasting.</span></div><span class="cut-yield">~4 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" data-cut data-w="4"></label><div><span class="cut-name">Sirloin tip roast</span><span class="cut-desc">Lean, great for slow-roasting.</span></div><span class="cut-yield">~4 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="3"></label><div><span class="cut-name">Jerky strips</span><span class="cut-desc">Pre-sliced thin from eye of round.</span></div><span class="cut-yield">~3 lb</span></div>
             </div>
           </div>
 
-          <!-- FLANK / PLATE -->
-          <div class="subp" data-primal="flank">
-            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">FLK</span><div class="meta"><h4>Flank + Plate</h4><p>~5 lb · skirt + flank + ground</p></div><span class="right">1 cut on</span></div>
+          <div class="subp" data-primal="flank" id="subp-flank">
+            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">FLK</span><div class="meta"><h4>Flank</h4><p>~5 lb · skirt + flank</p></div><span class="right">0 cuts on</span></div>
             <div class="subp-body">
-              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="3"></label><div><span class="cut-name">Flank steak</span><span class="cut-desc">Whole, perfect for grilling or fajitas.</span></div><span class="cut-yield">~3 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" data-cut data-w="3"></label><div><span class="cut-name">Flank steak</span><span class="cut-desc">Whole, perfect for grilling or fajitas.</span></div><span class="cut-yield">~3 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="2"></label><div><span class="cut-name">Skirt steak</span><span class="cut-desc">Inside or outside. Carne asada.</span></div><span class="cut-yield">~2 lb</span></div>
             </div>
           </div>
 
-          <!-- SHANK -->
-          <div class="subp" data-primal="shank">
+          <div class="subp" data-primal="plate" id="subp-plate">
+            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">PLT</span><div class="meta"><h4>Plate (lower mid)</h4><p>~7 lb · short ribs (English) + skirt</p></div><span class="right">0 cuts on</span></div>
+            <div class="subp-body">
+              <div class="cut-row"><label><input type="checkbox" data-cut data-w="4"></label><div><span class="cut-name">English short ribs</span><span class="cut-desc">Cross-cut, 3″ pieces.</span></div><span class="cut-yield">~4 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" data-cut data-w="3"></label><div><span class="cut-name">Hanger / outside skirt</span><span class="cut-desc">Butcher's cut — small, intense.</span></div><span class="cut-yield">~3 lb</span></div>
+            </div>
+          </div>
+
+          <div class="subp" data-primal="shank" id="subp-shank">
             <div class="subp-head"><span class="arrow">▶</span><span class="glyph">SHK</span><div class="meta"><h4>Shank · Bones · Trim</h4><p>everything else</p></div><span class="right">3 cuts on</span></div>
             <div class="subp-body">
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="4"></label><div><span class="cut-name">Soup bones</span><span class="cut-desc">Cross-cut shanks for stock or osso buco.</span></div><span class="cut-yield">~4 lb</span></div>
@@ -332,7 +493,7 @@
         </div>
       </div>
 
-      <!-- Specialty / Offal -->
+      <!-- ============ Specialty / Offal ============ -->
       <div class="cs-block">
         <div class="cs-block-head">
           <h3>Specialty + organs</h3>
@@ -352,7 +513,7 @@
         </div>
       </div>
 
-      <!-- CSR -->
+      <!-- ============ CSR ============ -->
       <div class="cs-block">
         <div class="cs-block-head">
           <h3>Anything else?</h3>
@@ -362,24 +523,20 @@
       </div>
     </div>
 
-    <!-- YIELD METER (sticky sidebar) -->
+    <!-- ============ YIELD METER ============ -->
     <aside class="cs-meter-wrap">
       <div class="cs-meter">
         <h4>Live yield meter</h4>
         <div class="total" id="totalLb">110 <span style="font-size: 18px; font-weight: 700; opacity: .7;">lb</span></div>
         <p class="total-sub">Estimated take-home, quarter share</p>
-
         <div class="cs-bar">
           <div class="cs-bar-allocated" id="barAlloc" style="width: 71%;"></div>
           <div class="cs-bar-ground" id="barGround" style="width: 29%;"></div>
         </div>
-
         <div class="cs-meter-row"><span class="k">Allocated to specific cuts</span><span class="v" id="allocLb">78 lb</span></div>
         <div class="cs-meter-row"><span class="k">Routed to ground</span><span class="v" id="groundLb">32 lb</span></div>
         <div class="cs-meter-row"><span class="k">Specialty + organs</span><span class="v" id="specLb">~6 lb</span></div>
-
         <div class="cs-meter-msg" id="meterMsg">Trim from primary cuts auto-routes to ground. Toggle a cut off and its weight moves down here.</div>
-
         <div class="cs-actions">
           <button class="cs-cta cs-cta--primary" id="submitBtn">Submit to Plant 04 →</button>
           <button class="cs-cta cs-cta--ghost">Save as draft</button>
@@ -395,7 +552,7 @@
     <div class="modal-photo" id="modalPhoto"></div>
     <p class="modal-eyebrow" id="modalEyebrow">Beef · Loin</p>
     <h3 id="modalTitle">Tenderloin (filet)</h3>
-    <p id="modalDesc" style="color: var(--ink-2); line-height: 1.55; margin: 6px 0 18px;">The most tender cut on the animal. Lean, mild flavor — best with a quick high-heat sear and minimal seasoning.</p>
+    <p id="modalDesc" style="color: var(--ink-2); line-height: 1.55; margin: 6px 0 18px;">The most tender cut on the animal.</p>
     <div class="modal-row"><span class="k">Typical yield</span><span class="v" id="modalYield">3–5 lb per quarter</span></div>
     <div class="modal-row"><span class="k">Best for</span><span class="v" id="modalCook">Pan-sear, grill, beef Wellington</span></div>
     <div class="modal-row"><span class="k">Cook to</span><span class="v" id="modalTemp">130°F internal · medium-rare</span></div>
@@ -416,20 +573,25 @@
     let alloc = 0;
     checks.forEach(c => alloc += Number(c.dataset.w || 0));
     const total = 110;
-    const ground = Math.max(0, total - alloc - 6); // 6 lb specialty estimate
+    const ground = Math.max(0, total - alloc - 6);
     document.getElementById('allocLb').textContent = alloc + ' lb';
     document.getElementById('groundLb').textContent = ground + ' lb';
     const allocPct = Math.min(100, Math.round((alloc / total) * 100));
     const groundPct = Math.min(100 - allocPct, Math.round((ground / total) * 100));
     document.getElementById('barAlloc').style.width = allocPct + '%';
     document.getElementById('barGround').style.width = groundPct + '%';
-    // Update sub-primal "X cuts on" labels
+    // Update sub-primal "X cuts on" labels + cow diagram colors
     document.querySelectorAll('.subp').forEach(s => {
       const on = s.querySelectorAll('input[data-cut]:checked').length;
       const right = s.querySelector('.right');
       if (right) right.textContent = on + ' cut' + (on === 1 ? '' : 's') + ' on';
+      // Mirror to cow diagram
+      const cowRegion = document.querySelector(`.cow-svg .primal[data-primal="${s.dataset.primal}"]`);
+      if (cowRegion) {
+        cowRegion.classList.toggle('has-cuts', on > 0);
+        cowRegion.classList.toggle('empty', on === 0);
+      }
     });
-    // Meter message
     if (alloc > 90) document.getElementById('meterMsg').textContent = 'Heads up — you\'re at 80%+ allocated to specific cuts. Less ground than typical.';
     else if (alloc < 50) document.getElementById('meterMsg').textContent = 'Lots of ground in this build. Great for burger families.';
     else document.getElementById('meterMsg').textContent = 'Trim from primary cuts auto-routes to ground. Toggle a cut off and its weight moves down here.';
@@ -447,31 +609,55 @@
     seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
       seg.querySelectorAll('button').forEach(x => x.classList.remove('active'));
       b.classList.add('active');
+      // Family size auto-tune
+      if (seg.dataset.seg === 'family') {
+        const v = b.textContent.trim();
+        // Sensible auto-tune: bigger families → bigger packs and more roasts
+        const familyMsg = {
+          '1–2': 'Set: 2 steaks/pack, ¼ lb burgers, 2 lb roasts.',
+          '3–4': 'Set: 2 steaks/pack, ⅓ lb burgers, 3 lb roasts.',
+          '5–6': 'Set: 4 steaks/pack, ½ lb burgers, 4 lb roasts.',
+          '7+':  'Set: 4 steaks/pack, 1 lb burgers, 5 lb roasts.'
+        };
+        document.getElementById('meterMsg').textContent = familyMsg[v] || 'Defaults updated.';
+        // Auto-bump patty + roast segments
+        const map = {'1–2': ['¼ lb', '2 lb'], '3–4': ['⅓ lb', '3 lb'], '5–6': ['½ lb', '4 lb'], '7+': ['1 lb', '5+ lb']};
+        const t = map[v]; if (t) {
+          autoSelectSeg('patty', t[0]); autoSelectSeg('roast', t[1]);
+        }
+      }
     }));
   });
 
+  function autoSelectSeg(name, label) {
+    const seg = document.querySelector(`.seg[data-seg="${name}"]`); if (!seg) return;
+    seg.querySelectorAll('button').forEach(b => {
+      if (b.textContent.trim() === label) {
+        seg.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+      }
+    });
+  }
+
   // ===== Presets =====
   const PRESETS = {
-    family: { thick: 2, ppk: 1, roast: 1, patty: 2, defaults: 'family' },
-    premium: { thick: 3, ppk: 0, roast: 0, patty: 1, focus: 'steaks' },
-    restaurant: { thick: 2, ppk: 0, roast: 2, patty: 0, focus: 'whole' },
-    ground: { thick: 2, ppk: 1, roast: 0, patty: 2, focus: 'ground' },
-    smoker: { thick: 2, ppk: 1, roast: 2, patty: 1, focus: 'bbq' }
+    family: { focus: 'family' },
+    premium: { focus: 'steaks' },
+    restaurant: { focus: 'whole' },
+    ground: { focus: 'ground' },
+    smoker: { focus: 'bbq' }
   };
   document.querySelectorAll('.preset').forEach(p => p.addEventListener('click', () => {
     document.querySelectorAll('.preset').forEach(x => x.classList.remove('selected'));
     p.classList.add('selected');
-    const cfg = PRESETS[p.dataset.preset];
-    if (!cfg) return;
-    // Reset cuts based on focus
-    const allChecks = document.querySelectorAll('input[data-cut]');
-    allChecks.forEach(c => {
+    const cfg = PRESETS[p.dataset.preset]; if (!cfg) return;
+    document.querySelectorAll('input[data-cut]').forEach(c => {
       const primal = c.closest('.subp').dataset.primal;
       let on = false;
-      if (cfg.focus === 'steaks') on = ['rib','loin','flank'].includes(primal);
-      else if (cfg.focus === 'whole') on = ['rib','loin','brisket','round'].includes(primal);
+      if (cfg.focus === 'steaks') on = ['rib','loin','sirloin','flank'].includes(primal);
+      else if (cfg.focus === 'whole') on = ['rib','loin','sirloin','brisket','round'].includes(primal);
       else if (cfg.focus === 'ground') on = primal === 'shank';
-      else if (cfg.focus === 'bbq') on = ['chuck','brisket','rib','shank'].includes(primal);
+      else if (cfg.focus === 'bbq') on = ['chuck','brisket','rib','plate','shank'].includes(primal);
       else on = ['chuck','rib','loin','flank','shank'].includes(primal);
       c.checked = on;
     });
@@ -488,8 +674,8 @@
     const sp = t.dataset.species;
     document.getElementById('quarterToggle').style.display = sp === 'beef' ? 'flex' : 'none';
     document.getElementById('meterMsg').textContent = sp === 'beef'
-      ? 'Trim from primary cuts auto-routes to ground. Toggle a cut off and its weight moves down here.'
-      : `${sp.charAt(0).toUpperCase()+sp.slice(1)} cut sheet — coming soon. For now, the cuts shown are the beef defaults.`;
+      ? 'Trim from primary cuts auto-routes to ground.'
+      : `${sp.charAt(0).toUpperCase()+sp.slice(1)} cut sheet — coming soon. Beef defaults shown.`;
   }));
 
   // ===== Quarter toggle =====
@@ -500,11 +686,24 @@
     document.querySelectorAll('.subp').forEach(s => {
       const p = s.dataset.primal;
       const isFront = ['chuck','rib','brisket'].includes(p);
-      const isHind = ['loin','round','flank'].includes(p);
-      if (q === 'mixed' || p === 'shank') s.style.display = '';
+      const isHind = ['loin','sirloin','round','flank'].includes(p);
+      if (q === 'mixed' || ['shank','plate'].includes(p)) s.style.display = '';
       else if (q === 'front') s.style.display = isFront ? '' : 'none';
       else s.style.display = isHind ? '' : 'none';
     });
+  }));
+
+  // ===== Cow diagram click → scroll to + flash sub-primal =====
+  document.querySelectorAll('.cow-svg .primal').forEach(p => p.addEventListener('click', () => {
+    const primal = p.dataset.primal;
+    const target = document.getElementById('subp-' + primal);
+    if (target) {
+      target.classList.add('open');
+      target.classList.remove('flash');
+      void target.offsetWidth; // restart animation
+      target.classList.add('flash');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }));
 
   // ===== Cut detail modal =====
@@ -516,9 +715,7 @@
   const bd = document.getElementById('modalBd');
   document.querySelectorAll('.cut-info-btn').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
-    const k = b.dataset.info;
-    const c = CUT_INFO[k];
-    if (!c) return;
+    const k = b.dataset.info; const c = CUT_INFO[k]; if (!c) return;
     document.getElementById('modalEyebrow').textContent = c.eyebrow;
     document.getElementById('modalTitle').textContent = c.title;
     document.getElementById('modalDesc').textContent = c.desc;
@@ -532,6 +729,11 @@
   document.getElementById('modalClose').addEventListener('click', () => bd.classList.remove('open'));
   bd.addEventListener('click', e => { if (e.target === bd) bd.classList.remove('open'); });
 
+  // ===== Skip → Processor's Choice =====
+  document.getElementById('skipBtn').addEventListener('click', () => {
+    document.getElementById('meterMsg').textContent = 'Got it. Processor\'s Choice — you\'ll get a balanced mix of steaks, roasts, and ground.';
+  });
+
   // ===== Submit =====
   document.getElementById('submitBtn').addEventListener('click', () => {
     document.getElementById('submitBtn').textContent = '✓ Submitted to Plant 04';
@@ -539,7 +741,6 @@
     setTimeout(() => { window.location.href = '/confirmed'; }, 1100);
   });
 
-  // Initial state
   updateMeter();
 })();
 </script>
