@@ -2,7 +2,7 @@
 //   GET   → all farms (or ?owner=me for current user)
 //   POST  → create new farm (auth required, role auto-upgrades to producer)
 //   GET ?slug=northfield-pastures → single farm
-import { sql, currentUser, err, json, slugify } from './_lib/db.js';
+import { sql, rawQuery, currentUser, err, json, slugify } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
 
@@ -56,6 +56,25 @@ export default async function handler(req) {
       RETURNING *
     `;
     return json({ farm: rows[0] });
+  }
+
+  if (req.method === 'PATCH') {
+    const slug = url.searchParams.get('slug');
+    if (!slug) return err(400, 'slug required');
+    const user = await currentUser(req);
+    if (!user) return err(401, 'Sign in required');
+    const owns = await sql`SELECT 1 FROM farms WHERE slug = ${slug} AND owner_id = ${user.id} LIMIT 1`;
+    if (!owns[0] && user.role !== 'admin') return err(403, 'Not your farm');
+    let body;
+    try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
+    const allowed = ['name','bio','story','city','state','zip','practices','certs','identity','cover_url','avatar_url','established_year'];
+    for (const [k, v] of Object.entries(body)) {
+      if (allowed.includes(k)) {
+        await rawQuery(`UPDATE farms SET ${k} = $1, updated_at = NOW() WHERE slug = $2`, [v, slug]);
+      }
+    }
+    const updated = await sql`SELECT * FROM farms WHERE slug = ${slug}`;
+    return json({ farm: updated[0] });
   }
 
   return err(405, 'Method not allowed');
