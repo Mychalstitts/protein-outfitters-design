@@ -3,6 +3,13 @@
    Shared across every deployed page.
    ============================================================ */
 
+/* Icon helper — references symbols in /icons.svg */
+.ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.14em; flex-shrink: 0; stroke-linecap: round; stroke-linejoin: round; color: inherit; }
+.ico-md { width: 1.25em; height: 1.25em; }
+.ico-lg { width: 1.5em; height: 1.5em; }
+.ico-xl { width: 2em; height: 2em; }
+.ico-2xl { width: 2.5em; height: 2.5em; }
+
 :root {
   --po-headline: clamp(48px, 9vw, 128px);
   --po-h2: clamp(36px, 5.5vw, 72px);

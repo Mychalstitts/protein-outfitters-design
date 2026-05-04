@@ -83,8 +83,8 @@
 }
 .species-card:hover { transform: translateY(-3px) scale(1.02); border-color: rgba(6,27,14,0.32); }
 .species-card.selected { border-color: var(--brand); background: var(--accent-soft); transform: scale(1.04); }
-.species-card .ico { font-size: 36px; line-height: 1; transition: transform .4s cubic-bezier(.2,.9,.3,1.4); }
-.species-card.selected .ico { transform: rotate(-6deg) scale(1.1); }
+.species-card .species-ico { color: var(--brand); transition: transform .4s cubic-bezier(.2,.9,.3,1.4); display: block; margin: 0 auto 8px; }
+.species-card.selected .species-ico { transform: rotate(-6deg) scale(1.1); }
 .species-card .name { display: block; font-size: 14px; font-weight: 700; margin-top: 8px; letter-spacing: -0.01em; }
 
 /* Photo upload */
@@ -246,11 +246,11 @@
         <p class="lead">Pick a species. We'll auto-tune everything from the breed list to the predicted finish weight.</p>
 
         <div class="species-grid">
-          <button class="species-card selected" data-species="beef"><div class="ico">🐄</div><span class="name">Beef</span></button>
-          <button class="species-card" data-species="pork"><div class="ico">🐖</div><span class="name">Pork</span></button>
-          <button class="species-card" data-species="lamb"><div class="ico">🐑</div><span class="name">Lamb</span></button>
-          <button class="species-card" data-species="venison"><div class="ico">🦌</div><span class="name">Venison</span></button>
-          <button class="species-card" data-species="poultry"><div class="ico">🐓</div><span class="name">Poultry</span></button>
+          <button class="species-card selected" data-species="beef"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#cow"/></svg><span class="name">Beef</span></button>
+          <button class="species-card" data-species="pork"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#pig"/></svg><span class="name">Pork</span></button>
+          <button class="species-card" data-species="lamb"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#sheep"/></svg><span class="name">Lamb</span></button>
+          <button class="species-card" data-species="venison"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#deer"/></svg><span class="name">Venison</span></button>
+          <button class="species-card" data-species="poultry"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#rooster"/></svg><span class="name">Poultry</span></button>
         </div>
 
         <div class="row-2">
@@ -397,7 +397,7 @@
         <div class="desc-card">
           <div class="desc-head">
             <h4>Auto-generated description</h4>
-            <button class="desc-regen" id="regenBtn"><span class="star">✨</span> Regenerate</button>
+            <button class="desc-regen" id="regenBtn"><svg class="ico star" aria-hidden="true" style="color: var(--brand);"><use href="/icons.svg#sparkles"/></svg> Regenerate</button>
           </div>
           <textarea class="desc-text" id="descText" rows="6"></textarea>
           <span class="help" style="display:block; margin-top: 8px; font-size: 12px; color: var(--ink-3);">Updates from your selections in step 1 + 2. Edit anything by hand.</span>
@@ -433,7 +433,7 @@
 
         <!-- Live market hint -->
         <div class="market-hint">
-          <span class="market-hint-ico">💡</span>
+          <span class="market-hint-ico"><svg class="ico ico-lg" style="color: var(--brand);" aria-hidden="true"><use href="/icons.svg#lightbulb"/></svg></span>
           <span class="market-hint-text">
             <strong id="marketTitle">Industry-suggested · Grass-fed Black Angus</strong>
             <span id="marketSub">$12.50/lb take-home · 2026 average for direct-to-consumer in MN/WI/ND/SD</span>
