@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" role="img" aria-label="Protein Outfitters">
+  <defs>
+    <style>
+      .wm { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 900; fill: #fbf9f5; }
+      .wm-1 { font-size: 56px; letter-spacing: -2.8px; }
+      .wm-2 { font-size: 56px; letter-spacing: -2.8px; }
+      .rule { stroke: #fbf9f5; stroke-width: 3; stroke-linecap: square; }
+      .dot { fill: #fbf9f5; }
+    </style>
+  </defs>
+  <text class="wm wm-1" x="0" y="50">PROTEIN</text>
+  <line class="rule" x1="0" y1="62" x2="262" y2="62"/>
+  <text class="wm wm-2" x="0" y="108">OUTFITTERS</text>
+  <circle class="dot" cx="335" cy="100" r="5"/>
+</svg>

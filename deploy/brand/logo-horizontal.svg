@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 64" role="img" aria-label="Protein Outfitters">
+  <defs>
+    <style>
+      .h { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 900; fill: #061b0e; font-size: 44px; letter-spacing: -2.2px; }
+      .dot { fill: #061b0e; }
+    </style>
+  </defs>
+  <text class="h" x="0" y="46">PROTEIN</text>
+  <circle class="dot" cx="208" cy="42" r="4"/>
+  <text class="h" x="226" y="46">OUTFITTERS</text>
+</svg>
