@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Plant schedule + capabilities · Protein Outfitters</title>
+<meta name="description" content="Airbnb-style availability calendar for your processing plant. Set weekly hours, per-day capacity, blackout dates, and the cuts you offer." />
+<meta property="og:title" content="Plant schedule · Protein Outfitters" />
+<meta property="og:description" content="Set your processing plant's availability and capabilities." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/processor-schedule" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Plant schedule · Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.ps-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.ps-inner { max-width: 1320px; margin: 0 auto; }
+.ps-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
+.ps-lead { font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 32px; }
+
+.ps-block { background: #fff; border-radius: 22px; padding: clamp(22px, 2.5vw, 32px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 18px; }
+.ps-block-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; gap: 16px; flex-wrap: wrap; }
+.ps-block-head h3 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.022em; }
+.ps-block-head p { margin: 0; font-size: 13px; color: var(--ink-2); max-width: 50ch; }
+
+/* Recurring weekly grid */
+.week-grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+@media (min-width: 700px) { .week-grid { grid-template-columns: repeat(7, 1fr); } }
+.dow-card {
+  background: var(--surface); border: 2px solid transparent; border-radius: 16px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+  transition: background .25s, border-color .25s, transform .2s;
+}
+.dow-card:hover { transform: translateY(-2px); }
+.dow-card.closed { background: var(--surface-2); opacity: 0.55; }
+.dow-card.open { border-color: var(--brand); background: var(--accent-soft); }
+.dow-name { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
+.dow-toggle {
+  width: 44px; height: 26px; border-radius: 99px;
+  background: rgba(0,0,0,0.18); position: relative; cursor: pointer;
+  transition: background .25s;
+}
+.dow-card.open .dow-toggle { background: var(--brand); }
+.dow-toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; transition: transform .25s cubic-bezier(.2,.9,.3,1.4);
+}
+.dow-card.open .dow-toggle::after { transform: translateX(18px); }
+.dow-cap-row { display: flex; align-items: center; gap: 6px; margin-top: auto; }
+.dow-cap-input {
+  background: #fff; border: 1px solid rgba(0,0,0,0.10); border-radius: 10px;
+  padding: 8px 10px; font: inherit; font-size: 16px; font-weight: 800; color: var(--ink);
+  width: 50px; text-align: center;
+}
+.dow-cap-input:focus { outline: 0; border-color: var(--brand); }
+.dow-cap-label { font-size: 11px; color: var(--ink-2); font-weight: 600; line-height: 1.2; }
+.dow-card.closed .dow-cap-input, .dow-card.closed .dow-cap-label { pointer-events: none; opacity: 0.4; }
+
+.bulk-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.bulk-btn {
+  background: var(--surface); border: 1px solid rgba(0,0,0,0.06); border-radius: 999px;
+  padding: 8px 16px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-2);
+  cursor: pointer; transition: background .2s, color .2s;
+}
+.bulk-btn:hover { background: var(--brand); color: #fbf9f5; border-color: var(--brand); }
+
+/* Calendar */
+.cal-row { display: grid; gap: 24px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .cal-row { grid-template-columns: 1fr 1fr; } }
+.cal { display: flex; flex-direction: column; gap: 12px; }
+.cal-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 4px 12px; }
+.cal-head h4 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: -0.018em; }
+.cal-nav { display: flex; gap: 6px; }
+.cal-nav-btn { background: var(--surface); border: 0; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 14px; color: var(--ink); transition: background .2s; }
+.cal-nav-btn:hover { background: var(--surface-2); }
+.dow-mini { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 0 2px 8px; }
+.dow-mini span { text-align: center; font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+.day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.day {
+  aspect-ratio: 1; border: 0; background: var(--surface); cursor: pointer;
+  border-radius: 12px; padding: 4px; font: inherit;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  transition: background .2s, transform .2s, color .2s;
+  position: relative;
+}
+.day:hover { transform: scale(1.04); }
+.day .dnum { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1; }
+.day .dcap { font-size: 10px; font-weight: 700; color: var(--ink-2); line-height: 1; }
+.day.empty { background: transparent; pointer-events: none; }
+.day.past { opacity: 0.35; }
+.day.closed { background: var(--surface-2); }
+.day.closed .dnum { color: var(--ink-3); text-decoration: line-through; }
+.day.closed .dcap { display: none; }
+.day.open { background: var(--accent-soft); }
+.day.open .dnum { color: var(--brand); }
+.day.today { box-shadow: 0 0 0 2px var(--brand) inset; }
+.day.full { background: #f5e1ad; }
+.day.full .dnum { color: var(--brand); }
+
+/* Capabilities */
+.cap-grid { display: grid; gap: 22px; grid-template-columns: 1fr; margin-top: 12px; }
+@media (min-width: 800px) { .cap-grid { grid-template-columns: 1fr 1fr; } }
+.cap-section h4 { margin: 0 0 12px; font-size: 13px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+.pill-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill-toggle { background: var(--surface); border: 1px solid transparent; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; transition: background .2s, color .2s, border-color .2s, transform .2s; }
+.pill-toggle:hover { border-color: rgba(0,0,0,0.12); transform: translateY(-1px); }
+.pill-toggle.on { background: var(--brand); color: #fbf9f5; }
+.pill-toggle.locked-on { background: var(--accent-soft); color: var(--brand); cursor: default; border-color: rgba(6,27,14,0.15); }
+
+/* Hero stats */
+.stats-row { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); margin-bottom: 24px; }
+@media (min-width: 700px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
+.stat-tile { background: var(--brand); color: #fbf9f5; border-radius: 18px; padding: 18px 20px; }
+.stat-tile .lab { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
+.stat-tile .v { font-size: 28px; font-weight: 900; letter-spacing: -0.025em; margin: 6px 0 0; line-height: 1; }
+.stat-tile .s { font-size: 11px; color: rgba(251,249,245,0.7); margin: 4px 0 0; }
+
+.legend { display: flex; gap: 18px; flex-wrap: wrap; padding: 14px 4px 0; font-size: 12px; color: var(--ink-2); }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 12px; height: 12px; border-radius: 4px; }
+
+.actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+.btn-primary { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 14px 28px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; border-radius: 999px; transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s; }
+.btn-primary:hover { transform: scale(1.04); background: #0a2614; }
+.btn-ghost { background: transparent; color: var(--ink-2); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; padding: 14px 22px; font-size: 14px; font-weight: 600; border-radius: 999px; }
+.btn-ghost:hover { background: var(--surface); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/processor" class="active">My plant</a><a href="/processor-pricing">Pricing</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<section class="ps-shell">
+  <div class="ps-inner">
+    <p class="po-eyebrow">Plant config · Schedule</p>
+    <h1 class="ps-h1">Set when. Set what. Then forget it.</h1>
+    <p class="ps-lead">Tell us your weekly hours and per-day animal capacity. Override individual days on the calendar. Toggle on the cuts you can do — those become live options on customer cut sheets the moment you save.</p>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-tile">
+        <p class="lab">Bookable days · 90d</p>
+        <p class="v" id="statBookable">52</p>
+        <p class="s">out of 90 calendar days</p>
+      </div>
+      <div class="stat-tile">
+        <p class="lab">Animals / week</p>
+        <p class="v" id="statWeek">28</p>
+        <p class="s">at full booking</p>
+      </div>
+      <div class="stat-tile">
+        <p class="lab">Booked · 14d</p>
+        <p class="v">24<span style="font-size: 16px; opacity: .7;"> / 56</span></p>
+        <p class="s">43% utilization next two weeks</p>
+      </div>
+      <div class="stat-tile">
+        <p class="lab">Capabilities on</p>
+        <p class="v" id="statCaps">14</p>
+        <p class="s">cuts available to buyers</p>
+      </div>
+    </div>
+
+    <!-- =========== RECURRING WEEKLY =========== -->
+    <div class="ps-block">
+      <div class="ps-block-head">
+        <h3>Weekly hours</h3>
+        <p>This is your default. Calendar dates inherit these unless you override individual days below.</p>
+      </div>
+
+      <div class="bulk-row">
+        <button class="bulk-btn" data-bulk="weekdays-on">Open all weekdays</button>
+        <button class="bulk-btn" data-bulk="weekends-on">Open weekends</button>
+        <button class="bulk-btn" data-bulk="weekends-off">Close weekends</button>
+        <button class="bulk-btn" data-bulk="all-on">Open everything</button>
+        <button class="bulk-btn" data-bulk="all-off">Close everything</button>
+      </div>
+
+      <div class="week-grid" id="weekGrid">
+        <div class="dow-card open" data-dow="1">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="dow-name">Mon</span>
+            <span class="dow-toggle"></span>
+          </div>
+          <div class="dow-cap-row">
+            <input class="dow-cap-input" type="number" value="6" min="0" max="50">
+            <span class="dow-cap-label">animals<br>per day</span>
+          </div>
+        </div>
+        <div class="dow-card open" data-dow="2">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="dow-name">Tue</span>
+            <span class="dow-toggle"></span>
+          </div>
+          <div class="dow-cap-row">
+            <input class="dow-cap-input" type="number" value="6" min="0" max="50">
+            <span class="dow-cap-label">animals<br>per day</span>
+          </div>
+        </div>
+        <div class="dow-card open" data-dow="3">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="dow-name">Wed</span>
+            <span class="dow-toggle"></span>
+          </div>
+          <div class="dow-cap-row">
+            <input class="dow-cap-input" type="number" value="6" min="0" max="50">
+            <span class="dow-cap-label">animals<br>per day</span>
+          </div>
+        </div>
+        <div class="dow-card open" data-dow="4">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="dow-name">Thu</span>
+            <span class="dow-toggle"></span>
+          </div>
+          <div class="dow-cap-row">
+            <input class="dow-cap-input" type="number" value="6" min="0" max="50">
+            <span class="dow-cap-label">animals<br>per day</span>
+          </div>
+        </div>
+        <div class="dow-card open" data-dow="5">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="dow-name">Fri</span>
+            <span class="dow-toggle"></span>
+          </div>
+          <div class="dow-cap-row">
+            <input class="dow-cap-input" type="number" value="4" min="0" max="50">
+            <span class="dow-cap-label">animals<br>per day</span>
+          </div>
+        </div>
+        <div class="dow-card closed" data-dow="6">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="dow-name">Sat</span>
+            <span class="dow-toggle"></span>
+          </div>
+          <div class="dow-cap-row">
+            <input class="dow-cap-input" type="number" value="0" min="0" max="50">
+            <span class="dow-cap-label">animals<br>per day</span>
+          </div>
+        </div>
+        <div class="dow-card closed" data-dow="0">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="dow-name">Sun</span>
+            <span class="dow-toggle"></span>
+          </div>
+          <div class="dow-cap-row">
+            <input class="dow-cap-input" type="number" value="0" min="0" max="50">
+            <span class="dow-cap-label">animals<br>per day</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========== CALENDAR =========== -->
+    <div class="ps-block">
+      <div class="ps-block-head">
+        <h3>Calendar overrides</h3>
+        <p>Tap a date to flip it open or closed. Hold shift + click to bump capacity. Holidays and personal days live here.</p>
+      </div>
+
+      <div class="cal-row" id="calRow">
+        <!-- two month grids inserted by JS -->
+      </div>
+
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch" style="background: var(--accent-soft);"></span>Open · capacity from weekly default</span>
+        <span class="legend-item"><span class="legend-swatch" style="background: #f5e1ad;"></span>Fully booked</span>
+        <span class="legend-item"><span class="legend-swatch" style="background: var(--surface-2);"></span>Closed</span>
+        <span class="legend-item"><span class="legend-swatch" style="background: var(--surface); border: 2px solid var(--brand);"></span>Today</span>
+      </div>
+    </div>
+
+    <!-- =========== CAPABILITIES =========== -->
+    <div class="ps-block">
+      <div class="ps-block-head">
+        <h3>What you can process</h3>
+        <p>Toggle on what you can do. These flow through to customer cut sheets — disabled options never show up. Beef "standard" is locked on for any USDA plant.</p>
+      </div>
+
+      <div class="cap-grid">
+        <!-- BEEF -->
+        <div class="cap-section">
+          <h4>🐄 Beef</h4>
+          <div class="pill-grid" data-cap="beef">
+            <button class="pill-toggle locked-on">✓ Standard cuts (always)</button>
+            <button class="pill-toggle on">Boneless trim</button>
+            <button class="pill-toggle on">Vacuum seal</button>
+            <button class="pill-toggle on">Patty press</button>
+            <button class="pill-toggle on">Beef sticks · pepperoni</button>
+            <button class="pill-toggle on">Smoked brisket</button>
+            <button class="pill-toggle on">Jerky strips (eye of round)</button>
+            <button class="pill-toggle on">Beef sausage links</button>
+            <button class="pill-toggle">Dry-aged steaks</button>
+            <button class="pill-toggle">Snack stick (custom blend)</button>
+            <button class="pill-toggle">Bone broth bones</button>
+            <button class="pill-toggle">Suet rendering</button>
+            <button class="pill-toggle">Hide tanning (raw)</button>
+          </div>
+        </div>
+
+        <!-- PORK -->
+        <div class="cap-section">
+          <h4>🐖 Pork</h4>
+          <div class="pill-grid" data-cap="pork">
+            <button class="pill-toggle on">Standard cuts</button>
+            <button class="pill-toggle on">Boneless ham</button>
+            <button class="pill-toggle on">Bacon · cured + sliced</button>
+            <button class="pill-toggle on">Breakfast sausage</button>
+            <button class="pill-toggle on">Italian sausage</button>
+            <button class="pill-toggle on">Bratwurst (brats)</button>
+            <button class="pill-toggle">Smoked ham · whole</button>
+            <button class="pill-toggle">Smoked ham · half</button>
+            <button class="pill-toggle">Smoked hocks</button>
+            <button class="pill-toggle">Pancetta / cured belly</button>
+            <button class="pill-toggle">Andouille</button>
+            <button class="pill-toggle">Chorizo</button>
+            <button class="pill-toggle">Polish kielbasa</button>
+            <button class="pill-toggle">Summer sausage</button>
+            <button class="pill-toggle">Lard rendering</button>
+            <button class="pill-toggle">Pork rinds</button>
+          </div>
+        </div>
+
+        <!-- LAMB -->
+        <div class="cap-section">
+          <h4>🐑 Lamb</h4>
+          <div class="pill-grid" data-cap="lamb">
+            <button class="pill-toggle on">Standard cuts</button>
+            <button class="pill-toggle on">Frenched rack</button>
+            <button class="pill-toggle">Merguez sausage</button>
+            <button class="pill-toggle">Lamb bacon</button>
+            <button class="pill-toggle">Smoked leg</button>
+            <button class="pill-toggle">Lamb jerky</button>
+            <button class="pill-toggle">Hide tanning</button>
+          </div>
+        </div>
+
+        <!-- VENISON -->
+        <div class="cap-section">
+          <h4>🦌 Venison + game</h4>
+          <div class="pill-grid" data-cap="venison">
+            <button class="pill-toggle">Standard cuts</button>
+            <button class="pill-toggle">Venison summer sausage</button>
+            <button class="pill-toggle">Venison snack sticks</button>
+            <button class="pill-toggle">Venison jerky</button>
+            <button class="pill-toggle">Venison brats</button>
+            <button class="pill-toggle">Mixed pork-blend grind</button>
+            <button class="pill-toggle">Cape + skull mount prep</button>
+          </div>
+        </div>
+
+        <!-- POULTRY -->
+        <div class="cap-section">
+          <h4>🐓 Poultry</h4>
+          <div class="pill-grid" data-cap="poultry">
+            <button class="pill-toggle">Whole bird</button>
+            <button class="pill-toggle">Quartered</button>
+            <button class="pill-toggle">8-piece cut up</button>
+            <button class="pill-toggle">Bone-out breast</button>
+            <button class="pill-toggle">Smoked whole</button>
+            <button class="pill-toggle">Chicken sausage</button>
+          </div>
+        </div>
+
+        <!-- CERTIFICATIONS -->
+        <div class="cap-section">
+          <h4>📜 Certifications + special</h4>
+          <div class="pill-grid" data-cap="cert">
+            <button class="pill-toggle on">USDA inspected (always)</button>
+            <button class="pill-toggle">USDA Organic certified</button>
+            <button class="pill-toggle">Halal-certified line</button>
+            <button class="pill-toggle">Kosher line</button>
+            <button class="pill-toggle">Gluten-free seasonings</button>
+            <button class="pill-toggle">Allergen-free run</button>
+            <button class="pill-toggle">Custom seasoning blends</button>
+            <button class="pill-toggle">Same-day cut & wrap</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-ghost" id="previewBtn">Preview customer view</button>
+      <button class="btn-primary" id="saveBtn">Save schedule + capabilities →</button>
+    </div>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ============ WEEKLY DEFAULT (drives calendar) ============
+  // Stored as: { 0:Sun, 1:Mon, ..., 6:Sat } → { open: bool, cap: number }
+  const week = {
+    0: { open: false, cap: 0 },
+    1: { open: true, cap: 6 },
+    2: { open: true, cap: 6 },
+    3: { open: true, cap: 6 },
+    4: { open: true, cap: 6 },
+    5: { open: true, cap: 4 },
+    6: { open: false, cap: 0 }
+  };
+  const overrides = {}; // ISO date string → { open, cap }
+
+  // Wire dow toggles + cap inputs
+  function syncWeekUI() {
+    document.querySelectorAll('.dow-card').forEach(c => {
+      const d = Number(c.dataset.dow);
+      const w = week[d];
+      c.classList.toggle('open', w.open);
+      c.classList.toggle('closed', !w.open);
+      const inp = c.querySelector('.dow-cap-input');
+      if (inp && document.activeElement !== inp) inp.value = w.cap;
+    });
+  }
+  document.querySelectorAll('.dow-card .dow-toggle').forEach(t => t.addEventListener('click', () => {
+    const card = t.closest('.dow-card'); const d = Number(card.dataset.dow);
+    week[d].open = !week[d].open;
+    if (!week[d].open) week[d].cap = 0;
+    else if (week[d].cap === 0) week[d].cap = 6;
+    syncWeekUI(); renderCalendars(); updateStats();
+  }));
+  document.querySelectorAll('.dow-card .dow-cap-input').forEach(inp => inp.addEventListener('input', () => {
+    const card = inp.closest('.dow-card'); const d = Number(card.dataset.dow);
+    const v = Number(inp.value) || 0;
+    week[d].cap = v; week[d].open = v > 0;
+    syncWeekUI(); renderCalendars(); updateStats();
+  }));
+
+  // Bulk
+  document.querySelectorAll('.bulk-btn').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.bulk;
+    if (a === 'weekdays-on') for (let d=1; d<=5; d++) { week[d].open=true; if (week[d].cap===0) week[d].cap=6; }
+    if (a === 'weekends-on') for (const d of [0,6]) { week[d].open=true; if (week[d].cap===0) week[d].cap=4; }
+    if (a === 'weekends-off') for (const d of [0,6]) { week[d].open=false; week[d].cap=0; }
+    if (a === 'all-on') for (const d in week) { week[d].open=true; if (week[d].cap===0) week[d].cap=6; }
+    if (a === 'all-off') for (const d in week) { week[d].open=false; week[d].cap=0; }
+    syncWeekUI(); renderCalendars(); updateStats();
+  }));
+
+  // ============ CALENDAR ============
+  let viewYear = new Date().getFullYear();
+  let viewMonth = new Date().getMonth();
+  function isoDate(y, m, d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+  function dayState(y, m, d) {
+    const iso = isoDate(y, m, d);
+    if (overrides[iso]) return overrides[iso];
+    const dow = new Date(y, m, d).getDay();
+    return week[dow];
+  }
+
+  function renderMonth(y, m) {
+    const first = new Date(y, m, 1).getDay();
+    const days = new Date(y, m+1, 0).getDate();
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    let html = `<div class="cal">
+      <div class="cal-head">
+        <h4>${new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h4>
+      </div>
+      <div class="dow-mini"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+      <div class="day-grid">`;
+    for (let i = 0; i < first; i++) html += '<div class="day empty"></div>';
+    for (let d = 1; d <= days; d++) {
+      const date = new Date(y, m, d);
+      const iso = isoDate(y, m, d);
+      const isPast = date < today;
+      const state = dayState(y, m, d);
+      const isToday = date.getTime() === today.getTime();
+      let cls = 'day';
+      if (isPast) cls += ' past';
+      if (state.open) cls += ' open'; else cls += ' closed';
+      if (isToday) cls += ' today';
+      html += `<button class="${cls}" data-iso="${iso}"><span class="dnum">${d}</span>`;
+      if (state.open && !isPast) html += `<span class="dcap">${state.cap}</span>`;
+      html += '</button>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  function renderCalendars() {
+    const m1 = viewMonth, y1 = viewYear;
+    const m2 = (viewMonth + 1) % 12, y2 = viewMonth === 11 ? viewYear + 1 : viewYear;
+    document.getElementById('calRow').innerHTML = renderMonth(y1, m1) + renderMonth(y2, m2);
+    bindDays();
+    updateStats();
+  }
+
+  function bindDays() {
+    document.querySelectorAll('.day:not(.empty)').forEach(d => d.addEventListener('click', e => {
+      const iso = d.dataset.iso;
+      const [y, m, dd] = iso.split('-').map(Number);
+      const cur = dayState(y, m-1, dd);
+      const isShift = e.shiftKey;
+      if (isShift) {
+        // Bump capacity
+        const newCap = Math.min(50, (cur.cap || 0) + 1);
+        overrides[iso] = { open: newCap > 0, cap: newCap };
+      } else {
+        // Toggle open/closed for that day
+        overrides[iso] = { open: !cur.open, cap: cur.open ? 0 : (cur.cap || 6) };
+      }
+      renderCalendars();
+    }));
+  }
+
+  // ============ STATS ============
+  function updateStats() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    let bookable = 0, weekTotal = 0;
+    for (let i = 0; i < 90; i++) {
+      const dt = new Date(today); dt.setDate(today.getDate() + i);
+      const s = dayState(dt.getFullYear(), dt.getMonth(), dt.getDate());
+      if (s.open) bookable += 1;
+    }
+    for (let d=0; d<=6; d++) weekTotal += week[d].cap;
+    document.getElementById('statBookable').textContent = bookable;
+    document.getElementById('statWeek').textContent = weekTotal;
+    document.getElementById('statCaps').textContent = document.querySelectorAll('.pill-toggle.on, .pill-toggle.locked-on').length;
+  }
+
+  // ============ CAPABILITIES ============
+  document.querySelectorAll('.pill-toggle').forEach(p => p.addEventListener('click', () => {
+    if (p.classList.contains('locked-on')) return;
+    p.classList.toggle('on');
+    updateStats();
+  }));
+
+  // ============ SAVE ============
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const b = document.getElementById('saveBtn');
+    b.textContent = '✓ Saved';
+    b.style.background = '#cfe9d3';
+    b.style.color = 'var(--brand)';
+    setTimeout(() => { b.textContent = 'Save schedule + capabilities →'; b.style.background = ''; b.style.color = ''; }, 1600);
+  });
+
+  syncWeekUI();
+  renderCalendars();
+})();
+</script>
+</body>
+</html>
