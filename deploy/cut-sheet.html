@@ -58,21 +58,53 @@
 .seg button { flex: 1; background: transparent; border: 0; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 999px; transition: background .2s, color .2s; white-space: nowrap; }
 .seg button.active { background: var(--brand); color: #fbf9f5; }
 
-/* Cow diagram */
+/* Cow diagram — chalkboard-illustrated, brand-color primals, clip-path region painting */
 .cow-block { background: #fff; border-radius: 22px; padding: clamp(22px, 2.5vw, 28px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 18px; }
-.cow-wrap { background: linear-gradient(180deg, #f5f3ef 0%, #ffffff 100%); border-radius: 18px; padding: clamp(16px, 2vw, 28px); position: relative; }
-.cow-svg { display: block; width: 100%; max-width: 760px; height: auto; margin: 0 auto; }
-.cow-svg .body { fill: #061b0e; }
-.cow-svg .primal { cursor: pointer; transition: fill .2s, transform .2s; transform-origin: center; transform-box: fill-box; }
-.cow-svg .primal:hover { fill: #f5e1ad !important; }
-.cow-svg .primal.has-cuts { fill: #cfe9d3; }
-.cow-svg .primal.empty { fill: #4d6452; }
-.cow-svg .label { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 11px; letter-spacing: 0.08em; pointer-events: none; user-select: none; fill: #061b0e; text-anchor: middle; text-transform: uppercase; }
-.cow-svg .label-on-dark { fill: #fbf9f5; }
-.cow-svg .count { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 9px; pointer-events: none; user-select: none; fill: var(--ink-2); text-anchor: middle; }
-.cow-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 14px 6px 4px; font-size: 12px; color: var(--ink-2); }
-.cow-legend-item { display: flex; align-items: center; gap: 6px; }
-.cow-legend-swatch { width: 12px; height: 12px; border-radius: 3px; }
+.cow-wrap { background: linear-gradient(180deg, #fbf9f5 0%, #f0e6d2 100%); border-radius: 18px; padding: clamp(20px, 2.4vw, 32px); position: relative; overflow: hidden; }
+.cow-wrap::before { content:""; position:absolute; inset:0; background:
+  radial-gradient(circle at 18% 28%, rgba(125,160,93,.10) 0, transparent 35%),
+  radial-gradient(circle at 82% 72%, rgba(220,165,74,.12) 0, transparent 40%);
+  pointer-events:none; }
+.cow-svg { display: block; width: 100%; max-width: 760px; height: auto; margin: 0 auto; position: relative; }
+.cow-svg .cow-body { fill: #1c2a22; }
+.cow-svg .cow-shadow { fill: rgba(6,27,14,.10); }
+.cow-svg .tail { fill: #15201a; }
+.cow-svg .ear { fill: #2c3a31; }
+.cow-svg .horn { fill: #6b4f33; }
+.cow-svg .eye { fill: #fbf9f5; }
+.cow-svg .nostril, .cow-svg .hoof { fill: #0a120d; }
+.cow-svg .mouth { stroke: #3a4a3f; stroke-width: 1.6; fill: none; stroke-linecap: round; }
+
+.cow-svg .primal { cursor: pointer; transition: fill .25s ease, opacity .25s ease; }
+.cow-svg .primal-hit { cursor: pointer; fill: transparent; pointer-events: all; }
+.cow-svg .primal-hit:hover { fill: rgba(125,160,93,.18); }
+
+/* Default primal fill (ground / not allocated) */
+.cow-svg .primal { fill: #5a6b62; opacity: .85; }
+/* Has-cuts: each primal lights up in its assigned brand tint */
+.cow-svg .primal.has-cuts[data-primal="chuck"]      { fill: #b04a3a; opacity: 1; }
+.cow-svg .primal.has-cuts[data-primal="rib"]        { fill: #dca54a; opacity: 1; }
+.cow-svg .primal.has-cuts[data-primal="loin"]       { fill: #c97140; opacity: 1; }
+.cow-svg .primal.has-cuts[data-primal="sirloin"]    { fill: #b48a5a; opacity: 1; }
+.cow-svg .primal.has-cuts[data-primal="round"]      { fill: #7da05d; opacity: 1; }
+.cow-svg .primal.has-cuts[data-primal="brisket"]    { fill: #6a4028; opacity: 1; }
+.cow-svg .primal.has-cuts[data-primal="plate"]      { fill: #b8862e; opacity: 1; }
+.cow-svg .primal.has-cuts[data-primal="flank"]      { fill: #8a6840; opacity: 1; }
+.cow-svg .primal.has-cuts[data-primal="shank"]      { fill: #948660; opacity: 1; }
+/* Hover boost — slightly brighten via mix-blend? Use overlay rect instead handled by .primal-hit */
+
+/* Chalkboard-style dividing lines between primals */
+.cow-svg .chalk { stroke: rgba(251,249,245,.55); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-dasharray: 1.8 0; }
+.cow-svg .chalk-soft { stroke: rgba(251,249,245,.32); stroke-width: 1.5; fill: none; stroke-linecap: round; }
+
+.cow-svg .label { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 11.5px; letter-spacing: 0.10em; pointer-events: none; user-select: none; fill: #fbf9f5; text-anchor: middle; text-transform: uppercase; }
+.cow-svg .label-sub { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 9px; letter-spacing: 0.04em; pointer-events: none; user-select: none; fill: rgba(251,249,245,.72); text-anchor: middle; }
+.cow-svg .count-pill { fill: rgba(251,249,245,.18); }
+.cow-svg .count-pill-text { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 9px; pointer-events: none; user-select: none; fill: #fbf9f5; text-anchor: middle; letter-spacing: .04em; }
+
+.cow-legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 16px 6px 4px; font-size: 12px; color: var(--ink-2); align-items: center; }
+.cow-legend-item { display: flex; align-items: center; gap: 7px; font-weight: 600; }
+.cow-legend-swatch { width: 14px; height: 14px; border-radius: 4px; }
 
 /* Presets */
 .preset-row { display: grid; gap: 10px; grid-template-columns: 1fr; }
@@ -286,103 +318,183 @@
           <p>Green = cuts kept · gray = mostly ground</p>
         </div>
         <div class="cow-wrap">
-          <svg class="cow-svg" viewBox="0 0 760 360" role="img" aria-label="Beef primal cuts diagram">
-            <!-- Cow body silhouette -->
-            <path class="body" d="M 110 230
-              C 100 215 95 195 100 175
-              C 105 155 122 140 145 138
-              C 155 125 165 118 178 116
-              C 195 115 205 124 210 138
-              L 615 138
-              C 622 130 632 122 645 122
-              C 650 130 645 145 638 154
-              C 645 162 656 168 658 178
-              L 658 200
-              L 670 215 L 678 245 L 670 250 L 660 240
-              L 658 240
-              L 655 280 L 650 320 L 645 340 L 633 340 L 632 285 L 622 280
-              L 525 280
-              L 524 320 L 520 340 L 508 340 L 506 285
-              L 248 285
-              L 248 320 L 244 340 L 232 340 L 230 285
-              L 222 280
-              L 218 280
-              L 175 280 L 170 285 L 168 320 L 156 340 L 144 340 L 143 285 L 138 280
-              L 130 280 Z"/>
+          <svg class="cow-svg" viewBox="0 0 760 380" role="img" aria-label="Beef primal cuts diagram. Click any region to set its cuts.">
+            <defs>
+              <!-- Cow silhouette as clip path so primal overlays only paint inside the body -->
+              <clipPath id="cowClip">
+                <path d="
+                  M 60,202
+                  Q 50,184 62,166
+                  Q 78,144 108,134
+                  Q 132,128 150,134
+                  Q 158,126 168,134
+                  Q 178,144 198,138
+                  Q 220,124 240,108
+                  L 560,108
+                  Q 600,108 624,124
+                  Q 640,140 638,162
+                  L 638,242
+                  Q 636,266 618,272
+                  L 600,272
+                  L 600,360
+                  Q 600,372 588,372
+                  L 568,372
+                  Q 558,372 558,360
+                  L 558,272
+                  L 248,272
+                  L 248,360
+                  Q 248,372 236,372
+                  L 216,372
+                  Q 206,372 206,360
+                  L 206,272
+                  Q 195,272 182,268
+                  Q 158,262 138,252
+                  Q 112,240 92,224
+                  Q 74,212 60,202
+                  Z" />
+              </clipPath>
+            </defs>
 
-            <!-- Belly cutout (so primals don't paint over the legs/belly area) — handled by primals -->
+            <!-- Ground shadow under hooves -->
+            <ellipse class="cow-shadow" cx="400" cy="370" rx="296" ry="6"/>
 
-            <!-- ================== PRIMALS ================== -->
+            <!-- Tail (drawn behind body) -->
+            <path class="tail" d="M 632,140 Q 648,200 642,260 Q 638,290 632,302 Q 644,302 650,288 Q 660,250 656,180 Q 652,140 632,140 Z"/>
+            <ellipse class="tail" cx="640" cy="300" rx="7" ry="10"/>
 
-            <!-- CHUCK (front shoulder) -->
-            <path class="primal has-cuts" data-primal="chuck"
-              d="M 175 145 L 285 145 L 285 235 L 220 240 L 175 240 Z"/>
+            <!-- Cow body filled charcoal-pasture (base before primal overlays) -->
+            <path class="cow-body" d="
+              M 60,202
+              Q 50,184 62,166
+              Q 78,144 108,134
+              Q 132,128 150,134
+              Q 158,126 168,134
+              Q 178,144 198,138
+              Q 220,124 240,108
+              L 560,108
+              Q 600,108 624,124
+              Q 640,140 638,162
+              L 638,242
+              Q 636,266 618,272
+              L 600,272
+              L 600,360
+              Q 600,372 588,372
+              L 568,372
+              Q 558,372 558,360
+              L 558,272
+              L 248,272
+              L 248,360
+              Q 248,372 236,372
+              L 216,372
+              Q 206,372 206,360
+              L 206,272
+              Q 195,272 182,268
+              Q 158,262 138,252
+              Q 112,240 92,224
+              Q 74,212 60,202
+              Z"/>
 
-            <!-- RIB (top middle) -->
-            <path class="primal has-cuts" data-primal="rib"
-              d="M 285 145 L 380 145 L 380 220 L 285 220 Z"/>
+            <!-- ================== PRIMAL OVERLAYS (clipped to body) ================== -->
+            <!-- NOTE: Chuck starts at x=200 (after the head/neck) so the face stays the dark base body color -->
+            <g clip-path="url(#cowClip)">
+              <!-- TOP ROW: chuck → rib → loin → sirloin → round (round extends down full height) -->
+              <rect class="primal has-cuts" data-primal="chuck"   x="200" y="100" width="100" height="118"/>
+              <rect class="primal has-cuts" data-primal="rib"     x="300" y="100" width=" 90" height="118"/>
+              <rect class="primal has-cuts" data-primal="loin"    x="390" y="100" width=" 90" height="118"/>
+              <rect class="primal"          data-primal="sirloin" x="480" y="100" width=" 60" height="118"/>
+              <rect class="primal has-cuts" data-primal="round"   x="540" y="100" width="120" height="180"/>
 
-            <!-- LOIN (top, behind rib) -->
-            <path class="primal has-cuts" data-primal="loin"
-              d="M 380 145 L 480 145 L 480 215 L 380 215 Z"/>
+              <!-- BOTTOM ROW: brisket → plate → flank (round above already covers rear) -->
+              <rect class="primal has-cuts" data-primal="brisket" x="200" y="218" width="100" height="62"/>
+              <rect class="primal"          data-primal="plate"   x="300" y="218" width=" 90" height="62"/>
+              <rect class="primal"          data-primal="flank"   x="390" y="218" width="150" height="62"/>
 
-            <!-- SIRLOIN (top rear) -->
-            <path class="primal" data-primal="sirloin"
-              d="M 480 145 L 555 145 L 555 215 L 480 215 Z"/>
+              <!-- LEGS — all four shanks share one region, clipped to leg shapes by cowClip -->
+              <rect class="primal has-cuts" data-primal="shank"   x="0"   y="270" width="760" height="110"/>
+            </g>
 
-            <!-- ROUND (rear) -->
-            <path class="primal" data-primal="round"
-              d="M 555 145 L 640 150 L 645 200 L 632 240 L 555 240 Z"/>
+            <!-- ================== CHALK DIVIDING LINES (clipped to body so they don't extend beyond) ================== -->
+            <g clip-path="url(#cowClip)">
+              <!-- Vertical: head/chuck, then between primals -->
+              <line class="chalk" x1="200" y1="100" x2="200" y2="280"/>
+              <line class="chalk" x1="300" y1="100" x2="300" y2="280"/>
+              <line class="chalk" x1="390" y1="100" x2="390" y2="280"/>
+              <line class="chalk" x1="480" y1="100" x2="480" y2="218"/>
+              <line class="chalk" x1="540" y1="100" x2="540" y2="280"/>
+              <!-- Horizontal forequarter/hindquarter belt and leg line -->
+              <line class="chalk" x1="200" y1="218" x2="540" y2="218"/>
+              <line class="chalk-soft" x1="160" y1="270" x2="640" y2="270"/>
+              <!-- Tenderloin curve hint inside loin region -->
+              <path class="chalk-soft" d="M 400,118 Q 435,160 475,135"/>
+            </g>
 
-            <!-- BRISKET / PLATE (lower front) -->
-            <path class="primal has-cuts" data-primal="brisket"
-              d="M 175 240 L 220 240 L 285 235 L 285 275 L 175 275 Z"/>
+            <!-- ================== HEAD DETAILS (drawn over body) ================== -->
+            <!-- Ear -->
+            <path class="ear" d="M 148,134 Q 142,114 156,112 Q 170,118 164,138 Z"/>
+            <!-- Horn nub (warm tan) -->
+            <path class="horn" d="M 162,128 Q 170,118 178,124 Q 176,138 166,134 Z"/>
+            <!-- Eye -->
+            <circle class="eye" cx="100" cy="158" r="2.6"/>
+            <!-- Nostril -->
+            <ellipse class="nostril" cx="73" cy="184" rx="2.4" ry="2.8"/>
+            <!-- Mouth line -->
+            <path class="mouth" d="M 60,194 Q 72,202 90,200"/>
 
-            <!-- FLANK (lower middle) -->
-            <path class="primal" data-primal="flank"
-              d="M 285 220 L 380 220 L 380 275 L 285 275 Z"/>
+            <!-- ================== HOOF MARKS ================== -->
+            <rect class="hoof" x="206" y="362" width="42" height="10" rx="2"/>
+            <rect class="hoof" x="558" y="362" width="42" height="10" rx="2"/>
 
-            <!-- PLATE/SHORT RIBS (between brisket and flank — already covered) -->
-            <!-- Bottom of loin/round: short plate -->
-            <path class="primal" data-primal="plate"
-              d="M 380 215 L 555 215 L 555 275 L 380 275 Z"/>
-
-            <!-- SHANK (legs) -->
-            <path class="primal has-cuts" data-primal="shank"
-              d="M 138 280 L 175 280 L 170 285 L 168 320 L 156 340 L 144 340 L 143 285 Z
-                 M 222 280 L 248 285 L 248 320 L 244 340 L 232 340 L 230 285 Z
-                 M 506 285 L 525 280 L 524 320 L 520 340 L 508 340 Z
-                 M 622 280 L 658 240 L 660 240 L 670 250 L 655 280 L 645 340 L 633 340 L 632 285 Z" />
+            <!-- ================== INVISIBLE HIT-AREAS (mirror primals — for cleaner hover sheen) ================== -->
+            <g clip-path="url(#cowClip)">
+              <rect class="primal-hit" data-primal="chuck"   x="200" y="100" width="100" height="180"/>
+              <rect class="primal-hit" data-primal="rib"     x="300" y="100" width=" 90" height="118"/>
+              <rect class="primal-hit" data-primal="loin"    x="390" y="100" width=" 90" height="118"/>
+              <rect class="primal-hit" data-primal="sirloin" x="480" y="100" width=" 60" height="118"/>
+              <rect class="primal-hit" data-primal="round"   x="540" y="100" width="120" height="180"/>
+              <rect class="primal-hit" data-primal="brisket" x="200" y="218" width="100" height="62"/>
+              <rect class="primal-hit" data-primal="plate"   x="300" y="218" width=" 90" height="62"/>
+              <rect class="primal-hit" data-primal="flank"   x="390" y="218" width="150" height="62"/>
+              <rect class="primal-hit" data-primal="shank"   x="0"   y="270" width="760" height="110"/>
+            </g>
 
             <!-- ================== LABELS ================== -->
-            <text class="label label-on-dark" x="230" y="195">CHUCK</text>
-            <text class="count" x="230" y="210" fill="#9ab0a1">3 cuts</text>
+            <text class="label" x="250" y="160">CHUCK</text>
+            <rect class="count-pill" x="228" y="170" width="44" height="13" rx="6.5"/>
+            <text class="count-pill-text" x="250" y="180">3 CUTS</text>
 
-            <text class="label label-on-dark" x="332" y="185">RIB</text>
-            <text class="count" x="332" y="200" fill="#9ab0a1">2 cuts</text>
+            <text class="label" x="345" y="160">RIB</text>
+            <rect class="count-pill" x="323" y="170" width="44" height="13" rx="6.5"/>
+            <text class="count-pill-text" x="345" y="180">2 CUTS</text>
 
-            <text class="label label-on-dark" x="430" y="185">LOIN</text>
-            <text class="count" x="430" y="200" fill="#9ab0a1">3 cuts</text>
+            <text class="label" x="435" y="160">LOIN</text>
+            <rect class="count-pill" x="413" y="170" width="44" height="13" rx="6.5"/>
+            <text class="count-pill-text" x="435" y="180">3 CUTS</text>
 
-            <text class="label label-on-dark" x="517" y="185">SIRLOIN</text>
+            <text class="label" x="510" y="160" style="font-size:9.5px;">SIRLN</text>
+            <text class="label-sub" x="510" y="174">ground</text>
 
-            <text class="label label-on-dark" x="595" y="195">ROUND</text>
+            <text class="label" x="595" y="160">ROUND</text>
+            <rect class="count-pill" x="573" y="170" width="44" height="13" rx="6.5"/>
+            <text class="count-pill-text" x="595" y="180">ROAST</text>
 
-            <text class="label label-on-dark" x="230" y="260">BRISKET</text>
+            <text class="label" x="250" y="247">BRISKET</text>
+            <rect class="count-pill" x="228" y="254" width="44" height="13" rx="6.5"/>
+            <text class="count-pill-text" x="250" y="264">SMOKER</text>
 
-            <text class="label label-on-dark" x="332" y="252">FLANK</text>
+            <text class="label" x="345" y="252">PLATE</text>
 
-            <text class="label label-on-dark" x="467" y="252">PLATE / SHORT RIB</text>
+            <text class="label" x="465" y="252">FLANK</text>
 
-            <text class="label label-on-dark" x="158" y="315">SHANK</text>
-            <text class="label label-on-dark" x="595" y="315">SHANK</text>
+            <text class="label" x="227" y="320" style="font-size:9.5px;">SHANK</text>
+            <text class="label" x="579" y="320" style="font-size:9.5px;">SHANK</text>
           </svg>
 
           <div class="cow-legend">
-            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #cfe9d3;"></span>Cuts kept</span>
-            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #4d6452;"></span>Mostly ground</span>
-            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #f5e1ad;"></span>Hover</span>
-            <span style="margin-left:auto; font-style: italic;">Click any region to set its cuts.</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#dca54a;"></span>Steak / smoker cuts kept</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#7da05d;"></span>Round (lean roasts)</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#b04a3a;"></span>Chuck (slow-cook)</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#5a6b62;"></span>Mostly ground</span>
+            <span style="margin-left:auto; font-style: italic; font-weight:600;">Tap a region to dial in its cuts.</span>
           </div>
         </div>
       </div>
@@ -694,7 +806,7 @@
   }));
 
   // ===== Cow diagram click → scroll to + flash sub-primal =====
-  document.querySelectorAll('.cow-svg .primal').forEach(p => p.addEventListener('click', () => {
+  document.querySelectorAll('.cow-svg .primal, .cow-svg .primal-hit').forEach(p => p.addEventListener('click', () => {
     const primal = p.dataset.primal;
     const target = document.getElementById('subp-' + primal);
     if (target) {
