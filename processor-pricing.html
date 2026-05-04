@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Processor pricing · Protein Outfitters</title>
+<meta name="description" content="Set your slaughter, cut, wrap, and specialty fees. Industry-suggested defaults for Northland processors — edit any line." />
+<meta property="og:title" content="Processor pricing · Protein Outfitters" />
+<meta property="og:description" content="Set your slaughter, cut, wrap, and specialty fees with industry suggestions." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/processor-pricing" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Processor pricing · Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.pp-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.pp-inner { max-width: 1200px; margin: 0 auto; display: grid; gap: clamp(24px, 3vw, 36px); grid-template-columns: 1fr; }
+@media (min-width: 1100px) { .pp-inner { grid-template-columns: 1fr 360px; align-items: start; } }
+
+.pp-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
+.pp-lead { font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 24px; }
+
+.market-hint {
+  background: linear-gradient(135deg, var(--accent-soft) 0%, #fff 100%);
+  border: 1px solid rgba(6,27,14,0.10); border-radius: 16px;
+  padding: 14px 18px; margin-bottom: 24px;
+  display: flex; align-items: center; gap: 14px;
+}
+.market-hint-ico { font-size: 22px; line-height: 1; }
+.market-hint-text { display: flex; flex-direction: column; gap: 2px; }
+.market-hint-text strong { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; color: var(--brand); }
+.market-hint-text span { font-size: 12px; color: var(--ink-2); line-height: 1.4; }
+
+.pp-block { background: #fff; border-radius: 22px; padding: clamp(22px, 2.5vw, 32px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 18px; }
+.pp-block-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; gap: 16px; flex-wrap: wrap; }
+.pp-block-head h3 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.022em; }
+.pp-block-head p { margin: 0; font-size: 13px; color: var(--ink-2); }
+
+.fee-row {
+  display: grid; gap: 14px; align-items: center;
+  grid-template-columns: 1fr;
+  padding: 14px 0; border-top: 1px solid rgba(0,0,0,0.06);
+}
+.fee-row:first-child { border-top: 0; padding-top: 0; }
+@media (min-width: 700px) { .fee-row { grid-template-columns: 1.4fr auto auto; } }
+.fee-meta h4 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.018em; }
+.fee-meta p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.fee-suggested { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.10em; text-transform: uppercase; color: var(--brand); margin-top: 6px; }
+
+.fee-input-wrap { display: flex; align-items: center; gap: 8px; background: var(--accent-soft); border: 1px solid rgba(6,27,14,0.12); border-radius: 12px; padding: 6px 12px; transition: background .2s, border-color .2s; }
+.fee-input-wrap.custom { background: #fff; border-color: rgba(0,0,0,0.10); }
+.fee-input-wrap .pre, .fee-input-wrap .post { font-size: 13px; color: var(--ink-2); font-weight: 600; white-space: nowrap; }
+.fee-input { background: transparent; border: 0; padding: 8px 4px; font: inherit; font-size: 16px; font-weight: 800; color: var(--ink); width: 90px; text-align: right; }
+.fee-input:focus { outline: 0; }
+.fee-input::placeholder { color: var(--ink-3); font-weight: 700; }
+
+.species-toggle { display: flex; gap: 6px; padding: 4px; background: var(--surface); border-radius: 999px; margin-bottom: 22px; max-width: 100%; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+.species-toggle::-webkit-scrollbar { display: none; }
+.species-toggle button { background: transparent; border: 0; padding: 9px 16px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 999px; white-space: nowrap; transition: background .2s, color .2s; }
+.species-toggle button.active { background: var(--brand); color: #fbf9f5; }
+
+.pill-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.pill-toggle { background: var(--surface); border: 1px solid transparent; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.pill-toggle:hover { border-color: rgba(0,0,0,0.12); }
+.pill-toggle.on { background: var(--brand); color: #fbf9f5; }
+
+.pp-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; justify-content: space-between; }
+.btn-primary { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 14px 28px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; border-radius: 999px; transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s; }
+.btn-primary:hover { transform: scale(1.04); background: #0a2614; }
+.btn-ghost { background: transparent; color: var(--ink-2); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; padding: 14px 22px; font-size: 14px; font-weight: 600; border-radius: 999px; transition: background .2s, color .2s; }
+.btn-ghost:hover { background: var(--surface); color: var(--ink); }
+
+.reset-link { background: transparent; border: 0; padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 700; color: var(--accent-2); cursor: pointer; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; transition: background .2s, color .2s; }
+.reset-link:hover { background: var(--accent-soft); color: var(--brand); }
+
+/* Revenue calculator (sticky sidebar) */
+.rev-card-wrap { position: sticky; top: 80px; }
+.rev-card { background: var(--brand); color: #fbf9f5; border-radius: 24px; padding: 28px; box-shadow: 0 16px 40px rgba(6,27,14,0.18); }
+.rev-card h4 { margin: 0 0 16px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(251,249,245,0.6); }
+.rev-row { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid rgba(251,249,245,0.18); font-size: 14px; }
+.rev-row:first-of-type { border-top: 0; padding-top: 0; }
+.rev-row .k { color: rgba(251,249,245,0.7); }
+.rev-row .v { font-weight: 800; color: #fbf9f5; }
+.rev-row.total { border-top-color: rgba(251,249,245,0.4); padding-top: 14px; margin-top: 6px; }
+.rev-row.total .k { color: #fbf9f5; font-weight: 800; }
+.rev-row.total .v { font-size: 22px; letter-spacing: -0.02em; }
+.rev-msg { background: rgba(251,249,245,0.10); border-radius: 12px; padding: 12px 14px; margin-top: 16px; font-size: 12px; color: rgba(251,249,245,0.85); line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/processor" class="active">My plant</a><a href="/processor-saas">Pricing</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<section class="pp-shell">
+  <div class="pp-inner">
+    <div>
+      <p class="po-eyebrow">Plant config · Pricing</p>
+      <h1 class="pp-h1">Set your prices once.</h1>
+      <p class="pp-lead">We pre-fill every field with the 2026 industry average for Northland processors. Click any number to type your own. Your live cut sheets pull from this config — buyers see one total at checkout.</p>
+
+      <div class="market-hint">
+        <span class="market-hint-ico">💡</span>
+        <span class="market-hint-text">
+          <strong>Industry suggestions are just placeholders</strong>
+          <span>Sourced from MAMP / AAMP 2026 surveys + 14 Northland plants. Edit anything — your config saves automatically.</span>
+        </span>
+      </div>
+
+      <!-- Species switcher -->
+      <div class="species-toggle">
+        <button class="active" data-species="beef">Beef</button>
+        <button data-species="pork">Pork</button>
+        <button data-species="lamb">Lamb</button>
+        <button data-species="venison">Venison</button>
+        <button data-species="poultry">Poultry</button>
+      </div>
+
+      <!-- Slaughter / Kill fee -->
+      <div class="pp-block">
+        <div class="pp-block-head"><h3>Slaughter</h3><p>One-time per head, regardless of weight.</p></div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Kill fee · USDA inspected</h4>
+            <p>Includes inspection, hanging, hot-water rinse, and the carcass entering the cooler for aging.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="killFee" type="number" placeholder="125" min="0"><span class="post">/ head</span></div>
+          <button class="reset-link" data-reset="killFee">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Aging · dry-hung in cooler</h4>
+            <p>14-day default. Premium plants charge per extra week.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="ageFee" type="number" placeholder="0" min="0"><span class="post">/ week extra</span></div>
+          <button class="reset-link" data-reset="ageFee">↺</button>
+        </div>
+      </div>
+
+      <!-- Cut + Wrap -->
+      <div class="pp-block">
+        <div class="pp-block-head"><h3>Cut + Wrap</h3><p>Charged per lb of hanging weight.</p></div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Standard cut + wrap</h4>
+            <p>Industry standard cuts in butcher paper. Per-pound on hanging weight.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="cutFee" type="number" placeholder="0.95" step="0.05" min="0"><span class="post">/ lb HW</span></div>
+          <button class="reset-link" data-reset="cutFee">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Vacuum seal upcharge</h4>
+            <p>Doubles freezer life. Most premium operators.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="vacFee" type="number" placeholder="0.30" step="0.05" min="0"><span class="post">/ lb HW</span></div>
+          <button class="reset-link" data-reset="vacFee">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Boneless surcharge</h4>
+            <p>Removing bones from chuck, round, etc.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="boneFee" type="number" placeholder="0.15" step="0.05" min="0"><span class="post">/ lb HW</span></div>
+          <button class="reset-link" data-reset="boneFee">↺</button>
+        </div>
+      </div>
+
+      <!-- Specialty -->
+      <div class="pp-block">
+        <div class="pp-block-head"><h3>Specialty work</h3><p>Per-pound on the cuts that go through these processes.</p></div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Grind (ground beef, sausage base)</h4>
+            <p>Standard 80/20 grind unless customer specifies.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="grindFee" type="number" placeholder="0.95" step="0.05" min="0"><span class="post">/ lb</span></div>
+          <button class="reset-link" data-reset="grindFee">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Smoke + cure (bacon, hams, pastrami)</h4>
+            <p>Includes brine, smoke time, and re-wrapping.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="smokeFee" type="number" placeholder="2.25" step="0.05" min="0"><span class="post">/ lb</span></div>
+          <button class="reset-link" data-reset="smokeFee">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Sausage making (links, bratwursts)</h4>
+            <p>Per pound. Includes seasoning + casing.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="sausageFee" type="number" placeholder="3.25" step="0.05" min="0"><span class="post">/ lb</span></div>
+          <button class="reset-link" data-reset="sausageFee">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Patty press</h4>
+            <p>Pre-pressed burger patties. Saves the customer freezer paper.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="pattyFee" type="number" placeholder="0.40" step="0.05" min="0"><span class="post">/ lb</span></div>
+          <button class="reset-link" data-reset="pattyFee">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Jerky strips</h4>
+            <p>Pre-sliced from eye-of-round.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="jerkyFee" type="number" placeholder="2.50" step="0.05" min="0"><span class="post">/ lb</span></div>
+          <button class="reset-link" data-reset="jerkyFee">↺</button>
+        </div>
+      </div>
+
+      <!-- Cuts offered -->
+      <div class="pp-block">
+        <div class="pp-block-head"><h3>Cuts you offer</h3><p>Tap to enable. Disabled cuts won't show up on customer cut sheets.</p></div>
+        <div class="pill-grid">
+          <button class="pill-toggle on">Ribeye (bone-in)</button>
+          <button class="pill-toggle on">Ribeye (boneless)</button>
+          <button class="pill-toggle on">NY strip</button>
+          <button class="pill-toggle on">T-bone / Porterhouse</button>
+          <button class="pill-toggle on">Tenderloin (whole)</button>
+          <button class="pill-toggle on">Tenderloin (medallions)</button>
+          <button class="pill-toggle on">Sirloin steak</button>
+          <button class="pill-toggle on">Tri-tip</button>
+          <button class="pill-toggle on">Flank steak</button>
+          <button class="pill-toggle on">Skirt steak</button>
+          <button class="pill-toggle on">Chuck roast</button>
+          <button class="pill-toggle on">Rump roast</button>
+          <button class="pill-toggle on">Sirloin tip roast</button>
+          <button class="pill-toggle on">Brisket (whole)</button>
+          <button class="pill-toggle on">Short ribs</button>
+          <button class="pill-toggle on">Stew meat</button>
+          <button class="pill-toggle on">Soup bones</button>
+          <button class="pill-toggle on">Marrow bones</button>
+          <button class="pill-toggle on">Suet (rendered)</button>
+          <button class="pill-toggle">Hide (raw)</button>
+          <button class="pill-toggle">Skull</button>
+          <button class="pill-toggle">Tripe</button>
+        </div>
+      </div>
+
+      <!-- Booking + Capacity -->
+      <div class="pp-block">
+        <div class="pp-block-head"><h3>Booking + Capacity</h3><p>Drives your /processor calendar.</p></div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Animals per day · max</h4>
+            <p>We won't book past this for any one date.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><input class="fee-input" id="capPerDay" type="number" placeholder="6" min="0"><span class="post">animals / day</span></div>
+          <button class="reset-link" data-reset="capPerDay">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Lead time · minimum</h4>
+            <p>Days notice required from drop-off booking.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><input class="fee-input" id="leadDays" type="number" placeholder="14" min="0"><span class="post">days</span></div>
+          <button class="reset-link" data-reset="leadDays">↺</button>
+        </div>
+        <div class="fee-row">
+          <div class="fee-meta">
+            <h4>Drop-off deposit (no-show forfeit)</h4>
+            <p>Refunded on QR check-in. Forfeited if farmer no-shows.</p>
+          </div>
+          <div class="fee-input-wrap" data-fee><span class="pre">$</span><input class="fee-input" id="depFee" type="number" placeholder="150" min="0"><span class="post">/ booking</span></div>
+          <button class="reset-link" data-reset="depFee">↺</button>
+        </div>
+      </div>
+
+      <div class="pp-actions">
+        <button class="reset-link" id="resetAll">↺ Reset all to industry suggestions</button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-ghost" id="previewBtn">Preview customer view</button>
+          <button class="btn-primary" id="saveBtn">Save config →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live revenue calculator -->
+    <aside class="rev-card-wrap">
+      <div class="rev-card">
+        <h4>Per-animal revenue · live preview</h4>
+        <div class="rev-row"><span class="k">Kill fee</span><span class="v" id="rKill">$125</span></div>
+        <div class="rev-row"><span class="k">Cut + wrap (720 lb HW)</span><span class="v" id="rCut">$684</span></div>
+        <div class="rev-row"><span class="k">Vacuum seal</span><span class="v" id="rVac">$216</span></div>
+        <div class="rev-row"><span class="k">Boneless surcharge</span><span class="v" id="rBone">$108</span></div>
+        <div class="rev-row"><span class="k">Grind (110 lb)</span><span class="v" id="rGrind">$105</span></div>
+        <div class="rev-row"><span class="k">Smoke / cure (avg)</span><span class="v" id="rSmoke">$45</span></div>
+        <div class="rev-row total"><span class="k">Per beef animal</span><span class="v" id="rTotal">$1,283</span></div>
+
+        <div class="rev-msg" id="revMsg">Based on a 1,180 lb steer with 720 lb hanging weight. Assumes vacuum seal + boneless on chuck/round + 110 lb to grind.</div>
+
+        <div style="margin-top: 18px;">
+          <p style="margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(251,249,245,0.6);">Capacity at full booking</p>
+          <p style="margin: 0; font-size: 24px; font-weight: 900; letter-spacing: -0.025em;" id="rRev">$30,792 <span style="font-size: 13px; opacity: .7; font-weight: 700;">/ week</span></p>
+          <p style="margin: 4px 0 0; font-size: 12px; color: rgba(251,249,245,0.7);" id="rRevSub">6 beef × 4 work-days × $1,283 average</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ============ INDUSTRY DEFAULTS by species ============
+  const DEFAULTS = {
+    beef:    { killFee: 125, ageFee: 0,  cutFee: 0.95, vacFee: 0.30, boneFee: 0.15, grindFee: 0.95, smokeFee: 2.25, sausageFee: 3.25, pattyFee: 0.40, jerkyFee: 2.50, capPerDay: 6,  leadDays: 14, depFee: 150 },
+    pork:    { killFee:  60, ageFee: 0,  cutFee: 0.85, vacFee: 0.30, boneFee: 0.15, grindFee: 0.85, smokeFee: 2.50, sausageFee: 3.50, pattyFee: 0.35, jerkyFee: 2.50, capPerDay: 8,  leadDays: 10, depFee: 100 },
+    lamb:    { killFee:  50, ageFee: 0,  cutFee: 0.95, vacFee: 0.30, boneFee: 0.20, grindFee: 1.10, smokeFee: 2.50, sausageFee: 3.75, pattyFee: 0.45, jerkyFee: 2.75, capPerDay: 12, leadDays: 10, depFee: 75  },
+    venison: { killFee:  85, ageFee: 0,  cutFee: 1.10, vacFee: 0.35, boneFee: 0.25, grindFee: 1.25, smokeFee: 3.00, sausageFee: 4.00, pattyFee: 0.50, jerkyFee: 3.25, capPerDay: 8,  leadDays: 14, depFee: 100 },
+    poultry: { killFee:   8, ageFee: 0,  cutFee: 0.50, vacFee: 0.20, boneFee: 0.30, grindFee: 1.50, smokeFee: 3.00, sausageFee: 4.50, pattyFee: 0.40, jerkyFee: 3.50, capPerDay: 80, leadDays:  7, depFee: 25  }
+  };
+
+  let species = 'beef';
+  const fields = ['killFee','ageFee','cutFee','vacFee','boneFee','grindFee','smokeFee','sausageFee','pattyFee','jerkyFee','capPerDay','leadDays','depFee'];
+
+  function applyDefaults() {
+    const d = DEFAULTS[species];
+    fields.forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      el.placeholder = String(d[id]);
+      // Mark wrapper as "suggested" if value is empty
+      const wrap = el.closest('.fee-input-wrap');
+      if (wrap) wrap.classList.toggle('custom', !!el.value);
+    });
+    recompute();
+  }
+
+  function val(id) {
+    const el = document.getElementById(id); if (!el) return 0;
+    const v = el.value !== '' ? Number(el.value) : Number(el.placeholder);
+    return isNaN(v) ? 0 : v;
+  }
+
+  // Live revenue preview (assumes a typical beef animal)
+  function recompute() {
+    // Reference animal: 1,180 lb live → 720 lb HW → 437 lb take-home
+    const HW = species === 'beef' ? 720 : species === 'pork' ? 200 : species === 'lamb' ? 65 : species === 'venison' ? 120 : 5;
+    const grindLb = HW * 0.18;
+    const smokeLb = HW * 0.05;
+    const boneLb = HW * 0.65;
+
+    const kill = val('killFee');
+    const cut = val('cutFee') * HW;
+    const vac = val('vacFee') * HW;
+    const bone = val('boneFee') * boneLb;
+    const grind = val('grindFee') * grindLb;
+    const smoke = val('smokeFee') * smokeLb;
+
+    const total = Math.round(kill + cut + vac + bone + grind + smoke);
+
+    document.getElementById('rKill').textContent = '$' + kill.toLocaleString();
+    document.getElementById('rCut').textContent = '$' + Math.round(cut).toLocaleString();
+    document.getElementById('rVac').textContent = '$' + Math.round(vac).toLocaleString();
+    document.getElementById('rBone').textContent = '$' + Math.round(bone).toLocaleString();
+    document.getElementById('rGrind').textContent = '$' + Math.round(grind).toLocaleString();
+    document.getElementById('rSmoke').textContent = '$' + Math.round(smoke).toLocaleString();
+    document.getElementById('rTotal').textContent = '$' + total.toLocaleString();
+
+    const cap = val('capPerDay');
+    const rev = Math.round(cap * 4 * total);
+    document.getElementById('rRev').innerHTML = '$' + rev.toLocaleString() + ' <span style="font-size: 13px; opacity: .7; font-weight: 700;">/ week</span>';
+    document.getElementById('rRevSub').textContent = `${cap} ${species} × 4 work-days × $${total.toLocaleString()} average`;
+
+    // Update reference msg with species-specific HW
+    document.getElementById('revMsg').textContent = species === 'beef'
+      ? 'Based on a 1,180 lb steer with 720 lb hanging weight. Assumes vacuum seal + boneless on chuck/round + 110 lb to grind.'
+      : `Based on a typical ${species} animal with ~${HW} lb hanging weight.`;
+  }
+
+  // Wire input events to recompute and toggle "custom" tint
+  fields.forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.addEventListener('input', () => {
+      const wrap = el.closest('.fee-input-wrap');
+      if (wrap) wrap.classList.toggle('custom', !!el.value);
+      recompute();
+    });
+  });
+
+  // Reset individual
+  document.querySelectorAll('[data-reset]').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.reset;
+    const el = document.getElementById(id); if (!el) return;
+    el.value = '';
+    const wrap = el.closest('.fee-input-wrap');
+    if (wrap) wrap.classList.remove('custom');
+    recompute();
+  }));
+
+  // Reset all
+  document.getElementById('resetAll').addEventListener('click', () => {
+    fields.forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      el.value = '';
+      const wrap = el.closest('.fee-input-wrap');
+      if (wrap) wrap.classList.remove('custom');
+    });
+    recompute();
+  });
+
+  // Species switcher
+  document.querySelectorAll('.species-toggle button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.species-toggle button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    species = b.dataset.species;
+    applyDefaults();
+  }));
+
+  // Pill toggles
+  document.querySelectorAll('.pill-toggle').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
+
+  // Save / preview (visual only)
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const btn = document.getElementById('saveBtn');
+    btn.textContent = '✓ Saved';
+    btn.style.background = '#cfe9d3';
+    btn.style.color = 'var(--brand)';
+    setTimeout(() => { btn.textContent = 'Save config →'; btn.style.background = ''; btn.style.color = ''; }, 1600);
+  });
+
+  applyDefaults();
+})();
+</script>
+</body>
+</html>

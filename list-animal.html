@@ -113,6 +113,31 @@
 .price-card .meta .t { font-size: 15px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
 .price-card .meta .s { font-size: 12px; color: var(--ink-3); margin: 2px 0 0; }
 .price-card input { background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 10px 14px; font: inherit; font-size: 15px; font-weight: 700; width: 110px; text-align: right; }
+.price-card input::placeholder { color: var(--ink-3); font-weight: 600; }
+.price-card.suggested input { background: var(--accent-soft); border-color: rgba(6,27,14,0.18); }
+
+/* Market hint */
+.market-hint {
+  background: linear-gradient(135deg, var(--accent-soft) 0%, #fff 100%);
+  border: 1px solid rgba(6,27,14,0.10); border-radius: 16px;
+  padding: 14px 18px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 14px;
+  animation: stepIn .65s cubic-bezier(.2,.9,.3,1.05) both;
+}
+.market-hint-ico { font-size: 22px; line-height: 1; }
+.market-hint-text { display: flex; flex-direction: column; gap: 2px; }
+.market-hint-text strong { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; color: var(--brand); }
+.market-hint-text span { font-size: 12px; color: var(--ink-2); line-height: 1.4; }
+.price-suggested-tag { font-size: 11px; color: var(--brand); font-weight: 700; opacity: 0.85; }
+.reset-link {
+  background: transparent; border: 0; padding: 8px 14px;
+  font: inherit; font-size: 13px; font-weight: 700; color: var(--accent-2);
+  cursor: pointer; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background .2s, color .2s;
+}
+.reset-link:hover { background: var(--accent-soft); color: var(--brand); }
+.price-actions { display: flex; justify-content: flex-end; margin-top: -8px; margin-bottom: 18px; }
 
 /* Review card */
 .review-card { background: var(--surface); border-radius: 18px; padding: 22px 26px; margin-bottom: 14px; }
@@ -404,12 +429,46 @@
       <!-- STEP 4 — Pricing -->
       <section class="wiz-step" data-step="4">
         <h1>Price the shares.</h1>
-        <p class="lead">Set your prices per share. We'll add the processing fee + insurance pool on top — buyer sees one total.</p>
+        <p class="lead">Industry-suggested numbers based on your breed, feed, and predicted finish weight. Click any field to type your own — or leave the suggestion.</p>
+
+        <!-- Live market hint -->
+        <div class="market-hint">
+          <span class="market-hint-ico">💡</span>
+          <span class="market-hint-text">
+            <strong id="marketTitle">Industry-suggested · Grass-fed Black Angus</strong>
+            <span id="marketSub">$12.50/lb take-home · 2026 average for direct-to-consumer in MN/WI/ND/SD</span>
+          </span>
+        </div>
 
         <div class="price-grid">
-          <div class="price-card"><span class="glyph">¼</span><div class="meta"><p class="t">Quarter share</p><p class="s">~110 lb · most popular</p></div><input type="number" value="1395" min="0"></div>
-          <div class="price-card"><span class="glyph">½</span><div class="meta"><p class="t">Half share</p><p class="s">~220 lb</p></div><input type="number" value="2690" min="0"></div>
-          <div class="price-card"><span class="glyph">1</span><div class="meta"><p class="t">Whole animal</p><p class="s">~440 lb</p></div><input type="number" value="5180" min="0"></div>
+          <div class="price-card suggested">
+            <span class="glyph">¼</span>
+            <div class="meta">
+              <p class="t">Quarter share</p>
+              <p class="s">~<span id="cutsQ">110</span> lb · <span class="price-suggested-tag">suggested $<span id="suggQ">1,395</span></span></p>
+            </div>
+            <input type="number" id="priceQ" placeholder="1395" min="0">
+          </div>
+          <div class="price-card suggested">
+            <span class="glyph">½</span>
+            <div class="meta">
+              <p class="t">Half share</p>
+              <p class="s">~<span id="cutsH">220</span> lb · <span class="price-suggested-tag">suggested $<span id="suggH">2,690</span></span></p>
+            </div>
+            <input type="number" id="priceH" placeholder="2690" min="0">
+          </div>
+          <div class="price-card suggested">
+            <span class="glyph">1</span>
+            <div class="meta">
+              <p class="t">Whole animal</p>
+              <p class="s">~<span id="cutsW">440</span> lb · <span class="price-suggested-tag">suggested $<span id="suggW">5,180</span></span></p>
+            </div>
+            <input type="number" id="priceW" placeholder="5180" min="0">
+          </div>
+        </div>
+
+        <div class="price-actions">
+          <button type="button" class="reset-link" id="resetPrices">↺ Use suggested prices</button>
         </div>
 
         <div class="field">
@@ -583,6 +642,56 @@
     poultry: { Steer: 6, Heifer: 6, Cow: 6, Bull: 12 }
   };
 
+  // ============ INDUSTRY-SUGGESTED $/lb (take-home cuts) ============
+  // Direct-to-consumer 2026 averages, MN/WI/ND/SD region.
+  // Keys: grass = 100% grass life + grass finish. mixed = grass + grain. grain = mostly grain.
+  const PRICE_PER_LB = {
+    beef: {
+      'Black Angus':       { grass: 12.50, mixed: 10.00, grain:  9.00 },
+      'Red Angus':         { grass: 12.50, mixed: 10.00, grain:  9.00 },
+      'Hereford':          { grass: 11.50, mixed:  9.50, grain:  8.50 },
+      'Charolais':         { grass: 11.00, mixed:  9.00, grain:  8.00 },
+      'Simmental':         { grass: 11.00, mixed:  9.00, grain:  8.00 },
+      'Wagyu':             { grass: 22.00, mixed: 19.00, grain: 17.00 },
+      'Wagyu × Angus':     { grass: 17.00, mixed: 14.50, grain: 13.00 },
+      'Highland':          { grass: 14.00, mixed: 11.00, grain: 10.00 },
+      'Belted Galloway':   { grass: 13.50, mixed: 10.50, grain:  9.50 },
+      'Shorthorn':         { grass: 11.00, mixed:  9.00, grain:  8.00 },
+      'Texas Longhorn':    { grass: 11.00, mixed:  9.00, grain:  8.00 },
+      'Mixed / Cross':     { grass: 11.00, mixed:  9.00, grain:  8.00 }
+    },
+    pork: {
+      'Berkshire':         { grass: 14.00, mixed: 11.00, grain:  9.50 },
+      'Duroc':             { grass: 12.00, mixed:  9.50, grain:  8.50 },
+      'Yorkshire':         { grass: 11.00, mixed:  8.50, grain:  7.50 },
+      'Hampshire':         { grass: 11.00, mixed:  8.50, grain:  7.50 },
+      'Tamworth':          { grass: 14.50, mixed: 11.50, grain: 10.00 },
+      'Mangalitsa':        { grass: 22.00, mixed: 18.00, grain: 16.00 },
+      'Mixed / Cross':     { grass: 11.00, mixed:  9.00, grain:  8.00 }
+    },
+    lamb: {
+      'Katahdin':          { grass: 13.00, mixed: 11.00, grain: 10.00 },
+      'Dorper':            { grass: 13.50, mixed: 11.50, grain: 10.50 },
+      'Suffolk':           { grass: 12.50, mixed: 10.50, grain:  9.50 },
+      'Polypay':           { grass: 12.00, mixed: 10.00, grain:  9.00 },
+      'Icelandic':         { grass: 16.00, mixed: 13.50, grain: 12.00 },
+      'Mixed / Cross':     { grass: 12.50, mixed: 10.50, grain:  9.50 }
+    },
+    venison: {
+      'Whitetail':         { grass: 16.00, mixed: 16.00, grain: 16.00 },
+      'Mule':              { grass: 16.00, mixed: 16.00, grain: 16.00 },
+      'Red deer':          { grass: 18.00, mixed: 18.00, grain: 18.00 },
+      'Elk':               { grass: 19.00, mixed: 19.00, grain: 19.00 }
+    },
+    poultry: {
+      'Broiler':           { grass:  6.50, mixed:  5.50, grain:  4.50 },
+      'Heritage':          { grass:  9.50, mixed:  8.00, grain:  6.50 },
+      'Cornish Cross':     { grass:  7.00, mixed:  6.00, grain:  5.00 },
+      'Freedom Ranger':    { grass:  8.50, mixed:  7.00, grain:  6.00 },
+      'Turkey':            { grass:  7.50, mixed:  6.50, grain:  5.50 }
+    }
+  };
+
   // Wagyu/Highland/Belted = smaller finishes, Charolais/Simmental = bigger
   const BREED_WEIGHT_MULT = {
     'Wagyu': 1.05, 'Wagyu × Angus': 1.05, 'Highland': 0.85, 'Belted Galloway': 0.88,
@@ -622,9 +731,86 @@
     flashSet('calcDateSub', `~${months} months · ${adg} lb/day average gain`, false);
     flashSet('calcTake', '~' + takeHome.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
 
+    // Recompute industry-suggested prices (drives step 4)
+    suggestPrices(target, takeHome);
+
     // Update auto-description
     autoDescribe();
   }
+
+  // ============ SUGGESTED PRICING ENGINE ============
+  function feedKey() {
+    const ff = S.finishFeed || '';
+    if (ff.toLowerCase().includes('grass') && !ff.toLowerCase().includes('grain')) return 'grass';
+    if (ff.toLowerCase().includes('mostly grain') || ff.toLowerCase().includes('conventional')) return 'grain';
+    return 'mixed';
+  }
+  function roundTo(n, step) { return Math.round(n / step) * step; }
+
+  function suggestPrices(targetLive, takeHome) {
+    const tbl = PRICE_PER_LB[S.species] || {};
+    const byBreed = tbl[S.breed] || tbl['Mixed / Cross'] || { grass: 10, mixed: 9, grain: 8 };
+    const fk = feedKey();
+    const $perLb = byBreed[fk];
+
+    const wholeLb = Math.max(20, takeHome);
+    const halfLb = Math.round(wholeLb * 0.50);
+    const quarterLb = Math.round(wholeLb * 0.25);
+
+    // Per-share price = lbs × $/lb, rounded to nearest $5
+    // Whole gets 5% volume discount
+    const qPrice = roundTo(quarterLb * $perLb, 5);
+    const hPrice = roundTo(halfLb * $perLb, 5);
+    const wPrice = roundTo(wholeLb * $perLb * 0.95, 5);
+
+    setTextById('cutsQ', quarterLb);
+    setTextById('cutsH', halfLb);
+    setTextById('cutsW', wholeLb);
+    setTextById('suggQ', qPrice.toLocaleString());
+    setTextById('suggH', hPrice.toLocaleString());
+    setTextById('suggW', wPrice.toLocaleString());
+
+    const pQ = document.getElementById('priceQ');
+    const pH = document.getElementById('priceH');
+    const pW = document.getElementById('priceW');
+    if (pQ) pQ.placeholder = String(qPrice);
+    if (pH) pH.placeholder = String(hPrice);
+    if (pW) pW.placeholder = String(wPrice);
+
+    // Mark cards "suggested" only if user hasn't typed their own value
+    [['priceQ', 'cardQ'], ['priceH', 'cardH'], ['priceW', 'cardW']].forEach(([iid]) => {
+      const inp = document.getElementById(iid); if (!inp) return;
+      const card = inp.closest('.price-card');
+      if (!card) return;
+      card.classList.toggle('suggested', !inp.value);
+    });
+
+    // Update market hint
+    const t = document.getElementById('marketTitle');
+    const sub = document.getElementById('marketSub');
+    if (t) t.textContent = `Industry-suggested · ${S.feedType.toLowerCase().includes('grass') && !S.feedType.toLowerCase().includes('grain') ? 'Grass-fed' : S.feedType.toLowerCase().includes('grain') && !S.feedType.toLowerCase().includes('grass') ? 'Grain-finished' : 'Pasture-raised'} ${S.breed}`;
+    if (sub) sub.textContent = `$${$perLb.toFixed(2)}/lb take-home · 2026 average for direct-to-consumer in MN/WI/ND/SD`;
+  }
+  function setTextById(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
+
+  // Toggle "suggested" tint on the price cards as the user types
+  ['priceQ', 'priceH', 'priceW'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.addEventListener('input', () => {
+      const card = el.closest('.price-card');
+      if (card) card.classList.toggle('suggested', !el.value);
+    });
+  });
+
+  // Reset to suggested
+  const resetBtn = document.getElementById('resetPrices');
+  if (resetBtn) resetBtn.addEventListener('click', () => {
+    ['priceQ','priceH','priceW'].forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      el.value = '';
+      const card = el.closest('.price-card'); if (card) card.classList.add('suggested');
+    });
+  });
 
   function flashSet(id, val, doFlash) {
     const el = document.getElementById(id); if (!el) return;
