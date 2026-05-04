@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Settings &amp; Preferences | Protein Outfitters</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed-variant": "#364c3c",
+              "secondary-fixed": "#dce5da",
+              "on-surface-variant": "#434843",
+              "surface-bright": "#fbf9f5",
+              "surface-container": "#f0eeea",
+              "error-container": "#ffdad6",
+              "outline": "#737972",
+              "on-tertiary-fixed": "#410003",
+              "inverse-primary": "#b4cdb8",
+              "tertiary-fixed": "#ffdad6",
+              "secondary": "#586158",
+              "outline-variant": "#c3c8c1",
+              "on-tertiary-fixed-variant": "#930010",
+              "on-secondary-fixed": "#151d17",
+              "on-background": "#1b1c1a",
+              "tertiary": "#000000",
+              "secondary-fixed-dim": "#c0c9bf",
+              "primary-fixed": "#cfe9d3",
+              "inverse-on-surface": "#f2f0ec",
+              "error": "#ba1a1a",
+              "on-secondary": "#ffffff",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "background": "#fbf9f5",
+              "tertiary-container": "#410003",
+              "on-primary-fixed": "#0a2012",
+              "surface-dim": "#dbdad6",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb3ac",
+              "surface-tint": "#4d6452",
+              "on-tertiary-container": "#f04440",
+              "on-error": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed-dim": "#b4cdb8",
+              "primary-container": "#0a2012",
+              "on-primary-container": "#728a77",
+              "surface-variant": "#e4e2de",
+              "surface-container-high": "#eae8e4",
+              "primary": "#000000",
+              "inverse-surface": "#30312e",
+              "secondary-container": "#d9e2d8",
+              "surface-container-highest": "#e4e2de",
+              "surface-container-low": "#f5f3ef",
+              "surface": "#fbf9f5",
+              "on-secondary-fixed-variant": "#404941",
+              "on-surface": "#1b1c1a",
+              "on-secondary-container": "#5c655d"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .ios-toggle {
+            appearance: none;
+            width: 44px;
+            height: 24px;
+            background: #e4e2de;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .ios-toggle:checked {
+            background: #0a2012;
+        }
+        .ios-toggle::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ios-toggle:checked::before {
+            transform: translateX(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-fixed">
+<!-- TopAppBar Navigation Shell -->
+<nav class="fixed top-0 w-full z-50 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 glass-header">
+<div class="flex justify-between items-center px-8 py-6 max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface cursor-pointer hover:opacity-80 transition-opacity" data-icon="close">close</span>
+<h1 class="font-bold tracking-tighter text-2xl text-on-surface">Settings</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden">
+<img alt="Marcus Sterling Profile" class="w-full h-full object-cover" data-alt="Portrait of a sophisticated man with a short beard wearing a dark olive green linen shirt, soft studio lighting" src="/angus.jpg"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="pt-32 pb-24 px-6 md:px-8 max-w-4xl mx-auto">
+<!-- Profile Header Section -->
+<section class="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<div class="w-24 h-24 rounded-[2.5rem] bg-surface-container-low overflow-hidden shadow-2xl transition-transform duration-500 hover:scale-105">
+<img alt="Marcus Sterling" class="w-full h-full object-cover" data-alt="Professional portrait of Marcus Sterling, high-end corporate aesthetic, neutral background, sharp focus" src="/angus.jpg"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-4 border-surface">
+<span class="material-symbols-outlined text-[16px]" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div>
+<h2 class="text-3xl font-black tracking-tighter text-on-surface">Marcus Sterling</h2>
+<p class="text-on-surface-variant font-medium tracking-tight">marcus.sterling@monolith.com</p>
+<div class="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold tracking-widest uppercase">
+                        Platinum Member
+                    </div>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-8 py-3.5 rounded-full font-bold tracking-tight text-sm transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/10">
+                Edit Profile
+            </button>
+</section>
+<!-- Bento Settings Layout -->
+<div class="grid grid-cols-1 gap-12">
+<!-- Account Category -->
+<section>
+<header class="mb-6 px-2">
+<h3 class="text-xs font-black tracking-[0.2em] text-on-surface-variant uppercase">Account Control</h3>
+</header>
+<div class="bg-surface-container-low rounded-[2rem] overflow-hidden">
+<div class="p-4 space-y-1">
+<!-- Security -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-highest transition-colors rounded-2xl group cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined" data-icon="shield_person">shield_person</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Security &amp; Privacy</p>
+<p class="text-sm text-on-surface-variant">Two-factor authentication, Passkeys</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Notifications -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-highest transition-colors rounded-2xl group cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Notifications</p>
+<p class="text-sm text-on-surface-variant">Manage alerts and news updates</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Payment Methods -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-highest transition-colors rounded-2xl group cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined" data-icon="credit_card">credit_card</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Payment Methods</p>
+<p class="text-sm text-on-surface-variant">Mastercard •••• 9012</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Preferences Category -->
+<section>
+<header class="mb-6 px-2">
+<h3 class="text-xs font-black tracking-[0.2em] text-on-surface-variant uppercase">Environment Preferences</h3>
+</header>
+<div class="bg-surface-container-low rounded-[2rem] overflow-hidden">
+<div class="p-4 space-y-1">
+<!-- Dark Experience Toggle -->
+<div class="flex items-center justify-between p-5 bg-surface-container-lowest/40 rounded-2xl">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm">
+<span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Dark Experience</p>
+<p class="text-sm text-on-surface-variant">Optimized for low light environments</p>
+</div>
+</div>
+<input class="ios-toggle" type="checkbox"/>
+</div>
+<!-- Region -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-highest transition-colors rounded-2xl group cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined" data-icon="public">public</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Region</p>
+<p class="text-sm text-on-surface-variant">North Star (Global Distribution)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Unit System -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-highest transition-colors rounded-2xl group cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined" data-icon="straighten">straighten</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Unit System</p>
+<p class="text-sm text-on-surface-variant">Metric (kg, g, ml)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Support & Legal Category -->
+<section>
+<header class="mb-6 px-2">
+<h3 class="text-xs font-black tracking-[0.2em] text-on-surface-variant uppercase">Support &amp; Legacy</h3>
+</header>
+<div class="bg-surface-container-low rounded-[2rem] overflow-hidden">
+<div class="p-4 space-y-1">
+<!-- Help Center -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-highest transition-colors rounded-2xl group cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined" data-icon="help_center">help_center</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Help Center</p>
+<p class="text-sm text-on-surface-variant">F.A.Q, Live Support</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Terms of Service -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-highest transition-colors rounded-2xl group cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Terms of Service</p>
+<p class="text-sm text-on-surface-variant">Last updated October 2023</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Privacy Policy -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-highest transition-colors rounded-2xl group cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm group-hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined" data-icon="policy">policy</span>
+</div>
+<div>
+<p class="font-bold tracking-tight text-on-surface">Privacy Policy</p>
+<p class="text-sm text-on-surface-variant">GDPR &amp; CCPA Compliant</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Sign Out Section -->
+<section class="mt-8 flex flex-col items-center gap-6">
+<button class="group flex items-center gap-3 px-8 py-4 rounded-full text-error font-bold tracking-tight hover:bg-error-container/20 transition-all duration-300">
+<span class="material-symbols-outlined text-error" data-icon="logout">logout</span>
+                    Sign Out
+                </button>
+<p class="text-[10px] font-bold tracking-[0.3em] text-on-surface-variant/40 uppercase">
+                    Version 4.2.0-Alpha • Build 1902
+                </p>
+</section>
+</div>
+</main>
+<!-- Bottom Navigation Bar Shell -->
+<div class="md:hidden">
+<nav class="fixed bottom-0 left-0 w-full h-24 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 backdrop-blur-2xl flex justify-around items-center px-10 pb-4 rounded-t-[2.75rem] shadow-[0_-10px_40px_rgba(27,28,26,0.04)] z-50">
+<div class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] transition-all">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Discover</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] transition-all">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Provenance</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] transition-all">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Selection</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#061b0e] dark:bg-[#fbf9f5] text-[#fbf9f5] dark:text-[#061b0e] rounded-full w-14 h-14 scale-110 transition-all shadow-xl">
+<span class="material-symbols-outlined" data-icon="shield_person">shield_person</span>
+<!-- Vault tab considered active for Settings context -->
+</div>
+</nav>
+</div>
+</body></html>
