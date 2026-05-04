@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>List an animal · Protein Outfitters</title>
+<meta name="description" content="List a real animal in 90 seconds. Five short steps. Verified producers only." />
+<meta property="og:title" content="List an animal · Protein Outfitters" />
+<meta property="og:description" content="List a real animal in 90 seconds." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/list-animal" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="List an animal · Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.wiz-shell { padding: clamp(48px, 6vw, 88px) var(--shell-pad) clamp(64px, 8vw, 120px); min-height: calc(100vh - 80px); display: flex; align-items: flex-start; justify-content: center; }
+.wiz { width: 100%; max-width: 720px; }
+.wiz-progress { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 32px; }
+.wiz-progress .dot { width: 36px; height: 4px; border-radius: 99px; background: var(--surface-2); transition: background .28s, width .28s; }
+.wiz-progress .dot.active { background: var(--brand); width: 56px; }
+.wiz-progress .dot.done { background: var(--brand); }
+
+.wiz-step { background: #fff; border-radius: 28px; padding: clamp(28px, 4vw, 48px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.wiz-step h1 { margin: 0 0 8px; font-size: clamp(28px, 3.4vw, 40px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; }
+.wiz-step .lead { margin: 0 0 28px; color: var(--ink-2); font-size: 16px; line-height: 1.5; }
+
+.field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.field label { font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+.field input, .field select, .field textarea { background: var(--surface); border: 1px solid transparent; border-radius: 14px; padding: 14px 16px; font: inherit; font-size: 16px; color: var(--ink); transition: border-color .2s, background .2s; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 0; border-color: var(--brand); background: #fff; }
+.field textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+.field .help { font-size: 12px; color: var(--ink-3); }
+
+.row-2 { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .row-2 { grid-template-columns: 1fr 1fr; } }
+.row-3 { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .row-3 { grid-template-columns: 1fr 1fr 1fr; } }
+
+.species-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 18px; }
+.species-card { background: var(--surface); border: 1px solid transparent; border-radius: 18px; padding: 22px 18px; cursor: pointer; text-align: center; transition: border-color .2s, transform .2s; font: inherit; color: inherit; }
+.species-card:hover { border-color: rgba(6,27,14,0.32); }
+.species-card.selected { border-color: var(--brand); background: var(--accent-soft); }
+.species-card .ico { font-size: 32px; line-height: 1; }
+.species-card .name { display: block; font-size: 14px; font-weight: 700; margin-top: 8px; letter-spacing: -0.01em; }
+
+.photo-drop { background: var(--surface); border: 2px dashed rgba(0,0,0,0.12); border-radius: 18px; padding: 36px 24px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+.photo-drop:hover { border-color: var(--brand); background: var(--accent-soft); }
+.photo-drop .glyph { font-size: 32px; opacity: 0.6; margin-bottom: 8px; }
+.photo-drop .t { font-size: 14px; font-weight: 700; color: var(--ink); }
+.photo-drop .s { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.photo-grid { display: grid; gap: 8px; grid-template-columns: repeat(4, 1fr); margin-top: 12px; }
+.photo-thumb { aspect-ratio: 1; background-size: cover; background-position: center; border-radius: 12px; }
+
+.price-grid { display: grid; gap: 12px; grid-template-columns: 1fr; margin-bottom: 18px; }
+.price-card { background: var(--surface); border-radius: 18px; padding: 18px 22px; display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; }
+.price-card .glyph { width: 48px; height: 48px; border-radius: 12px; background: var(--brand); color: #fbf9f5; display: grid; place-items: center; font-size: 24px; font-weight: 900; letter-spacing: -0.04em; }
+.price-card .meta .t { font-size: 15px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
+.price-card .meta .s { font-size: 12px; color: var(--ink-3); margin: 2px 0 0; }
+.price-card input { background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 10px 14px; font: inherit; font-size: 15px; font-weight: 700; width: 110px; text-align: right; }
+
+.review-card { background: var(--surface); border-radius: 18px; padding: 22px 26px; margin-bottom: 14px; }
+.review-card h4 { margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+.review-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+.review-row .k { color: var(--ink-2); }
+.review-row .v { color: var(--ink); font-weight: 700; }
+
+.wiz-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
+.wiz-back { background: transparent; border: 0; padding: 12px 16px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); border-radius: 999px; }
+.wiz-back:disabled { opacity: 0; pointer-events: none; }
+.wiz-back:hover:not(:disabled) { color: var(--ink); }
+.wiz-next { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 14px 28px; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; border-radius: 999px; transition: transform .2s, background .2s, opacity .2s; }
+.wiz-next:disabled { opacity: 0.4; cursor: not-allowed; }
+.wiz-next:hover:not(:disabled) { transform: scale(1.04); background: #0a2614; }
+
+.wiz-published { text-align: center; padding: 40px 20px; }
+.wiz-published .mark { width: 96px; height: 96px; border-radius: 50%; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; margin: 0 auto 24px; font-size: 44px; }
+.wiz-published h2 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 900; letter-spacing: -0.03em; margin: 0 0 14px; }
+.wiz-published p { font-size: 16px; color: var(--ink-2); line-height: 1.55; max-width: 38ch; margin: 0 auto 24px; }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/farmer" class="active">My ranch</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<section class="wiz-shell">
+  <div class="wiz" id="wiz">
+    <div class="wiz-progress" aria-hidden="true">
+      <span class="dot active" data-d="1"></span>
+      <span class="dot" data-d="2"></span>
+      <span class="dot" data-d="3"></span>
+      <span class="dot" data-d="4"></span>
+      <span class="dot" data-d="5"></span>
+    </div>
+
+    <!-- STEP 1 — Species + Breed + Sex -->
+    <section class="wiz-step" data-step="1">
+      <h1>What are you listing?</h1>
+      <p class="lead">Start with the basics. We'll match the form to the species you pick.</p>
+
+      <label class="field" style="margin-bottom: 8px;"><label>Species</label></label>
+      <div class="species-grid">
+        <button class="species-card selected" data-species="beef"><div class="ico">🐄</div><span class="name">Beef</span></button>
+        <button class="species-card" data-species="pork"><div class="ico">🐖</div><span class="name">Pork</span></button>
+        <button class="species-card" data-species="lamb"><div class="ico">🐑</div><span class="name">Lamb</span></button>
+        <button class="species-card" data-species="venison"><div class="ico">🦌</div><span class="name">Venison</span></button>
+        <button class="species-card" data-species="poultry"><div class="ico">🐓</div><span class="name">Poultry</span></button>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Breed</label>
+          <select id="breed">
+            <optgroup label="Beef" id="og-beef">
+              <option>Black Angus</option><option>Red Angus</option><option>Hereford</option>
+              <option>Charolais</option><option>Simmental</option><option>Wagyu</option>
+              <option>Wagyu × Angus</option><option>Highland</option><option>Belted Galloway</option>
+              <option>Shorthorn</option><option>Texas Longhorn</option><option>Mixed / Cross</option>
+            </optgroup>
+            <optgroup label="Pork" id="og-pork" hidden>
+              <option>Berkshire</option><option>Duroc</option><option>Yorkshire</option>
+              <option>Hampshire</option><option>Tamworth</option><option>Mangalitsa</option>
+              <option>Mixed / Cross</option>
+            </optgroup>
+            <optgroup label="Lamb" id="og-lamb" hidden>
+              <option>Katahdin</option><option>Dorper</option><option>Suffolk</option>
+              <option>Polypay</option><option>Icelandic</option><option>Mixed / Cross</option>
+            </optgroup>
+            <optgroup label="Venison" id="og-venison" hidden>
+              <option>Whitetail</option><option>Mule</option><option>Red deer</option><option>Elk</option>
+            </optgroup>
+            <optgroup label="Poultry" id="og-poultry" hidden>
+              <option>Broiler</option><option>Heritage</option><option>Cornish Cross</option>
+              <option>Freedom Ranger</option><option>Turkey</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field">
+          <label>Sex</label>
+          <select>
+            <option>Steer</option><option>Heifer</option><option>Cow</option><option>Bull</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Animal ID or name</label>
+        <input type="text" placeholder="e.g. #2641 or Buster">
+        <span class="help">Buyers see this on their reservation. Use whatever you call this animal at the ranch.</span>
+      </div>
+    </section>
+
+    <!-- STEP 2 — Specs + Feed -->
+    <section class="wiz-step" data-step="2" hidden>
+      <h1>How were they raised?</h1>
+      <p class="lead">Buyers want the truth — feed and finish are the big two.</p>
+
+      <div class="row-3">
+        <div class="field"><label>Live weight (lb)</label><input type="number" placeholder="1180" min="0"></div>
+        <div class="field"><label>Birth date</label><input type="date"></div>
+        <div class="field"><label>Harvest date</label><input type="date"></div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Feed type (life)</label>
+          <select>
+            <option>100% grass + hay</option>
+            <option>Grass + supplemental grain</option>
+            <option>Pasture-raised, mostly grain</option>
+            <option>Forage + barn finishing</option>
+            <option>Conventional grain</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Finish feed (last 60–90 days)</label>
+          <select>
+            <option>100% grass</option>
+            <option>Grass + small grain ration</option>
+            <option>Mostly grain</option>
+            <option>Acorn / forest mast</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Antibiotics</label>
+          <select><option>Never</option><option>Therapeutic only</option><option>Sub-therapeutic OK</option></select>
+        </div>
+        <div class="field">
+          <label>Hormones</label>
+          <select><option>Never</option><option>Implant program</option></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Certifications (optional)</label>
+        <select multiple size="4">
+          <option>USDA Organic</option>
+          <option>USDA Process Verified</option>
+          <option>AGA Grass-Fed</option>
+          <option>Animal Welfare Approved</option>
+          <option>GAP Step 4 / 5+</option>
+          <option>Regenerative Organic</option>
+          <option>Certified Naturally Grown</option>
+        </select>
+        <span class="help">Hold ⌘ / Ctrl to pick more than one. We'll require proof for any cert claim.</span>
+      </div>
+    </section>
+
+    <!-- STEP 3 — Story + Photos + Processor -->
+    <section class="wiz-step" data-step="3" hidden>
+      <h1>Tell their story.</h1>
+      <p class="lead">A good listing reads like a postcard. Two paragraphs is plenty.</p>
+
+      <div class="field">
+        <label>Photos</label>
+        <div class="photo-drop">
+          <div class="glyph">📷</div>
+          <div class="t">Drag photos here or tap to upload</div>
+          <div class="s">First photo is the cover. JPG or PNG. Up to 8.</div>
+        </div>
+        <div class="photo-grid">
+          <div class="photo-thumb" style="background-image: url('/angus.jpg');"></div>
+          <div class="photo-thumb" style="background-image: url('/ranch.jpg');"></div>
+          <div class="photo-thumb" style="background-image: url('/farmer.jpg');"></div>
+          <div class="photo-thumb" style="background: var(--surface); border: 2px dashed rgba(0,0,0,0.1);"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea placeholder="What's special about this animal? Where do they graze? What do they eat? What does the harvest day look like?">#2641 was born March 2024 on the western edge of our 320-acre pasture. He's spent every day of his life on grass — bluegrass, timothy, white clover — rotating through six paddocks. No grain, no growth hormones, no sub-therapeutic antibiotics. Harvest is May 28 at Plant 04 in Bemidji.</textarea>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Pasture / Location</label>
+          <select>
+            <option>Bemidji, MN · Beltrami County</option>
+            <option>Brainerd, MN · Crow Wing County</option>
+            <option>Park Rapids, MN · Hubbard County</option>
+            <option>Cass Lake, MN · Cass County</option>
+            <option>Other (search)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Processor pairing</label>
+          <select>
+            <option>Plant 04 · Bemidji, MN (12 mi)</option>
+            <option>Plant 17 · Cass Lake, MN (38 mi)</option>
+            <option>Plant 22 · Brainerd, MN (62 mi)</option>
+            <option>Buyer chooses (pricing varies)</option>
+          </select>
+          <span class="help">First buyer locks in a single processor for everyone on this animal.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 4 — Pricing -->
+    <section class="wiz-step" data-step="4" hidden>
+      <h1>Price the shares.</h1>
+      <p class="lead">Set your prices per share. We'll add the processing fee and insurance pool on top — buyer sees one total.</p>
+
+      <div class="price-grid">
+        <div class="price-card">
+          <span class="glyph">¼</span>
+          <div class="meta"><p class="t">Quarter share</p><p class="s">~110 lb of cuts · most popular</p></div>
+          <input type="number" value="1395" min="0">
+        </div>
+        <div class="price-card">
+          <span class="glyph">½</span>
+          <div class="meta"><p class="t">Half share</p><p class="s">~220 lb of cuts</p></div>
+          <input type="number" value="2690" min="0">
+        </div>
+        <div class="price-card">
+          <span class="glyph">1</span>
+          <div class="meta"><p class="t">Whole animal</p><p class="s">~440 lb of cuts</p></div>
+          <input type="number" value="5180" min="0">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Available shares</label>
+        <select>
+          <option>4 quarters (4 quarter buyers, 0 half/whole)</option>
+          <option>2 halves (2 half buyers)</option>
+          <option>1 whole animal (1 buyer)</option>
+          <option>Mix: 1 half + 2 quarters</option>
+          <option>Custom (you split)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Donation toggle</label>
+        <select>
+          <option>No donation</option>
+          <option>Donate 5% to Producer Partnership 501(c)(3)</option>
+          <option>Donate 10% to Producer Partnership</option>
+          <option>Custom</option>
+        </select>
+        <span class="help">Donations are tax-deductible. Issued from PO's nonprofit arm.</span>
+      </div>
+    </section>
+
+    <!-- STEP 5 — Review -->
+    <section class="wiz-step" data-step="5" hidden>
+      <h1>Looks good?</h1>
+      <p class="lead">Quick scan. Edit any step or publish.</p>
+
+      <div class="review-card">
+        <h4>The animal</h4>
+        <div class="review-row"><span class="k">Species · Breed</span><span class="v">Beef · Black Angus</span></div>
+        <div class="review-row"><span class="k">Sex</span><span class="v">Steer</span></div>
+        <div class="review-row"><span class="k">ID</span><span class="v">#2641</span></div>
+      </div>
+
+      <div class="review-card">
+        <h4>Specs</h4>
+        <div class="review-row"><span class="k">Live weight</span><span class="v">1,180 lb</span></div>
+        <div class="review-row"><span class="k">Feed</span><span class="v">100% grass + hay</span></div>
+        <div class="review-row"><span class="k">Finish</span><span class="v">100% grass</span></div>
+        <div class="review-row"><span class="k">Harvest</span><span class="v">May 28 · Plant 04</span></div>
+      </div>
+
+      <div class="review-card">
+        <h4>Pricing</h4>
+        <div class="review-row"><span class="k">Quarter</span><span class="v">$1,395 × 4 available</span></div>
+        <div class="review-row"><span class="k">Half</span><span class="v">$2,690 × 0 available</span></div>
+        <div class="review-row"><span class="k">Whole</span><span class="v">$5,180 × 0 available</span></div>
+        <div class="review-row"><span class="k">Donation</span><span class="v">No donation</span></div>
+      </div>
+
+      <p class="lead" style="font-size: 13px; color: var(--ink-3); margin: 18px 0 0;">By publishing you agree to PO's producer terms. Buyers can reserve the moment your listing goes live.</p>
+    </section>
+
+    <!-- STEP 6 — Published -->
+    <section class="wiz-step" data-step="6" hidden>
+      <div class="wiz-published">
+        <div class="mark">✓</div>
+        <h2>Listed.</h2>
+        <p>#2641 is live on the marketplace. We'll text the moment your first reserve hits.</p>
+        <a href="/farm/northfield-pastures" class="btn-xl btn-xl--dark">View on your ranch profile →</a>
+      </div>
+    </section>
+
+    <footer class="wiz-foot">
+      <button class="wiz-back" id="wizBack" disabled>← Back</button>
+      <button class="wiz-next" id="wizNext">Continue →</button>
+    </footer>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script>
+(function () {
+  const dots = document.querySelectorAll('.wiz-progress .dot');
+  const steps = document.querySelectorAll('.wiz-step');
+  const back = document.getElementById('wizBack');
+  const next = document.getElementById('wizNext');
+  let n = 1;
+  function set(i) {
+    n = i;
+    steps.forEach(s => s.hidden = Number(s.dataset.step) !== n);
+    dots.forEach((d, idx) => { d.classList.toggle('active', idx === n - 1); d.classList.toggle('done', idx < n - 1); });
+    back.disabled = n === 1 || n === 6;
+    if (n === 6) {
+      next.style.visibility = 'hidden';
+      back.style.visibility = 'hidden';
+      document.querySelector('.wiz-progress').style.display = 'none';
+    } else {
+      next.textContent = n === 5 ? 'Publish listing →' : 'Continue →';
+    }
+  }
+  back.addEventListener('click', () => { if (n > 1) set(n - 1); });
+  next.addEventListener('click', () => { if (n < 6) set(n + 1); });
+
+  // Species selection — flips breed dropdown
+  document.querySelectorAll('.species-card').forEach(card => card.addEventListener('click', () => {
+    document.querySelectorAll('.species-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    const sp = card.dataset.species;
+    document.querySelectorAll('#breed optgroup').forEach(og => og.hidden = og.id !== `og-${sp}`);
+    const visible = document.querySelector(`#og-${sp}`);
+    if (visible && visible.firstElementChild) document.getElementById('breed').value = visible.firstElementChild.value;
+  }));
+})();
+</script>
+</body>
+</html>
