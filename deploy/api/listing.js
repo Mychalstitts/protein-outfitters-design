@@ -2,7 +2,7 @@
 //   GET   → single listing with farm details
 //   PATCH → update (auth + ownership)
 //   DELETE → withdraw (sets status='withdrawn')
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, rawQuery, currentUser, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
 
@@ -42,9 +42,9 @@ export default async function handler(req) {
     const set = {};
     for (const k of allowed) if (k in body) set[k] = body[k];
     if (!Object.keys(set).length) return err(400, 'Nothing to update');
-    // Build dynamic update — limited keys, safe
+    // Build dynamic update — limited keys, safe (column names whitelisted above)
     for (const [k, v] of Object.entries(set)) {
-      await sql.query(`UPDATE listings SET ${k} = $1, updated_at = NOW() WHERE id = $2`, [v, id]);
+      await rawQuery(`UPDATE listings SET ${k} = $1, updated_at = NOW() WHERE id = $2`, [v, id]);
     }
     const updated = await sql`SELECT * FROM listings WHERE id = ${id}`;
     return json({ listing: updated[0] });

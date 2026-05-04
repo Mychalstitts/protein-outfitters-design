@@ -3,7 +3,7 @@
 //   GET ?slug=... → single processor
 //   POST → create (auth, role auto-upgrades to processor)
 //   PATCH ?slug=... → update (owner only)
-import { sql, currentUser, err, json, slugify } from './_lib/db.js';
+import { sql, rawQuery, currentUser, err, json, slugify } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
 
@@ -58,7 +58,7 @@ export default async function handler(req) {
     const allowed = ['name','city','state','zip','inspection','capabilities','base_fees','per_lb_fees','schedule','date_overrides','cover_url','avatar_url','bio','certs'];
     for (const [k, v] of Object.entries(body)) {
       if (allowed.includes(k)) {
-        await sql.query(`UPDATE processors SET ${k} = $1, updated_at = NOW() WHERE slug = $2`, [v, slug]);
+        await rawQuery(`UPDATE processors SET ${k} = $1, updated_at = NOW() WHERE slug = $2`, [v, slug]);
       }
     }
     const updated = await sql`SELECT * FROM processors WHERE slug = ${slug}`;

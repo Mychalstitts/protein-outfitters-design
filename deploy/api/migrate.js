@@ -2,7 +2,7 @@
 //   curl -X POST "https://www.proteinoutfitters.com/api/migrate?secret=$MIGRATE_SECRET"
 //
 // Requires MIGRATE_SECRET env var. Idempotent (CREATE TABLE IF NOT EXISTS).
-import { sql, err, json } from './_lib/db.js';
+import { rawQuery, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
 
@@ -233,7 +233,7 @@ export default async function handler(req) {
   const ranSchema = [];
   for (const stmt of SCHEMA_STATEMENTS) {
     try {
-      await sql.query(stmt);
+      await rawQuery(stmt);
       ranSchema.push(stmt.slice(0, 80).replace(/\s+/g, ' '));
     } catch (e) {
       return err(500, `Schema migration failed at: ${stmt.slice(0, 80)}`, { detail: String(e).slice(0, 300) });
@@ -244,7 +244,7 @@ export default async function handler(req) {
   if (url.searchParams.get('seed') === 'true') {
     for (const stmt of SEED_SQL) {
       try {
-        await sql.query(stmt);
+        await rawQuery(stmt);
         ranSeed.push(stmt.slice(0, 80).replace(/\s+/g, ' '));
       } catch (e) {
         ranSeed.push(`FAILED: ${String(e).slice(0, 150)}`);
