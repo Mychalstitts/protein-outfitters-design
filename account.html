@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f5f3ef",
+              "on-tertiary-fixed-variant": "#930010",
+              "primary-fixed": "#cfe9d3",
+              "on-error": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-fixed-dim": "#ffb3ac",
+              "surface-bright": "#fbf9f5",
+              "secondary": "#586158",
+              "on-secondary-fixed-variant": "#404941",
+              "surface-container-highest": "#e4e2de",
+              "secondary-fixed-dim": "#c0c9bf",
+              "secondary-fixed": "#dce5da",
+              "on-tertiary-container": "#f04440",
+              "inverse-surface": "#30312e",
+              "outline": "#737972",
+              "error-container": "#ffdad6",
+              "on-surface": "#1b1c1a",
+              "tertiary-container": "#410003",
+              "primary-fixed-dim": "#b4cdb8",
+              "surface": "#fbf9f5",
+              "on-primary-container": "#728a77",
+              "outline-variant": "#c3c8c1",
+              "primary": "#000000",
+              "on-secondary-container": "#5c655d",
+              "surface-dim": "#dbdad6",
+              "surface-container": "#f0eeea",
+              "on-primary": "#ffffff",
+              "surface-tint": "#4d6452",
+              "surface-container-high": "#eae8e4",
+              "on-primary-fixed-variant": "#364c3c",
+              "inverse-on-surface": "#f2f0ec",
+              "on-secondary": "#ffffff",
+              "background": "#fbf9f5",
+              "tertiary-fixed": "#ffdad6",
+              "primary-container": "#0a2012",
+              "tertiary": "#000000",
+              "surface-variant": "#e4e2de",
+              "on-error-container": "#93000a",
+              "on-tertiary": "#ffffff",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed": "#410003",
+              "on-secondary-fixed": "#151d17",
+              "on-background": "#1b1c1a",
+              "secondary-container": "#d9e2d8",
+              "on-surface-variant": "#434843",
+              "inverse-primary": "#b4cdb8",
+              "on-primary-fixed": "#0a2012"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-line { border: none !important; }
+        .tonal-stacking { position: relative; z-index: 10; }
+        .spring-interaction:active { transform: scale(0.95); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0_40px_60px_-10px_rgba(27,28,26,0.05)]">
+<div class="flex items-center justify-between px-8 py-4 w-full max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#061b0e] text-2xl">menu</span>
+<span class="font-bold tracking-tighter text-2xl Inter text-[#061b0e]">Verdant</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-[#061b0e]/60 font-medium hover:opacity-80 transition-opacity" href="#">Market</a>
+<a class="text-[#061b0e]/60 font-medium hover:opacity-80 transition-opacity" href="#">Map</a>
+<a class="text-[#061b0e]/60 font-medium hover:opacity-80 transition-opacity" href="#">Reports</a>
+<a class="text-[#061b0e] font-bold hover:opacity-80 transition-opacity" href="#">Account</a>
+</nav>
+<div class="w-10 h-10 rounded-full overflow-hidden shadow-sm bg-surface-container-highest">
+<img alt="Marcus Sterling" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional man with a confident expression in a clean studio setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhYckHs0PxWLD78dD9F_jy-NFiJFfXjo4aZOdDV5wYJaPVJhTe4cx92fpgrBv9iarZzIGaTKtBYjG4pCj-novHVzb1zhDx4FXmv71lVKi6NnYAcoK0OHa52gtdSSlasJhcN6FST6Cev7yXBlOJpyCTymcXZOScJyxIx4DvnOZybAIvIMwjRJKMw0EYy6hbgi_-1Fq7TeX24HbcxOuYsgvs9roWO4SZYF-VzPr1zl-MAWvXoBXkOrpvb8hL4I5-J4K-m4bIImP01ugL"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-6xl mx-auto">
+<!-- Editorial Profile Header -->
+<section class="mb-12 flex flex-col md:flex-row items-center md:items-end gap-8">
+<div class="relative">
+<div class="w-32 h-32 md:w-44 md:h-44 rounded-[2.5rem] overflow-hidden shadow-2xl rotate-3">
+<img alt="Marcus Sterling" class="w-full h-full object-cover" data-alt="Portrait of Marcus Sterling, a sophisticated man in his 30s with short hair and a tailored dark polo shirt, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoHBmIrcQUX05LcmtSezHsDz103hwQln9ixxjAmX4vl-TXUpT2ltQ4s1kQ5ygfiUDa6QYTWifjaUnYuw-6kWgm5ZUtBbLWCMiZJvZl535ldR0V0F8taHfVmUhFJ3go1KsLKNbXWuL4OzyMfCIGMZLxQAOwkw_qwlTtzJ4x2gmu_PoxwvWn9dODiZGoz2gajADW8nmVIPpfVlowMkXtKg4wolJ48DYNIu8xCszfMwGW3u0S2A8ZSVYWP3Qe83SYIqZLjy10q4tDbqPn"/>
+</div>
+<div class="absolute -bottom-2 -right-4 bg-white/20 backdrop-blur-md border border-white/30 px-4 py-1.5 rounded-full shadow-xl flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<span class="text-[10px] font-black uppercase tracking-[0.15em] text-primary">Platinum Member</span>
+</div>
+</div>
+<div class="flex-1 text-center md:text-left space-y-2">
+<h1 class="text-5xl md:text-7xl font-black tracking-tightest text-primary leading-none">Marcus Sterling</h1>
+<p class="text-on-surface-variant text-lg font-medium tracking-tight">Managing Director at Sterling Growth • Member since 2021</p>
+<div class="flex flex-wrap justify-center md:justify-start gap-3 mt-4">
+<div class="bg-primary-fixed px-4 py-1.5 rounded-full text-on-primary-fixed-variant text-xs font-bold uppercase tracking-widest">Active Tier</div>
+<div class="bg-surface-container-high px-4 py-1.5 rounded-full text-on-surface-variant text-xs font-bold uppercase tracking-widest">Priority Access</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Account Settings -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Main Content Area: High Priority -->
+<div class="md:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Personal Information -->
+<button class="md:col-span-2 group text-left bg-surface-container-lowest p-8 rounded-[2rem] shadow-[0_40px_60px_-10px_rgba(27,28,26,0.03)] hover:shadow-[0_40px_80px_-10px_rgba(27,28,26,0.08)] transition-all duration-500 spring-interaction">
+<div class="flex justify-between items-start mb-12">
+<div class="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="person">person</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">arrow_forward_ios</span>
+</div>
+<div>
+<h3 class="text-2xl font-bold tracking-tight text-primary mb-1">Personal Information</h3>
+<p class="text-on-surface-variant leading-relaxed max-w-xs">Update your legal name, contact details, and professional credentials.</p>
+</div>
+</button>
+<!-- Security & Privacy -->
+<button class="group text-left bg-surface-container-low p-8 rounded-[2rem] transition-all duration-500 spring-interaction">
+<div class="flex justify-between items-start mb-12">
+<div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="security">security</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">arrow_forward_ios</span>
+</div>
+<div>
+<h3 class="text-xl font-bold tracking-tight text-primary mb-1">Security &amp; Privacy</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Two-factor auth and active session management.</p>
+</div>
+</button>
+<!-- Payment Methods -->
+<button class="group text-left bg-surface-container-low p-8 rounded-[2rem] transition-all duration-500 spring-interaction">
+<div class="flex justify-between items-start mb-12">
+<div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">arrow_forward_ios</span>
+</div>
+<div>
+<h3 class="text-xl font-bold tracking-tight text-primary mb-1">Payment Methods</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Manage your Amex Platinum and enterprise billing profiles.</p>
+</div>
+</button>
+</div>
+<!-- Sidebar Content: Supporting Actions -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<!-- Membership Benefits: Visual Editorial Card -->
+<div class="relative group overflow-hidden bg-primary-container p-8 rounded-[2rem] min-h-[300px] flex flex-col justify-end">
+<div class="absolute inset-0 opacity-40">
+<img alt="Abstract fluid texture" class="w-full h-full object-cover" data-alt="Deep green and emerald fluid abstract gradient with subtle grain texture and cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBa6g9zWZL4oHiJKwQcFVxsu-I9Dha04AmZuU-ufniRnXs_I0irMyxafR1nJZggdkfLhy6zTrO2eYaorKZCF3ETgkEosh0VrnYybFyydx2ovR3tyDizZ2JcftV6EFt-QjaMm7QNq9LcHgysrknoZFCIJN_HdeMoxcqgtFGdGMT9ClGpNzCVS7YeoENgC4WUo_TIwc_uGN_99cw6fbBC6vLmnvENwmiz_PmQFBucrLZMjJmVnBG4LRhDSlOjb-enRWMMOHaeW8LMZwb7"/>
+</div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-white/60 mb-4 block" data-icon="stars">stars</span>
+<h3 class="text-2xl font-bold text-white tracking-tight mb-2">Membership Benefits</h3>
+<p class="text-white/70 text-sm leading-relaxed mb-6">You are currently utilizing 85% of your available enterprise perks.</p>
+<button class="bg-white text-primary font-bold px-6 py-2.5 rounded-full text-xs uppercase tracking-widest spring-interaction">Explore Perks</button>
+</div>
+</div>
+<!-- Notification Settings -->
+<button class="group text-left bg-surface-container-high p-8 rounded-[2rem] transition-all duration-500 spring-interaction">
+<div class="flex items-center gap-4 mb-2">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+<h3 class="text-lg font-bold tracking-tight text-primary">Notifications</h3>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed">Email, SMS &amp; Push alerts</p>
+</button>
+</div>
+</div>
+<!-- Logout & Versioning Footer Section -->
+<footer class="mt-20 flex flex-col items-center gap-8">
+<button class="group flex items-center gap-3 px-10 py-4 rounded-full bg-transparent hover:bg-error-container/20 transition-all duration-300 spring-interaction">
+<span class="material-symbols-outlined text-error" data-icon="logout">logout</span>
+<span class="text-error font-bold uppercase tracking-[0.2em] text-sm">Sign Out</span>
+</button>
+<div class="text-center space-y-1">
+<p class="text-on-surface-variant/40 text-[10px] font-bold uppercase tracking-[0.3em]">Protein Outfitters v2.4.0</p>
+<p class="text-on-surface-variant/30 text-[9px] font-medium tracking-wide italic">Securely encrypted end-to-end</p>
+</div>
+</footer>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 bg-white/80 backdrop-blur-xl shadow-[0_-10px_40px_rgba(0,0,0,0.04)] rounded-t-3xl z-50">
+<div class="flex flex-col items-center justify-center text-[#061b0e]/50 px-6 py-2">
+<span class="material-symbols-outlined mb-1" data-icon="potted_plant">potted_plant</span>
+<span class="font-medium text-[10px] uppercase tracking-widest Inter">Market</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#061b0e]/50 px-6 py-2">
+<span class="material-symbols-outlined mb-1" data-icon="map">map</span>
+<span class="font-medium text-[10px] uppercase tracking-widest Inter">Map</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#061b0e]/50 px-6 py-2">
+<span class="material-symbols-outlined mb-1" data-icon="fact_check">fact_check</span>
+<span class="font-medium text-[10px] uppercase tracking-widest Inter">Reports</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#061b0e] text-[#fbf9f5] rounded-full px-6 py-2 transition-all duration-300 shadow-lg">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-medium text-[10px] uppercase tracking-widest Inter">Account</span>
+</div>
+</nav>
+</body></html>

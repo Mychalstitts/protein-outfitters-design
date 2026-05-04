@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Confirmed | Protein Outfitters</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ease-spring {
+            transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "outline": "#737972",
+                "on-surface": "#1b1c1a",
+                "tertiary-container": "#410003",
+                "on-primary-container": "#728a77",
+                "primary-container": "#0a2012",
+                "secondary-container": "#d9e2d8",
+                "on-tertiary": "#ffffff",
+                "on-secondary-fixed-variant": "#404941",
+                "on-secondary": "#ffffff",
+                "surface-container-highest": "#e4e2de",
+                "on-tertiary-fixed": "#410003",
+                "on-error": "#ffffff",
+                "tertiary-fixed": "#ffdad6",
+                "surface-container": "#f0eeea",
+                "on-background": "#1b1c1a",
+                "surface-dim": "#dbdad6",
+                "on-primary-fixed-variant": "#364c3c",
+                "surface-container-high": "#eae8e4",
+                "on-tertiary-container": "#f04440",
+                "on-primary": "#ffffff",
+                "on-primary-fixed": "#0a2012",
+                "on-tertiary-fixed-variant": "#930010",
+                "on-secondary-container": "#5c655d",
+                "surface-tint": "#4d6452",
+                "on-error-container": "#93000a",
+                "inverse-on-surface": "#f2f0ec",
+                "primary-fixed": "#cfe9d3",
+                "inverse-surface": "#30312e",
+                "surface": "#fbf9f5",
+                "secondary-fixed-dim": "#c0c9bf",
+                "outline-variant": "#c3c8c1",
+                "error": "#ba1a1a",
+                "error-container": "#ffdad6",
+                "surface-bright": "#fbf9f5",
+                "primary": "#000000",
+                "surface-container-low": "#f5f3ef",
+                "tertiary": "#000000",
+                "surface-variant": "#e4e2de",
+                "inverse-primary": "#b4cdb8",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "primary-fixed-dim": "#b4cdb8",
+                "background": "#fbf9f5",
+                "surface-container-lowest": "#ffffff",
+                "secondary": "#586158",
+                "on-surface-variant": "#434843",
+                "on-secondary-fixed": "#151d17",
+                "secondary-fixed": "#dce5da"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased mb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl shadow-sm dark:shadow-none">
+<div class="flex items-center justify-between px-6 h-16 w-full">
+<button class="hover:opacity-70 transition-opacity duration-300 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-emerald-950 dark:text-emerald-50">close</span>
+</button>
+<h1 class="font-sans tracking-tight font-bold text-lg text-emerald-950 dark:text-emerald-50">Order Confirmed</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-12">
+<!-- Success Hero -->
+<section class="flex flex-col items-center text-center space-y-6 py-8">
+<div class="relative">
+<!-- Shimmer Burst Effect (CSS Only) -->
+<div class="absolute inset-0 bg-primary-container/10 rounded-full scale-150 blur-3xl animate-pulse"></div>
+<div class="relative w-24 h-24 bg-primary-container rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform duration-300 ease-spring">
+<span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<div class="space-y-2">
+<h2 class="text-4xl font-black tracking-tighter text-primary">Order Confirmed</h2>
+<p class="text-on-surface-variant max-w-sm mx-auto leading-relaxed">
+                    Your share is officially reserved. Welcome to the Northfield Pastures family.
+                </p>
+</div>
+</section>
+<!-- Reservation Summary Card (Bento Style) -->
+<section class="bg-surface-container-lowest rounded-xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.04)] space-y-8">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-xs font-bold tracking-widest uppercase text-on-surface-variant mb-1">Reservation ID</p>
+<p class="text-xl font-bold tracking-tight text-primary">#MM-9823</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold tracking-widest uppercase text-on-surface-variant mb-1">Total Investment</p>
+<p class="text-xl font-bold tracking-tight text-emerald-900">$1,535.00</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-6 flex items-center gap-4">
+<div class="w-16 h-16 bg-surface-container-highest rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Premium black angus cattle grazing in a sun-drenched pasture with cinematic lighting and soft bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtv-WZUN-_mSR7jXeWpSOswGETL-xd3pkB-_fS5BZxqZ1ZgSSOjx5wEgWRnuFbQ30l8aJHAekZV15lZR0rAgP95IgpAoTb-1gOaXni-LhiNYBkYDGI8TbZN9ytMBBO8G22jpOl4l7ZO_iw_wtBnamV-d-KjmBJ5thiPdjLMb2TZ-yTEn9yys8vQklH8MJ9fJG5KlZ8vOdxpnk7LrIQZFJ9G03AU_kKi-9BP8n2qgJgGPPlsb2C_b80XQzx0Un6RIdQMR_vhOW7402l"/>
+</div>
+<div>
+<p class="text-sm font-medium text-on-surface-variant">Asset Details</p>
+<p class="text-lg font-bold text-primary">1/4 Black Angus Share</p>
+</div>
+</div>
+</section>
+<!-- Fulfillment Timeline (Vertical 3-step) -->
+<section class="px-2">
+<h3 class="text-sm font-bold tracking-widest uppercase text-on-surface-variant mb-8 px-4">Fulfillment Timeline</h3>
+<div class="relative space-y-12 ml-4">
+<!-- Vertical Line -->
+<div class="absolute left-4 top-0 bottom-0 w-[2px] bg-surface-container-highest -translate-x-1/2"></div>
+<!-- Step 1 -->
+<div class="relative flex gap-6 items-start">
+<div class="z-10 w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center ring-8 ring-surface">
+<span class="material-symbols-outlined text-sm">content_paste</span>
+</div>
+<div class="flex-1 -mt-1">
+<div class="flex items-center gap-3 mb-1">
+<h4 class="font-bold text-primary">Butcher's Cut Sheet</h4>
+<span class="bg-tertiary-container text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">Action Required</span>
+</div>
+<p class="text-sm text-on-surface-variant">Customize your cuts before processing starts.</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative flex gap-6 items-start">
+<div class="z-10 w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center ring-8 ring-surface">
+<span class="material-symbols-outlined text-sm">event</span>
+</div>
+<div class="flex-1 -mt-1">
+<h4 class="font-bold text-primary opacity-60">Processing Scheduled</h4>
+<p class="text-sm text-on-surface-variant opacity-60">Oct 12th — Northfield Local Processing</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="relative flex gap-6 items-start">
+<div class="z-10 w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center ring-8 ring-surface">
+<span class="material-symbols-outlined text-sm">local_shipping</span>
+</div>
+<div class="flex-1 -mt-1">
+<h4 class="font-bold text-primary opacity-60">Delivery Window</h4>
+<p class="text-sm text-on-surface-variant opacity-60">Oct 24 - 27 — Direct to door</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Provenance Editorial Section -->
+<section class="relative rounded-2xl overflow-hidden aspect-[4/5] md:aspect-video group">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Breathtaking wide angle view of rolling green pastures at sunrise with mist clinging to the valley and golden rays of light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtkTxMBaKPTyXOy0GnFYoB0SssyuxHggyzCNssq0qimdCIACEh5R_N-zyq-CQ05JQZeKOvTU0yHX0Hyy46NRBqAY0eIODy5ZCsfPzlwByVJIGaYcIUqujicKh8cPMdWdGbs30zUYWOheMbFPMQMXL-D0PK_I9MpCGyHIUlf6Skfdb5KARC7v3ShhffAvyahR_aSWQn_5EoEIPoDi_BmrQQON1bqTRyj13rMkek1ToAhuR52izPCgpgxvoq7KMM_AW-qiq3ndcq8nKB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container via-transparent to-transparent opacity-80"></div>
+<div class="absolute bottom-0 left-0 p-8 space-y-4">
+<div class="flex gap-2">
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Provenance</span>
+<span class="bg-emerald-500/20 backdrop-blur-md text-emerald-300 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/30">Ethically Raised &amp; Hormone Free</span>
+</div>
+<h3 class="text-3xl font-black text-white leading-none tracking-tighter">Pasture to Plate:<br/>The Next 21 Days</h3>
+<p class="text-emerald-50/80 text-sm max-w-sm leading-relaxed">
+                    Our cattle spend their final weeks on lush autumn clover, ensuring a nutrient profile and marbling that is unmatched by commercial grain-finished beef.
+                </p>
+</div>
+</section>
+<!-- CTAs -->
+<section class="space-y-4 pt-4">
+<a class="w-full h-16 bg-gradient-to-r from-primary-container to-emerald-900 text-white rounded-full font-bold text-lg shadow-xl active:scale-95 transition-transform duration-300 ease-spring flex items-center justify-center gap-2" href="{{DATA:SCREEN:SCREEN_66}}">
+                Customize Your Cut Sheet
+                <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+<a class="w-full h-16 bg-surface-container-high text-on-surface rounded-full font-bold text-lg active:scale-95 transition-transform duration-300 ease-spring flex items-center justify-center" href="{{DATA:SCREEN:SCREEN_38}}">
+                Back to Home
+            </a>
+</section>
+<!-- Footer -->
+<footer class="text-center py-12 border-t border-transparent">
+<p class="text-[10px] font-bold tracking-widest uppercase text-stone-400">Protein Outfitters © 2024</p>
+</footer>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-2 bg-white dark:bg-stone-950 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] z-50 rounded-t-3xl">
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 hover:text-emerald-800 dark:hover:text-emerald-200 active:scale-90 transition-transform duration-300" href="{{DATA:SCREEN:SCREEN_38}}">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[10px] font-bold tracking-widest uppercase mt-1">Curate</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 hover:text-emerald-800 dark:hover:text-emerald-200 active:scale-90 transition-transform duration-300" href="{{DATA:SCREEN:SCREEN_38}}">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="text-[10px] font-bold tracking-widest uppercase mt-1">Discovery</span>
+</a>
+<div class="flex flex-col items-center justify-center bg-emerald-950 dark:bg-emerald-500 text-white dark:text-stone-950 rounded-full w-12 h-12 transition-all duration-500 ease-spring active:scale-90 shadow-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+</div>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 hover:text-emerald-800 dark:hover:text-emerald-200 active:scale-90 transition-transform duration-300" href="{{DATA:SCREEN:SCREEN_2}}">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold tracking-widest uppercase mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

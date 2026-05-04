@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Protein Outfitters — All screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<style>
+.screens-hero { padding: var(--s-16) 0 var(--s-12); text-align: center; }
+.screens-grid { display: grid; gap: var(--s-5); padding-bottom: var(--s-20); grid-template-columns: 1fr; }
+@media (min-width: 600px) { .screens-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .screens-grid { grid-template-columns: repeat(3, 1fr); } }
+.screen-tile {
+  background: var(--surface); border-radius: var(--r-4);
+  padding: var(--s-5); display: flex; flex-direction: column; gap: var(--s-2);
+  text-decoration: none; color: inherit;
+  box-shadow: var(--sh-0); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.screen-tile:hover { transform: translateY(-3px); box-shadow: var(--sh-3); }
+.screen-tile .label { font-size: var(--text-md); font-weight: 800; letter-spacing: var(--tracking-snug); }
+.screen-tile .url { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent-2); }
+.screen-tile .desc { font-size: var(--text-sm); color: var(--ink-2); margin-top: 2px; }
+.screen-tile .source { display: inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: var(--tracking-extra-wide); padding: 3px 8px; border-radius: var(--r-pill);
+  background: var(--accent-soft); color: var(--brand); align-self: flex-start; margin-top: var(--s-2); }
+.screen-tile .source.original { background: var(--surface-2); color: var(--ink-2); }
+.section-head { padding: var(--s-12) 0 var(--s-6); }
+</style>
+</head>
+<body>
+
+<header class="glass-nav">
+  <div class="container">
+    <nav class="row row--between" style="padding: 14px 0;">
+      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; letter-spacing: -0.018em;">Protein Outfitters</a>
+      <span class="pill">All screens</span>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <section class="screens-hero">
+    <span class="eyebrow">Design review</span>
+    <h1 class="display-2xl mt-4">Every prototype, in one place.</h1>
+    <p class="body" style="max-width: 60ch; margin: var(--s-4) auto 0;">23 designed screens covering the full Protein Outfitters product surface. Stitch (Google's design tool) generated 15 of these; 8 are custom HTML prototypes. All share the same Verdant Monolith design system.</p>
+  </section>
+
+  <section class="section-head">
+    <span class="eyebrow">Stitch — designed in Google's tool</span>
+    <h2 class="display-md mt-2">Consumer journey</h2>
+  </section>
+  <div class="screens-grid">
+    <a href="/onboarding" class="screen-tile">
+      <span class="label">Onboarding</span>
+      <span class="url">/onboarding</span>
+      <span class="desc">Join the network — role selection + auth.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/discover" class="screen-tile">
+      <span class="label">Discover</span>
+      <span class="url">/discover</span>
+      <span class="desc">Marketplace landing with curated listings.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/producers" class="screen-tile">
+      <span class="label">Producers &amp; Estates</span>
+      <span class="url">/producers</span>
+      <span class="desc">Browse partner ranches and estates.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/map" class="screen-tile">
+      <span class="label">Interactive farm map</span>
+      <span class="url">/map</span>
+      <span class="desc">Geographic view of available animals.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/listing" class="screen-tile">
+      <span class="label">Listing detail</span>
+      <span class="url">/listing</span>
+      <span class="desc">Grass-fed Angus steer master detail.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/cuts" class="screen-tile">
+      <span class="label">Tailor your harvest</span>
+      <span class="url">/cuts</span>
+      <span class="desc">Custom cut sheet — Stitch design.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/checkout" class="screen-tile">
+      <span class="label">Checkout</span>
+      <span class="url">/checkout</span>
+      <span class="desc">Reserve and pay — Stitch design.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/confirmed" class="screen-tile">
+      <span class="label">Order confirmed</span>
+      <span class="url">/confirmed</span>
+      <span class="desc">Reservation confirmation page.</span>
+      <span class="source">Stitch</span>
+    </a>
+  </div>
+
+  <section class="section-head">
+    <span class="eyebrow">Stitch — operations</span>
+    <h2 class="display-md mt-2">Farmer · processor · admin</h2>
+  </section>
+  <div class="screens-grid">
+    <a href="/farmer" class="screen-tile">
+      <span class="label">Farmer dashboard</span>
+      <span class="url">/farmer</span>
+      <span class="desc">Northfield Pastures dashboard.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/processor" class="screen-tile">
+      <span class="label">Processor dashboard</span>
+      <span class="url">/processor</span>
+      <span class="desc">Daily ops view for processors.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/trends" class="screen-tile">
+      <span class="label">Marketplace trends</span>
+      <span class="url">/trends</span>
+      <span class="desc">Admin portal with market data.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/site-visit" class="screen-tile">
+      <span class="label">Site visit report</span>
+      <span class="url">/site-visit</span>
+      <span class="desc">Plant 04 inspection write-up.</span>
+      <span class="source">Stitch</span>
+    </a>
+  </div>
+
+  <section class="section-head">
+    <span class="eyebrow">Stitch — account</span>
+    <h2 class="display-md mt-2">Profile &amp; preferences</h2>
+  </section>
+  <div class="screens-grid">
+    <a href="/profile" class="screen-tile">
+      <span class="label">Profile</span>
+      <span class="url">/profile</span>
+      <span class="desc">User profile page.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/account" class="screen-tile">
+      <span class="label">Account preferences</span>
+      <span class="url">/account</span>
+      <span class="desc">Account-level settings.</span>
+      <span class="source">Stitch</span>
+    </a>
+    <a href="/settings" class="screen-tile">
+      <span class="label">Settings</span>
+      <span class="url">/settings</span>
+      <span class="desc">App-level settings.</span>
+      <span class="source">Stitch</span>
+    </a>
+  </div>
+
+  <section class="section-head">
+    <span class="eyebrow">Custom — interactive flow demos</span>
+    <h2 class="display-md mt-2">Original prototypes</h2>
+  </section>
+  <div class="screens-grid">
+    <a href="/" class="screen-tile">
+      <span class="label">Master site</span>
+      <span class="url">/</span>
+      <span class="desc">Homepage + 3-tap Tesla checkout demo.</span>
+      <span class="source original">Custom</span>
+    </a>
+    <a href="/cut-sheet" class="screen-tile">
+      <span class="label">Cut sheet builder</span>
+      <span class="url">/cut-sheet</span>
+      <span class="desc">Two-tier UI with yield meter.</span>
+      <span class="source original">Custom</span>
+    </a>
+    <a href="/reserve-flow" class="screen-tile">
+      <span class="label">Reserve flow</span>
+      <span class="url">/reserve-flow</span>
+      <span class="desc">Steps 1, 2, 4 of Reserve &amp; Customize.</span>
+      <span class="source original">Custom</span>
+    </a>
+    <a href="/processor-ops" class="screen-tile">
+      <span class="label">Processor ops</span>
+      <span class="url">/processor-ops</span>
+      <span class="desc">Queue + QR check-in + dropoff deposit.</span>
+      <span class="source original">Custom</span>
+    </a>
+    <a href="/admin" class="screen-tile">
+      <span class="label">Admin</span>
+      <span class="url">/admin</span>
+      <span class="desc">Disputes triage + processor config.</span>
+      <span class="source original">Custom</span>
+    </a>
+    <a href="/processor-saas" class="screen-tile">
+      <span class="label">Processor SaaS</span>
+      <span class="url">/processor-saas</span>
+      <span class="desc">Pricing page + billing dashboard.</span>
+      <span class="source original">Custom</span>
+    </a>
+    <a href="/donation-flow" class="screen-tile">
+      <span class="label">Donation flow</span>
+      <span class="url">/donation-flow</span>
+      <span class="desc">Producer Partnership donation + tax letter.</span>
+      <span class="source original">Custom</span>
+    </a>
+    <a href="/hardware" class="screen-tile">
+      <span class="label">Hardware storefront</span>
+      <span class="url">/hardware</span>
+      <span class="desc">Friesla MPU catalog + lead capture.</span>
+      <span class="source original">Custom</span>
+    </a>
+  </div>
+
+  <p class="text-center text-faint mt-12 mb-12" style="font-size: var(--text-sm);">
+    All 23 screens share <code style="font-family: var(--font-mono);">theme.css</code> (Verdant Monolith design system).
+    Auto-deployed from <a href="https://github.com/Mychalstitts/protein-outfitters-design" style="color: var(--accent-2); font-weight: 700;">Mychalstitts/protein-outfitters-design</a>.
+  </p>
+</div>
+</body>
+</html>

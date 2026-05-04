@@ -1,0 +1,317 @@
+<html class="light" lang="en"><head></head><body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed leading-relaxed">```html
+
+
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Protein Outfitters - Grass-fed Angus Steer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-highest": "#e4e2de",
+                        "background": "#fbf9f5",
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "on-secondary-container": "#5c655d",
+                        "tertiary-container": "#410003",
+                        "inverse-primary": "#b4cdb8",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f2f0ec",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#410003",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#586158",
+                        "surface-variant": "#e4e2de",
+                        "on-tertiary-fixed-variant": "#930010",
+                        "primary-fixed-dim": "#b4cdb8",
+                        "surface-dim": "#dbdad6",
+                        "primary": "#000000",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#fbf9f5",
+                        "on-secondary-fixed": "#151d17",
+                        "surface-tint": "#4d6452",
+                        "on-primary-container": "#728a77",
+                        "tertiary-fixed": "#ffdad6",
+                        "on-primary-fixed": "#0a2012",
+                        "tertiary": "#000000",
+                        "outline-variant": "#c3c8c1",
+                        "primary-fixed": "#cfe9d3",
+                        "surface-container-low": "#f5f3ef",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#d9e2d8",
+                        "primary-container": "#0a2012",
+                        "inverse-surface": "#30312e",
+                        "on-primary-fixed-variant": "#364c3c",
+                        "secondary-fixed": "#dce5da",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#404941",
+                        "on-tertiary-container": "#f04440",
+                        "on-background": "#1b1c1a",
+                        "outline": "#737972",
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#434843",
+                        "surface-container": "#f0eeea",
+                        "surface-container-high": "#eae8e4",
+                        "on-surface": "#1b1c1a",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#fbf9f5",
+                        "secondary-fixed-dim": "#c0c9bf"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ios-press:active { transform: scale(0.96); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .haptic-touch:active { transform: scale(0.97); transition: transform 0.1s ease; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); }
+        .primary-gradient { background: linear-gradient(135deg, #0a2012 0%, #000000 100%); }
+        .purchase-gradient { background: linear-gradient(135deg, #061b0e 0%, #1b3022 100%); }
+        
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .odometer-anim {
+            animation: countUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-stone-50/80 backdrop-blur-xl shadow-[0_40px_60px_-10px_rgba(27,28,26,0.05)] flex justify-between items-center px-8 h-20 w-full">
+<div class="flex items-center gap-6">
+<a class="flex items-center justify-center w-10 h-10 rounded-full hover:scale-105 transition-transform duration-300 ease-out text-emerald-900 active:scale-95 ios-press" href="{{DATA:SCREEN:SCREEN_78}}">
+<span class="material-symbols-outlined">arrow_back</span>
+</a>
+<span class="text-xl font-black tracking-tighter text-emerald-950 font-headline">Protein Outfitters</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-8 mr-8">
+<a class="text-stone-400 font-bold font-headline tracking-tight hover:scale-105 transition-transform duration-300 ease-out" href="#">Home</a>
+<a class="text-emerald-900 font-bold font-headline tracking-tight hover:scale-105 transition-transform duration-300 ease-out" href="#">Browse</a>
+<a class="text-stone-400 font-bold font-headline tracking-tight hover:scale-105 transition-transform duration-300 ease-out" href="#">Sell</a>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden shadow-sm hover:scale-105 transition-transform duration-300 ease-out">
+<img class="w-full h-full object-cover" data-alt="professional portrait of a middle-aged man with a friendly expression in clean outdoor lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBe_glZyBrGo0kPg0Tfc_aRDmusKtvfYFdoTX5uZY3__SOq3DTgQXRKLKV6RGAoI7qfPLqGafm3XQB8dkpupmDN4dHovEL7HuIudw05TbSU9J6itLLIdfUWApr49TvkiH0OAk_NEgov6ro9xzsU1zdZyYjTXVtBedKrmwI4S3XyxrIDay4VNn6oNzY65_FT60NwdL4m9R2hTlkxd4FeG5Idzhz0gnL_2GSmyX4PupVzWmeEyOCZhTWUITvlMAC-MedeFxDtaMWR3i5f"/>
+</div>
+</div>
+</nav>
+<main class="pt-24 pb-32 px-6 max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Left Column: Content & Visuals (8 cols) -->
+<div class="lg:col-span-8 space-y-16">
+<!-- Hero Carousel Section -->
+<section class="relative group">
+<div class="overflow-hidden rounded-[2.5rem] bg-surface-container-low aspect-[16/10] relative shadow-2xl">
+<img class="w-full h-full object-cover hover:scale-105 transition-transform duration-1000 ease-out" data-alt="majestic black angus steer standing in a lush green field at sunrise with soft morning mist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-WSvOOb4aC75mqy8Dz1os32Of2ct-670-2nthA--7RJGyNttZ55NDHBBX0Oqir8yy8D_YoqBBSO4p-aejHS_7-mtNKmFyeenXfHZgvj6MV1kj9AUWJPV7nH8n2o_OBsI3iO1a_YFZ-PXOu_n6w6H7qYUD7WfDlL-g6afkb-76EfqDuykmPMQbwNg18_PoLW-5scz5mZ6Egg5FT2Vj1sZVISXBIuciViylMDxxTsiQZ5fihbNYoAzLKk9Tw92el6wApbvAlbG-Vz3b"/>
+<!-- Badges & Overlay -->
+<div class="absolute top-6 left-6 flex flex-col gap-3">
+<span class="glass-card px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+                                Organic Certified
+                            </span>
+</div>
+<div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+<div class="w-2 h-2 rounded-full bg-white opacity-100"></div>
+<div class="w-2 h-2 rounded-full bg-white/40"></div>
+<div class="w-2 h-2 rounded-full bg-white/40"></div>
+</div>
+</div>
+</section>
+<!-- Headline & Meta -->
+<section class="space-y-6">
+<div class="flex flex-wrap items-end justify-between gap-6">
+<div class="space-y-4 max-w-2xl">
+<div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container w-fit">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Northfield Pastures, MN</span>
+</div>
+<h1 class="text-6xl md:text-7xl font-black tracking-tighter text-on-background leading-none font-headline">
+                                Grass-fed Angus Steer
+                            </h1>
+</div>
+</div>
+<!-- Story Card -->
+<div class="p-10 rounded-[2rem] bg-surface-container-low relative overflow-hidden">
+<div class="relative z-10">
+<p class="text-xl md:text-2xl font-light italic text-on-surface-variant leading-relaxed">
+                                "Raised with intentionality on the rolling hills of Northfield. This steer has been rotationally grazed through native prairie grasses, resulting in exceptional marbling and a clean, nutty finish that only true grass-finishing can achieve."
+                            </p>
+</div>
+<span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] opacity-[0.03] rotate-12">format_quote</span>
+</div>
+<!-- Provenance Glass Pills -->
+<div class="flex flex-wrap gap-4 pt-4">
+<div class="px-6 py-3 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm flex items-center gap-3 ios-press">
+<span class="material-symbols-outlined text-emerald-700" style="font-variation-settings: 'FILL' 1;">eco</span>
+                            Grass-Finished
+                        </div>
+<div class="px-6 py-3 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm flex items-center gap-3 ios-press">
+<span class="material-symbols-outlined text-emerald-700" style="font-variation-settings: 'FILL' 1;">biotech</span>
+                            Non-GMO
+                        </div>
+<div class="px-6 py-3 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm flex items-center gap-3 ios-press">
+<span class="material-symbols-outlined text-emerald-700" style="font-variation-settings: 'FILL' 1;">shield</span>
+                            Hormone Free
+                        </div>
+</div>
+</section>
+<!-- Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-8 pb-12">
+<div class="p-8 rounded-[2rem] bg-surface-container-lowest shadow-sm flex flex-col justify-between aspect-square md:aspect-auto md:h-64 group hover:shadow-xl transition-shadow duration-500">
+<div>
+<span class="material-symbols-outlined text-primary text-3xl mb-4">calendar_today</span>
+<h3 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Harvest Date</h3>
+</div>
+<div class="text-4xl font-black font-headline text-on-background odometer-anim">Oct 12, 2025</div>
+</div>
+<div class="p-8 rounded-[2rem] bg-primary-container text-on-primary-container flex flex-col justify-between aspect-square md:aspect-auto md:h-64 group hover:shadow-xl transition-shadow duration-500">
+<div>
+<span class="material-symbols-outlined text-on-primary-container text-3xl mb-4">hourglass_top</span>
+<h3 class="text-sm font-bold uppercase tracking-widest opacity-70">Dry Aging Period</h3>
+</div>
+<div class="text-4xl font-black font-headline odometer-anim">21 Days</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Sticky Sidebar (4 cols) -->
+<div class="lg:col-span-4 relative">
+<div class="sticky top-28 space-y-8">
+<!-- AI Yield Estimator Sidebar -->
+<div class="glass-card p-8 rounded-[2.5rem] shadow-[0_40px_60px_-15px_rgba(0,0,0,0.08)] space-y-10">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-800">analytics</span>
+<h2 class="font-bold tracking-tight text-lg">AI Yield Estimator</h2>
+</div>
+<button class="w-10 h-10 rounded-full bg-emerald-900 text-white flex items-center justify-center ios-press">
+<span class="material-symbols-outlined text-sm">lock_open</span>
+</button>
+</div>
+<!-- Odometer Numbers -->
+<div class="space-y-6">
+<div class="flex justify-between items-end border-b-0 pb-2">
+<span class="text-sm font-medium text-on-surface-variant">Live Weight (Est)</span>
+<div class="text-3xl font-black font-headline tracking-tighter odometer-anim">1,200 <span class="text-sm font-bold opacity-40">LBS</span></div>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-sm font-medium text-on-surface-variant">Hanging Weight</span>
+<div class="text-3xl font-black font-headline tracking-tighter text-emerald-900 odometer-anim">750 <span class="text-sm font-bold opacity-40">LBS</span></div>
+</div>
+<div class="flex justify-between items-end p-4 rounded-2xl bg-surface-container-low">
+<span class="text-sm font-bold text-on-surface">Take-home Meat</span>
+<div class="text-3xl font-black font-headline tracking-tighter text-emerald-950 odometer-anim">450 <span class="text-sm font-bold opacity-40">LBS</span></div>
+</div>
+</div>
+<!-- Inputs -->
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant px-1">Feed Type Strategy</label>
+<div class="flex p-1.5 bg-surface-container rounded-full">
+<button class="flex-1 py-2 rounded-full bg-white text-xs font-bold text-on-background shadow-sm">100% GRASS</button>
+<button class="flex-1 py-2 rounded-full text-xs font-bold text-on-surface-variant">GRASS+GRAIN</button>
+</div>
+</div>
+</div>
+<!-- Shares Selection -->
+<div class="space-y-4">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant px-1">Select Your Share</h3>
+<div class="grid grid-cols-3 gap-3">
+<button class="flex flex-col items-center justify-center py-4 rounded-2xl bg-primary text-on-primary ios-press">
+<span class="text-sm font-bold">1/4</span>
+<span class="text-[10px] opacity-60">Active</span>
+</button>
+<button class="flex flex-col items-center justify-center py-4 rounded-2xl bg-surface-container text-on-surface-variant opacity-50 cursor-not-allowed">
+<span class="material-symbols-outlined text-sm mb-1">lock</span>
+<span class="text-sm font-bold">1/2</span>
+</button>
+<button class="flex flex-col items-center justify-center py-4 rounded-2xl bg-surface-container text-on-surface-variant ios-press">
+<span class="text-sm font-bold">WHOLE</span>
+<span class="text-[10px] opacity-60">Available</span>
+</button>
+</div>
+</div>
+<!-- Pricing & CTA -->
+<div class="pt-4 space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm font-bold text-on-surface-variant">Total Estimated</span>
+<span class="text-2xl font-black font-headline odometer-anim">$4,125.00</span>
+</div>
+<a class="block w-full text-center purchase-gradient text-white py-5 rounded-full font-black font-headline tracking-wide ios-press haptic-touch shadow-2xl shadow-emerald-950/20" href="{{DATA:SCREEN:SCREEN_57}}">
+                                Reserve 1/4 Share - $250
+                            </a>
+<p class="text-[10px] text-center text-on-surface-variant leading-tight opacity-60 px-4">
+                                *Deposit secures your reservation. Final price calculated on hanging weight post-harvest.
+                            </p>
+</div>
+</div>
+<!-- Additional Detail Card -->
+<div class="p-8 rounded-[2.5rem] bg-surface-container-low">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-emerald-900">person_search</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">Producer Rating</h4>
+<div class="flex text-emerald-800">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                            Northfield Pastures has completed 124 successful matches on Protein Outfitters with a 99.8% satisfaction rate on yield and aging accuracy.
+                        </p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-6 pb-8 pt-4 bg-stone-50/80 backdrop-blur-xl z-50 rounded-t-[2rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.08)] md:hidden">
+<a class="flex flex-col items-center justify-center text-emerald-800/50 px-4 py-2 hover:text-emerald-900 transition-colors haptic-touch ios-press" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-emerald-900 text-stone-50 rounded-full px-6 py-2 transition-all duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] active:scale-90 haptic-touch ios-press" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-1">Browse</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-800/50 px-4 py-2 hover:text-emerald-900 transition-colors haptic-touch ios-press" href="#">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-1">Sell</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-800/50 px-4 py-2 hover:text-emerald-900 transition-colors haptic-touch ios-press" href="{{DATA:SCREEN:SCREEN_10}}">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-1">Track</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-800/50 px-4 py-2 hover:text-emerald-900 transition-colors haptic-touch ios-press" href="{{DATA:SCREEN:SCREEN_2}}">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+```</body></html>

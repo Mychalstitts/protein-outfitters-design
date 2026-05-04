@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Monolith | Producers &amp; Estates</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed-variant": "#364c3c",
+              "secondary-fixed": "#dce5da",
+              "on-surface-variant": "#434843",
+              "surface-bright": "#fbf9f5",
+              "surface-container": "#f0eeea",
+              "error-container": "#ffdad6",
+              "outline": "#737972",
+              "on-tertiary-fixed": "#410003",
+              "inverse-primary": "#b4cdb8",
+              "tertiary-fixed": "#ffdad6",
+              "secondary": "#586158",
+              "outline-variant": "#c3c8c1",
+              "on-tertiary-fixed-variant": "#930010",
+              "on-secondary-fixed": "#151d17",
+              "on-background": "#1b1c1a",
+              "tertiary": "#000000",
+              "secondary-fixed-dim": "#c0c9bf",
+              "primary-fixed": "#cfe9d3",
+              "inverse-on-surface": "#f2f0ec",
+              "error": "#ba1a1a",
+              "on-secondary": "#ffffff",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "background": "#fbf9f5",
+              "tertiary-container": "#410003",
+              "on-primary-fixed": "#0a2012",
+              "surface-dim": "#dbdad6",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb3ac",
+              "surface-tint": "#4d6452",
+              "on-tertiary-container": "#f04440",
+              "on-error": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed-dim": "#b4cdb8",
+              "primary-container": "#0a2012",
+              "on-primary-container": "#728a77",
+              "surface-variant": "#e4e2de",
+              "surface-container-high": "#eae8e4",
+              "primary": "#000000",
+              "inverse-surface": "#30312e",
+              "secondary-container": "#d9e2d8",
+              "surface-container-highest": "#e4e2de",
+              "surface-container-low": "#f5f3ef",
+              "surface": "#fbf9f5",
+              "on-secondary-fixed-variant": "#404941",
+              "on-surface": "#1b1c1a",
+              "on-secondary-container": "#5c655d"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body { font-family: 'Inter', sans-serif; }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .ease-spring {
+        transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background selection:bg-primary-fixed-dim">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 backdrop-blur-xl flex justify-between items-center px-8 py-6 max-w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#061b0e] dark:text-[#fbf9f5] scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl" data-icon="menu">menu</span>
+</button>
+<h1 class="text-2xl font-black tracking-tighter text-[#061b0e] dark:text-[#fbf9f5] uppercase font-headline">The Monolith</h1>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="text-[#061b0e] dark:text-[#fbf9f5] font-bold transition-opacity duration-300 hover:opacity-80" href="#">Producers</a>
+<a class="text-[#061b0e]/60 dark:text-[#fbf9f5]/60 font-bold transition-opacity duration-300 hover:opacity-80" href="#">Selection</a>
+<a class="text-[#061b0e]/60 dark:text-[#fbf9f5]/60 font-bold transition-opacity duration-300 hover:opacity-80" href="#">Vault</a>
+</nav>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden shadow-sm">
+<img alt="User profile" data-alt="Close-up portrait of a professional man in a dark minimalist studio with soft rim lighting and sophisticated atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWlF9zIkXA-6myTC1wcB6s8TGe0ItbRYtlYqIipcMtmXExPv6GViL_FzGi19AY2-Yn1akz8bciH6TppBJ-b979yJqI0DXV97mZ-15J7gcZR-UFmYRD1Lm_4YKBFB7t3CcVv_gtXsxDj3VwVL0zvYu0g2law3vmEzCJuNl8oR8BuDEyHmcRvYyvydVkDNro4eLeoDZdmNFagnXpyrluzY9VVO09q5nVrG1hGEUph_C4Cee_Z5Sey8qBvnwYXM7weZGvTYP4AOnhjDfG"/>
+</div>
+</header>
+<main class="pt-32 pb-32 px-6 md:px-12 max-w-7xl mx-auto">
+<!-- Hero Editorial Section -->
+<section class="relative w-full mb-16 group">
+<div class="relative h-[618px] w-full rounded-[2.75rem] overflow-hidden shadow-2xl">
+<img alt="Northfield Pastures" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Wide panoramic shot of a misty emerald green valley with ancient oak trees at dawn and soft volumetric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAKocX2Xhjj8fL_OYrOxpDvevs8N7l4fXp2WAZDI7gag9MmOo_gIoWTuUnyef6x-jbT1-6dFPCsmXRzR1_VRHauELvDjerBNNull9bjNkkNR9rqyp1qKo-bR9ioXXtG3NfXnoDoAu_OY_WgoRAfNJlGOpLH8kVtU3gqQ0Biv4mY4sULkqKo1F-TkHO182Eze7J8_dxZGmTYUoJl2KkfmcA2xrT36OdaobCZTFr1kHTlP0mdTij_13kSg9V5qjHyyllq9nlHCWjPfiO"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent"></div>
+<!-- Featured Badge -->
+<div class="absolute top-8 left-8 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+<span class="text-white text-xs font-black tracking-[0.2em] uppercase font-label">Featured Estate</span>
+</div>
+<!-- Overlapping Content -->
+<div class="absolute bottom-12 left-8 md:left-12 right-8 md:right-12">
+<div class="max-w-2xl">
+<h2 class="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4 font-headline">Northfield Pastures</h2>
+<div class="flex items-center gap-4 mb-6">
+<span class="px-4 py-1.5 bg-primary-container text-on-primary-container rounded-full text-xs font-bold font-label uppercase tracking-widest">Wiltshire, UK</span>
+<span class="text-white/80 text-sm font-medium">Est. 1842 • 1,200 Hectares</span>
+</div>
+<button class="bg-white text-primary px-8 py-4 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all ease-spring flex items-center gap-3">
+                            Experience the Provenance
+                            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Asymmetrical Magazine Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+<!-- Left Column: Blackwood Estates (Large Card) -->
+<div class="md:col-span-7">
+<div class="bg-surface-container-low rounded-[2.75rem] p-10 relative overflow-hidden group hover:bg-surface-container transition-colors duration-500">
+<div class="relative z-10 flex flex-col h-full justify-between min-h-[400px]">
+<div>
+<div class="flex justify-between items-start mb-12">
+<div>
+<h3 class="text-3xl font-black tracking-tight text-on-background font-headline mb-2">Blackwood Estates</h3>
+<span class="px-3 py-1 bg-surface-container-highest text-secondary font-bold text-[10px] uppercase tracking-widest rounded-full">Highland Heritage</span>
+</div>
+<span class="material-symbols-outlined text-4xl text-primary/10" data-icon="temp_preferences_custom">temp_preferences_custom</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed text-lg max-w-md mb-8">
+                                Generations of dedicated land stewardship in the rugged Scottish Highlands. Home to the rarest heritage breeds and crystalline spring waters.
+                            </p>
+</div>
+<button class="w-fit px-6 py-3 bg-transparent border border-outline-variant/30 text-on-background font-bold rounded-xl hover:bg-surface-container-highest transition-all">
+                            View Profile
+                        </button>
+</div>
+<!-- Bleed Image -->
+<div class="absolute -right-20 -bottom-10 w-80 h-80 opacity-20 grayscale group-hover:grayscale-0 group-hover:opacity-40 transition-all duration-700">
+<img alt="Blackwood Animal" data-alt="A silhouette of a majestic highland cow with long horns standing against a foggy dark green forest background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3y81sCG1tGIE4DJ96NfUwpLE9SyVBM9bMsHdHZ11JpWVO3k7BA77Ku_Q6djexwL7REVmXUqeeImHEg5GAAD4OGMN9gsU54yZAo4qbFqYEn7_AR0fh5bkrnwUFZUdYFOopP8WjiOVohlRJsPUJ8PCzHMFlN3Of3Azjv-z4591pSVq04LpnqWHKY25aLUvi_vLeacIRM7aQtjFewieOkVCnkdwnS1P_mbrh_QHWX9eLJ5NIs8Ty6VeIEt6W8ph16tq2zsci9fmVDiiI"/>
+</div>
+</div>
+</div>
+<!-- Right Column: List and Stats -->
+<div class="md:col-span-5 space-y-10">
+<!-- Riverbend Farm Card -->
+<div class="bg-surface-container-lowest rounded-[2.75rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.02)] group">
+<div class="flex items-center gap-6 mb-6">
+<div class="w-20 h-20 rounded-3xl overflow-hidden bg-surface-container">
+<img alt="Riverbend" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Lush green river bank with weeping willows reflecting in calm water during a bright spring morning" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT3RG8dWS3y6FaWN0hLvkpjr1LIacke7wHBIeCVGGyzcg47S6psz0ZVVpDgsyas65GxCokx419qUs8ATaQmDzIDYMZE_XUzfiPwPtfPO4Aaiz1-sugJV7UB7IUL0BOrKB7Vx1TGkGbDLNxjKMlbAGuZaQljO8btoi6IA0zGNIjgQLnLJjJZoslRwxbv0MmVYWb7zJLD97PH8asUFtKGMRrerXBQtCED5SZwykKav-RJ-MoHysmNXDPPXRtMFIT5Iayvhwt8Sie2i_n"/>
+</div>
+<div>
+<h4 class="text-xl font-bold tracking-tight font-headline">Riverbend Farm</h4>
+<p class="text-on-surface-variant text-sm font-label uppercase tracking-widest">Organic Viticulture</p>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant text-sm italic">Loire Valley, France</span>
+<button class="p-2 text-primary hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="north_east">north_east</span>
+</button>
+</div>
+</div>
+<!-- Elderwood Organics Card -->
+<div class="bg-surface-container-low rounded-[2.75rem] p-8 group">
+<div class="flex items-center gap-6 mb-6">
+<div class="w-20 h-20 rounded-3xl overflow-hidden bg-surface-container">
+<img alt="Elderwood" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="A small rustic vegetable garden with deep purple kale and bright orange pumpkins in soft afternoon sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvd1Fx9sl8o6N2MwqZ6fV41ZZh46LmDVC35i-PDlWI-kklHKHsgEuOWbGSnH_ACZkQ9UPO-kGzILVZSTYbPIUMsDt4So3Ze2CkI6HuLuee5IhhscD3yARhOkdHD2XQCbR4iCMnGQvs6FsD0G11rGQAzPVYcFlcSDqrZbwQg1jK81ucViH92GZeYyXhFR1NM8VQ4xxvZeQahUgMIsoMGv8y7bSM3jRKHXOvM5Rj06GW4gdoR7TXgp29BCxfsVNArHkOCUuCX-wCEpTO"/>
+</div>
+<div>
+<h4 class="text-xl font-bold tracking-tight font-headline">Elderwood Organics</h4>
+<p class="text-on-surface-variant text-sm font-label uppercase tracking-widest">Boutique Foraging</p>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant text-sm italic">Oregon, USA</span>
+<button class="p-2 text-primary hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="north_east">north_east</span>
+</button>
+</div>
+</div>
+<!-- Stats/Insight Bento -->
+<div class="bg-primary-container p-8 rounded-[2.75rem] text-on-primary-container">
+<span class="material-symbols-outlined text-4xl mb-6 block" data-icon="verified_user" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<h5 class="text-2xl font-black font-headline tracking-tighter mb-2">Curated Standards</h5>
+<p class="text-on-primary-container/70 text-sm leading-relaxed mb-6">Every producer in the Monolith network undergoes a 12-month vetting process for soil health and carbon sequestration.</p>
+<div class="flex -space-x-3">
+<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-container overflow-hidden">
+<img data-alt="Portrait of a farm manager" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkrSBBX77bpKqtGLnpVjKYglPbB-j76z7sHmo55fBgmwz0-O1pb-_ypqBhEdCW2g9-iBS2JDX0s598iv86pikVBuAdfUI328c687ycqOoPyXjdt7h5xy35WmJ1otZ0HI0xglyqSYqLi1iANwqQcp7wbYNssz7-8V4kU3jCHKN_TBbwfUiPmnUv3RmCgGmBC2lTpjW6S6c47pRaZ5NhdDN2LD-4xU4vyoV3Bs7hX2qV0gueEpOg4WPH29muqD0uwCfp4vDdNmo6QQEk"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-container overflow-hidden">
+<img data-alt="Portrait of a female agriculturist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPH2Wc-IV5miBeS1TNn0ugDl-CyBL60sPDB4jsneJpWQoo5SRTAmYpDWmPEWvYP0BqLLtwycM9J-nCP6KFCYhbR8FrU7xNlAlmEGTaHEyUcaQOxgYJNClJLl_0ZkZv_3Q1w1__hvh4VeY5AyReILrrZRVauh2ZTQVYDL0lcHZFQpGoJM8hwLOimS_c3_oPVENkz9hE9qsDDdqm-KHOf1xdfEX_T8vlKZ7Qs22Wr83ZKuK-9ghTs1lHxb_y0DGwOPmzjvkwsIWuCDTE"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-container overflow-hidden">
+<img data-alt="Portrait of a land scientist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDikSn4of_A5xY8Fc6rE8p4nMuMNwyNunuHW8tywdWKuWi5V87p_Kd3CYsqHHhl0Qq6Tt3QICpe2T6-RwnrbUSwnXry9u_pxm9h1igbJuWVWZA3q9reiweqUlWuGqKCv-O7fXgwjLU-RZXExnEfGGRfIq_pNcTKqPoPDIxJfY3I9uEUplNruQ4BIXo5ToQRu_6Jc-0FyG7UB8-Yd3xWcsZpxLVUcnJpdVfMQXSB0TIQMYcTGu8hwC6MreHJMZNGHprwlF1o3wIDsSQ"/>
+</div>
+<div class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-primary-container bg-surface-container-high text-[10px] font-bold">
+                            +42
+                        </div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-24 flex justify-around items-center px-10 pb-4 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 backdrop-blur-2xl z-50 rounded-t-[2.75rem] shadow-[0_-10px_40px_rgba(27,28,26,0.04)]">
+<!-- Discover -->
+<a class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] scale-110 active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Discover</span>
+</a>
+<!-- Provenance (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#061b0e] dark:bg-[#fbf9f5] text-[#fbf9f5] dark:text-[#061b0e] rounded-full w-14 h-14 transition-all duration-500 ease-spring scale-110 shadow-2xl" href="#">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+<span class="hidden">Provenance</span>
+</a>
+<!-- Selection -->
+<a class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] scale-110 active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Selection</span>
+</a>
+<!-- Vault -->
+<a class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-[#fbf9f5]/40 w-14 h-14 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] scale-110 active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="shield_person">shield_person</span>
+<span class="text-[10px] font-bold tracking-widest uppercase Inter mt-1">Vault</span>
+</a>
+</nav>
+</body></html>
