@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Northfield Pastures · Bemidji, MN · Protein Outfitters</title>
+<meta name="description" content="Two decades of regenerative grazing in northern Minnesota. Follow Northfield Pastures, browse active animals, and reserve directly." />
+<meta property="og:title" content="Northfield Pastures · Protein Outfitters" />
+<meta property="og:description" content="Two decades of regenerative grazing in northern Minnesota." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/farm/northfield-pastures" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Northfield Pastures · Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
+<style>
+.farm-cover { position: relative; height: clamp(280px, 38vh, 440px); background: #1a0d08 url('/ranch.jpg') center/cover no-repeat; overflow: hidden; }
+.farm-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.65) 100%); }
+
+.farm-id { position: relative; z-index: 2; max-width: 1320px; margin: -84px auto 0; padding: 0 var(--shell-pad); display: flex; gap: 22px; align-items: flex-end; flex-wrap: wrap; }
+.farm-avatar { width: 144px; height: 144px; border-radius: 24px; background: #fff; padding: 6px; flex-shrink: 0; box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
+.farm-avatar > div { width: 100%; height: 100%; border-radius: 18px; background: url('/farmer.jpg') center/cover; }
+.farm-id-text { flex: 1; min-width: 0; padding-bottom: 18px; }
+.farm-id-text h1 { color: #fff; font-size: clamp(36px, 5vw, 56px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; margin: 0; }
+.farm-id-text .where { color: rgba(255,255,255,0.85); font-size: 15px; margin: 8px 0 0; font-weight: 500; }
+
+.farm-actions { display: flex; gap: 10px; padding-bottom: 18px; }
+.btn-follow { background: var(--brand); color: #fbf9f5; border: 0; border-radius: 999px; padding: 12px 24px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; cursor: pointer; transition: transform .25s, background .2s; display: inline-flex; gap: 8px; align-items: center; }
+.btn-follow:hover { transform: scale(1.04); background: #0a2614; }
+.btn-follow.following { background: #fff; color: var(--brand); border: 1px solid rgba(0,0,0,0.1); }
+.btn-share { background: rgba(255,255,255,0.92); color: var(--ink); border: 0; border-radius: 999px; padding: 12px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform .25s; }
+.btn-share:hover { transform: scale(1.04); }
+
+.farm-stats { max-width: 1320px; margin: clamp(28px, 4vw, 48px) auto 0; padding: 0 var(--shell-pad); display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.06); border-radius: 22px; overflow: hidden; }
+.farm-stat { background: var(--bg); padding: 22px 26px; }
+.farm-stat .num { font-size: clamp(24px, 2.4vw, 32px); font-weight: 900; letter-spacing: -0.02em; color: var(--brand); line-height: 1; }
+.farm-stat .lab { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin-top: 6px; }
+
+.tabs { position: sticky; top: 64px; z-index: 60; background: rgba(251,249,245,0.92); backdrop-filter: blur(12px); padding: 14px var(--shell-pad); border-bottom: 1px solid rgba(0,0,0,0.06); margin-top: clamp(40px, 5vw, 56px); }
+.tabs-inner { max-width: 1320px; margin: 0 auto; display: flex; gap: 6px; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+.tabs-inner::-webkit-scrollbar { display: none; }
+.tab { background: transparent; border: 0; padding: 10px 18px; font-size: 14px; font-weight: 600; color: var(--ink-2); cursor: pointer; border-radius: 999px; white-space: nowrap; transition: background .2s, color .2s; }
+.tab:hover { color: var(--ink); }
+.tab.active { background: var(--brand); color: #fbf9f5; }
+
+.farm-section { padding: clamp(48px, 6vw, 80px) var(--shell-pad); }
+.farm-section-inner { max-width: 1320px; margin: 0 auto; }
+.farm-section h2 { margin: 0 0 12px; font-size: clamp(28px, 3.5vw, 44px); font-weight: 900; letter-spacing: -0.025em; line-height: 1.05; }
+
+.about-grid { display: grid; gap: clamp(32px, 4vw, 56px); grid-template-columns: 1fr; margin-top: 32px; }
+@media (min-width: 900px) { .about-grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+.about-prose p { font-size: 17px; line-height: 1.65; color: var(--ink); margin: 0 0 18px; max-width: 60ch; }
+.about-prose p:last-child { margin-bottom: 0; }
+.cert-card { background: var(--surface); border-radius: 22px; padding: 28px 30px; }
+.cert-card h3 { margin: 0 0 18px; font-size: 13px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
+.cert-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.cert-row:last-child { border-bottom: 0; }
+.cert-row .k { color: var(--ink-2); }
+.cert-row .v { color: var(--ink); font-weight: 700; }
+
+.listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: clamp(20px, 2vw, 28px); margin-top: 32px; }
+
+/* Posts feed */
+.posts { max-width: 720px; margin: 32px 0 0; display: flex; flex-direction: column; gap: 18px; }
+.post { background: #fff; border-radius: 22px; padding: 22px 26px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.post-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.post-avatar { width: 40px; height: 40px; border-radius: 12px; background: url('/farmer.jpg') center/cover; flex-shrink: 0; }
+.post-meta-name { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; margin: 0; }
+.post-meta-date { font-size: 12px; color: var(--ink-3); margin: 0; }
+.post-body { font-size: 16px; line-height: 1.55; color: var(--ink); margin: 0 0 14px; }
+.post-photo { width: 100%; aspect-ratio: 16/10; border-radius: 16px; background-size: cover; background-position: center; margin-bottom: 14px; }
+.post-foot { display: flex; gap: 24px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 13px; color: var(--ink-2); }
+.post-foot button { background: transparent; border: 0; padding: 4px 0; font: inherit; color: var(--ink-2); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.post-foot button:hover { color: var(--ink); }
+.post-foot button.liked { color: var(--brand); font-weight: 700; }
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 32px; }
+.gallery .tile { aspect-ratio: 1; background-size: cover; background-position: center; border-radius: 14px; }
+
+.farm-bg-alt { background: var(--surface); }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/#how">How it works</a><a href="/producers" class="active">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button data-open-sheet>Reserve</button></div>
+  </nav>
+</div>
+
+<section class="farm-cover" aria-label="Cover photo: Northfield Pastures at dawn"></section>
+
+<div class="farm-id">
+  <div class="farm-avatar"><div></div></div>
+  <div class="farm-id-text">
+    <h1>Northfield Pastures</h1>
+    <p class="where">Bemidji, MN · Beltrami County · 320 acres</p>
+  </div>
+  <div class="farm-actions">
+    <button class="btn-follow" id="followBtn"><span id="followIcon">+</span> <span id="followText">Follow</span></button>
+    <button class="btn-share">Share</button>
+  </div>
+</div>
+
+<div class="farm-stats">
+  <div class="farm-stat"><div class="num">2,400+</div><div class="lab">Animals raised</div></div>
+  <div class="farm-stat"><div class="num">22 yrs</div><div class="lab">Producing since 2004</div></div>
+  <div class="farm-stat"><div class="num">3</div><div class="lab">Active listings</div></div>
+  <div class="farm-stat"><div class="num">847</div><div class="lab">Followers</div></div>
+  <div class="farm-stat"><div class="num">4.9 ★</div><div class="lab">128 buyer reviews</div></div>
+</div>
+
+<div class="tabs">
+  <div class="tabs-inner">
+    <button class="tab active" data-tab="about">About</button>
+    <button class="tab" data-tab="listings">Listings · 3</button>
+    <button class="tab" data-tab="posts">Posts · 24</button>
+    <button class="tab" data-tab="gallery">Gallery · 18</button>
+    <button class="tab" data-tab="reviews">Reviews · 128</button>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="farm-section" data-pane="about">
+  <div class="farm-section-inner">
+    <p class="po-eyebrow">About the ranch</p>
+    <h2>Two decades of grass and patience.</h2>
+    <div class="about-grid">
+      <div class="about-prose">
+        <p>Northfield Pastures sits on 320 acres of native cool-season grassland on the western edge of Bemidji, Minnesota. The Hansen family has run rotational grazing here since 2004 — moving the herd through six paddocks of bluegrass, timothy, and white clover, then stockpiling the rest for Northland winters.</p>
+        <p>Every animal is named at birth. No grain. No growth hormones. No sub-therapeutic antibiotics. The cow-calf pairs stay together until natural weaning at nine months, after which the steers and heifers spend another year and a half on pasture before harvest.</p>
+        <p>The ranch is a USDA Process Verified operation and an American Grassfed Association member. Our partner processor is Plant 04 in Bemidji, twelve miles down the road.</p>
+      </div>
+      <div class="cert-card">
+        <h3>Certifications & Practices</h3>
+        <div class="cert-row"><span class="k">USDA inspection</span><span class="v">Process Verified</span></div>
+        <div class="cert-row"><span class="k">Certifying body</span><span class="v">AGA Grass-Fed</span></div>
+        <div class="cert-row"><span class="k">Feed</span><span class="v">100% grass + hay</span></div>
+        <div class="cert-row"><span class="k">Finish</span><span class="v">100% grass</span></div>
+        <div class="cert-row"><span class="k">Antibiotics</span><span class="v">Therapeutic only</span></div>
+        <div class="cert-row"><span class="k">Hormones</span><span class="v">Never</span></div>
+        <div class="cert-row"><span class="k">Welfare standard</span><span class="v">GAP Step 4</span></div>
+        <div class="cert-row"><span class="k">Carbon footprint</span><span class="v">−2.4 t CO₂e/yr</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LISTINGS -->
+<section class="farm-section farm-bg-alt" data-pane="listings" hidden>
+  <div class="farm-section-inner">
+    <p class="po-eyebrow">Active listings</p>
+    <h2 id="fpListingsTitle">Animals reserving now.</h2>
+    <div class="listings-grid" id="fpListingsGrid"></div>
+  </div>
+</section>
+
+<!-- POSTS -->
+<section class="farm-section" data-pane="posts" hidden>
+  <div class="farm-section-inner">
+    <p class="po-eyebrow">From the ranch</p>
+    <h2>Stories, not staged photos.</h2>
+    <div class="posts">
+
+      <article class="post">
+        <div class="post-head"><div class="post-avatar"></div><div><p class="post-meta-name">Northfield Pastures</p><p class="post-meta-date">2 days ago · Bemidji, MN</p></div></div>
+        <div class="post-photo" style="background-image: url('/angus.jpg');"></div>
+        <p class="post-body">First grass of the season. The cow-calf pairs hit pasture three this morning — bluegrass is two inches and the clover is starting to come in. Twelve more weeks of growth and we'll be moving #2641 to harvest.</p>
+        <div class="post-foot"><button class="liked">♥ 84</button><button>💬 12</button><button>↗ Share</button></div>
+      </article>
+
+      <article class="post">
+        <div class="post-head"><div class="post-avatar"></div><div><p class="post-meta-name">Northfield Pastures</p><p class="post-meta-date">6 days ago</p></div></div>
+        <p class="post-body">New listing live: <strong>#2671</strong>. Black Angus steer, 1,210 lb, two years on grass. Reserving quarters, halves, or whole. Harvest July 9 at Plant 04.</p>
+        <div class="post-foot"><button>♥ 51</button><button>💬 4</button><button>↗ Share</button></div>
+      </article>
+
+      <article class="post">
+        <div class="post-head"><div class="post-avatar"></div><div><p class="post-meta-name">Northfield Pastures</p><p class="post-meta-date">2 weeks ago</p></div></div>
+        <div class="post-photo" style="background-image: url('/farmer.jpg');"></div>
+        <p class="post-body">Spring inspection day with USDA. Plant 04 passed Process Verified for the 19th year running. Our partnership with them goes back to 2007 and they're the reason we can sell across state lines.</p>
+        <div class="post-foot"><button>♥ 142</button><button>💬 28</button><button>↗ Share</button></div>
+      </article>
+
+      <article class="post">
+        <div class="post-head"><div class="post-avatar"></div><div><p class="post-meta-name">Northfield Pastures</p><p class="post-meta-date">3 weeks ago</p></div></div>
+        <p class="post-body">Calving season wrap-up: 47 calves, 1 lost, 0 assists needed. The bull (Buster, who you'll meet later) has earned his keep this year. Photos from morning rounds in the next post.</p>
+        <div class="post-foot"><button>♥ 96</button><button>💬 22</button><button>↗ Share</button></div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="farm-section farm-bg-alt" data-pane="gallery" hidden>
+  <div class="farm-section-inner">
+    <p class="po-eyebrow">The land</p>
+    <h2>320 acres in pictures.</h2>
+    <div class="gallery">
+      <div class="tile" style="background-image: url('/angus.jpg');"></div>
+      <div class="tile" style="background-image: url('/ranch.jpg');"></div>
+      <div class="tile" style="background-image: url('/hereford.jpg');"></div>
+      <div class="tile" style="background-image: url('/farmer.jpg');"></div>
+      <div class="tile" style="background-image: url('/angus.jpg');"></div>
+      <div class="tile" style="background-image: url('/ranch.jpg');"></div>
+      <div class="tile" style="background-image: url('/hereford.jpg');"></div>
+      <div class="tile" style="background-image: url('/angus.jpg');"></div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="farm-section" data-pane="reviews" hidden>
+  <div class="farm-section-inner">
+    <p class="po-eyebrow">Buyer reviews</p>
+    <h2>4.9 average · 128 reviews.</h2>
+    <div class="posts">
+      <article class="post">
+        <div class="post-head"><div class="post-avatar" style="background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; font-weight: 800;">SR</div><div><p class="post-meta-name">Sarah R. · Bemidji</p><p class="post-meta-date">Reviewed last month · ★★★★★</p></div></div>
+        <p class="post-body">Bought a half from #2598 last fall. The flavor was unreal — the kind of beef you can't find at any grocery. Northfield is the real deal. Already reserved a quarter from #2641.</p>
+      </article>
+      <article class="post">
+        <div class="post-head"><div class="post-avatar" style="background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; font-weight: 800;">JT</div><div><p class="post-meta-name">Jenna T. · Duluth</p><p class="post-meta-date">Reviewed 2 months ago · ★★★★★</p></div></div>
+        <p class="post-body">First time buying a quarter and the Hansens walked me through every cut decision. Pickup was painless. We've already split a half with my sister-in-law.</p>
+      </article>
+      <article class="post">
+        <div class="post-head"><div class="post-avatar" style="background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; font-weight: 800;">MK</div><div><p class="post-meta-name">Mark K. · Park Rapids</p><p class="post-meta-date">Reviewed 4 months ago · ★★★★★</p></div></div>
+        <p class="post-body">Family of five. Whole #2549 lasted us 14 months and there's still some short ribs in the chest freezer. Best dollar-per-pound of premium meat we've ever bought.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="/po-shell.js"></script>
+<script src="/po-api.js"></script>
+<script>
+(async () => {
+  // Slug derived from URL: /farm/northfield-pastures → "northfield-pastures"
+  const slug = (location.pathname.match(/\/farm\/([^\/]+)/) || [])[1] || 'northfield-pastures';
+  const grid = document.getElementById('fpListingsGrid');
+  if (!grid) return;
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;opacity:.55;font:500 14px/1.5 'Inter'">Loading…</div>`;
+
+  let data;
+  try { data = await window.PO_API.farm(slug); } catch (e) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;opacity:.7;font:500 14px/1.5 'Inter'">No active listings yet.</div>`;
+    return;
+  }
+  const listings = (data.listings || []).filter(l => l.status === 'active');
+
+  // Update tab count badge
+  const tabBtn = document.querySelector('[data-tab="listings"]');
+  if (tabBtn) tabBtn.textContent = `Listings · ${listings.length}`;
+
+  // Update active-listings stat
+  const stats = document.querySelectorAll('.farm-stat .num');
+  if (stats[2]) stats[2].textContent = listings.length;
+
+  if (!listings.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;background:#fff;border-radius:14px;font:600 14px/1.5 'Inter';opacity:.7">No animals reserving right now. Check back soon.</div>`;
+    document.getElementById('fpListingsTitle').textContent = 'No animals reserving right now.';
+    return;
+  }
+
+  document.getElementById('fpListingsTitle').textContent = listings.length === 1
+    ? '1 animal reserving now.'
+    : `${listings.length} animals reserving now.`;
+
+  const photoFor = sp => sp === 'hog' ? '/img/premium-pig.jpg' : sp === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg';
+  const cap = s => (s || '').replace(/\b\w/g, c => c.toUpperCase());
+
+  grid.innerHTML = listings.map(l => {
+    const photo = (l.photos && l.photos[0]) || photoFor(l.species);
+    const fromPrice = l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0;
+    const practiceLabel = (l.practice && l.practice[0]) ? cap(l.practice[0].replace('-',' ')) : '';
+    return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
+      <div class="product-photo" style="background-image:url('${photo}');"><span class="product-tag">Reserving</span></div>
+      <div class="product-meta">
+        <span class="product-eyebrow">${cap(l.species)}${practiceLabel ? ' · ' + practiceLabel : ''}</span>
+        <h3 class="product-name">${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}</h3>
+        <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
+        <div class="product-foot"><span class="product-price">From <strong>$${Number(fromPrice).toFixed(2)}/lb</strong></span><span class="product-cta">Reserve →</span></div>
+      </div>
+    </button>`;
+  }).join('');
+})();
+</script>
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const panes = document.querySelectorAll('[data-pane]');
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const k = tab.dataset.tab;
+    panes.forEach(p => p.hidden = p.dataset.pane !== k);
+    window.scrollTo({ top: document.querySelector('.tabs').offsetTop - 56, behavior: 'smooth' });
+  }));
+
+  // Follow button
+  const fb = document.getElementById('followBtn'), fi = document.getElementById('followIcon'), ft = document.getElementById('followText');
+  let following = false;
+  fb.addEventListener('click', () => {
+    following = !following;
+    fb.classList.toggle('following', following);
+    fi.textContent = following ? '✓' : '+';
+    ft.textContent = following ? 'Following' : 'Follow';
+  });
+</script>
+</body>
+</html>
