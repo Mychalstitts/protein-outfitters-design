@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Farm · Protein Outfitters</title>
+  <link rel="icon" type="image/svg+xml" href="/brand/po-favicon.svg" />
+  <link rel="stylesheet" href="/po-shell.css" />
+  <style>
+    body{ background: var(--parchment); }
+    .farm-cover{ height: 320px; background: linear-gradient(135deg, var(--ink), #0e2c19); background-size: cover; background-position: center; position: relative; }
+    .farm-cover::after{ content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.55)); }
+    .farm-shell{ max-width: 1200px; margin: -64px auto 0; padding: 0 var(--shell-pad) 80px; position: relative; z-index: 2; }
+    .farm-id{ display: grid; grid-template-columns: 96px 1fr auto; gap: 22px; align-items: center; background: #fff; border-radius: 22px; padding: 22px; box-shadow: 0 8px 28px rgba(6,27,14,.1); }
+    .farm-avatar{ width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg, #7da05d, #b48a5a); display: grid; place-items: center; color: #fbf9f5; font: 800 32px/1 'Inter', system-ui, sans-serif; }
+    .farm-id h1{ margin: 0; font: 800 32px/1.1 'Inter', system-ui, sans-serif; letter-spacing: -.02em; color: var(--ink); }
+    .farm-id p{ margin: 4px 0 0; color: rgba(6,27,14,.6); font: 500 14px/1.4 'Inter', system-ui, sans-serif; }
+    .farm-actions{ display: flex; gap: 8px; }
+    .btn-follow, .btn-share{ background: rgba(6,27,14,.06); color: var(--ink); border: 0; padding: 10px 16px; border-radius: 999px; font: 700 13px/1 'Inter', system-ui, sans-serif; cursor: pointer; }
+    .btn-follow.followed{ background: var(--ink); color: var(--parchment); }
+    .farm-stats{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 22px; }
+    .farm-stat{ background: #fff; border-radius: 14px; padding: 18px 20px; border: 1px solid rgba(6,27,14,.06); }
+    .farm-stat .num{ font: 800 26px/1 'Inter', system-ui, sans-serif; color: var(--ink); letter-spacing: -.02em; }
+    .farm-stat .lab{ font: 600 12px/1.2 'Inter', system-ui, sans-serif; color: rgba(6,27,14,.6); margin-top: 6px; letter-spacing: .04em; text-transform: uppercase; }
+    .farm-section{ margin-top: 36px; }
+    .farm-section h2{ font: 800 26px/1.2 'Inter', system-ui, sans-serif; letter-spacing: -.02em; color: var(--ink); margin: 0 0 18px; }
+    .listings-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+    .product{ background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid rgba(6,27,14,.06); cursor: pointer; transition: all .25s cubic-bezier(.2,.9,.3,1.4); display: flex; flex-direction: column; padding: 0; text-align: left; }
+    .product:hover{ transform: translateY(-3px); box-shadow: 0 16px 40px rgba(6,27,14,.12); }
+    .product-photo{ aspect-ratio: 4/3; background-size: cover; background-position: center; position: relative; }
+    .product-tag{ position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,.9); padding: 4px 10px; border-radius: 999px; font: 700 11px/1 'Inter', system-ui, sans-serif; color: var(--ink); }
+    .product-meta{ padding: 14px 16px; }
+    .product-eyebrow{ font: 700 11px/1 'Inter'; letter-spacing: .12em; text-transform: uppercase; color: rgba(6,27,14,.55); }
+    .product-name{ font: 700 16px/1.3 'Inter'; color: var(--ink); margin: 6px 0; }
+    .product-detail{ font: 500 13px/1.4 'Inter'; color: rgba(6,27,14,.65); margin: 0 0 10px; }
+    .product-foot{ display: flex; justify-content: space-between; align-items: center; }
+    .product-price{ font: 600 14px/1 'Inter'; color: var(--ink); }
+    .product-cta{ font: 700 12px/1 'Inter'; color: var(--ink); opacity: .7; }
+    .farm-bio{ background: #fff; border-radius: 18px; padding: 28px; line-height: 1.6; font-size: 15px; color: var(--ink); }
+    .cert-grid{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .cert-chip{ padding: 7px 14px; background: rgba(125,160,93,.15); color: #2d4a18; border: 1px solid rgba(125,160,93,.3); border-radius: 999px; font: 700 12px/1 'Inter', system-ui, sans-serif; }
+    .cert-chip.identity{ background: rgba(193,167,118,.15); color: #5a4a2c; border-color: rgba(193,167,118,.3); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="farm-cover" id="fpCover"></div>
+    <section class="farm-shell">
+      <div class="farm-id">
+        <div class="farm-avatar" id="fpAvatar">F</div>
+        <div>
+          <h1 id="fpName">Loading…</h1>
+          <p id="fpLoc">—</p>
+        </div>
+        <div class="farm-actions">
+          <button class="btn-follow" id="fpFollow">+ Follow</button>
+          <button class="btn-share">Share</button>
+        </div>
+      </div>
+
+      <div class="farm-stats" id="fpStats"></div>
+
+      <section class="farm-section">
+        <h2>About</h2>
+        <div class="farm-bio" id="fpBio">Loading…</div>
+      </section>
+
+      <section class="farm-section">
+        <h2 id="fpListingsTitle">Active listings</h2>
+        <div class="listings-grid" id="fpGrid"></div>
+      </section>
+    </section>
+    <div data-po-footer></div>
+  </main>
+  <script src="/po-shell.js"></script>
+  <script src="/po-api.js"></script>
+  <script>
+  (async () => {
+    const slug = (location.pathname.match(/\/farm\/([^\/]+)/) || [])[1];
+    if (!slug) { window.location.replace('/producers'); return; }
+    const cap = s => (s || '').replace(/\b\w/g, c => c.toUpperCase());
+    const photoFor = sp => sp === 'hog' ? '/img/premium-pig.jpg' : sp === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg';
+
+    let data;
+    try { data = await window.PO_API.farm(slug); }
+    catch (e) {
+      document.getElementById('fpName').textContent = 'Farm not found';
+      document.getElementById('fpBio').textContent = 'No farm with slug "' + slug + '" exists yet. Check the URL or browse all producers.';
+      return;
+    }
+    const f = data.farm;
+    document.title = f.name + ' · Protein Outfitters';
+
+    if (f.cover_url) document.getElementById('fpCover').style.backgroundImage = `url('${f.cover_url}')`;
+    if (f.avatar_url) document.getElementById('fpAvatar').style.backgroundImage = `url('${f.avatar_url}')`;
+    else document.getElementById('fpAvatar').textContent = (f.name || '?').charAt(0).toUpperCase();
+
+    document.getElementById('fpName').textContent = f.name;
+    const locParts = [f.city, f.state].filter(Boolean).join(', ');
+    document.getElementById('fpLoc').textContent = locParts + (f.established_year ? ' · Established ' + f.established_year : '');
+
+    document.getElementById('fpBio').textContent = f.bio || 'This farm hasn\'t added a bio yet.';
+
+    // Stats
+    const listings = data.listings || [];
+    const stats = [
+      { num: listings.length, lab: 'Active listings' },
+      { num: f.established_year ? (new Date().getFullYear() - f.established_year) + ' yrs' : '—', lab: 'Producing since ' + (f.established_year || '?') },
+      { num: (f.practices || []).length, lab: 'Practices' },
+      { num: (f.certs || []).length, lab: 'Certifications' }
+    ];
+    document.getElementById('fpStats').innerHTML = stats.map(s => `<div class="farm-stat"><div class="num">${s.num}</div><div class="lab">${s.lab}</div></div>`).join('');
+
+    // Practices + certs + identity chips below bio
+    const chipParts = [];
+    (f.practices || []).forEach(p => chipParts.push(`<span class="cert-chip">${cap(p.replace('-', ' '))}</span>`));
+    (f.certs || []).forEach(c => chipParts.push(`<span class="cert-chip">${c.toUpperCase()}</span>`));
+    (f.identity || []).forEach(i => chipParts.push(`<span class="cert-chip identity">${cap(i)}-owned</span>`));
+    if (chipParts.length) document.getElementById('fpBio').insertAdjacentHTML('beforeend', `<div class="cert-grid">${chipParts.join('')}</div>`);
+
+    // Listings
+    const grid = document.getElementById('fpGrid');
+    const titleEl = document.getElementById('fpListingsTitle');
+    if (!listings.length) {
+      titleEl.textContent = 'No listings yet';
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;background:#fff;border-radius:14px;font:500 14px/1.5 'Inter';opacity:.7">This farm doesn't have any animals reserving right now.</div>`;
+    } else {
+      titleEl.textContent = listings.length === 1 ? '1 animal reserving' : `${listings.length} animals reserving`;
+      grid.innerHTML = listings.map(l => {
+        const photo = (l.photos && l.photos[0]) || photoFor(l.species);
+        const fromPrice = l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0;
+        const practiceLabel = (l.practice && l.practice[0]) ? cap(l.practice[0].replace('-', ' ')) : '';
+        return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
+          <div class="product-photo" style="background-image:url('${photo}');"><span class="product-tag">Reserving</span></div>
+          <div class="product-meta">
+            <span class="product-eyebrow">${cap(l.species)}${practiceLabel ? ' · ' + practiceLabel : ''}</span>
+            <h3 class="product-name">${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}</h3>
+            <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
+            <div class="product-foot"><span class="product-price">From <strong>$${Number(fromPrice).toFixed(2)}/lb</strong></span><span class="product-cta">Reserve →</span></div>
+          </div>
+        </button>`;
+      }).join('');
+    }
+
+    // Follow button — local only for now (would persist to DB in a future round)
+    const fb = document.getElementById('fpFollow');
+    fb.addEventListener('click', () => { fb.classList.toggle('followed'); fb.innerHTML = fb.classList.contains('followed') ? '✓ Following' : '+ Follow'; });
+  })();
+  </script>
+</body>
+</html>

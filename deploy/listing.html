@@ -217,6 +217,12 @@
   document.getElementById('lgFarmEst').textContent = '—';
   document.getElementById('lgFarmLink').href = '/farm/' + l.farm_slug;
 
+  // ─── Add-to-Calendar link in farm card ──────────────────────────
+  const farmCard = document.getElementById('lgFarmCard');
+  if (farmCard && l.expected_finish_date) {
+    farmCard.insertAdjacentHTML('beforeend', `<a href="/api/ics?listing=${l.id}" style="display:inline-flex;gap:6px;align-items:center;margin-top:14px;padding:10px 14px;background:rgba(6,27,14,.06);color:var(--ink);border-radius:999px;font:700 12px/1 'Inter';text-decoration:none">📅 Add harvest date to calendar</a>`);
+  }
+
   // ─── Wire all .js-reserve buttons to open the sheet with REAL data ──
   // The reserve sheet (po-shell.js) reads data-* on the clicked element, so
   // we set them on each .js-reserve here using the listing UUID as data-animal.

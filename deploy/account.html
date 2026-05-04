@@ -302,7 +302,10 @@
         <p>${r.farm_name} · ${r.farm_city}, ${r.farm_state} · ready ${r.expected_finish_date ? new Date(r.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
       </div>
       <div class="res-stat">${r.total_estimate ? '$' + Number(r.total_estimate).toFixed(0) : '—'}<span class="sub">${labelStatus(r.status)}</span></div>
-      <a class="res-cta" href="/cut-sheet?id=${r.id}">Cut sheet →</a>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+        <a class="res-cta" href="/cut-sheet?id=${r.id}">Cut sheet →</a>
+        <a href="/api/ics?reservation=${r.id}" style="font:700 11px/1 'Inter';color:var(--ink);opacity:.65;text-decoration:none">📅 Calendar</a>
+      </div>
     </div>
   `).join('');
 })();

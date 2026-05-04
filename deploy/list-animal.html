@@ -380,17 +380,13 @@
 
         <div class="field">
           <label>Photos</label>
-          <div class="photo-drop">
+          <label class="photo-drop" for="photoInput" style="cursor:pointer;display:block;">
             <div class="glyph">📷</div>
             <div class="t">Drag photos here or tap to upload</div>
-            <div class="s">First photo is the cover. JPG or PNG. Up to 8.</div>
-          </div>
-          <div class="photo-grid">
-            <div class="photo-thumb" style="background-image: url('/angus.jpg');"></div>
-            <div class="photo-thumb" style="background-image: url('/ranch.jpg');"></div>
-            <div class="photo-thumb" style="background-image: url('/farmer.jpg');"></div>
-            <div class="photo-thumb" style="background: var(--surface); border: 2px dashed rgba(0,0,0,0.1);"></div>
-          </div>
+            <div class="s">First photo is the cover. JPG / PNG / WebP. Up to 8. 8 MB each.</div>
+          </label>
+          <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
+          <div class="photo-grid" id="photoGrid"></div>
         </div>
 
         <!-- AUTO-DESCRIPTION CARD -->
@@ -618,6 +614,43 @@
     }
   });
 
+  // ============ PHOTO UPLOAD ============
+  const photoInput = document.getElementById('photoInput');
+  const photoGrid = document.getElementById('photoGrid');
+  S.photoUrls = [];
+  function renderPhotoGrid() {
+    if (!photoGrid) return;
+    const slots = [...S.photoUrls].slice(0, 8);
+    while (slots.length < 4) slots.push(null);
+    photoGrid.innerHTML = slots.map(u => u
+      ? `<div class="photo-thumb" style="background-image:url('${u}'); position:relative;"><button onclick="removePhoto('${u}'); event.stopPropagation();" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;width:22px;height:22px;cursor:pointer">×</button></div>`
+      : `<div class="photo-thumb" style="background:var(--surface);border:2px dashed rgba(0,0,0,0.1);"></div>`
+    ).join('');
+  }
+  window.removePhoto = function(url) {
+    S.photoUrls = S.photoUrls.filter(u => u !== url);
+    renderPhotoGrid();
+  };
+  if (photoInput) {
+    photoInput.addEventListener('change', async e => {
+      const files = [...(e.target.files || [])];
+      for (const f of files) {
+        if (S.photoUrls.length >= 8) break;
+        const fd = new FormData(); fd.append('file', f);
+        try {
+          const r = await fetch('/api/upload', { method: 'POST', body: fd, credentials: 'include' });
+          const data = await r.json();
+          if (data.ok) S.photoUrls.push(data.url);
+          else if (data.error?.includes('Sign in')) { window.PO_API.openAuth('Sign in to upload photos', 'producer'); break; }
+          else alert('Upload failed: ' + (data.error || 'unknown'));
+        } catch (err) { alert('Upload error: ' + err.message); }
+      }
+      renderPhotoGrid();
+      photoInput.value = '';
+    });
+  }
+  renderPhotoGrid();
+
   // ============ PUBLISH TO DB ============
   // Map wizard species labels → DB enum
   const SPECIES_MAP = { beef: 'cattle', cattle: 'cattle', hog: 'hog', pig: 'hog', pork: 'hog', lamb: 'lamb', sheep: 'lamb', poultry: 'poultry', chicken: 'poultry', bison: 'bison', goat: 'goat', venison: 'venison' };
@@ -685,7 +718,7 @@
       practice,
       certs,
       shares,
-      photos: [],
+      photos: S.photoUrls || [],
       status: 'active'
     };
     return await window.PO_API.createListing(body);
