@@ -1,261 +1,109 @@
-<!DOCTYPE html>
-
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>Protein Outfitters | MeatMatch</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "tertiary": "#000000",
-                        "primary-fixed-dim": "#b4cdb8",
-                        "on-secondary-fixed": "#151d17",
-                        "on-error": "#ffffff",
-                        "on-secondary-fixed-variant": "#404941",
-                        "secondary-container": "#d9e2d8",
-                        "on-primary": "#ffffff",
-                        "on-secondary": "#ffffff",
-                        "inverse-primary": "#b4cdb8",
-                        "surface-container-lowest": "#ffffff",
-                        "outline": "#737972",
-                        "on-background": "#1b1c1a",
-                        "background": "#fbf9f5",
-                        "on-surface-variant": "#434843",
-                        "secondary-fixed": "#dce5da",
-                        "inverse-on-surface": "#f2f0ec",
-                        "on-tertiary": "#ffffff",
-                        "outline-variant": "#c3c8c1",
-                        "surface-container-highest": "#e4e2de",
-                        "on-primary-fixed": "#0a2012",
-                        "tertiary-container": "#410003",
-                        "primary-container": "#0a2012",
-                        "on-tertiary-container": "#f04440",
-                        "error": "#ba1a1a",
-                        "on-primary-fixed-variant": "#364c3c",
-                        "surface-container-high": "#eae8e4",
-                        "on-tertiary-fixed": "#410003",
-                        "surface-dim": "#dbdad6",
-                        "surface": "#fbf9f5",
-                        "on-surface": "#1b1c1a",
-                        "surface-container-low": "#f5f3ef",
-                        "on-secondary-container": "#5c655d",
-                        "error-container": "#ffdad6",
-                        "secondary-fixed-dim": "#c0c9bf",
-                        "secondary": "#586158",
-                        "primary": "#000000",
-                        "on-primary-container": "#728a77",
-                        "surface-tint": "#4d6452",
-                        "primary-fixed": "#cfe9d3",
-                        "on-tertiary-fixed-variant": "#930010",
-                        "surface-container": "#f0eeea",
-                        "inverse-surface": "#30312e",
-                        "tertiary-fixed": "#ffdad6",
-                        "surface-bright": "#fbf9f5",
-                        "on-error-container": "#93000a",
-                        "tertiary-fixed-dim": "#ffb3ac",
-                        "surface-variant": "#e4e2de"
-                    },
-                    fontFamily: {
-                        "headline": ["Inter", "sans-serif"],
-                        "body": ["Inter", "sans-serif"],
-                        "label": ["Inter", "sans-serif"]
-                    },
-                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.5rem", "3xl": "2rem", "full": "9999px" },
-                },
-            },
-        }
-    </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .bg-primary-gradient {
-            background: linear-gradient(135deg, #061b0e 0%, #1b3022 100%);
-        }
-        .haptic-touch:active {
-            transform: scale(0.95);
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-        ::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<title>Discover · Protein Outfitters</title>
+<meta name="description" content="Every animal currently reserving on Protein Outfitters. Filter by species, ranch, or harvest window." />
+<meta property="og:title" content="Discover · Protein Outfitters" />
+<meta property="og:description" content="Every animal currently reserving on Protein Outfitters." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/discover" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:title" content="Discover · Protein Outfitters" />
+<meta name="twitter:description" content="Every animal currently reserving on Protein Outfitters." />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.discover-hero { padding: clamp(72px, 10vw, 140px) var(--shell-pad) clamp(40px, 5vw, 56px); }
+.discover-hero-inner { max-width: 1320px; margin: 0 auto; }
+.filter-bar { position: sticky; top: 64px; z-index: 60; background: rgba(251, 249, 245, 0.92); backdrop-filter: blur(12px); padding: 14px var(--shell-pad); border-bottom: 1px solid rgba(0,0,0,0.04); }
+.filter-inner { max-width: 1320px; margin: 0 auto; display: flex; gap: 8px; align-items: center; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+.filter-inner::-webkit-scrollbar { display: none; }
+.chip { background: var(--surface); border: 1px solid rgba(0,0,0,0.06); border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; transition: background .2s, color .2s, border-color .2s; text-decoration: none; }
+.chip:hover { color: var(--ink); border-color: rgba(0,0,0,0.14); }
+.chip.active { background: var(--brand); color: #fbf9f5; border-color: var(--brand); }
+.discover-grid-wrap { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.discover-grid { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: clamp(20px, 2vw, 32px); }
+</style>
 </head>
-<body class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
-<!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-emerald-950/80 backdrop-blur-xl shadow-[0_40px_60px_-10px_rgba(27,28,26,0.05)]">
-<div class="flex justify-between items-center px-8 py-4 w-full max-w-none">
-<a class="haptic-touch cursor-pointer" href="{{DATA:SCREEN:SCREEN_2}}">
-<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
-<img alt="User Profile" class="w-full h-full object-cover" data-alt="close-up portrait of a man with a friendly expression in soft natural lighting with a blurred outdoor background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZOHTxv0vijn4txABAvux5QWbrtTaRYXQ5slaR7atOBoFrH5qngzweoxnAxoh-JrCa9zIiXFVFNwPZCwZv43Pm6RAROPeT5IjJRyiDjbzfFY13Hp7F7f1hiYc-LxzfLVdFHWjr2Zr4u8lcVKi6YJZR_Qh8uwcjIEQUlAr0ORY6r5XMOJQBKoksD2PxUycYooIutJtlTtCeECtyDEvdGJZ3oj0Wn8z_eFM6p7XMuPM_3TOTf_6CZrcSrtdkoFE08LERnAGXa0bFUfMi"/>
+<body>
+
+<!-- po-shell:nav -->
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover" class="active">Reserve</a><a href="/#how">How it works</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button data-open-sheet>Reserve</button></div>
+  </nav>
 </div>
-</a>
-<h1 class="font-['Inter'] font-bold tracking-tighter text-2xl text-emerald-950 dark:text-emerald-50">Protein Outfitters</h1>
-<a class="haptic-touch cursor-pointer text-emerald-950 dark:text-emerald-50" href="{{DATA:SCREEN:SCREEN_75}}">
-<span class="material-symbols-outlined text-2xl">settings</span>
-</a>
-</div>
-</header>
-<main class="pt-24 pb-32 px-6 max-w-5xl mx-auto space-y-10">
-<!-- Welcome Section -->
-<section class="space-y-2">
-<h2 class="text-4xl font-extrabold tracking-tight text-on-surface">Good morning, Alex.</h2>
-<p class="text-xl text-on-surface-variant/80 font-medium">Find your perfect Protein Match.</p>
+
+<section class="discover-hero">
+  <div class="discover-hero-inner">
+    <p class="po-eyebrow">Now reserving · MN · WI · ND · SD</p>
+    <h1 class="po-h2">Six animals.<br>Pick one.</h1>
+    <p class="po-lead">Real animals from real ranches. Tap any card to start the three-tap reserve flow.</p>
+  </div>
 </section>
-<!-- Elegant Search Bar -->
-<section>
-<div class="bg-surface-container-low h-16 rounded-2xl flex items-center px-6 group transition-all duration-300 focus-within:bg-surface-container-lowest focus-within:shadow-xl focus-within:shadow-primary-container/5">
-<span class="material-symbols-outlined text-on-surface-variant/60 mr-4 group-focus-within:text-primary">search</span>
-<input class="bg-transparent border-none focus:ring-0 w-full text-lg placeholder:text-on-surface-variant/40" placeholder="Search local cuts, farms, or breeds..." type="text"/>
+
+<div class="filter-bar">
+  <div class="filter-inner">
+    <button class="chip active" data-filter="all">All · 6</button>
+    <button class="chip" data-filter="beef">Beef · 3</button>
+    <button class="chip" data-filter="pork">Pork · 1</button>
+    <button class="chip" data-filter="lamb">Lamb · 1</button>
+    <button class="chip" data-filter="venison">Venison · 1</button>
+    <button class="chip" data-filter="poultry">Poultry · 0</button>
+    <span style="flex: 1;"></span>
+    <a href="/map" class="chip">Map view →</a>
+  </div>
 </div>
+
+<section class="discover-grid-wrap">
+  <div class="discover-grid">
+    <button class="product" data-cat="beef" data-open-sheet data-animal="2641" data-name="#2641 · Black Angus steer" data-producer="Northfield Pastures · Bemidji, MN" data-photo="/angus.jpg" data-price-q="1395" data-price-h="2690" data-price-w="5180">
+      <div class="product-photo" style="background-image: url('/angus.jpg');"><span class="product-tag">Reserving</span></div>
+      <div class="product-meta"><span class="product-eyebrow">Beef · Grass-fed</span><h3 class="product-name">#2641 — Black Angus steer</h3><p class="product-detail">Northfield Pastures · 1,180 lb live · Harvest May 28</p><div class="product-foot"><span class="product-price">From <strong>$1,395</strong></span><span class="product-cta">Reserve →</span></div></div>
+    </button>
+    <button class="product" data-cat="beef" data-open-sheet data-animal="2702" data-name="#2702 · Hereford heifer" data-producer="Crow Wing Cattle Co · Brainerd, MN" data-photo="/hereford.jpg" data-price-q="1280" data-price-h="2470" data-price-w="4760">
+      <div class="product-photo" style="background-image: url('/hereford.jpg');"><span class="product-tag">Reserving</span></div>
+      <div class="product-meta"><span class="product-eyebrow">Beef · Grass-finished</span><h3 class="product-name">#2702 — Hereford heifer</h3><p class="product-detail">Crow Wing Cattle Co · 980 lb live · Harvest June 4</p><div class="product-foot"><span class="product-price">From <strong>$1,280</strong></span><span class="product-cta">Reserve →</span></div></div>
+    </button>
+    <button class="product" data-cat="beef" data-open-sheet data-animal="W04" data-name="Wagyu × Angus, half" data-producer="Northern Lights Wagyu · Park Rapids, MN" data-photo="/wagyu.jpg" data-price-q="2880" data-price-h="5500" data-price-w="0">
+      <div class="product-photo" style="background-image: url('/wagyu.jpg');"><span class="product-tag">Limited</span></div>
+      <div class="product-meta"><span class="product-eyebrow">Beef · Wagyu cross</span><h3 class="product-name">Wagyu × Angus, halves only</h3><p class="product-detail">Northern Lights Wagyu · 1,420 lb live · Harvest June 11</p><div class="product-foot"><span class="product-price">Half from <strong>$5,500</strong></span><span class="product-cta">Reserve →</span></div></div>
+    </button>
+    <button class="product" data-cat="pork" data-open-sheet data-animal="H114" data-name="Berkshire hog" data-producer="Mississippi Headwaters Farm · Bemidji, MN" data-photo="/hog.jpg" data-price-q="395" data-price-h="725" data-price-w="1380">
+      <div class="product-photo" style="background-image: url('/hog.jpg');"><span class="product-tag">Reserving</span></div>
+      <div class="product-meta"><span class="product-eyebrow">Pork · Heritage</span><h3 class="product-name">Berkshire hog · 280 lb</h3><p class="product-detail">Mississippi Headwaters Farm · Harvest May 22</p><div class="product-foot"><span class="product-price">From <strong>$395</strong></span><span class="product-cta">Reserve →</span></div></div>
+    </button>
+    <button class="product" data-cat="lamb" data-open-sheet data-animal="L08" data-name="Katahdin lamb" data-producer="Boreal Pastures · Cass Lake, MN" data-photo="/lamb.jpg" data-price-q="0" data-price-h="385" data-price-w="720">
+      <div class="product-photo" style="background-image: url('/lamb.jpg');"><span class="product-tag">Reserving</span></div>
+      <div class="product-meta"><span class="product-eyebrow">Lamb · Pasture-raised</span><h3 class="product-name">Katahdin lamb · 105 lb</h3><p class="product-detail">Boreal Pastures · Harvest June 1</p><div class="product-foot"><span class="product-price">Half from <strong>$385</strong></span><span class="product-cta">Reserve →</span></div></div>
+    </button>
+    <button class="product" data-cat="venison" data-open-sheet data-animal="V03" data-name="Wild venison share" data-producer="Itasca Wilds · Grand Rapids, MN" data-photo="/venison.jpg" data-price-q="0" data-price-h="540" data-price-w="0">
+      <div class="product-photo" style="background-image: url('/venison.jpg');"><span class="product-tag">Wait list</span></div>
+      <div class="product-meta"><span class="product-eyebrow">Venison · Wild-harvested</span><h3 class="product-name">Whitetail venison share</h3><p class="product-detail">Itasca Wilds · Fall 2026 harvest</p><div class="product-foot"><span class="product-price">Share from <strong>$540</strong></span><span class="product-cta">Join waitlist →</span></div></div>
+    </button>
+  </div>
 </section>
-<!-- Protein Outfitters Featured -->
-<section class="space-y-6">
-<h3 class="text-2xl font-bold tracking-tight px-2">Protein Outfitters Featured</h3>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<!-- Large Hero Card -->
-<div class="md:col-span-2 relative h-[420px] bg-surface-container-low rounded-3xl overflow-hidden group haptic-touch cursor-pointer">
-<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
-<!-- Silhouetted Overlapping Imagery -->
-<img alt="Heritage Angus Steer" class="absolute right-[-10%] bottom-0 h-[110%] object-contain object-bottom transition-transform duration-700 group-hover:scale-105 z-0" data-alt="dramatic wide shot of a powerful black angus steer standing in a golden prairie at sunrise with soft atmospheric fog" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBd-KJP7_lXa6HDEUJcLgzAPd6aTG2kt5dCMnAqn1-21lQNGkH50aWE0Az1YUkjZ8oBxvPPEPL_v_YnMUhLeChR8_xLsAnUXepLa3CXJDT1FFKYvLT4SqgqLwzXCqR938qUzKAD0iygnp7j6i12pT0-DN2_rp_rcIXYDXA8oZjo5BtPEsmKNTHjRxucZ8_FkCatV9ymPFVEMQZSDHQrowBO-9jQ8aZxXbYYfXOO_ZufmeKbiCYRkQK19-JtQj80ObYObRHstubcAXny"/>
-<div class="absolute top-6 left-6 flex gap-2 z-20">
-<span class="bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase text-primary">Grass-fed</span>
-<span class="bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase text-primary">Angus</span>
-</div>
-<div class="absolute bottom-8 left-8 z-20 space-y-2">
-<h4 class="text-3xl font-black text-white leading-tight">Heritage Angus Steer</h4>
-<p class="text-white/90 text-lg font-medium">Northfield, MN • $5.50/lb hanging weight</p>
-</div>
-</div>
-<!-- Smaller Stacked Cards -->
-<div class="flex flex-col gap-6">
-<div class="flex-1 bg-surface-container-low rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden haptic-touch cursor-pointer group">
-<img alt="Berkshire Heritage Pork" class="absolute right-[-20px] top-4 w-32 h-32 object-cover rounded-full mix-blend-multiply opacity-80 group-hover:scale-110 transition-transform" data-alt="close-up of heritage breed pork shoulder with beautiful marbling on a minimalist rustic wood surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPs88iLO0yr5kb2P2wwj1JK7XeWJrP2s7wji0mkVj_4LSRyCO6xHNKCsAssWgoJNVv_CWb83x8-8wEDjWXqZ5UrLDdvoRKONoqRU-8mr7Dcos6ec55-CyHXA6cH6nkfdbibM0_Mq2PFVA_jQ5IJ5XvdwjHcnJVrywELdz68lP38ODH8ohijJx6YyiDuvnw7ri5hk8W7FD4VeDeJtn9twQmodzsewmfRjU7JoAsyra3JhEIcoKTGaUz_bT1iUKgO871pz0rUCiutE3C"/>
-<div class="relative z-10 space-y-1">
-<h4 class="font-bold text-xl leading-snug">Berkshire<br/>Heritage Pork</h4>
-<p class="text-on-surface-variant text-sm font-semibold">$8.20/lb</p>
-</div>
-<button class="w-12 h-12 rounded-full bg-primary-gradient flex items-center justify-center text-white self-end shadow-lg haptic-touch relative z-10">
-<span class="material-symbols-outlined">add</span>
-</button>
-</div>
-<div class="flex-1 bg-surface-container-low rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden haptic-touch cursor-pointer group">
-<img alt="Cornish Cross" class="absolute right-[-20px] top-4 w-32 h-32 object-cover rounded-full mix-blend-multiply opacity-80 group-hover:scale-110 transition-transform" data-alt="organic whole chicken presented on a bed of fresh herbs and lemon slices in soft editorial lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpiMD5fTQdF5nbmJWqEFf77X5hGixAshI43MGzlFVn_IB63hZQTCCDXwEJhLUtM_0WXSkAw3gbN19mgTdvRoe7bJ9_UHQtTqrFeE4EJsegZBFOANQVUJfdzYRGfPhLOIPqH9xy9ONClMAdtFK6foCx5bHb-WrKR8TA0dVVmoLxxZrpuu6TZ6nECfeVUj5EA4LpJ45ybmdWTznAhdXih1n6YzDbRJy0S9i2Faj7Tmf7s-rtdwaOY31CyytTPx6dTtmtH4ZXVoXPfy-B"/>
-<div class="relative z-10 space-y-1">
-<h4 class="font-bold text-xl leading-snug">Cornish Cross<br/>Whole Bird</h4>
-<p class="text-on-surface-variant text-sm font-semibold">$4.50/lb</p>
-</div>
-<button class="w-12 h-12 rounded-full bg-primary-gradient flex items-center justify-center text-white self-end shadow-lg haptic-touch relative z-10">
-<span class="material-symbols-outlined">add</span>
-</button>
-</div>
-</div>
-</div>
-</section>
-<!-- Browse by Type -->
-<section class="space-y-6">
-<h3 class="text-2xl font-bold tracking-tight px-2">Browse by Type</h3>
-<div class="flex gap-8 overflow-x-auto pb-4 px-2 snap-x">
-<div class="flex flex-col items-center gap-3 snap-center haptic-touch cursor-pointer group">
-<div class="w-24 h-24 rounded-full bg-surface-container-highest overflow-hidden p-1 transition-transform group-hover:-translate-y-2">
-<img alt="Beef" class="w-full h-full object-cover rounded-full" data-alt="premium raw beef ribeye steak with intense marbling on a clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAubxUQtrD6P_5cTSjKYJzaCjSvYXtWTIlWYsGFn-ZSBbNYkDOtq2cQ9Ei4R8ONYx7iOUEDzfdu9ADNap8yTn1ZPyNPO2004MMRFXq9zKK8CLBMWxgXGifk7Z6M5yKiWROTCHMJw1iw7RrOU9ZaG-hp21SMqitrbDJYpiHXLBZnyyRe8C2Bbkq3t-e_kNiC2XpF4hMYVVJ2oOhnV3wDdgbQMJTIcFWO2S_Vt0veUcVP_R3r0h8Gc6DvNhKjiKrS5W2i-2mlP8_lX-lg"/>
-</div>
-<span class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Beef</span>
-</div>
-<div class="flex flex-col items-center gap-3 snap-center haptic-touch cursor-pointer group">
-<div class="w-24 h-24 rounded-full bg-surface-container-highest overflow-hidden p-1 transition-transform group-hover:-translate-y-2">
-<img alt="Pork" class="w-full h-full object-cover rounded-full" data-alt="glistening raw pork belly slices on a marble slab with minimalist styling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnpGtLQhW8UR-boCyzynnnZKlWfPRMIco3MpQvry5otUXNGhPxURDQ92RvxbxnBHK4dPbmM4Xj8iHwv61OvjdQHSJR5Fv_q67im7tFNJtThGNUL619PseY60JUdNDYLp-_phVhpNBXla2uESCSrxwFYUpPZ06s_JWf9UoBzznz1TCaBFO3P6R4sReizAAgJqWJqRH3jfDTKVX8iGynLQYgkk6a5daaDXv7lv6j3MUODFyg5uYarZEplUcVyFDhJ3cphTyx_7TAT21n"/>
-</div>
-<span class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Pork</span>
-</div>
-<div class="flex flex-col items-center gap-3 snap-center haptic-touch cursor-pointer group">
-<div class="w-24 h-24 rounded-full bg-surface-container-highest overflow-hidden p-1 transition-transform group-hover:-translate-y-2">
-<img alt="Poultry" class="w-full h-full object-cover rounded-full" data-alt="fresh farm poultry eggs in a wire basket with straw and soft morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxVtgsLawnagO9sgY5MnczEfVIzZhuAJsH9IgXxHo-p6RYhQlr-pxebT5vLwtjuXSkTeW_dvnQ9gAYGNTq_g9gRAlnj9UtO140DEBBAT1PqkEKEBIMSzvy9kruWJa3kjwCE4oAhMGn13jTS1MW5D5SRxiPg9hUM5IeFW7HGTzXc1cuw_CgAY2Cc2lufJXQDguifchv5qlnNw-D0rLq-1s0NU5Z2P315F6F_0LJRPsjs81v6fe_nQoWQcpf8I4gYKA5ZY7QzWNHwu56"/>
-</div>
-<span class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Poultry</span>
-</div>
-<div class="flex flex-col items-center gap-3 snap-center haptic-touch cursor-pointer group">
-<div class="w-24 h-24 rounded-full bg-surface-container-highest overflow-hidden p-1 transition-transform group-hover:-translate-y-2">
-<img alt="Heritage" class="w-full h-full object-cover rounded-full" data-alt="rare heritage breed livestock grazing in a lush green pasture with misty forest background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxwTkC3DPI2dcJNCP4nYTMdqEQXykdadszzuyT5Y0AHUSpk_mgf0bsTaNzdIr4eHC-I1cap7zFFzkKzbR7qTq-dKJajl6dU_egUaqHJrNN865wL_OYylL5z0aw8LVeS0CYmihPtjONiiHXu5cBXRbzWEpablIGoUSJOC_cNYL0l_jEmRxhpg656sxra-ZkXzLna4WSDcCeGL3RdHmsRaPSTtl70eqe2PYppdKoKdnj9Uz1f8f4a6JHFd65YhK2pRjgoQgMHbVLvZm5"/>
-</div>
-<span class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Heritage</span>
-</div>
-<div class="flex flex-col items-center gap-3 snap-center haptic-touch cursor-pointer group">
-<div class="w-24 h-24 rounded-full bg-surface-container-highest overflow-hidden p-1 transition-transform group-hover:-translate-y-2">
-<img alt="Lamb" class="w-full h-full object-cover rounded-full" data-alt="tender raw lamb chops seasoned with rosemary on a dark slate background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdffJYnY4rHLY3jz7bHKkmrbIp_CdjkCmyr02tp3GGCrfNUQ0W_GSI8kLsdqtELHF6xwuNFKRaSKwHaPD07CQYsJEhSm1jjdDmCxzzAkVWqCY74XW8NkeK92L2TlprqUi-qUkk-7KwqvqwNb6wGcV2-tFQ0LOveZ4DUq_AxkFDTdgyeSKnKfu1erNp4F0ux2xBiIcxk6uiPZ6MOAygCnjiURshjAvhSrwCp5ziqElTEjN1fw4bUq979QDl8ok8VhOGE2lqapRrYqrt"/>
-</div>
-<span class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Lamb</span>
-</div>
-</div>
-</section>
-<!-- Local Farms Near You -->
-<section class="space-y-6">
-<h3 class="text-2xl font-bold tracking-tight px-2">Local Farms Near You</h3>
-<div class="relative h-64 w-full rounded-3xl overflow-hidden bg-surface-container-low group">
-<img alt="Map Preview" class="w-full h-full object-cover opacity-60" data-alt="stylized satellite map view of rural farmland with green fields and winding roads in soft earth tones" data-location="Minneapolis" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFRjmieJWbsNTvIOaYr4ZEzyCC4m-Ow6njlSfxv8UvCKV__6dzeRNv_oouzEjzu43hGxqW5yp_MveAGfosuE3HQw7hqvxRD1Gw83vrnhQBTFiY_kbIX8N82ISWpKONx-FHBWQWDIKEEPvQgmLAQYp86bPWEGamE0BKhz4ynNSLOe5z7tJGdVHjz_6ei3icdCKaMVvDqYk4HNfs7dv7nw4aGiaRD3E8EUXUl17Eh-MBdj_e1Rqhf9RQ83fXU4Bgvd-NavVgAGxfwsp9"/>
-<!-- Floating Glass Card -->
-<div class="absolute bottom-6 left-6 right-6 bg-white/70 backdrop-blur-2xl rounded-2xl p-5 flex items-center justify-between shadow-2xl shadow-black/5 haptic-touch cursor-pointer">
-<div class="flex items-center gap-4">
-<div class="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center text-white">
-<span class="material-symbols-outlined text-3xl">potted_plant</span>
-</div>
-<div>
-<h4 class="font-bold text-lg">Prairie Edge Farm</h4>
-<p class="text-on-surface-variant text-sm font-medium">12.4 miles away • 48 items</p>
-</div>
-</div>
-<button class="bg-primary px-6 py-2.5 rounded-full text-white font-bold text-sm haptic-touch">Visit</button>
-</div>
-</div>
-</section>
-</main>
-<!-- BottomNavBar -->
-<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-white/80 dark:bg-emerald-950/80 backdrop-blur-xl shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.1)] rounded-t-[2rem]">
-<a class="flex flex-col items-center justify-center bg-emerald-950 dark:bg-emerald-50 text-white dark:text-emerald-950 rounded-full px-6 py-2 scale-110 transition-all haptic-touch" href="{{DATA:SCREEN:SCREEN_33}}">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
-<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Home</span>
-</a>
-<a class="flex flex-col items-center justify-center text-emerald-900/40 dark:text-emerald-100/40 px-4 py-2 hover:text-emerald-950 dark:hover:text-emerald-50 transition-colors haptic-touch" href="{{DATA:SCREEN:SCREEN_39}}">
-<span class="material-symbols-outlined">search</span>
-<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Browse</span>
-</a>
-<a class="flex flex-col items-center justify-center text-emerald-900/40 dark:text-emerald-100/40 px-4 py-2 hover:text-emerald-950 dark:hover:text-emerald-50 transition-colors haptic-touch" href="#">
-<span class="material-symbols-outlined">add_circle</span>
-<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Sell</span>
-</a>
-<a class="flex flex-col items-center justify-center text-emerald-900/40 dark:text-emerald-100/40 px-4 py-2 hover:text-emerald-950 dark:hover:text-emerald-50 transition-colors haptic-touch" href="{{DATA:SCREEN:SCREEN_10}}">
-<span class="material-symbols-outlined">analytics</span>
-<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Track</span>
-</a>
-<a class="flex flex-col items-center justify-center text-emerald-900/40 dark:text-emerald-100/40 px-4 py-2 hover:text-emerald-950 dark:hover:text-emerald-50 transition-colors haptic-touch" href="{{DATA:SCREEN:SCREEN_2}}">
-<span class="material-symbols-outlined">person</span>
-<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Profile</span>
-</a>
-</nav>
-</body></html>
+
+<!-- po-shell:footer + sheet (loaded via po-shell.html include hook) -->
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script>
+  document.querySelectorAll('.chip[data-filter]').forEach(chip => chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const f = chip.dataset.filter;
+    document.querySelectorAll('.product').forEach(p => { p.style.display = (f === 'all' || p.dataset.cat === f) ? '' : 'none'; });
+  }));
+</script>
+</body>
+</html>

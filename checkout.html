@@ -1,283 +1,125 @@
-<!DOCTYPE html>
-
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>Checkout | Protein Outfitters</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .glass-panel {
-            background: rgba(251, 249, 245, 0.8);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-        }
-        .silk-gradient {
-            background: linear-gradient(135deg, #061b0e 0%, #1b3022 100%);
-        }
-        /* Custom scrollbar suppression for delivery cards */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .dashed-separator {
-            background-image: linear-gradient(to right, #c3c8c1 33%, rgba(255,255,255,0) 0%);
-            background-position: bottom;
-            background-size: 8px 1px;
-            background-repeat: repeat-x;
-        }
-    </style>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "surface-container-highest": "#e4e2de",
-                        "on-primary": "#ffffff",
-                        "on-primary-fixed": "#0a2012",
-                        "on-tertiary-fixed": "#410003",
-                        "on-secondary-fixed": "#151d17",
-                        "surface-container-low": "#f5f3ef",
-                        "on-tertiary-fixed-variant": "#930010",
-                        "secondary-fixed-dim": "#c0c9bf",
-                        "primary-fixed": "#cfe9d3",
-                        "surface-container-high": "#eae8e4",
-                        "surface-tint": "#4d6452",
-                        "on-primary-container": "#728a77",
-                        "secondary-fixed": "#dce5da",
-                        "primary-container": "#0a2012",
-                        "secondary": "#586158",
-                        "on-secondary-fixed-variant": "#404941",
-                        "secondary-container": "#d9e2d8",
-                        "tertiary-fixed": "#ffdad6",
-                        "on-secondary-container": "#5c655d",
-                        "inverse-surface": "#30312e",
-                        "tertiary": "#000000",
-                        "on-error-container": "#93000a",
-                        "surface-container": "#f0eeea",
-                        "on-primary-fixed-variant": "#364c3c",
-                        "inverse-on-surface": "#f2f0ec",
-                        "on-tertiary": "#ffffff",
-                        "on-secondary": "#ffffff",
-                        "on-surface": "#1b1c1a",
-                        "background": "#fbf9f5",
-                        "on-background": "#1b1c1a",
-                        "surface-dim": "#dbdad6",
-                        "on-error": "#ffffff",
-                        "on-tertiary-container": "#f04440",
-                        "on-surface-variant": "#434843",
-                        "error": "#ba1a1a",
-                        "surface-variant": "#e4e2de",
-                        "surface": "#fbf9f5",
-                        "outline": "#737972",
-                        "inverse-primary": "#b4cdb8",
-                        "primary-fixed-dim": "#b4cdb8",
-                        "tertiary-fixed-dim": "#ffb3ac",
-                        "surface-container-lowest": "#ffffff",
-                        "surface-bright": "#fbf9f5",
-                        "tertiary-container": "#410003",
-                        "primary": "#000000",
-                        "error-container": "#ffdad6",
-                        "outline-variant": "#c3c8c1"
-                    },
-                    fontFamily: {
-                        "headline": ["Inter"],
-                        "body": ["Inter"],
-                        "label": ["Inter"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
-            },
-        }
-    </script>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<title>Checkout · Protein Outfitters</title>
+<meta name="description" content="Reserve your share of a verified animal. Free cancellation up to 21 days before harvest." />
+<meta property="og:title" content="Checkout · Protein Outfitters" />
+<meta property="og:description" content="Reserve your share of a verified animal." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/checkout" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:title" content="Checkout · Protein Outfitters" />
+<meta name="twitter:description" content="Reserve your share of a verified animal." />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.checkout-shell { padding: clamp(64px, 8vw, 120px) var(--shell-pad) clamp(64px, 8vw, 120px); }
+.checkout-inner { max-width: 1100px; margin: 0 auto; display: grid; gap: clamp(28px, 3vw, 48px); grid-template-columns: 1fr; }
+@media (min-width: 900px) { .checkout-inner { grid-template-columns: 1.2fr 1fr; align-items: start; } }
+.checkout-header { grid-column: 1 / -1; }
+.checkout-card { background: #fff; border-radius: 28px; padding: clamp(28px, 3vw, 40px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.checkout-row { display: flex; justify-content: space-between; padding: 12px 0; font-size: 15px; color: var(--ink-2); border-bottom: 1px solid rgba(0,0,0,0.04); }
+.checkout-row:last-child { border-bottom: 0; }
+.checkout-row strong { color: var(--ink); font-weight: 700; }
+.checkout-total { padding: 20px 0 0; margin-top: 8px; border-top: 2px solid rgba(0,0,0,0.06); display: flex; justify-content: space-between; font-size: 20px; font-weight: 900; letter-spacing: -0.02em; color: var(--ink); }
+.product-mini { display: flex; gap: 16px; padding: 16px; background: var(--surface); border-radius: 18px; margin-bottom: 24px; }
+.product-mini-img { width: 80px; height: 80px; border-radius: 14px; background: url('/angus.jpg') center/cover; flex-shrink: 0; }
+.product-mini-meta h4 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: -0.018em; }
+.product-mini-meta p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.pickup-detail { padding: 18px 22px; background: var(--surface); border-radius: 16px; }
+.pickup-detail .when { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 4px; }
+.pickup-detail .what { font-size: 17px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
+.pickup-detail .where { font-size: 14px; color: var(--ink-2); margin: 4px 0 0; }
+.pay-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+.btn-pay { width: 100%; padding: 18px 22px; border-radius: 16px; border: 0; cursor: pointer; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform .2s, background .2s; }
+.btn-pay:hover { transform: translateY(-1px); }
+.btn-pay--apple { background: #000; color: #fff; }
+.btn-pay--card { background: var(--brand); color: #fbf9f5; }
+.btn-pay--card:hover { background: #0a2614; }
+.fine { font-size: 12px; color: var(--ink-3); text-align: center; line-height: 1.55; margin: 14px 0 0; }
+.checkout-trust { padding: 24px 0 0; display: flex; gap: 24px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.checkout-trust span { display: flex; align-items: center; gap: 6px; }
+</style>
 </head>
-<body class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
-<!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 glass-panel shadow-[0_40px_60px_-10px_rgba(27,28,26,0.05)]">
-<div class="flex items-center justify-between px-6 h-16 w-full max-w-7xl mx-auto">
-<a class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-highest transition-colors active:scale-90 duration-200" href="{{DATA:SCREEN:SCREEN_66}}">
-<span class="material-symbols-outlined text-on-surface">arrow_back</span>
-</a>
-<h1 class="font-sans tracking-tight font-bold text-lg text-on-surface">Checkout</h1>
-<div class="flex items-center justify-center w-10 h-10">
-<span class="material-symbols-outlined text-on-surface" data-icon="lock">lock</span>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/#how">How it works</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
 </div>
-</div>
-</header>
-<main class="pt-24 pb-32 px-6 max-w-screen-xl mx-auto space-y-[7rem] md:space-y-[8.5rem]">
-<!-- Your Selection Card -->
-<section class="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
-<div class="md:col-span-7 relative group overflow-hidden rounded-[2rem] h-[400px] md:h-auto min-h-[500px]">
-<img alt="Black Angus Selection" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Majestic black angus cattle grazing in a vast green pasture under a soft overcast sky with misty hills in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkovegNiQTUiVWvFH7V2bzn5qhfHy6ise_7JyfJ3Ge93b72hj3-h0v-Ojxrx8PntGl9e_jPEkakdnrlPN_Tqj1pAkk5pGOrscJcQu1ps3gAMDbSiD9WBhsVuhOyhU_OIh6iufApsBkl2h_rnGy6K_3OEAj7AzKWJyHLJZqT4mD-bjx9Q_JdD3vG4QkHteqxdBFkGBoYWpf-pcl_cg8KDawBChBcXRMIemOUmb8WgnOsU8nlVqH8MabFoZHrVQwmNOkci5cCtyVThDZ"/>
-<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-<div class="absolute top-6 left-6 glass-panel px-4 py-2 rounded-full border border-white/20 shadow-xl">
-<span class="text-[10px] font-black tracking-widest uppercase text-on-surface">PROVENANCE ID #422</span>
-</div>
-</div>
-<div class="md:col-span-5 flex flex-col justify-center space-y-6">
-<div class="space-y-2">
-<span class="text-primary font-bold tracking-widest text-xs uppercase opacity-60">Selection</span>
-<h2 class="text-4xl md:text-5xl font-black tracking-tighter leading-tight text-primary">Black Angus <br/>Quarter Share</h2>
-</div>
-<div class="p-8 rounded-[2rem] bg-surface-container-low space-y-4">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-primary/40">location_on</span>
-<p class="text-lg font-medium">Northfield Pastures</p>
-</div>
-<div class="space-y-4 pt-4 border-t border-outline-variant/15">
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-medium">Est. Hanging Weight</span>
-<span class="font-bold">160 lbs</span>
-</div>
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-medium">Cut Profile</span>
-<span class="font-bold">Artisan Standard</span>
-</div>
-</div>
-</div>
-</div>
+
+<section class="checkout-shell">
+  <div class="checkout-inner">
+    <div class="checkout-header">
+      <p class="po-eyebrow">Reserve · Step 3 of 3</p>
+      <h1 class="po-h2">Almost there.</h1>
+      <p class="po-lead">Free cancellation up to 21 days before harvest. We'll email your cut sheet builder within 24 hours of reserving.</p>
+    </div>
+
+    <div class="checkout-card">
+      <h3 style="margin: 0 0 18px; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Your reservation</h3>
+
+      <div class="product-mini">
+        <div class="product-mini-img"></div>
+        <div class="product-mini-meta">
+          <h4>#2641 · Black Angus steer</h4>
+          <p>Northfield Pastures · Bemidji, MN<br>Quarter share · ~110 lb of cuts</p>
+        </div>
+      </div>
+
+      <div class="checkout-row"><span>Quarter share</span><strong>$1,395.00</strong></div>
+      <div class="checkout-row"><span>Processing fee</span><strong>$225.00</strong></div>
+      <div class="checkout-row"><span>Insurance pool</span><strong>$18.00</strong></div>
+      <div class="checkout-row"><span>Sales tax (MN)</span><strong>$0.00</strong></div>
+      <div class="checkout-total"><span>Reserve today</span><span>$1,638.00</span></div>
+
+      <div class="pay-stack">
+        <button class="btn-pay btn-pay--apple" onclick="window.location.href='/confirmed'"> Pay</button>
+        <button class="btn-pay btn-pay--card" onclick="window.location.href='/confirmed'">Reserve with card →</button>
+      </div>
+      <p class="fine">By reserving you agree to our terms and the cancellation policy. Charged on harvest day, not today.</p>
+    </div>
+
+    <div>
+      <div class="checkout-card" style="margin-bottom: 20px;">
+        <h3 style="margin: 0 0 14px; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Pickup</h3>
+        <div class="pickup-detail">
+          <p class="when">When</p>
+          <p class="what">Late June 2026</p>
+          <p class="where">Drop-off May 28 · Pickup window opens ~14 days after</p>
+        </div>
+        <div style="height: 12px;"></div>
+        <div class="pickup-detail">
+          <p class="when">Where</p>
+          <p class="what">Plant 04 · Bemidji, MN</p>
+          <p class="where">7972 Farley Dr. NE · 12 mi from your saved address</p>
+        </div>
+      </div>
+
+      <div class="checkout-card">
+        <h3 style="margin: 0 0 14px; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Built in</h3>
+        <div class="checkout-trust">
+          <span>✓ USDA inspected</span>
+          <span>✓ 21-day cancellation</span>
+          <span>✓ $2M insurance pool</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
-<!-- Delivery Window -->
-<section class="space-y-8">
-<div class="flex items-end justify-between px-2">
-<div class="space-y-1">
-<h3 class="text-2xl font-bold tracking-tight">Delivery Window</h3>
-<p class="text-on-surface-variant">Select your preferred cold-chain transit date</p>
-</div>
-<a class="text-primary font-bold text-sm underline decoration-2 underline-offset-4 hover:opacity-70 transition-opacity" href="#">View Map</a>
-</div>
-<div class="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
-<!-- Selected Date -->
-<div class="flex-shrink-0 w-44 p-6 rounded-[2.5rem] silk-gradient text-white flex flex-col items-center justify-center space-y-2 shadow-[0_20px_40px_-10px_rgba(6,27,14,0.3)] ring-4 ring-primary/5 active:scale-95 transition-transform cursor-pointer">
-<span class="text-xs font-bold tracking-widest uppercase opacity-70">October</span>
-<span class="text-5xl font-black tracking-tighter">24</span>
-<span class="text-xs font-bold tracking-widest uppercase opacity-70">2024</span>
-</div>
-<!-- Available Dates -->
-<div class="flex-shrink-0 w-44 p-6 rounded-[2.5rem] bg-surface-container-low hover:bg-surface-container-high transition-all flex flex-col items-center justify-center space-y-2 active:scale-95 cursor-pointer">
-<span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">November</span>
-<span class="text-5xl font-black tracking-tighter text-primary">07</span>
-<span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">2024</span>
-</div>
-<div class="flex-shrink-0 w-44 p-6 rounded-[2.5rem] bg-surface-container-low hover:bg-surface-container-high transition-all flex flex-col items-center justify-center space-y-2 active:scale-95 cursor-pointer">
-<span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">November</span>
-<span class="text-5xl font-black tracking-tighter text-primary">21</span>
-<span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">2024</span>
-</div>
-<div class="flex-shrink-0 w-44 p-6 rounded-[2.5rem] bg-surface-container-low hover:bg-surface-container-high transition-all flex flex-col items-center justify-center space-y-2 active:scale-95 cursor-pointer opacity-50 grayscale">
-<span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">December</span>
-<span class="text-5xl font-black tracking-tighter text-primary">05</span>
-<span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">2024</span>
-</div>
-</div>
-</section>
-<!-- Order Breakdown Card -->
-<section class="max-w-2xl mx-auto w-full">
-<div class="bg-surface-container rounded-[2.5rem] p-1 shadow-sm">
-<div class="bg-surface-container-lowest rounded-[2.25rem] p-10 space-y-8 relative overflow-hidden">
-<div class="absolute -right-4 -top-4 glass-panel px-6 py-6 rounded-bl-[2rem] flex flex-col items-center gap-1 shadow-sm z-10">
-<span class="material-symbols-outlined text-emerald-700" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-<span class="text-[10px] font-black tracking-widest uppercase text-emerald-900">GUARANTEED</span>
-</div>
-<div class="space-y-6">
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-medium">Animal Share</span>
-<span class="text-primary font-bold">$1,240</span>
-</div>
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-medium">Kill Fee</span>
-<span class="text-primary font-bold">$95</span>
-</div>
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-medium">Processing</span>
-<span class="text-primary font-bold">$152</span>
-</div>
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-medium">Insulated Shipping</span>
-<span class="text-primary font-bold">$48</span>
-</div>
-</div>
-<div class="dashed-separator h-1 w-full"></div>
-<div class="flex justify-between items-end pt-2">
-<div class="space-y-1">
-<h4 class="text-3xl font-black tracking-tighter text-primary">Total Investment</h4>
-<p class="text-xs font-bold text-on-surface-variant tracking-wide uppercase">All-inclusive pricing</p>
-</div>
-<span class="text-4xl font-black tracking-tighter text-primary">$1,535</span>
-</div>
-</div>
-</div>
-</section>
-<!-- Payment Method -->
-<section class="max-w-xl mx-auto w-full space-y-8">
-<div class="space-y-4">
-<a class="w-full h-20 silk-gradient text-white rounded-full flex items-center justify-center gap-3 shadow-[0_25px_50px_-12px_rgba(6,27,14,0.4)] transition-all hover:scale-[1.02] active:scale-[0.98] duration-300" href="{{DATA:SCREEN:SCREEN_81}}">
-<span class="text-2xl font-bold tracking-tighter flex items-center gap-1">
-<svg class="w-8 h-8 fill-current" viewbox="0 0 100 100">
-<path d="M78.1,51.1c0-11,8.9-16.3,9.3-16.5c-5.1-7.5-13.1-8.5-15.9-8.6c-6.8-0.7-13.2,4-16.6,4c-3.4,0-8.7-3.9-14.4-3.8 c-7.4,0.1-14.3,4.3-18.1,10.9c-7.7,13.4-2,33.1,5.5,43.9c3.7,5.3,8,11.2,13.8,11c5.5-0.2,7.6-3.6,14.3-3.6c6.6,0,8.5,3.6,14.4,3.5 c5.9-0.1,9.6-5.3,13.2-10.6c4.2-6.1,6-12,6.1-12.3C79.6,63.8,78.1,56.7,78.1,51.1z M66.9,23.3c3.1-3.7,5.1-8.9,4.5-14.1 c-4.4,0.2-9.8,2.9-13,6.6c-2.8,3.2-5.3,8.6-4.6,13.6C58.7,29.8,63.8,26.9,66.9,23.3z"></path>
-</svg>
-                        Pay
-                    </span>
-</a>
-<div class="grid grid-cols-2 gap-4">
-<a class="h-16 rounded-full bg-surface-container-low text-on-surface font-bold text-sm hover:bg-surface-container-high transition-colors active:scale-95 flex items-center justify-center" href="{{DATA:SCREEN:SCREEN_81}}">Credit Card</a>
-<a class="h-16 rounded-full bg-surface-container-low text-on-surface font-bold text-sm hover:bg-surface-container-high transition-colors active:scale-95 flex items-center justify-center" href="{{DATA:SCREEN:SCREEN_81}}">Split Payment</a>
-</div>
-</div>
-<p class="text-center text-on-surface-variant font-medium text-sm">
-                Reserve now with <span class="text-primary font-bold">$250 deposit</span>
-</p>
-</section>
-</main>
-<!-- Footer Trust Bar -->
-<footer class="fixed bottom-0 left-0 w-full z-50 glass-panel shadow-[0_-20px_40px_-15px_rgba(27,28,26,0.08)] py-6">
-<div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
-<div class="flex items-center gap-8 text-on-surface-variant">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-lg" data-icon="security">security</span>
-<span class="text-[10px] font-bold tracking-widest uppercase">Encrypted</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-lg" data-icon="verified_user">verified_user</span>
-<span class="text-[10px] font-bold tracking-widest uppercase">Verified</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-lg" data-icon="shield">shield</span>
-<span class="text-[10px] font-bold tracking-widest uppercase">Insured</span>
-</div>
-</div>
-<p class="text-[10px] font-medium text-on-surface-variant/60 tracking-wider">
-                Encrypted by Protein Security Systems. © 2024 MeatMatch LLC.
-            </p>
-</div>
-</footer>
-</body></html>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+</body>
+</html>
