@@ -10,6 +10,264 @@
 .ico-xl { width: 2em; height: 2em; }
 .ico-2xl { width: 2.5em; height: 2.5em; }
 
+/* ============================================================
+   GLOBAL POLISH — iPhone-style hover, focus, tap, responsive
+   ============================================================ */
+
+/* Eliminate iOS / Android tap-flash. Buttons inherit font + cursor. */
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+* { -webkit-tap-highlight-color: transparent; }
+button { -webkit-appearance: none; appearance: none; font-family: inherit; cursor: pointer; }
+
+/* Touch-friendly anchor + buttons on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  button, a, input, select, textarea, .pill-toggle, .preset, .bulk-btn, .cr-filter-btn { touch-action: manipulation; }
+}
+
+/* Keyboard-focus rings (visible only on tab, not on click) */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+.dow-card:focus-within,
+.product:focus-visible,
+.option:focus-visible,
+.cert:focus-within,
+.preset:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+/* ===== iPhone-spring hover for primary CTAs ===== */
+.btn-xl,
+.btn-pay,
+.btn-submit,
+.btn-primary,
+.cs-cta,
+.po-nav-actions button,
+.sheet-next,
+.wiz-next,
+.btn-follow,
+.btn-share,
+.cs-cta--primary,
+.cs-cta--ghost,
+.cs-cta--dark,
+.btn-xl--primary,
+.btn-xl--ghost,
+.btn-xl--dark {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform .38s cubic-bezier(.2,.9,.3,1.4),
+    background-color .25s ease,
+    box-shadow .38s cubic-bezier(.2,.9,.3,1.4),
+    color .2s ease;
+  will-change: transform;
+}
+
+/* Spring lift + soft glass shadow on hover */
+.btn-xl:hover:not(:disabled),
+.btn-pay:hover:not(:disabled),
+.btn-submit:hover:not(:disabled),
+.btn-primary:hover:not(:disabled),
+.cs-cta:hover:not(:disabled),
+.po-nav-actions button:hover:not(:disabled),
+.sheet-next:hover:not(:disabled),
+.wiz-next:hover:not(:disabled),
+.btn-follow:hover,
+.btn-share:hover,
+.btn-xl--primary:hover,
+.btn-xl--dark:hover,
+.btn-xl--ghost:hover {
+  transform: translateY(-2px) scale(1.025);
+  box-shadow: 0 12px 28px rgba(6,27,14,0.20), 0 3px 8px rgba(6,27,14,0.10);
+}
+
+/* Press-down: iOS-style tap compression */
+.btn-xl:active:not(:disabled),
+.btn-pay:active:not(:disabled),
+.btn-submit:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.cs-cta:active:not(:disabled),
+.po-nav-actions button:active,
+.sheet-next:active:not(:disabled),
+.wiz-next:active:not(:disabled),
+.btn-follow:active,
+.btn-share:active,
+.btn-xl--primary:active,
+.btn-xl--dark:active,
+.btn-xl--ghost:active,
+.preset:active,
+.option:active,
+.share-card:active,
+.product:active,
+.species-card:active,
+.cert:active,
+.dow-card:active,
+.day:active,
+.pill-toggle:active,
+.bulk-btn:active,
+.cr-filter-btn:active,
+.tab:active,
+.species-tab:active,
+.cr-tab:active {
+  transform: translateY(0) scale(0.97);
+  transition-duration: .14s;
+  transition-timing-function: cubic-bezier(.4,0,.7,.5);
+}
+
+/* Glass sheen — diagonal shimmer on hover */
+.btn-xl::before,
+.btn-pay::before,
+.btn-primary::before,
+.btn-submit::before,
+.cs-cta::before,
+.sheet-next::before,
+.wiz-next::before,
+.po-nav-actions button:not(.signin)::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 60%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .4s ease;
+  z-index: 1;
+}
+.btn-xl:hover::before,
+.btn-pay:hover::before,
+.btn-primary:hover::before,
+.btn-submit:hover::before,
+.cs-cta:hover::before,
+.sheet-next:hover:not(:disabled)::before,
+.wiz-next:hover:not(:disabled)::before,
+.po-nav-actions button:not(.signin):hover::before { opacity: 1; }
+
+/* Light buttons get subtle dark-tint sheen instead */
+.btn-xl--primary::before,
+.btn-pay--apple ~ .btn-pay--card,
+.cs-cta--primary::before {
+  background: linear-gradient(135deg, rgba(6,27,14,0.05) 0%, rgba(6,27,14,0) 60%);
+}
+
+/* Card-style tap feedback (no shimmer, just scale) */
+.preset,
+.option,
+.share-card,
+.product,
+.species-card,
+.cert,
+.dow-card,
+.day {
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.4),
+              box-shadow .35s cubic-bezier(.2,.9,.3,1.4),
+              border-color .25s ease,
+              background .25s ease;
+}
+
+/* Pill toggles — soft scale on hover */
+.pill-toggle,
+.bulk-btn,
+.cr-filter-btn,
+.tab,
+.species-tab,
+.cr-tab,
+.rv-tab,
+.cr-filter-btn,
+.species-toggle button {
+  transition: transform .25s cubic-bezier(.2,.9,.3,1.4),
+              background-color .25s ease,
+              color .25s ease,
+              border-color .25s ease;
+}
+.pill-toggle:hover:not(.locked-on),
+.bulk-btn:hover,
+.cr-filter-btn:hover:not(.active),
+.tab:hover:not(.active),
+.species-tab:hover:not(.active),
+.cr-tab:hover:not(.active),
+.rv-tab:hover:not(.active) { transform: translateY(-1px); }
+
+/* Inputs / selects — focus glow */
+input, select, textarea { transition: border-color .25s ease, background-color .25s ease, box-shadow .3s ease, transform .25s ease; }
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+/* Smooth scroll site-wide + scroll-padding for sticky nav */
+html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+
+/* ===== Fluid spacing per breakpoint ===== */
+@media (max-width: 720px) {
+  :root { --shell-pad: 18px; }
+  .po-nav { padding: 12px 18px; gap: 10px; }
+  .po-mark { font-size: 13px; }
+  .po-nav-actions button { padding: 9px 14px; font-size: 13px; min-height: 40px; }
+  .po-nav-actions .signin { font-size: 13px; }
+  .btn-xl { padding: 16px 26px; font-size: 15px; min-height: 44px; }
+  .btn-pay { min-height: 48px; }
+  /* Bigger tap targets for everything tap-able */
+  button, .pill-toggle, .bulk-btn, .cr-filter-btn { min-height: 44px; }
+  /* Footer: stack to 2 columns */
+  .po-foot-inner { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .po-foot-bottom { font-size: 11px; gap: 10px; }
+}
+
+@media (min-width: 720px) and (max-width: 1099px) {
+  :root { --shell-pad: 32px; }
+}
+
+/* Sheet: iOS-style mobile bottom sheet behavior */
+@media (max-width: 720px) {
+  .sheet { max-height: 88vh; }
+  .sheet-body { padding: 24px 18px 18px; }
+  .sheet-q { font-size: 24px; }
+  .option { padding: 14px 16px; }
+  .option-glyph { width: 48px; height: 48px; font-size: 24px; }
+  .option-title { font-size: 15px; }
+  .option-sub { font-size: 12px; }
+}
+
+/* Reserve sheet on tablet — make it more readable */
+@media (min-width: 720px) and (max-width: 899px) {
+  .sheet { left: 5vw; right: 5vw; bottom: 16px; transform: translateY(120%); border-radius: 28px; max-height: 86vh; }
+  .sheet.open { transform: translateY(0); }
+}
+
+/* Hide scrollbars but keep scroll on horizontal pill rows */
+.species-tabs, .cr-filters, .tabs-inner, .filter-inner, .species-toggle, .rv-tabs {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Image rendering — sharp on retina */
+img { -webkit-user-drag: none; image-rendering: -webkit-optimize-contrast; }
+
+/* Disable selection on chrome (nav, buttons) but keep it on text content */
+.po-nav, .po-nav button, .pill-toggle, .preset, .bulk-btn, .cs-skip, .tab, .rv-tab,
+.species-tab, .cr-filter-btn, .dow-card, .day, .stat-tile, .cs-stat,
+.btn-xl, .btn-pay, .btn-primary, .btn-submit { user-select: none; -webkit-user-select: none; }
+
+/* ===== Reduce motion respect ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* ===== Print: clean, no shadows ===== */
+@media print {
+  .po-nav-wrap, .po-foot, .sheet, .sheet-backdrop, .cs-meter-wrap, .pp-actions, .actions { display: none !important; }
+  body { background: #fff; }
+  * { box-shadow: none !important; backdrop-filter: none !important; }
+}
+
 :root {
   --po-headline: clamp(48px, 9vw, 128px);
   --po-h2: clamp(36px, 5.5vw, 72px);
