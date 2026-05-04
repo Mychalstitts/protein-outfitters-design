@@ -37,8 +37,9 @@
       <button class="option" data-processor="22"><span class="option-glyph">22</span><span class="option-text"><span class="option-title">Plant 22 · Brainerd, MN</span><span class="option-sub">62 mi · Pickup window: 8 AM – 6 PM</span></span><span class="option-price">Free</span></button>
     </div></section>
     <section class="sheet-step" data-step="3" hidden><h3 class="sheet-q">Reserve it.</h3>
-      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Share</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18</span></div><div class="summary-row total"><span>Reserve today</span><span class="v" id="sumTotalVal">$0</span></div></div>
-      <div class="pay-stack"><button class="btn-pay btn-pay--apple" id="payApple"> Pay</button><button class="btn-pay btn-pay--card" id="payCard">Reserve with card →</button></div>
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Pay your deposit + fees today. Meat is settled at pickup based on actual hanging weight.</p>
+      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18.00</span></div><div class="summary-row total"><span>Reserve today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
+      <div class="pay-stack"><button class="btn-pay btn-pay--apple" id="payApple"> Pay deposit</button><button class="btn-pay btn-pay--card" id="payCard">Reserve with card →</button></div>
       <p style="font-size:12px;color:var(--ink-3);text-align:center;margin:14px 0 0;line-height:1.5;">Free cancellation up to 21 days before harvest. We'll email your cut sheet within 24 hours.</p>
     </section>
     <section class="sheet-step" data-step="4" hidden><div class="confirm"><div class="confirm-mark">✓</div><h3 id="confirmTitle">Reserved.</h3><p id="confirmBody">We just sent your reservation details and your cut sheet builder.</p></div></section>
@@ -78,7 +79,7 @@
     const confirmBody = document.getElementById('confirmBody');
 
     let state = { step: 1, animal: null, share: null, processor: null };
-    function fmt(n) { return '$' + Number(n).toLocaleString(); }
+    function fmt(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
     function buildShareOptions() {
       const a = state.animal; if (!a) return;
@@ -117,9 +118,22 @@
         else nextBtn.textContent = 'Continue →';
       }
       if (n === 3 && state.share) {
-        sumShareLabel.textContent = (state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole') + ' share';
-        sumShareVal.textContent = fmt(state.share.price);
-        sumTotalVal.textContent = fmt(state.share.price + 225 + 18);
+        // Reservation deposit model: deposit is a flat 10% of estimated meat cost (capped 50–500),
+        // plus processing fee + insurance. Meat balance is settled at pickup on actual hanging weight.
+        const lbsBySize = { q: 110, h: 220, w: 440 };
+        const lbs = lbsBySize[state.share.key] || 110;
+        const meatEstimate = state.share.price * lbs;       // price-per-lb × estimated cuts lb
+        const deposit = Math.min(500, Math.max(50, Math.round(meatEstimate * 0.10)));
+        const fees = 225 + 18;
+        const reserveToday = deposit + fees;
+        const shareLabel = state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole';
+        sumShareLabel.textContent = `Deposit (${shareLabel} share)`;
+        sumShareVal.textContent = fmt(deposit);
+        sumTotalVal.textContent = fmt(reserveToday);
+        const pickupEl = document.getElementById('sumPickupVal');
+        const pickupLabel = document.getElementById('sumPickupLabel');
+        if (pickupEl) pickupEl.textContent = `~${fmt(meatEstimate - deposit)}`;
+        if (pickupLabel) pickupLabel.textContent = `Balance at pickup (~${lbs} lb @ ${fmt(state.share.price)}/lb, less deposit)`;
       }
     }
 

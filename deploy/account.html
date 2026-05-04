@@ -100,17 +100,17 @@
 
     <div class="ac-hero">
       <div class="ac-greeting">
-        <p class="eye">Tuesday · May 5</p>
+        <p class="eye" id="acDayLabel">Today</p>
         <h1>Hi, <span data-user-name>there</span>.</h1>
-        <p>Your <strong>quarter of #2641</strong> drops at Plant 04 in 23 days. Cut sheet is filled out. Pickup window opens around June 11.</p>
+        <p id="acGreetingSub">Welcome back. Here's where your reservations stand.</p>
       </div>
       <div class="ac-summary">
         <p class="lab">Active reservations</p>
-        <p class="v">2 <small>animals</small></p>
+        <p class="v"><span id="acStatActive">—</span> <small>animals</small></p>
         <div class="row">
-          <div class="stat"><div class="v">3</div><div class="lab">Followed farms</div></div>
-          <div class="stat"><div class="v">$3,033</div><div class="lab">YTD spend</div></div>
-          <div class="stat"><div class="v">12</div><div class="lab">Total orders</div></div>
+          <div class="stat"><div class="v" id="acStatFarms">—</div><div class="lab">Followed farms</div></div>
+          <div class="stat"><div class="v" id="acStatSpend">—</div><div class="lab">YTD spend</div></div>
+          <div class="stat"><div class="v" id="acStatOrders">—</div><div class="lab">Total orders</div></div>
         </div>
       </div>
     </div>
@@ -273,13 +273,49 @@
     return;
   }
 
-  // Update header greeting if there's a name field
-  const nameEls = document.querySelectorAll('[data-user-name]');
-  nameEls.forEach(e => e.textContent = me.user.name || me.user.email.split('@')[0]);
+  // Update header greeting — first name only, capitalized
+  const firstName = (() => {
+    const n = (me.user.name || '').trim();
+    if (n) return n.split(/\s+/)[0];
+    const handle = (me.user.email || '').split('@')[0].replace(/[._-]+/g,' ').trim();
+    const word = handle.split(/\s+/)[0] || 'there';
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  })();
+  document.querySelectorAll('[data-user-name]').forEach(e => e.textContent = firstName);
+
+  // Update day label (real date)
+  const dayEl = document.getElementById('acDayLabel');
+  if (dayEl) {
+    const now = new Date();
+    dayEl.textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  }
 
   let reservations;
   try { const r = await window.PO_API.reservations(); reservations = r.reservations || []; }
   catch { reservations = []; }
+
+  // Paint summary stats from real data
+  const active = reservations.filter(r => !['cancelled','refunded','picked-up'].includes(r.status));
+  const totalSpend = reservations.reduce((s,r) => s + Number(r.total_estimate || 0), 0);
+  const farmSet = new Set(reservations.map(r => r.farm_slug || r.farm_name).filter(Boolean));
+  const setText = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
+  setText('acStatActive', active.length);
+  setText('acStatFarms', farmSet.size);
+  setText('acStatSpend', totalSpend > 0 ? '$' + totalSpend.toLocaleString('en-US',{maximumFractionDigits:0}) : '$0');
+  setText('acStatOrders', reservations.length);
+
+  // Personalize sub-greeting based on next reservation
+  const next = active.sort((a,b) => new Date(a.expected_finish_date||0) - new Date(b.expected_finish_date||0))[0];
+  const sub = document.getElementById('acGreetingSub');
+  if (sub) {
+    if (next) {
+      const days = Math.max(0, Math.round((new Date(next.expected_finish_date) - Date.now()) / 86400000));
+      const shareLabel = next.share_size === 'whole' ? 'whole animal' : next.share_size === 'half' ? 'half share' : next.share_size === 'quarter' ? 'quarter share' : 'eighth';
+      sub.innerHTML = `Your <strong>${shareLabel} of ${next.number || next.breed || 'your reservation'}</strong> drops${days ? ' in ' + days + ' day' + (days===1?'':'s') : ' soon'}. ${next.cut_sheet_status === 'submitted' ? 'Cut sheet is in.' : 'Cut sheet still needed.'}`;
+    } else {
+      sub.textContent = 'Welcome back. Browse new listings or check on your reservations below.';
+    }
+  }
 
   if (!reservations.length) {
     list.innerHTML = `<div style="text-align:center; padding:60px 20px;">
