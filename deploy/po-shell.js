@@ -6,6 +6,62 @@
 (function () {
   'use strict';
 
+  /* ============================================================
+     CUMULATIVE PRICE MODEL (Trello: customer sees ONE all-in $/lb)
+     - Farmer's listing rate ($/lb hanging weight) + processing
+       (cut/wrap/vac-pack/kill-fee) + condemnation insurance pool +
+       platform fee — all rolled into one number the buyer sees.
+     - Processor sets their per-lb processing rate in their profile.
+     - We use industry-default fallbacks until a specific processor
+       is selected at checkout.
+     ============================================================ */
+  window.PO_PRICING = {
+    // Industry defaults — overridden when a specific processor is chosen
+    processingPerLbHW: 1.25,   // cut, wrap, vac-pack (hanging weight)
+    killFeeFlat: 100,           // per animal (split across share)
+    insurancePerLbHW: 0.05,    // condemnation insurance pool
+    platformPerLbHW: 0.25,     // PO platform fee
+    cutsYield: 0.72,            // typical hanging-to-cuts yield for beef
+
+    /** Compute cumulative all-in $/lb (hanging weight basis) the buyer sees */
+    allInPerLbHW(farmerPerLb, shareKey = 'quarter', hangingWeight = 700, processorPerLb = null) {
+      const shareFraction = shareKey === 'whole' ? 1 : shareKey === 'half' ? 0.5 : shareKey === 'quarter' ? 0.25 : 0.125;
+      const shareLbsHW = hangingWeight * shareFraction;
+      if (shareLbsHW === 0) return 0;
+      const proc = (processorPerLb != null ? processorPerLb : this.processingPerLbHW);
+      const farmer = (farmerPerLb || 0);
+      const killShare = this.killFeeFlat / hangingWeight; // per-lb HW
+      return farmer + proc + this.insurancePerLbHW + this.platformPerLbHW + killShare;
+    },
+
+    /** Convert hanging-weight $/lb to finished-cuts $/lb for display */
+    perLbCuts(perLbHW) { return perLbHW / this.cutsYield; },
+
+    /** Full breakdown for "What's included" tooltip */
+    breakdown(farmerPerLb, shareKey = 'quarter', hangingWeight = 700, processorPerLb = null) {
+      const shareFraction = shareKey === 'whole' ? 1 : shareKey === 'half' ? 0.5 : shareKey === 'quarter' ? 0.25 : 0.125;
+      const lbs = hangingWeight * shareFraction;
+      const cutsLbs = lbs * this.cutsYield;
+      const proc = (processorPerLb != null ? processorPerLb : this.processingPerLbHW);
+      return {
+        shareLbsHW: lbs,
+        shareLbsCuts: cutsLbs,
+        farmer: { perLb: farmerPerLb || 0, total: (farmerPerLb || 0) * lbs },
+        processing: { perLb: proc, total: proc * lbs },
+        killFee: { flat: this.killFeeFlat, share: this.killFeeFlat * shareFraction },
+        insurance: { perLb: this.insurancePerLbHW, total: this.insurancePerLbHW * lbs },
+        platform: { perLb: this.platformPerLbHW, total: this.platformPerLbHW * lbs },
+        get totalDollars() { return this.farmer.total + this.processing.total + this.killFee.share + this.insurance.total + this.platform.total; },
+        get allInPerLbHW() { return this.totalDollars / lbs; },
+        get allInPerLbCuts() { return this.totalDollars / cutsLbs; }
+      };
+    }
+  };
+
+  /** Format a $/lb as "$X.XX/lb" */
+  window.PO_PRICING.fmtPerLb = (n) => '$' + Number(n || 0).toFixed(2) + '/lb';
+  window.PO_PRICING.fmt = (n) => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   const FOOTER_HTML = `
 <footer class="po-foot">
   <div class="po-foot-inner">

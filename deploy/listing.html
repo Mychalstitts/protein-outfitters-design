@@ -162,16 +162,18 @@
   if (l.farm_city) sub.push(`from ${l.farm_city}, ${l.farm_state}`);
   document.getElementById('lgSub').textContent = sub.join(' · ');
 
-  // ─── From-price ─────────────────────────────────
+  // ─── Cumulative all-in pricing ──────────────────
+  const HW = l.estimated_hanging_weight || 700;
+  const allIn = (farmerRate, shareKey) => window.PO_PRICING ? window.PO_PRICING.allInPerLbHW(farmerRate, shareKey, HW) : farmerRate;
   const sharesArr = [];
-  if (l.shares?.quarter && l.shares.quarter.available > 0) sharesArr.push({ key: 'q', label: 'Quarter share', glyph: '¼', sub: '~110 lb cuts · fits a 7 cu ft freezer', price: Number(l.shares.quarter.price) });
-  if (l.shares?.half && l.shares.half.available > 0)    sharesArr.push({ key: 'h', label: 'Half share', glyph: '½', sub: '~220 lb cuts · fits a 14 cu ft freezer', price: Number(l.shares.half.price) });
-  if (l.shares?.whole && l.shares.whole.available > 0)  sharesArr.push({ key: 'w', label: 'Whole animal', glyph: '1', sub: '~440 lb cuts · for serious operators', price: Number(l.shares.whole.price) });
+  if (l.shares?.quarter && l.shares.quarter.available > 0) sharesArr.push({ key: 'q', label: 'Quarter share', glyph: '¼', sub: '~110 lb cuts · fits a 7 cu ft freezer', farmerRate: Number(l.shares.quarter.price), price: allIn(Number(l.shares.quarter.price), 'quarter') });
+  if (l.shares?.half && l.shares.half.available > 0)    sharesArr.push({ key: 'h', label: 'Half share', glyph: '½', sub: '~220 lb cuts · fits a 14 cu ft freezer', farmerRate: Number(l.shares.half.price), price: allIn(Number(l.shares.half.price), 'half') });
+  if (l.shares?.whole && l.shares.whole.available > 0)  sharesArr.push({ key: 'w', label: 'Whole animal', glyph: '1', sub: '~440 lb cuts · for serious operators', farmerRate: Number(l.shares.whole.price), price: allIn(Number(l.shares.whole.price), 'whole') });
 
   if (sharesArr.length) {
     const cheapest = [...sharesArr].sort((a, b) => a.price - b.price)[0];
-    document.getElementById('lgFromPrice').textContent = '$' + cheapest.price.toFixed(2) + '/lb';
-    document.getElementById('lgFromMeta').textContent = '· ' + cheapest.label.toLowerCase();
+    document.getElementById('lgFromPrice').innerHTML = '$' + cheapest.price.toFixed(2) + '<span style="font-size:.5em;font-weight:600;opacity:.7">/lb all-in</span>';
+    document.getElementById('lgFromMeta').textContent = '· ' + cheapest.label.toLowerCase() + ' · everything included';
   } else {
     document.getElementById('lgFromPrice').textContent = 'Sold out';
     document.getElementById('lgFromMeta').textContent = '';
@@ -204,11 +206,37 @@
   }
 
   // ─── Share row ──────────────────────────────────
-  const shareEls = sharesArr.map(s => `<button class="share-card js-reserve" data-share="${s.key}" data-price="${s.price}"><span class="glyph">${s.glyph}</span><span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span><span class="p">$${s.price.toFixed(2)}/lb</span></button>`);
+  const shareEls = sharesArr.map(s => `<button class="share-card js-reserve" data-share="${s.key}" data-price="${s.farmerRate}"><span class="glyph">${s.glyph}</span><span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span><span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1">/lb all-in</span></span></button>`);
   if (!sharesArr.length) {
     shareEls.push('<div style="padding:32px;text-align:center;background:#fff;border-radius:14px;font:600 14px/1.5 \'Inter\';opacity:.7">All shares are reserved.</div>');
   }
   document.getElementById('lgShareRow').innerHTML = shareEls.join('');
+
+  // ─── "What's included" expander ─────────────────
+  const cheapest = sharesArr.length ? [...sharesArr].sort((a, b) => a.price - b.price)[0] : null;
+  if (cheapest && window.PO_PRICING) {
+    const bd = window.PO_PRICING.breakdown(cheapest.farmerRate, cheapest.key === 'q' ? 'quarter' : cheapest.key === 'h' ? 'half' : 'whole', HW);
+    const incEl = document.createElement('div');
+    incEl.style.cssText = 'margin-top:18px;padding:14px 18px;background:rgba(125,160,93,.08);border:1px solid rgba(125,160,93,.20);border-radius:14px;font:500 13px/1.5 Inter;color:var(--ink-2)';
+    incEl.innerHTML = `
+      <details>
+        <summary style="cursor:pointer;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          What's included in the all-in price
+          <span style="margin-left:auto;font-weight:600;opacity:.6;font-size:11px">tap to expand</span>
+        </summary>
+        <div style="margin-top:12px;display:grid;gap:6px;font-size:12.5px;">
+          <div style="display:flex;justify-content:space-between;"><span>Farmer rate (${cheapest.label.toLowerCase()})</span><span>$${bd.farmer.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Processor — cut, wrap, vacuum-seal</span><span>$${bd.processing.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Slaughter (kill) fee, share</span><span>$${(bd.killFee.share / bd.shareLbsHW).toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Condemnation insurance pool</span><span>$${bd.insurance.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Protein Outfitters platform fee</span><span>$${bd.platform.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.15);padding-top:6px;margin-top:4px;font-weight:800;color:var(--ink);"><span>All-in</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb hanging weight</span></div>
+          <div style="opacity:.7;font-size:11.5px;margin-top:4px;">≈ $${bd.allInPerLbCuts.toFixed(2)}/lb of finished cuts (after typical 28% trim/loss)</div>
+        </div>
+      </details>`;
+    document.getElementById('lgShareRow').insertAdjacentElement('afterend', incEl);
+  }
 
   // ─── Farm card ──────────────────────────────────
   document.getElementById('lgFarmName').textContent = l.farm_name;

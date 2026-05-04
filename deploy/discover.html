@@ -202,7 +202,9 @@
       { id:'l1', name:'#118 · Half Black Angus', farm:'Northfield Pastures', farmSlug:'northfield-pastures', species:'cattle', practice:['grass-fed','regenerative'], certs:['organic','aga','amwa'], identity:['family'], priceLb:7.85, distance:42, ready:'2026-07-15', img:'/img/cattle-pasture.jpg', new:true, instant:true }
     ];
     function listingFromRow(row) {
-      const sharePrice = row.shares?.half?.price || row.shares?.whole?.price || row.shares?.quarter?.price || row.price_per_lb || 0;
+      const farmerRate = parseFloat(row.shares?.half?.price || row.shares?.whole?.price || row.shares?.quarter?.price || row.price_per_lb || 0);
+      // Cumulative all-in price the buyer sees (farmer + processing + fees, hanging-weight basis)
+      const allInLb = window.PO_PRICING ? window.PO_PRICING.allInPerLbHW(farmerRate, 'half', row.estimated_hanging_weight || 700) : farmerRate;
       const photo = (row.photos && row.photos[0]) || (row.species === 'hog' ? '/img/premium-pig.jpg' : row.species === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg');
       return {
         id: row.id,
@@ -213,7 +215,8 @@
         practice: row.practice || [],
         certs: row.certs || [],
         identity: row.farm_identity || [],
-        priceLb: parseFloat(sharePrice) || 0,
+        priceLb: allInLb,                  // cumulative — what buyer sees on the card
+        farmerRate: farmerRate,            // raw farmer rate (for filters / breakdown)
         distance: 100, // TODO compute via zip
         ready: row.expected_finish_date,
         img: photo,
@@ -313,7 +316,7 @@
             </button>
           </div>
           <div class="lc-body">
-            <div class="lc-row1"><span class="lc-name">${l.name}</span><span class="lc-price">$${l.priceLb.toFixed(2)}<em>/lb</em></span></div>
+            <div class="lc-row1"><span class="lc-name">${l.name}</span><span class="lc-price">$${l.priceLb.toFixed(2)}<em>/lb all-in</em></span></div>
             <div class="lc-farm"><a href="/farm/${l.farmSlug}" onclick="event.stopPropagation()">${l.farm}</a></div>
             <div class="lc-meta">
               <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${l.distance} mi</span>
