@@ -363,3 +363,104 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectConcierge);
   else injectConcierge();
 })();
+
+/* ============================================================
+   PO Auth Nav — replace .signin link with user name when authed.
+   Runs on every page after DOMContentLoaded.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  async function refreshNav() {
+    try {
+      const r = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!r.ok) return;
+      const data = await r.json();
+      if (!data.user) return; // anonymous — leave "Sign in" as-is
+      paintAuthedNav(data.user);
+    } catch {}
+  }
+
+  function paintAuthedNav(user) {
+    if (document.getElementById('poUserChip')) return;
+    const display = (user.name || user.email.split('@')[0]).split(' ')[0];
+    const initials = (user.name || user.email)
+      .split(/[\s.@_-]+/).filter(Boolean).slice(0, 2)
+      .map(s => s[0].toUpperCase()).join('');
+
+    // Inject styles once
+    if (!document.getElementById('po-user-style')) {
+      const s = document.createElement('style');
+      s.id = 'po-user-style';
+      s.textContent = `
+        .po-user-chip{position:relative;display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:rgba(6,27,14,.06);text-decoration:none;color:var(--ink, #061b0e);font:700 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;border:0;transition:all .2s cubic-bezier(.2,.9,.3,1.4)}
+        .po-user-chip:hover{background:rgba(6,27,14,.1);transform:translateY(-1px)}
+        .po-user-chip-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7da05d,#b48a5a);color:#fbf9f5;display:grid;place-items:center;font:800 11px/1 'Inter';letter-spacing:.02em}
+        .po-user-chip-caret{font-size:9px;opacity:.55;margin-left:2px}
+        .po-user-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:200px;background:#fff;border-radius:12px;box-shadow:0 12px 32px rgba(6,27,14,.15);padding:6px;display:none;z-index:200}
+        .po-user-menu.open{display:block}
+        .po-user-menu .pum-head{padding:10px 12px;border-bottom:1px solid rgba(6,27,14,.06);margin-bottom:4px}
+        .po-user-menu .pum-name{font:700 13px/1.2 'Inter';color:var(--ink, #061b0e)}
+        .po-user-menu .pum-email{font:500 11.5px/1.3 'Inter';color:rgba(6,27,14,.55);margin-top:3px;word-break:break-all}
+        .po-user-menu .pum-role{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;background:rgba(125,160,93,.18);color:#2d4a18;font:700 9.5px/1 'Inter';letter-spacing:.08em;text-transform:uppercase}
+        .po-user-menu a, .po-user-menu button{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:8px;background:transparent;border:0;color:var(--ink, #061b0e);text-decoration:none;font:600 12.5px/1.2 'Inter';cursor:pointer}
+        .po-user-menu a:hover, .po-user-menu button:hover{background:rgba(6,27,14,.05)}
+        .po-user-menu .signout{color:#a13a3a;border-top:1px solid rgba(6,27,14,.06);margin-top:4px;padding-top:10px}
+      `;
+      document.head.appendChild(s);
+    }
+
+    // Find the .signin element on the page (any nav variant)
+    const signinEls = document.querySelectorAll('.signin, [data-signin]');
+    signinEls.forEach(el => el.remove());
+    // Also remove anchors that say exactly "Sign in"
+    document.querySelectorAll('.po-nav-actions a, .po-nav-actions button').forEach(el => {
+      if ((el.textContent || '').trim() === 'Sign in') el.remove();
+    });
+
+    // Find a likely insertion point — first .po-nav-actions
+    const slot = document.querySelector('.po-nav-actions') || document.querySelector('nav .po-nav-actions') || document.querySelector('header nav');
+    if (!slot) return;
+
+    const wrap = document.createElement('div');
+    wrap.style.position = 'relative';
+    wrap.style.display = 'inline-flex';
+    wrap.innerHTML = `
+      <button class="po-user-chip" id="poUserChip" type="button">
+        <span class="po-user-chip-avatar">${initials || '?'}</span>
+        <span>${escapeHtml(display)}</span>
+        <span class="po-user-chip-caret">▼</span>
+      </button>
+      <div class="po-user-menu" id="poUserMenu">
+        <div class="pum-head">
+          <div class="pum-name">${escapeHtml(user.name || display)}</div>
+          <div class="pum-email">${escapeHtml(user.email)}</div>
+          <span class="pum-role">${user.role || 'buyer'}</span>
+        </div>
+        <a href="/account">My account</a>
+        <a href="/finance">Finance</a>
+        ${user.role === 'producer' || user.role === 'admin' ? '<a href="/farmer">Producer dashboard</a>' : ''}
+        ${user.role === 'processor' || user.role === 'admin' ? '<a href="/processor">Processor portal</a>' : ''}
+        ${user.role === 'admin' ? '<a href="/admin">Admin</a>' : ''}
+        <button class="signout" id="poSignout">Sign out</button>
+      </div>
+    `;
+    slot.prepend(wrap);
+
+    const chip = document.getElementById('poUserChip');
+    const menu = document.getElementById('poUserMenu');
+    chip.addEventListener('click', e => { e.stopPropagation(); menu.classList.toggle('open'); });
+    document.addEventListener('click', () => menu.classList.remove('open'));
+    document.getElementById('poSignout').addEventListener('click', async () => {
+      try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
+      location.href = '/';
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refreshNav);
+  else refreshNav();
+})();
