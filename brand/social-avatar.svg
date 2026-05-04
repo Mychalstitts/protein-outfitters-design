@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Protein Outfitters">
+  <rect fill="#061b0e" x="0" y="0" width="400" height="400"/>
+  <text x="60" y="265" fill="#fbf9f5" font-family="-apple-system,BlinkMacSystemFont,Inter,sans-serif" font-weight="900" font-size="220" letter-spacing="-16">PO</text>
+  <line x1="60" y1="305" x2="340" y2="305" stroke="#fbf9f5" stroke-width="8"/>
+  <text x="60" y="350" fill="#fbf9f5" font-family="-apple-system,BlinkMacSystemFont,Inter,sans-serif" font-weight="700" font-size="22" letter-spacing="2">PROTEIN OUTFITTERS</text>
+</svg>
