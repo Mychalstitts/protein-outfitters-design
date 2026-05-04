@@ -1,350 +1,345 @@
-<!DOCTYPE html>
-
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>Farmer Dashboard | Protein Outfitters</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<style>
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        .glass-panel { backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); }
-        .ios-press:active { transform: scale(0.98); transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .primary-gradient { background: linear-gradient(135deg, #0a2012 0%, #1b3022 100%); }
-        .silk-sheen { position: relative; overflow: hidden; }
-        .silk-sheen::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); transform: skewX(-25deg); transition: 0.75s; }
-        .silk-sheen:hover::after { left: 150%; }
-        .shadow-ambient { box-shadow: 0 20px 40px -10px rgba(27, 28, 26, 0.04); }
-    </style>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "on-error": "#ffffff",
-                        "surface-container-high": "#eae8e4",
-                        "on-surface": "#1b1c1a",
-                        "on-secondary": "#ffffff",
-                        "inverse-surface": "#30312e",
-                        "error-container": "#ffdad6",
-                        "primary-container": "#0a2012",
-                        "on-tertiary-container": "#f04440",
-                        "on-tertiary-fixed": "#410003",
-                        "inverse-primary": "#b4cdb8",
-                        "tertiary-fixed-dim": "#ffb3ac",
-                        "surface-dim": "#dbdad6",
-                        "primary-fixed-dim": "#b4cdb8",
-                        "tertiary": "#000000",
-                        "tertiary-fixed": "#ffdad6",
-                        "on-error-container": "#93000a",
-                        "primary-fixed": "#cfe9d3",
-                        "on-secondary-container": "#5c655d",
-                        "on-primary-fixed": "#0a2012",
-                        "inverse-on-surface": "#f2f0ec",
-                        "on-tertiary-fixed-variant": "#930010",
-                        "surface-tint": "#4d6452",
-                        "surface-container": "#f0eeea",
-                        "on-tertiary": "#ffffff",
-                        "on-primary-fixed-variant": "#364c3c",
-                        "on-background": "#1b1c1a",
-                        "surface-bright": "#fbf9f5",
-                        "error": "#ba1a1a",
-                        "outline": "#737972",
-                        "tertiary-container": "#410003",
-                        "on-secondary-fixed": "#151d17",
-                        "secondary-fixed": "#dce5da",
-                        "primary": "#000000",
-                        "on-surface-variant": "#434843",
-                        "on-primary-container": "#728a77",
-                        "background": "#fbf9f5",
-                        "surface": "#fbf9f5",
-                        "surface-variant": "#e4e2de",
-                        "surface-container-highest": "#e4e2de",
-                        "secondary-container": "#d9e2d8",
-                        "on-primary": "#ffffff",
-                        "surface-container-low": "#f5f3ef",
-                        "secondary-fixed-dim": "#c0c9bf",
-                        "outline-variant": "#c3c8c1",
-                        "on-secondary-fixed-variant": "#404941",
-                        "secondary": "#586158",
-                        "surface-container-lowest": "#ffffff"
-                    },
-                    fontFamily: {
-                        "headline": ["Inter"],
-                        "body": ["Inter"],
-                        "label": ["Inter"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
-            },
-        }
-    </script>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<title>My ranch · Protein Outfitters</title>
+<meta name="description" content="Your producer dashboard. Manage listings, schedule, credentials, reviews, and your public farm profile in one place." />
+<meta property="og:title" content="My ranch · Protein Outfitters" />
+<meta property="og:description" content="Producer dashboard for Protein Outfitters." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/farmer" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:title" content="My ranch · Protein Outfitters" />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.fm-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.fm-inner { max-width: 1320px; margin: 0 auto; }
+
+/* Greeting + standing hero */
+.fm-hero { display: grid; gap: clamp(20px, 3vw, 32px); grid-template-columns: 1fr; margin-bottom: clamp(32px, 4vw, 48px); }
+@media (min-width: 900px) { .fm-hero { grid-template-columns: 1.6fr 1fr; align-items: end; } }
+.fm-greeting .eye { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px; }
+.fm-greeting h1 { margin: 0; font-size: clamp(36px, 5.5vw, 64px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; max-width: 22ch; }
+.fm-greeting p { margin: 14px 0 0; font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 50ch; }
+
+.fm-standing { background: var(--brand); color: #fbf9f5; border-radius: 22px; padding: 24px 26px; display: flex; flex-direction: column; gap: 16px; }
+.fm-standing-row { display: flex; align-items: center; gap: 16px; }
+.fm-standing-avatar { width: 56px; height: 56px; border-radius: 16px; background: url('/farmer.jpg') center/cover; flex-shrink: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+.fm-standing-meta .role { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
+.fm-standing-meta .name { margin: 4px 0 0; font-size: 18px; font-weight: 900; letter-spacing: -0.018em; color: #fbf9f5; }
+.fm-standing-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding-top: 14px; border-top: 1px solid rgba(251,249,245,0.18); }
+.fm-standing-stat .v { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; color: #fbf9f5; line-height: 1; }
+.fm-standing-stat .lab { font-size: 11px; color: rgba(251,249,245,0.65); margin-top: 4px; line-height: 1.3; }
+
+/* Quick actions */
+.qa-grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: clamp(32px, 4vw, 48px);
+}
+@media (min-width: 700px) { .qa-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1100px) { .qa-grid { grid-template-columns: repeat(6, 1fr); } }
+
+.qa {
+  background: #fff; border-radius: 22px; padding: 22px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  text-decoration: none; color: inherit;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s, border-color .25s;
+  border: 1px solid transparent;
+}
+.qa:hover { transform: translateY(-3px); border-color: var(--brand); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+.qa-glyph { width: 44px; height: 44px; border-radius: 13px; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; }
+.qa-glyph .ico { width: 22px; height: 22px; }
+.qa h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
+.qa p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.qa-pip { font-size: 11px; font-weight: 800; color: #fbf9f5; background: var(--brand); padding: 3px 8px; border-radius: 99px; align-self: flex-start; letter-spacing: 0.04em; }
+.qa-pip.warn { background: #f5e1ad; color: #7a5a08; }
+
+/* Section heads */
+.fm-section { margin-bottom: clamp(32px, 4vw, 48px); }
+.fm-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+.fm-section-head h2 { margin: 0; font-size: clamp(22px, 2.5vw, 28px); font-weight: 800; letter-spacing: -0.025em; }
+.fm-section-head .more { font-size: 13px; font-weight: 700; color: var(--accent-2); text-decoration: none; }
+.fm-section-head .more:hover { color: var(--brand); text-decoration: underline; }
+
+/* Today list */
+.today-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 800px) { .today-grid { grid-template-columns: 1fr 1fr; } }
+.today-card { background: #fff; border-radius: 18px; padding: 18px 22px; display: flex; gap: 14px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); border-left: 4px solid var(--brand); }
+.today-card.warn { border-left-color: #f5b400; }
+.today-card.alert { border-left-color: #ba1a1a; }
+.today-card.ok { border-left-color: #cfe9d3; }
+.today-glyph { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; flex-shrink: 0; }
+.today-glyph .ico { width: 20px; height: 20px; }
+.today-meta { flex: 1; min-width: 0; }
+.today-meta h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
+.today-meta p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.today-cta { font-size: 12px; font-weight: 700; color: var(--brand); text-decoration: none; white-space: nowrap; padding: 6px 12px; border-radius: 99px; background: var(--surface); }
+.today-cta:hover { background: var(--accent-soft); }
+
+/* Active listings grid */
+.listings-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.fm-add-listing {
+  background: var(--accent-soft);
+  border: 2px dashed rgba(6,27,14,0.20);
+  border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 10px;
+  text-decoration: none; color: var(--brand);
+  font-size: 14px; font-weight: 800;
+  min-height: 180px;
+  transition: background .25s, border-color .25s, transform .25s cubic-bezier(.2,.9,.3,1.4);
+}
+.fm-add-listing:hover { background: #b8d9be; border-color: var(--brand); transform: translateY(-3px); }
+.fm-add-listing .ico { width: 32px; height: 32px; }
+
+/* This week stats */
+.week-stats { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 700px) { .week-stats { grid-template-columns: repeat(4, 1fr); } }
+.week-stat { background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.week-stat .lab { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+.week-stat .v { font-size: 28px; font-weight: 900; letter-spacing: -0.025em; margin: 6px 0 0; line-height: 1; color: var(--ink); }
+.week-stat .v .delta { font-size: 13px; font-weight: 700; margin-left: 6px; }
+.week-stat .v .up { color: var(--brand); }
+.week-stat .v .dn { color: #ba1a1a; }
+.week-stat .s { font-size: 12px; color: var(--ink-3); margin: 4px 0 0; }
+
+/* Activity feed */
+.activity { background: #fff; border-radius: 22px; padding: 6px 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.activity-row { display: flex; align-items: center; gap: 14px; padding: 14px 14px; border-top: 1px solid rgba(0,0,0,0.06); }
+.activity-row:first-child { border-top: 0; }
+.activity-glyph { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); color: var(--ink-2); display: grid; place-items: center; flex-shrink: 0; }
+.activity-glyph .ico { width: 18px; height: 18px; }
+.activity-glyph.brand { background: var(--accent-soft); color: var(--brand); }
+.activity-meta { flex: 1; min-width: 0; }
+.activity-meta h4 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.014em; }
+.activity-meta h4 strong { font-weight: 800; }
+.activity-time { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+</style>
 </head>
-<body class="bg-background text-on-background selection:bg-primary-fixed min-h-screen pb-32">
-<!-- Top Navigation Shell -->
-<header class="fixed top-0 w-full z-50 bg-emerald-950/80 dark:bg-emerald-950/80 backdrop-blur-[30px] flex justify-between items-center px-8 h-20 shadow-2xl shadow-emerald-950/10">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-full bg-emerald-800 overflow-hidden ring-2 ring-emerald-50/20">
-<img alt="Farmer Profile" data-alt="close-up portrait of a weathered, smiling farmer wearing a canvas hat in soft morning field light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAipziq9o2k0Ja5eUtPKyOO6y-yme5enXkLcrc2Av47XlQlpeervdWO2HiPFJw9CSmCj8vrVU0eD4e2BcunXcl6n8xSzqkn_gmLdnxf7XjJsAP0KvnUifpHi2k1Qb3bYMIpS0w7gGmogqG45pfLeMH90gROHIN99C-QbDhV1HK92vGfCUdDP9mSWHiiMOGUaZJeZFrFQpKkaPoBpclZvjg_6zF-HkwkoOeOsUcb_KPWVzL2VZ0v-an6HJ8RWCqXbH19D3F95yCYNdeX"/>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/farmer" class="active">My ranch</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a href="/list-animal" style="text-decoration:none;"><button>List an animal</button></a></div>
+  </nav>
 </div>
-<span class="font-['Inter'] tracking-tight font-bold text-xl font-black tracking-tighter text-emerald-50 uppercase">Protein Outfitters</span>
-</div>
-<nav class="hidden md:flex items-center gap-8">
-<a class="text-emerald-50 font-bold font-['Inter'] tracking-tight" href="#">Home</a>
-<a class="text-emerald-200/60 font-['Inter'] tracking-tight hover:text-emerald-100 transition-all duration-300" href="#">Listings</a>
-<a class="text-emerald-200/60 font-['Inter'] tracking-tight hover:text-emerald-100 transition-all duration-300" href="{{DATA:SCREEN:SCREEN_46}}">Sales</a>
-<a class="text-emerald-200/60 font-['Inter'] tracking-tight hover:text-emerald-100 transition-all duration-300" href="{{DATA:SCREEN:SCREEN_2}}">Profile</a>
-</nav>
-<button class="ios-press w-10 h-10 flex items-center justify-center rounded-full bg-emerald-900/40 text-emerald-50" onclick="location.href='{{DATA:SCREEN:SCREEN_27}}'">
-<span class="material-symbols-outlined">add</span>
-</button>
-</header>
-<main class="max-w-7xl mx-auto px-6 pt-32 space-y-20 lg:space-y-24">
-<!-- Welcome Header -->
-<section class="animate-spring-stagger">
-<h1 class="text-5xl lg:text-6xl font-black tracking-tighter text-primary leading-tight">Good morning, <br/>Northfield Pastures.</h1>
-<p class="text-xl text-on-surface-variant mt-4 font-medium tracking-tight">Your livestock is thriving. Market demand for grass-fed Angus is up 12% this week.</p>
-</section>
-<!-- Revenue Bento & Trends -->
-<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-<!-- Revenue Card (Col-span-2) -->
-<div class="lg:col-span-2 relative overflow-hidden bg-emerald-950 rounded-[2rem] p-10 flex flex-col justify-between min-h-[400px] shadow-ambient group">
-<!-- Abstract Gradient Orb -->
-<div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 blur-[100px] rounded-full group-hover:bg-emerald-400/20 transition-colors duration-1000"></div>
-<div class="relative z-10">
-<span class="text-emerald-200/60 text-sm font-bold tracking-widest uppercase">Portfolio Value</span>
-<div class="mt-4 flex items-baseline gap-2">
-<span class="text-emerald-50 text-6xl font-black tracking-tighter">$24,500</span>
-<span class="text-emerald-400 font-bold text-lg">+12.4%</span>
-</div>
-</div>
-<div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-<div>
-<p class="text-emerald-200/40 text-sm font-medium">Available Payout</p>
-<p class="text-emerald-50 text-3xl font-bold mt-1">$8,200</p>
-</div>
-<div class="flex flex-col sm:flex-row gap-4">
-<button class="ios-press primary-gradient silk-sheen text-emerald-50 px-8 py-4 rounded-full font-bold shadow-xl shadow-black/20 text-center">Withdraw Funds</button>
-<button class="ios-press bg-emerald-900/40 text-emerald-50 px-8 py-4 rounded-full font-bold hover:bg-emerald-900/60 transition-colors text-center" onclick="location.href='{{DATA:SCREEN:SCREEN_46}}'">View Ledger</button>
-</div>
-</div>
-<!-- Signature Silhouetted Image Bleed -->
-<div class="absolute -bottom-10 right-0 w-72 h-72 opacity-40 pointer-events-none">
-<img alt="Cattle silhouette" class="w-full h-full object-contain" data-alt="black silhouette of grazing cattle against a misty sunrise landscape with soft orange and green tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNTBy4GJPoru_PvVUSva61hXMCdGniPz2EoZHWMyyOQCKcxDu9haRwRiRsB0VH8B8QxUJLNo2okuETFa4WT6owY-MFM-vp2qnkcCPmldHiNHHh-R53ATIpXobp1kSuYTVT52YkRCqu_8hjxVCCpHMXK8gbFz_O3FL_tktldV636cD7PRDiBC0du_ARUMUfzIySWH_ni1tyHTeN9mr6JKEdUSJeSjfQrszBLWrIGbC27netQafC4jzWqKdk-Dl39MXLq2mBDs1XjpTJ"/>
-</div>
-</div>
-<!-- Sales Trends Card -->
-<div class="bg-surface-container-low rounded-[2rem] p-8 flex flex-col justify-between shadow-ambient">
-<div>
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-bold text-sm uppercase tracking-widest">Sales Trends</span>
-<span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-black">+12.4%</span>
-</div>
-<p class="text-3xl font-black tracking-tighter mt-4 text-primary">Monthly Velocity</p>
-</div>
-<div class="flex items-end justify-between h-32 gap-3 px-2">
-<div class="w-full bg-emerald-900/10 rounded-t-xl relative group">
-<div class="absolute bottom-0 w-full bg-emerald-900/20 rounded-t-xl h-[40%] transition-all duration-1000 ease-out group-hover:h-[45%]"></div>
-</div>
-<div class="w-full bg-emerald-900/10 rounded-t-xl relative group">
-<div class="absolute bottom-0 w-full bg-emerald-900/40 rounded-t-xl h-[65%] transition-all duration-1000 ease-out group-hover:h-[70%]"></div>
-</div>
-<div class="w-full bg-emerald-900/10 rounded-t-xl relative group">
-<div class="absolute bottom-0 w-full bg-emerald-900/20 rounded-t-xl h-[30%] transition-all duration-1000 ease-out group-hover:h-[35%]"></div>
-</div>
-<div class="w-full bg-emerald-900/10 rounded-t-xl relative group">
-<div class="absolute bottom-0 w-full bg-emerald-900/60 rounded-t-xl h-[85%] transition-all duration-1000 ease-out group-hover:h-[90%]"></div>
-</div>
-<div class="w-full bg-emerald-900/10 rounded-t-xl relative group">
-<div class="absolute bottom-0 w-full bg-primary rounded-t-xl h-[100%] transition-all duration-1000 ease-out group-hover:h-[95%]"></div>
-</div>
-</div>
-</div>
-</section>
-<!-- Quick Actions & Insights -->
-<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-<!-- 2x2 Grid -->
-<div class="lg:col-span-2 grid grid-cols-2 gap-4">
-<button class="ios-press bg-surface-container-lowest p-8 rounded-[2rem] flex flex-col items-start justify-between shadow-ambient hover:bg-surface-container transition-colors group" onclick="location.href='{{DATA:SCREEN:SCREEN_27}}'">
-<span class="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">add_circle</span>
-<span class="text-xl font-bold tracking-tight text-primary">List New Animal</span>
-</button>
-<button class="ios-press bg-surface-container-lowest p-8 rounded-[2rem] flex flex-col items-start justify-between shadow-ambient hover:bg-surface-container transition-colors group">
-<span class="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">calendar_today</span>
-<span class="text-xl font-bold tracking-tight text-primary">Book Processor</span>
-</button>
-<button class="ios-press bg-surface-container-lowest p-8 rounded-[2rem] flex flex-col items-start justify-between shadow-ambient hover:bg-surface-container transition-colors group">
-<span class="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">content_paste</span>
-<span class="text-xl font-bold tracking-tight text-primary">Log Harvest</span>
-</button>
-<button class="ios-press bg-surface-container-lowest p-8 rounded-[2rem] flex flex-col items-start justify-between shadow-ambient hover:bg-surface-container transition-colors group" onclick="location.href='{{DATA:SCREEN:SCREEN_63}}'">
-<span class="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">verified</span>
-<span class="text-xl font-bold tracking-tight text-primary">Certifications</span>
-</button>
-</div>
-<!-- Market Insights (Maroon Card) -->
-<div class="bg-tertiary-container text-tertiary-fixed rounded-[2rem] p-8 flex flex-col shadow-ambient relative overflow-hidden">
-<div class="absolute -top-10 -left-10 w-40 h-40 bg-on-tertiary-fixed-variant opacity-10 blur-3xl"></div>
-<div class="flex items-center gap-3 relative z-10">
-<span class="material-symbols-outlined text-on-tertiary-fixed">trending_up</span>
-<span class="font-bold uppercase tracking-widest text-xs">Market Insights</span>
-</div>
-<h3 class="text-3xl font-black mt-6 tracking-tighter leading-tight relative z-10 text-tertiary-fixed">Grass-fed demand peaking.</h3>
-<p class="mt-4 text-tertiary-fixed/70 text-lg leading-relaxed relative z-10">Regional buyers are seeking grass-finished cattle for Q3 delivery. Consider listing winter shares early for a 15% premium.</p>
-<a class="mt-auto flex items-center gap-2 font-bold text-on-tertiary-fixed-variant hover:gap-4 transition-all" href="#">
-                    Analyze Pricing <span class="material-symbols-outlined">arrow_forward</span>
-</a>
-</div>
-</section>
-<!-- Active Listings (Horizontal Scroll) -->
-<section class="space-y-8">
-<div class="flex justify-between items-end">
-<h2 class="text-4xl font-black tracking-tighter text-primary">Active Listings</h2>
-<a class="text-on-surface-variant font-bold hover:text-primary transition-colors" href="#">View All</a>
-</div>
-<div class="flex overflow-x-auto no-scrollbar gap-8 pb-8 -mx-6 px-6">
-<!-- Listing Card 1 -->
-<div class="min-w-[340px] md:min-w-[420px] bg-surface-container-low rounded-[2.5rem] p-4 shadow-ambient ios-press flex flex-col group cursor-pointer" onclick="location.href='{{DATA:SCREEN:SCREEN_78}}'">
-<div class="h-64 rounded-[2rem] overflow-hidden relative">
-<img alt="Angus Steer" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="majestic black angus steer standing in a lush green pasture with soft depth of field background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyrsxupAqG2Js5NLaoURSScd6meoHilShya2HaoFv4e_EA90nIt9Rh-dJDF4byY1RfZj4sMR_f9FSJ3UJ4qG_vBkp6SJZhg1_vk0iWXvIFH1qSvFQxtw7fIdMOqFjI2P1g-szaCGBMA3maFLXGCxnuW40hUFBKtOs0e_-UzjskK27ChzSAlBccSeibv-np-m7yZw7fWl7yVAb8eqqCpxshUe1tQdEMLh5Z8WoNq0JM1ur25DCQ5QWp5OVC7-2NTd2isThr18lDNAyl"/>
-<div class="absolute top-4 left-4 glass-panel bg-emerald-950/40 text-emerald-50 px-4 py-2 rounded-full text-xs font-bold tracking-tight flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Angus Steer #422
-                        </div>
-</div>
-<div class="p-6 space-y-4">
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-bold">75% Sold</span>
-<span class="text-primary font-black text-xl">Est. $4,125</span>
-</div>
-<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
-<div class="h-full bg-emerald-900 w-3/4 rounded-full"></div>
-</div>
-<div class="flex justify-between text-sm font-medium text-on-surface-variant">
-<span>12 days until slaughter</span>
-<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span> Northfield</span>
-</div>
-</div>
-</div>
-<!-- Listing Card 2 -->
-<div class="min-w-[340px] md:min-w-[420px] bg-surface-container-low rounded-[2.5rem] p-4 shadow-ambient ios-press flex flex-col group">
-<div class="h-64 rounded-[2rem] overflow-hidden relative">
-<img alt="Berkshire Pig" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="large berkshire pig in a clean straw-filled pen, soft natural lighting highlighting its black and white coat" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9txReaVGJK2UXF7INJ_j5FWjkxQsUxO5-P-0rV8OIo9_jUWqR00X_wTpCMS0q8sKBsdxIT6Ikw6POE5fmmQNqug60GT9plo9hvxiNyUwlya3GcA8JCTymKeLIMjjinhZTdvkceBDqvomHdqP6qq6T634sK4GtzXsCgwIyXA5gPxMBm9dOhLFwAf1C7ZuVtIbFkzsWT9WOelGeCxAyMspgrJVXCwn16qYSfhu7R7Nwb0GfshjCVi7qZCzlkcCjIljpHYbawW2lsbSa"/>
-<div class="absolute top-4 left-4 glass-panel bg-emerald-950/40 text-emerald-50 px-4 py-2 rounded-full text-xs font-bold tracking-tight flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Berkshire Pork #12
-                        </div>
-</div>
-<div class="p-6 space-y-4">
-<div class="flex justify-between items-center">
-<span class="text-on-surface-variant font-bold">50% Sold</span>
-<span class="text-primary font-black text-xl">Est. $1,850</span>
-</div>
-<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
-<div class="h-full bg-emerald-900 w-1/2 rounded-full"></div>
-</div>
-<div class="flex justify-between text-sm font-medium text-on-surface-variant">
-<span>28 days until slaughter</span>
-<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span> Riverside</span>
-</div>
-</div>
-</div>
-<!-- Listing Card 3 (Empty State Visual) -->
-<div class="min-w-[340px] md:min-w-[420px] bg-surface-container-lowest border-2 border-dashed border-outline-variant/30 rounded-[2.5rem] p-4 flex flex-col items-center justify-center text-on-surface-variant group hover:border-emerald-900/30 transition-colors cursor-pointer">
-<span class="material-symbols-outlined text-6xl opacity-20 group-hover:scale-110 transition-transform duration-500">add_circle</span>
-<span class="text-xl font-bold mt-4">Add Animal Share</span>
-</div>
-</div>
-</section>
-<!-- Recent Activity Feed -->
-<section class="max-w-4xl space-y-8">
-<h2 class="text-4xl font-black tracking-tighter text-primary">Recent Activity</h2>
-<div class="bg-surface-container-low rounded-[2.5rem] p-2 space-y-2">
-<!-- Activity Item 1 -->
-<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-[2rem] shadow-sm hover:shadow-md transition-shadow group">
-<div class="flex items-center gap-4">
-<div class="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-900 font-bold text-xl">AJ</div>
-<div>
-<p class="font-bold text-primary">Andrew Jenkins</p>
-<p class="text-sm text-on-surface-variant font-medium">Purchased 1/4 Share - Angus #422</p>
-</div>
-</div>
-<div class="text-right">
-<p class="font-black text-emerald-700">+$1,031</p>
-<p class="text-xs text-on-surface-variant font-bold uppercase tracking-widest">2h ago</p>
-</div>
-</div>
-<!-- Activity Item 2 -->
-<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-[2rem] shadow-sm hover:shadow-md transition-shadow">
-<div class="flex items-center gap-4">
-<div class="w-14 h-14 rounded-2xl bg-emerald-900 flex items-center justify-center text-emerald-50 font-bold text-xl">SM</div>
-<div>
-<p class="font-bold text-primary">Sarah Miller</p>
-<p class="text-sm text-on-surface-variant font-medium">Purchased 1/8 Share - Berkshire #12</p>
-</div>
-</div>
-<div class="text-right">
-<p class="font-black text-emerald-700">+$600</p>
-<p class="text-xs text-on-surface-variant font-bold uppercase tracking-widest">5h ago</p>
-</div>
-</div>
-<!-- Activity Item 3 -->
-<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-[2rem] shadow-sm hover:shadow-md transition-shadow">
-<div class="flex items-center gap-4">
-<div class="w-14 h-14 rounded-2xl bg-secondary-container flex items-center justify-center text-secondary font-bold text-xl">BP</div>
-<div>
-<p class="font-bold text-primary">Blue Pine Butchery</p>
-<p class="text-sm text-on-surface-variant font-medium">Slaughter Date Confirmed - Nov 12</p>
-</div>
-</div>
-<div class="text-right">
-<span class="material-symbols-outlined text-on-surface-variant">schedule</span>
-<p class="text-xs text-on-surface-variant font-bold uppercase tracking-widest mt-1">Yesterday</p>
-</div>
-</div>
-</div>
-</section>
-</main>
-<!-- Bottom Navigation Shell -->
-<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-emerald-950/80 backdrop-blur-[30px] rounded-t-[32px] flex justify-around items-center px-6 pb-8 pt-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
-<a class="flex flex-col items-center justify-center bg-emerald-800/50 text-emerald-50 rounded-2xl px-5 py-2 scale-110 font-['Inter'] text-[11px] font-medium tracking-wide" href="#">
-<span class="material-symbols-outlined" data-icon="home">home</span>
-            Home
+
+<section class="fm-shell">
+  <div class="fm-inner">
+
+    <!-- Hero -->
+    <div class="fm-hero">
+      <div class="fm-greeting">
+        <p class="eye">Tuesday · May 5</p>
+        <h1>Good morning, Mychal.</h1>
+        <p>You've got <strong>3 reservations</strong> waiting on cut sheets, <strong>2 reviews</strong> ready to leave, and <strong>#2641</strong> drops at Plant 04 in 23 days.</p>
+      </div>
+      <div class="fm-standing">
+        <div class="fm-standing-row">
+          <div class="fm-standing-avatar"></div>
+          <div class="fm-standing-meta">
+            <p class="role">Northfield Pastures · Bemidji, MN</p>
+            <p class="name">4.9★ · 128 reviews · 22 yrs</p>
+          </div>
+        </div>
+        <div class="fm-standing-stats">
+          <div class="fm-standing-stat"><div class="v">3</div><div class="lab">Active listings</div></div>
+          <div class="fm-standing-stat"><div class="v">847</div><div class="lab">Followers</div></div>
+          <div class="fm-standing-stat"><div class="v">$48k</div><div class="lab">YTD revenue</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="qa-grid">
+      <a href="/list-animal" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></span>
+        <h4>List an animal</h4>
+        <p>5-step wizard with auto-description.</p>
+      </a>
+      <a href="/processor-schedule" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
+        <h4>Schedule</h4>
+        <p>Drop-off windows + processor capacity.</p>
+      </a>
+      <a href="/processor-pricing" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></span>
+        <h4>Pricing</h4>
+        <p>Per-share rates + fees.</p>
+      </a>
+      <a href="/credentials" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></span>
+        <h4>Credentials</h4>
+        <p>Certifications + claims.</p>
+        <span class="qa-pip warn">2 expiring</span>
+      </a>
+      <a href="/reviews" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></span>
+        <h4>Reviews</h4>
+        <p>Mutual rating system.</p>
+        <span class="qa-pip">3 to leave</span>
+      </a>
+      <a href="/farm/northfield-pastures" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#house"/></svg></span>
+        <h4>Public profile</h4>
+        <p>What buyers see.</p>
+      </a>
+    </div>
+
+    <!-- Today -->
+    <section class="fm-section">
+      <div class="fm-section-head">
+        <h2>Today</h2>
+        <a class="more" href="#">View all 7 →</a>
+      </div>
+      <div class="today-grid">
+        <div class="today-card warn">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#alert"/></svg></div>
+          <div class="today-meta">
+            <h4>Buyer flag · Tyler W. reserved #2671</h4>
+            <p>3.2★ · 2 no-shows in 12mo · 1 dispute</p>
+          </div>
+          <a href="/reviews" class="today-cta">Review →</a>
+        </div>
+        <div class="today-card">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></div>
+          <div class="today-meta">
+            <h4>3 cut sheets pending</h4>
+            <p>#2641 (Sarah) · #2658 (Alex) · #2671 (Mark)</p>
+          </div>
+          <a href="/cut-sheet" class="today-cta">Review →</a>
+        </div>
+        <div class="today-card ok">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></div>
+          <div class="today-meta">
+            <h4>Drop-off in 23 days · #2641 → Plant 04</h4>
+            <p>May 28, 7:00 AM · QR ticket ready</p>
+          </div>
+          <a href="#" class="today-cta">Open ticket →</a>
+        </div>
+        <div class="today-card">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></div>
+          <div class="today-meta">
+            <h4>2 reviews waiting on yours</h4>
+            <p>Sarah R. + Plant 04 already submitted</p>
+          </div>
+          <a href="/reviews" class="today-cta">Write →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active listings -->
+    <section class="fm-section">
+      <div class="fm-section-head">
+        <h2>Active listings</h2>
+        <a class="more" href="/farm/northfield-pastures">See public view →</a>
+      </div>
+      <div class="listings-grid">
+        <button class="product" data-open-sheet data-animal="2641" data-name="#2641 · Black Angus steer" data-producer="Northfield Pastures · Bemidji, MN" data-photo="/angus.jpg" data-price-q="1395" data-price-h="2690" data-price-w="5180">
+          <div class="product-photo" style="background-image: url('/angus.jpg');"><span class="product-tag">Reserving · 2/4</span></div>
+          <div class="product-meta"><span class="product-eyebrow">Beef · Grass-fed</span><h3 class="product-name">#2641 — Black Angus steer</h3><p class="product-detail">1,180 lb · Harvest May 28</p><div class="product-foot"><span class="product-price">From <strong>$1,395</strong></span><span class="product-cta">Manage →</span></div></div>
+        </button>
+        <button class="product" data-open-sheet data-animal="2658" data-name="#2658 · Black Angus heifer" data-producer="Northfield Pastures · Bemidji, MN" data-photo="/angus.jpg" data-price-q="1340" data-price-h="2580" data-price-w="4960">
+          <div class="product-photo" style="background-image: url('/angus.jpg');"><span class="product-tag">Reserving · 1/4</span></div>
+          <div class="product-meta"><span class="product-eyebrow">Beef · Grass-fed</span><h3 class="product-name">#2658 — Black Angus heifer</h3><p class="product-detail">1,090 lb · Harvest June 18</p><div class="product-foot"><span class="product-price">From <strong>$1,340</strong></span><span class="product-cta">Manage →</span></div></div>
+        </button>
+        <button class="product" data-open-sheet data-animal="2671" data-name="#2671 · Black Angus steer" data-producer="Northfield Pastures · Bemidji, MN" data-photo="/angus.jpg" data-price-q="1420" data-price-h="2740" data-price-w="5280">
+          <div class="product-photo" style="background-image: url('/angus.jpg');"><span class="product-tag">Reserving · 0/4</span></div>
+          <div class="product-meta"><span class="product-eyebrow">Beef · Grass-fed</span><h3 class="product-name">#2671 — Black Angus steer</h3><p class="product-detail">1,210 lb · Harvest July 9</p><div class="product-foot"><span class="product-price">From <strong>$1,420</strong></span><span class="product-cta">Manage →</span></div></div>
+        </button>
+        <a href="/list-animal" class="fm-add-listing">
+          <svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg>
+          List a new animal
         </a>
-<a class="flex flex-col items-center justify-center text-emerald-300/50 px-5 py-2 font-['Inter'] text-[11px] font-medium tracking-wide hover:text-emerald-100 transition-colors" href="#">
-<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
-            Listings
-        </a>
-<a class="flex flex-col items-center justify-center text-emerald-300/50 px-5 py-2 font-['Inter'] text-[11px] font-medium tracking-wide hover:text-emerald-100 transition-colors" href="{{DATA:SCREEN:SCREEN_46}}">
-<span class="material-symbols-outlined" data-icon="payments">payments</span>
-            Sales
-        </a>
-<a class="flex flex-col items-center justify-center text-emerald-300/50 px-5 py-2 font-['Inter'] text-[11px] font-medium tracking-wide hover:text-emerald-100 transition-colors" href="{{DATA:SCREEN:SCREEN_2}}">
-<span class="material-symbols-outlined" data-icon="person">person</span>
-            Profile
-        </a>
-</nav>
-<!-- Contextual FAB (Only on Home/Dashboard) -->
-<button class="fixed bottom-24 right-6 md:bottom-10 md:right-10 w-16 h-16 rounded-2xl primary-gradient text-emerald-50 shadow-2xl shadow-black/40 flex items-center justify-center ios-press silk-sheen z-40 group" onclick="location.href='{{DATA:SCREEN:SCREEN_27}}'">
-<span class="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform duration-500">add</span>
-</button>
-</body></html>
+      </div>
+    </section>
+
+    <!-- This week -->
+    <section class="fm-section">
+      <div class="fm-section-head">
+        <h2>This week</h2>
+        <a class="more" href="#">Full report →</a>
+      </div>
+      <div class="week-stats">
+        <div class="week-stat">
+          <p class="lab">Revenue</p>
+          <p class="v">$8,420 <span class="delta up">+18%</span></p>
+          <p class="s">vs last week</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">New reservations</p>
+          <p class="v">5 <span class="delta up">+2</span></p>
+          <p class="s">2 quarters · 2 halves · 1 whole</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">Customer satisfaction</p>
+          <p class="v">4.9 <span class="delta up">+0.1</span></p>
+          <p class="s">12 new reviews</p>
+        </div>
+        <div class="week-stat">
+          <p class="lab">Profile views</p>
+          <p class="v">312 <span class="delta up">+24</span></p>
+          <p class="s">847 followers · +14 this week</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity feed -->
+    <section class="fm-section">
+      <div class="fm-section-head">
+        <h2>Activity</h2>
+        <a class="more" href="#">View all →</a>
+      </div>
+      <div class="activity">
+        <div class="activity-row">
+          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check"/></svg></div>
+          <div class="activity-meta"><h4>Sarah R. <strong>reserved a quarter</strong> of #2641</h4></div>
+          <span class="activity-time">14m ago</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></div>
+          <div class="activity-meta"><h4>Plant 04 <strong>left a 5-star review</strong></h4></div>
+          <span class="activity-time">2h ago</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
+          <div class="activity-meta"><h4>Stripe payout · <strong>$1,395.00</strong> deposited</h4></div>
+          <span class="activity-time">Yesterday</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#users"/></svg></div>
+          <div class="activity-meta"><h4>Alex P. <strong>followed your ranch</strong></h4></div>
+          <span class="activity-time">Yesterday</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></div>
+          <div class="activity-meta"><h4>Auto-description generated for <strong>#2671</strong></h4></div>
+          <span class="activity-time">2 days ago</span>
+        </div>
+        <div class="activity-row">
+          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></div>
+          <div class="activity-meta"><h4>USDA Process Verified <strong>renewal due in 60 days</strong></h4></div>
+          <span class="activity-time">3 days ago</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+</body>
+</html>
