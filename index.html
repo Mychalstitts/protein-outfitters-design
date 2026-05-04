@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Protein Outfitters — Farm-direct meat, cut to order</title>
 <meta name="description" content="Reserve a fraction of an animal from a local farm. Customize the cut. Pickup or shipped cold. Three taps from listing to confirmed." />
 
@@ -18,7 +19,7 @@ body { background: var(--bg); }
 /* Top nav */
 .po-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); padding: 14px 0; }
 .po-logo { display: flex; align-items: center; gap: var(--s-2); font-weight: 900; font-size: 16px; letter-spacing: var(--tracking-snug); text-transform: uppercase; }
-.po-logo svg { width: 26px; height: 26px; }
+.po-logo svg, .po-logo img { width: 26px; height: 26px; display: block; }
 .po-nav-links { display: flex; gap: var(--s-6); align-items: center; }
 .po-nav-links a { font-size: var(--text-sm); font-weight: 600; color: var(--ink-2); transition: color var(--dur-fast); }
 .po-nav-links a:hover { color: var(--ink); }
@@ -251,6 +252,15 @@ body { background: var(--bg); }
 .fade-in { animation: fadeInUp var(--dur-slow) var(--ease-out); }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 </style>
+<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 </head>
 <body>
 
@@ -259,11 +269,7 @@ body { background: var(--bg); }
   <div class="container">
     <nav class="po-nav">
       <a href="#" class="po-logo">
-        <svg viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="#061b0e"/>
-          <path d="M9 10c0-1 1-2 2-2h10c1 0 2 1 2 2v12c0 1-1 2-2 2H11c-1 0-2-1-2-2V10z" stroke="#cfe9d3" stroke-width="1.5" fill="none"/>
-          <path d="M12 14h8M12 17h8M12 20h5" stroke="#cfe9d3" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">
         Protein Outfitters
       </a>
       <div class="po-nav-links">
