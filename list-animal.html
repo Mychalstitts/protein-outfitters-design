@@ -510,17 +510,16 @@
   let n = 1;
 
   function setStep(i, dir) {
-    const cur = document.querySelector('.wiz-step.active');
     const tgt = document.querySelector(`.wiz-step[data-step="${i}"]`);
-    if (!tgt || tgt === cur) return;
-    if (cur) {
-      cur.classList.remove('active');
-      cur.classList.add(dir === 'back' ? 'enter-from-left' : 'exit-left');
-      setTimeout(() => cur.classList.remove('enter-from-left', 'exit-left'), 600);
-    }
+    if (!tgt) return;
+    // Clear all step state synchronously
+    document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('active', 'enter-from-left', 'exit-left'));
+    // Set initial state for slide direction (back = enter from left, forward = enter from right via default CSS)
     if (dir === 'back') tgt.classList.add('enter-from-left');
-    else tgt.classList.remove('enter-from-left');
-    requestAnimationFrame(() => tgt.classList.add('active'));
+    // Force reflow so the transform applies before .active triggers transition back
+    void tgt.offsetWidth;
+    tgt.classList.remove('enter-from-left');
+    tgt.classList.add('active');
     n = i;
     dots.forEach((d, idx) => { d.classList.toggle('active', idx === n - 1); d.classList.toggle('done', idx < n - 1); });
     back.disabled = n === 1 || n === 6;
