@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Checkout · Protein Outfitters</title>
+<meta name="description" content="Reserve your share of a verified animal. Free cancellation up to 21 days before harvest." />
+<meta property="og:title" content="Checkout · Protein Outfitters" />
+<meta property="og:description" content="Reserve your share of a verified animal." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/checkout" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Checkout · Protein Outfitters" />
+<meta name="twitter:description" content="Reserve your share of a verified animal." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.checkout-shell { padding: clamp(64px, 8vw, 120px) var(--shell-pad) clamp(64px, 8vw, 120px); }
+.checkout-inner { max-width: 1100px; margin: 0 auto; display: grid; gap: clamp(28px, 3vw, 48px); grid-template-columns: 1fr; }
+@media (min-width: 900px) { .checkout-inner { grid-template-columns: 1.2fr 1fr; align-items: start; } }
+.checkout-header { grid-column: 1 / -1; }
+.checkout-card { background: #fff; border-radius: 28px; padding: clamp(28px, 3vw, 40px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.checkout-row { display: flex; justify-content: space-between; padding: 12px 0; font-size: 15px; color: var(--ink-2); border-bottom: 1px solid rgba(0,0,0,0.04); }
+.checkout-row:last-child { border-bottom: 0; }
+.checkout-row strong { color: var(--ink); font-weight: 700; }
+.checkout-total { padding: 20px 0 0; margin-top: 8px; border-top: 2px solid rgba(0,0,0,0.06); display: flex; justify-content: space-between; font-size: 20px; font-weight: 900; letter-spacing: -0.02em; color: var(--ink); }
+.product-mini { display: flex; gap: 16px; padding: 16px; background: var(--surface); border-radius: 18px; margin-bottom: 24px; }
+.product-mini-img { width: 80px; height: 80px; border-radius: 14px; background: url('/angus.jpg') center/cover; flex-shrink: 0; }
+.product-mini-meta h4 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: -0.018em; }
+.product-mini-meta p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.pickup-detail { padding: 18px 22px; background: var(--surface); border-radius: 16px; }
+.pickup-detail .when { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 4px; }
+.pickup-detail .what { font-size: 17px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
+.pickup-detail .where { font-size: 14px; color: var(--ink-2); margin: 4px 0 0; }
+.pay-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+.btn-pay { width: 100%; padding: 18px 22px; border-radius: 16px; border: 0; cursor: pointer; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform .2s, background .2s; }
+.btn-pay:hover { transform: translateY(-1px); }
+.btn-pay--apple { background: #000; color: #fff; }
+.btn-pay--card { background: var(--brand); color: #fbf9f5; }
+.btn-pay--card:hover { background: #0a2614; }
+.fine { font-size: 12px; color: var(--ink-3); text-align: center; line-height: 1.55; margin: 14px 0 0; }
+.checkout-trust { padding: 24px 0 0; display: flex; gap: 24px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.checkout-trust span { display: flex; align-items: center; gap: 6px; }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/#how">How it works</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<section class="checkout-shell">
+  <div class="checkout-inner">
+    <div class="checkout-header">
+      <p class="po-eyebrow">Reserve · Step 3 of 3</p>
+      <h1 class="po-h2">Almost there.</h1>
+      <p class="po-lead">Free cancellation up to 21 days before harvest. We'll email your cut sheet builder within 24 hours of reserving.</p>
+    </div>
+
+    <div class="checkout-card">
+      <h3 style="margin: 0 0 18px; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Your reservation</h3>
+
+      <div class="product-mini">
+        <div class="product-mini-img"></div>
+        <div class="product-mini-meta">
+          <h4>#2641 · Black Angus steer</h4>
+          <p>Northfield Pastures · Bemidji, MN<br>Quarter share · ~110 lb of cuts</p>
+        </div>
+      </div>
+
+      <div class="checkout-row"><span>Quarter share</span><strong>$1,395.00</strong></div>
+      <div class="checkout-row"><span>Processing fee</span><strong>$225.00</strong></div>
+      <div class="checkout-row"><span>Insurance pool</span><strong>$18.00</strong></div>
+      <div class="checkout-row"><span>Sales tax (MN)</span><strong>$0.00</strong></div>
+      <div class="checkout-total"><span>Reserve today</span><span>$1,638.00</span></div>
+
+      <div class="pay-stack">
+        <button class="btn-pay btn-pay--apple" onclick="window.location.href='/confirmed'"> Pay</button>
+        <button class="btn-pay btn-pay--card" onclick="window.location.href='/confirmed'">Reserve with card →</button>
+      </div>
+      <p class="fine">By reserving you agree to our terms and the cancellation policy. Charged on harvest day, not today.</p>
+    </div>
+
+    <div>
+      <div class="checkout-card" style="margin-bottom: 20px;">
+        <h3 style="margin: 0 0 14px; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Pickup</h3>
+        <div class="pickup-detail">
+          <p class="when">When</p>
+          <p class="what">Late June 2026</p>
+          <p class="where">Drop-off May 28 · Pickup window opens ~14 days after</p>
+        </div>
+        <div style="height: 12px;"></div>
+        <div class="pickup-detail">
+          <p class="when">Where</p>
+          <p class="what">Plant 04 · Bemidji, MN</p>
+          <p class="where">7972 Farley Dr. NE · 12 mi from your saved address</p>
+        </div>
+      </div>
+
+      <div class="checkout-card">
+        <h3 style="margin: 0 0 14px; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Built in</h3>
+        <div class="checkout-trust">
+          <span>✓ USDA inspected</span>
+          <span>✓ 21-day cancellation</span>
+          <span>✓ $2M insurance pool</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Protein Outfitters — Processor Operations</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+
+<style>
+/* Three-pane responsive shell:
+   - Desktop ≥1100px: left rail (lists) + center column (queue) + right inspector pane
+   - Tablet 700–1099px: left rail collapses to top tabs, queue fills width, inspector overlays
+   - Phone <700px: phone-frame style stacked layout
+*/
+
+body { background: var(--surface-2); }
+
+.proc-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .proc-shell { grid-template-columns: 240px 1fr; }
+}
+@media (min-width: 1100px) {
+  .proc-shell { grid-template-columns: 240px 1fr 380px; }
+}
+
+/* Sidebar */
+.proc-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--hairline);
+  padding: var(--s-5);
+  display: none;
+}
+@media (min-width: 768px) { .proc-sidebar { display: block; } }
+.proc-sidebar h1 { font-size: var(--text-md); margin: 0 0 var(--s-1); }
+.proc-sidebar .sub { font-size: var(--text-xs); color: var(--ink-3); margin-bottom: var(--s-6); }
+.proc-sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+.proc-sidebar nav button {
+  display: flex; align-items: center; gap: var(--s-3); padding: 10px 12px;
+  border-radius: var(--r-2); font-size: var(--text-sm); font-weight: 600;
+  color: var(--ink-2); text-align: left; transition: background var(--dur-base);
+}
+.proc-sidebar nav button:hover { background: var(--surface-2); color: var(--ink); }
+.proc-sidebar nav button.active { background: var(--brand); color: var(--ink-inverse); }
+.proc-sidebar nav button .count {
+  margin-left: auto; font-size: 11px; padding: 2px 8px;
+  background: var(--surface-2); border-radius: var(--r-pill); font-weight: 700;
+}
+.proc-sidebar nav button.active .count { background: rgba(255,255,255,0.2); color: var(--ink-inverse); }
+
+/* Main column */
+.proc-main { padding: var(--s-5); overflow-x: hidden; }
+@media (min-width: 768px) { .proc-main { padding: var(--s-8); } }
+.proc-header { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-6); flex-wrap: wrap; }
+.proc-header h2 { margin: 0; }
+.proc-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface);
+  border-radius: var(--r-3); box-shadow: var(--sh-0); }
+.proc-tabs button { padding: 8px 14px; border-radius: var(--r-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-2); }
+.proc-tabs button.active { background: var(--brand); color: var(--ink-inverse); }
+
+/* Mobile-only role switcher (top of phone view) */
+.role-switcher { display: flex; gap: 6px; padding: var(--s-3); background: var(--bg); position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--hairline); }
+.role-switcher button { flex: 1; padding: 10px; background: var(--surface); border-radius: var(--r-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: var(--tracking-wide); }
+.role-switcher button.active { background: var(--brand); color: var(--ink-inverse); }
+@media (min-width: 768px) { .role-switcher { display: none; } }
+
+/* Booking row */
+.booking {
+  background: var(--surface);
+  padding: var(--s-4);
+  border-radius: var(--r-3);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s-3);
+  align-items: center;
+  cursor: pointer;
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  margin-bottom: 8px;
+}
+.booking:hover { transform: translateY(-1px); box-shadow: var(--sh-2); }
+.booking.is-selected { box-shadow: var(--sh-2), inset 0 0 0 2px var(--brand); }
+.state-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.state-dot.scheduled { background: transparent; border: 2px solid var(--ink-3); }
+.state-dot.active { background: var(--accent); box-shadow: 0 0 0 4px rgba(47,125,73,0.18); }
+.state-dot.checked { background: var(--accent); position: relative; }
+.state-dot.checked::after { content: '✓'; color: white; font-size: 8px; font-weight: 900;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); line-height: 1; }
+.state-dot.overdue { background: var(--warn); }
+.booking-title { font-size: var(--text-base); font-weight: 700; letter-spacing: var(--tracking-snug); }
+.booking-sub { font-size: var(--text-xs); color: var(--ink-2); margin-top: 2px; }
+.booking-meta { font-size: 10px; color: var(--ink-3); margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Cooler list */
+.cooler-row {
+  background: var(--surface);
+  padding: var(--s-3) var(--s-4);
+  display: flex; align-items: center; gap: var(--s-3);
+  border-radius: var(--r-2);
+  margin-bottom: 6px;
+}
+.cooler-icon {
+  width: 36px; height: 36px; border-radius: var(--r-2);
+  background: var(--brand-grad); color: var(--ink-inverse);
+  display: grid; place-items: center;
+  font-size: var(--text-sm); font-weight: 800; flex-shrink: 0;
+}
+.cooler-row .label { flex: 1; }
+.cooler-row .label-title { font-size: var(--text-sm); font-weight: 700; }
+.cooler-row .label-sub { font-size: var(--text-xs); color: var(--ink-2); margin-top: 2px; }
+.cooler-row progress { width: 60px; height: 6px; -webkit-appearance: none; appearance: none; }
+.cooler-row progress::-webkit-progress-bar { background: var(--surface-2); border-radius: 3px; }
+.cooler-row progress::-webkit-progress-value { background: var(--accent); border-radius: 3px; }
+
+/* Inspector */
+.proc-inspector {
+  display: none;
+  background: var(--surface);
+  border-left: 1px solid var(--hairline);
+  padding: var(--s-6);
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+@media (min-width: 1100px) { .proc-inspector { display: block; } }
+.inspector-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--ink-3); padding: var(--s-12); }
+
+/* QR Scanner overlay */
+.scanner-overlay { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center;
+  background: rgba(12,20,16,0.92); backdrop-filter: blur(20px); }
+.scanner-overlay.is-open { display: flex; }
+.scanner {
+  background: linear-gradient(180deg, #0a0d0b, #050605);
+  width: 100%; max-width: 460px; height: min(640px, 100vh);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: white; padding: var(--s-6); position: relative;
+  border-radius: 0;
+}
+@media (min-width: 768px) { .scanner { border-radius: var(--r-6); height: 640px; } }
+.scanner-frame { width: 240px; height: 240px; position: relative; margin: var(--s-8) 0; }
+.scanner-frame::before, .scanner-frame::after, .scanner-frame > .corner-tl, .scanner-frame > .corner-tr {
+  content: ''; position: absolute; width: 28px; height: 28px; border: 3px solid var(--accent);
+}
+.scanner-frame::before { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+.scanner-frame::after { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+.scanner-frame .corner-tl { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+.scanner-frame .corner-tr { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+.scanner-line { position: absolute; left: 5%; right: 5%; height: 2px; background: var(--accent);
+  box-shadow: 0 0 12px var(--accent); animation: scan 2s ease-in-out infinite; }
+@keyframes scan { 0%,100% { top: 8%; } 50% { top: 92%; } }
+.scanner-success { background: var(--accent); border-radius: var(--r-6); padding: var(--s-8);
+  text-align: center; color: white; max-width: 460px; width: 100%; animation: pop var(--dur-slow) var(--ease-spring); }
+@keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.success-icon { width: 80px; height: 80px; border-radius: 50%; background: white; color: var(--accent);
+  display: grid; place-items: center; font-size: 40px; font-weight: 900; margin: 0 auto var(--s-5); }
+
+/* Farmer views */
+.farmer-page { max-width: 460px; margin: 0 auto; padding: var(--s-5); display: none; }
+@media (min-width: 768px) { .farmer-page { padding: var(--s-8); max-width: 540px; } }
+.farmer-page.is-active { display: block; }
+
+.qr-display { background: white; padding: var(--s-6); text-align: center; border-radius: var(--r-5); box-shadow: var(--sh-3); }
+.qr-code { width: 220px; height: 220px; margin: var(--s-3) auto; }
+.qr-code svg { width: 100%; height: 100%; display: block; }
+.six-digit { font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: 800;
+  letter-spacing: 0.3em; padding: var(--s-3) 0; background: var(--surface-2); border-radius: var(--r-3); margin-top: var(--s-3); }
+
+.timeline { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-4); }
+.timeline li { display: grid; grid-template-columns: 28px 1fr; gap: var(--s-3); position: relative; padding-bottom: var(--s-3); }
+.timeline li:not(:last-child)::before { content: ''; position: absolute; left: 13px; top: 22px; bottom: 0; width: 2px; background: var(--surface-2); }
+.tl-marker { width: 14px; height: 14px; border-radius: 50%; margin: 4px auto 0; background: var(--surface-2); border: 2px solid var(--ink-3); }
+.timeline li.is-active .tl-marker { background: var(--accent); border-color: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
+.timeline li.is-done .tl-marker { background: var(--accent); border-color: var(--accent); }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(47,125,73,0.4); } 50% { box-shadow: 0 0 0 8px rgba(47,125,73,0); } }
+
+/* Booking flow */
+.book-card { padding: var(--s-5); }
+.book-line { display: flex; justify-content: space-between; padding: var(--s-3) 0; border-bottom: 1px solid var(--hairline); font-size: var(--text-base); }
+.book-line:last-child { border-bottom: 0; }
+.book-line.total { font-weight: 800; font-size: var(--text-lg); }
+.book-line .sub { font-size: var(--text-xs); color: var(--ink-3); margin-top: 2px; }
+.book-rule { background: var(--surface-2); padding: var(--s-3) var(--s-4); border-radius: var(--r-2); margin-top: var(--s-3); }
+.book-rule strong { display: block; font-size: var(--text-xs); margin-bottom: var(--s-2); }
+.book-rule .rline { display: flex; justify-content: space-between; font-size: var(--text-xs); padding: 4px 0; }
+
+.lunch-block { padding: 8px var(--s-4); background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 6px, var(--surface) 6px, var(--surface) 12px); text-align: center; font-size: 10px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); border-radius: var(--r-2); margin: 6px 0; }
+</style>
+<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+</head>
+<body>
+
+<!-- Phone-only role switcher -->
+<div class="role-switcher">
+  <button class="active" data-role="processor" onclick="switchRole('processor')">Processor</button>
+  <button data-role="farmer-qr" onclick="switchRole('farmer-qr')">Farmer · QR</button>
+  <button data-role="farmer-book" onclick="switchRole('farmer-book')">Farmer · Book</button>
+</div>
+
+<!-- ============ PROCESSOR VIEW ============ -->
+<div class="proc-shell" id="view-processor">
+
+  <!-- Sidebar -->
+  <aside class="proc-sidebar">
+    <h1>Hilltop Custom Meats</h1>
+    <p class="sub">Processor dashboard</p>
+    <nav>
+      <button class="active">📋 Today's queue <span class="count">3</span></button>
+      <button>📅 Week</button>
+      <button>📊 Month</button>
+      <button>📥 Inbox <span class="count">5</span></button>
+      <button>❄️ Hanging cooler <span class="count">3</span></button>
+      <button>📦 Ready for pickup <span class="count">2</span></button>
+      <button>💸 Earnings</button>
+      <button>⚙️ Config</button>
+    </nav>
+  </aside>
+
+  <!-- Main column -->
+  <main class="proc-main">
+    <header class="proc-header">
+      <div>
+        <span class="eyebrow">Today</span>
+        <h2 class="display-md mt-2">Friday, June 21</h2>
+      </div>
+      <div class="proc-tabs">
+        <button class="active">Today</button>
+        <button onclick="showToast('Week view: Outlook-style 7-day grid')">Week</button>
+        <button onclick="showToast('Month view: capacity heatmap')">Month</button>
+        <button onclick="showToast('Inbox: messages threaded per share.id')">Inbox</button>
+      </div>
+    </header>
+
+    <!-- Bookings list -->
+    <section class="mb-8">
+      <span class="eyebrow">Today's bookings · 3 scheduled</span>
+      <div class="mt-3" id="bookings">
+        <div class="booking is-selected" data-id="402" onclick="selectBooking(this,'402')">
+          <span class="state-dot active"></span>
+          <div>
+            <div class="booking-title">9:00 AM · Angus Steer #402</div>
+            <div class="booking-sub">Sterling Trust Farms · ETA confirmed</div>
+            <div class="booking-meta">
+              <span class="pill pill--accent">½ + ¼ + ¼</span>
+              <span class="pill">Family Pack</span>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--sm" onclick="event.stopPropagation();openScanner('402','Angus Steer #402','Sterling Trust Farms')">QR scan ▸</button>
+        </div>
+
+        <div class="lunch-block">12:00–1:00 · Break</div>
+
+        <div class="booking" data-id="339" onclick="selectBooking(this,'339')">
+          <span class="state-dot scheduled"></span>
+          <div>
+            <div class="booking-title">1:30 PM · Hereford #339</div>
+            <div class="booking-sub">Rolling Hills Ranch · awaiting ETA</div>
+            <div class="booking-meta">
+              <span class="pill pill--accent">Whole · 1 buyer</span>
+              <span class="pill pill--warn">Cut sheet pending</span>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--sm" onclick="event.stopPropagation();openScanner('339','Hereford #339','Rolling Hills Ranch')">QR scan ▸</button>
+        </div>
+
+        <div class="booking" data-id="102" onclick="selectBooking(this,'102')">
+          <span class="state-dot scheduled"></span>
+          <div>
+            <div class="booking-title">3:00 PM · Wagyu Cross #102</div>
+            <div class="booking-sub">Agri-Credit Union · departed 2:15</div>
+            <div class="booking-meta">
+              <span class="pill pill--accent">¼ + ¼ + ½</span>
+              <span class="pill">Premium Steaks</span>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--sm" onclick="event.stopPropagation();openScanner('102','Wagyu Cross #102','Agri-Credit Union')">QR scan ▸</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hanging cooler -->
+    <section class="mb-8">
+      <span class="eyebrow">Hanging cooler · 3 active</span>
+      <div class="mt-3">
+        <div class="cooler-row">
+          <div class="cooler-icon">A</div>
+          <div class="label">
+            <div class="label-title">Angus Steer #402 · day 0 dry-age</div>
+            <div class="label-sub">14-day target · check Jul 5</div>
+          </div>
+          <progress value="0" max="14"></progress>
+          <button class="btn btn--secondary btn--sm">Log wt</button>
+        </div>
+        <div class="cooler-row">
+          <div class="cooler-icon" style="background: linear-gradient(135deg,#7d6b5a,#a89485);">H</div>
+          <div class="label">
+            <div class="label-title">Hog #88 · day 7 — ready for cut</div>
+            <div class="label-sub">Awaiting cut sheet on 1 buyer</div>
+          </div>
+          <progress value="7" max="7"></progress>
+          <button class="btn btn--primary btn--sm">Start fab</button>
+        </div>
+        <div class="cooler-row">
+          <div class="cooler-icon" style="background: linear-gradient(135deg,#9d7d6b,#bea08b);">L</div>
+          <div class="label">
+            <div class="label-title">Lamb #L20 · day 5 of 7</div>
+            <div class="label-sub">Auto-advances Tuesday</div>
+          </div>
+          <progress value="5" max="7"></progress>
+          <button class="btn btn--ghost btn--sm">In progress</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ready for pickup -->
+    <section>
+      <span class="eyebrow">Ready for pickup · 2</span>
+      <div class="mt-3">
+        <div class="cooler-row">
+          <div class="cooler-icon" style="background: linear-gradient(135deg,#5a7268,#8aa395);">H</div>
+          <div class="label">
+            <div class="label-title">Hog #87 · Sarah J.</div>
+            <div class="label-sub">Pickup window ends Friday · stored 2 days</div>
+          </div>
+          <button class="btn btn--secondary btn--sm" onclick="showToast('Notification sent to Sarah')">Notify</button>
+        </div>
+        <div class="cooler-row">
+          <div class="cooler-icon" style="background: linear-gradient(135deg,#7d4c4c,#a86b6b);">B</div>
+          <div class="label">
+            <div class="label-title">Steer #401 · Mark R.</div>
+            <div class="label-sub">Pickup window ends today · storage fee accrues tomorrow</div>
+          </div>
+          <button class="btn btn--danger btn--sm">Call</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Inspector (desktop only) -->
+  <aside class="proc-inspector" id="inspector">
+    <div class="row row--between mb-4">
+      <span class="eyebrow">Booking detail</span>
+      <span class="pill pill--accent">Active</span>
+    </div>
+    <h3 class="h2 mt-2" id="ins-title">Angus Steer #402</h3>
+    <p class="body-sm" id="ins-sub">Sterling Trust Farms · Bemidji, MN</p>
+
+    <div class="card mt-6" style="padding: var(--s-4);">
+      <span class="eyebrow">Buyers</span>
+      <div class="mt-3" style="display: grid; gap: var(--s-2);">
+        <div class="row gap-3"><span class="pill pill--accent">½</span><span style="font-size: var(--text-sm);">Mark R. · 282 lbs</span></div>
+        <div class="row gap-3"><span class="pill pill--accent">¼</span><span style="font-size: var(--text-sm);">Sarah J. · 140 lbs</span></div>
+        <div class="row gap-3"><span class="pill pill--accent">¼</span><span style="font-size: var(--text-sm);">Diego M. · 140 lbs</span></div>
+      </div>
+    </div>
+
+    <div class="card mt-4" style="padding: var(--s-4);">
+      <span class="eyebrow">Cut sheet · Family Pack</span>
+      <p class="body-sm mt-2">8 ribeye 1", 8 NY strip 1.25", 6 filet, 2 chuck roast, 4 chuck steak, 30 ground 80/20, 6 stew, brisket whole, short ribs.</p>
+    </div>
+
+    <div class="card mt-4" style="padding: var(--s-4);">
+      <span class="eyebrow">Earnings (estimated)</span>
+      <div class="row row--between mt-3"><span class="label">Kill fee</span><strong>$95</strong></div>
+      <div class="row row--between"><span class="label">Processing (750 lbs × $0.90)</span><strong>$675</strong></div>
+      <div class="row row--between" style="padding-top: var(--s-2); border-top: 1px solid var(--hairline);"><strong>Total</strong><strong style="font-size: var(--text-lg);">$770</strong></div>
+    </div>
+
+    <button class="btn btn--primary btn--block btn--lg mt-6" onclick="openScanner('402','Angus Steer #402','Sterling Trust Farms')">QR scan check-in</button>
+  </aside>
+</div>
+
+<!-- ============ FARMER QR VIEW ============ -->
+<div class="farmer-page" id="view-farmer-qr">
+  <div class="row row--between mb-6">
+    <button class="btn btn--ghost btn--sm">← Back</button>
+    <span class="eyebrow">Drop-off ticket</span>
+    <span></span>
+  </div>
+
+  <div class="qr-display">
+    <span class="eyebrow">Drop-off ticket</span>
+    <h3 class="h1 mt-2">Angus Steer #402</h3>
+    <p class="body-sm">Hilltop Custom Meats · Thu Jun 21 · 9:00 AM</p>
+    <div class="qr-code mt-4">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="white"/>
+        <g fill="#0c1410">
+          <rect x="0" y="0" width="50" height="50"/><rect x="10" y="10" width="30" height="30" fill="white"/><rect x="20" y="20" width="10" height="10"/>
+          <rect x="150" y="0" width="50" height="50"/><rect x="160" y="10" width="30" height="30" fill="white"/><rect x="170" y="20" width="10" height="10"/>
+          <rect x="0" y="150" width="50" height="50"/><rect x="10" y="160" width="30" height="30" fill="white"/><rect x="20" y="170" width="10" height="10"/>
+          <rect x="60" y="0" width="10" height="10"/><rect x="80" y="0" width="10" height="10"/><rect x="100" y="10" width="10" height="10"/><rect x="130" y="0" width="10" height="10"/>
+          <rect x="60" y="20" width="10" height="10"/><rect x="120" y="30" width="10" height="10"/><rect x="90" y="20" width="10" height="10"/><rect x="80" y="40" width="10" height="10"/>
+          <rect x="0" y="60" width="10" height="10"/><rect x="20" y="60" width="10" height="10"/><rect x="40" y="60" width="10" height="10"/><rect x="70" y="60" width="10" height="10"/><rect x="100" y="60" width="10" height="10"/><rect x="130" y="60" width="10" height="10"/><rect x="160" y="60" width="10" height="10"/><rect x="180" y="60" width="10" height="10"/>
+          <rect x="10" y="70" width="10" height="10"/><rect x="50" y="70" width="10" height="10"/><rect x="90" y="70" width="10" height="10"/><rect x="120" y="70" width="10" height="10"/><rect x="150" y="70" width="10" height="10"/>
+          <rect x="0" y="80" width="10" height="10"/><rect x="30" y="80" width="10" height="10"/><rect x="60" y="80" width="10" height="10"/><rect x="100" y="80" width="10" height="10"/><rect x="140" y="80" width="10" height="10"/><rect x="180" y="80" width="10" height="10"/>
+          <rect x="20" y="90" width="10" height="10"/><rect x="50" y="90" width="10" height="10"/><rect x="80" y="90" width="10" height="10"/><rect x="110" y="90" width="10" height="10"/><rect x="160" y="90" width="10" height="10"/>
+          <rect x="0" y="100" width="10" height="10"/><rect x="40" y="100" width="10" height="10"/><rect x="70" y="100" width="10" height="10"/><rect x="100" y="100" width="10" height="10"/><rect x="130" y="100" width="10" height="10"/><rect x="170" y="100" width="10" height="10"/>
+          <rect x="20" y="110" width="10" height="10"/><rect x="60" y="110" width="10" height="10"/><rect x="90" y="110" width="10" height="10"/><rect x="140" y="110" width="10" height="10"/><rect x="170" y="110" width="10" height="10"/>
+          <rect x="0" y="120" width="10" height="10"/><rect x="30" y="120" width="10" height="10"/><rect x="80" y="120" width="10" height="10"/><rect x="110" y="120" width="10" height="10"/><rect x="150" y="120" width="10" height="10"/>
+          <rect x="50" y="130" width="10" height="10"/><rect x="100" y="130" width="10" height="10"/><rect x="130" y="130" width="10" height="10"/><rect x="170" y="130" width="10" height="10"/>
+          <rect x="60" y="150" width="10" height="10"/><rect x="80" y="160" width="10" height="10"/><rect x="120" y="150" width="10" height="10"/><rect x="100" y="170" width="10" height="10"/><rect x="140" y="180" width="10" height="10"/>
+          <rect x="60" y="170" width="10" height="10"/><rect x="90" y="180" width="10" height="10"/><rect x="130" y="170" width="10" height="10"/><rect x="160" y="160" width="10" height="10"/><rect x="180" y="180" width="10" height="10"/>
+        </g>
+      </svg>
+    </div>
+    <p class="body-sm font-bold mt-3">Show this at check-in</p>
+    <p class="body-sm text-faint">Valid Jun 20 6 AM through Jun 22 6 AM</p>
+    <div class="six-digit">4 7 2 9 1 3</div>
+    <small class="text-faint">Backup code if camera scan fails</small>
+  </div>
+
+  <section class="mt-8 card" style="padding: var(--s-5);">
+    <span class="eyebrow">Drop-off checklist</span>
+    <div class="stack gap-2 mt-3">
+      <label style="display: flex; align-items: center; gap: var(--s-3); font-size: var(--text-sm);"><input type="checkbox" checked /> Animal weight check vs estimate</label>
+      <label style="display: flex; align-items: center; gap: var(--s-3); font-size: var(--text-sm);"><input type="checkbox" checked /> Vet certificate current</label>
+      <label style="display: flex; align-items: center; gap: var(--s-3); font-size: var(--text-sm);"><input type="checkbox" /> Brand inspection</label>
+      <label style="display: flex; align-items: center; gap: var(--s-3); font-size: var(--text-sm);"><input type="checkbox" checked /> Transport arranged</label>
+    </div>
+  </section>
+
+  <section class="mt-8 card" style="padding: var(--s-5);">
+    <span class="eyebrow">Once checked in</span>
+    <ul class="timeline mt-4">
+      <li class="is-active"><div class="tl-marker"></div><div><strong style="font-size: var(--text-sm);">Drop-off check-in</strong><div class="body-sm text-faint">Processor scans your QR</div></div></li>
+      <li><div class="tl-marker"></div><div><strong style="font-size: var(--text-sm);">$100 deposit released</strong><div class="body-sm text-faint">1–2 business days</div></div></li>
+      <li><div class="tl-marker"></div><div><strong style="font-size: var(--text-sm);">Hanging weight reported</strong><div class="body-sm text-faint">Within 24–48 hours</div></div></li>
+      <li><div class="tl-marker"></div><div><strong style="font-size: var(--text-sm);">Earnings disbursed</strong><div class="body-sm text-faint">3 business days after pickup</div></div></li>
+    </ul>
+  </section>
+</div>
+
+<!-- ============ FARMER BOOKING VIEW ============ -->
+<div class="farmer-page" id="view-farmer-book">
+  <div class="row row--between mb-6">
+    <button class="btn btn--ghost btn--sm">← Back</button>
+    <span class="eyebrow">Confirm booking</span>
+    <span></span>
+  </div>
+
+  <div class="card book-card">
+    <h3 class="h1">Steer #402 · Thu, Jun 21 · 9:00 AM</h3>
+    <p class="body-sm">Hilltop Custom Meats · Bemidji, MN · 22 mi from your ranch</p>
+  </div>
+
+  <div class="card mt-4 book-card">
+    <div class="book-line"><div><div>Estimated processing fee</div><div class="sub">750 lbs × $0.90/lb + $95 kill fee</div></div><strong>$770</strong></div>
+    <div class="book-line"><div><div>Refundable booking deposit</div><div class="sub">10% of processing OR $100, whichever greater</div></div><strong>$100</strong></div>
+    <div class="book-line total"><span>Charged today</span><span>$100</span></div>
+  </div>
+
+  <div class="book-rule mt-4">
+    <strong>How the deposit works</strong>
+    <div class="rline"><span>Animal arrives & checks in via QR</span><strong>Full refund (auto)</strong></div>
+    <div class="rline"><span>You cancel ≥7 days out</span><strong>Full refund</strong></div>
+    <div class="rline"><span>You cancel 3–6 days out</span><strong>50% refund</strong></div>
+    <div class="rline"><span>You cancel &lt;72 hr or no-show</span><strong>Forfeit</strong></div>
+    <div class="rline"><span>Vet emergency / animal dies</span><strong>Full refund (with docs)</strong></div>
+  </div>
+
+  <button class="btn btn--apple-pay btn--xl btn--block mt-6" onclick="showToast('Apple Pay sheet · $100 deposit captured')">Confirm with Apple Pay → $100</button>
+  <p class="body-sm text-center text-faint mt-3">Held in platform escrow. Released automatically when Hilltop checks your animal in.</p>
+
+  <div class="card mt-8 book-card">
+    <span class="eyebrow">Why this exists</span>
+    <p class="body-sm mt-3">Your deposit gives the processor confidence to hold the slot for you. They lose money when a slot goes empty — your deposit covers that risk if a no-show happens. <strong>In return</strong>, customers can buy fractions of your animal months in advance because they trust the schedule will hold.</p>
+  </div>
+</div>
+
+<!-- ============ SCANNER OVERLAY ============ -->
+<div class="scanner-overlay" id="scanner">
+  <div class="scanner" id="scanner-active">
+    <div style="width: 100%; max-width: 360px;">
+      <div class="row row--between" style="margin-bottom: var(--s-6);">
+        <button onclick="closeScanner()" style="background: rgba(255,255,255,0.15); color: white; border: 0; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer;">×</button>
+        <div style="text-align: center;">
+          <div style="font-size: 11px; opacity: 0.7;">Scanning for</div>
+          <strong id="scanner-animal" style="font-size: var(--text-md);">Angus Steer #402</strong>
+          <div style="font-size: 11px; opacity: 0.7;" id="scanner-ranch">Sterling Trust Farms</div>
+        </div>
+        <span></span>
+      </div>
+    </div>
+    <div class="scanner-frame">
+      <div class="corner-tl"></div>
+      <div class="corner-tr"></div>
+      <div class="scanner-line"></div>
+    </div>
+    <p style="font-size: var(--text-sm); opacity: 0.8; text-align: center; margin: var(--s-6) 0;">Point camera at the QR code on the farmer's phone or trailer sticker.</p>
+    <button onclick="enter6Digit()" style="background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: var(--r-pill); font-size: var(--text-xs); font-weight: 600; cursor: pointer;">Use 6-digit code instead</button>
+    <div onclick="successScan()" style="position: absolute; inset: 0; cursor: pointer; background: transparent;"></div>
+  </div>
+  <div class="scanner-success hidden" id="scanner-success">
+    <div class="success-icon">✓</div>
+    <h2 style="font-size: var(--text-2xl); font-weight: 900; margin: 0 0 var(--s-2);">Checked in</h2>
+    <p style="margin: 0 0 var(--s-5); opacity: 0.9;" id="success-detail">Angus Steer #402 from Sterling Trust Farms</p>
+    <div style="font-size: var(--text-sm); opacity: 0.85; line-height: 1.7;">
+      ✓ Farmer notified<br>
+      ✓ ½ + ¼ + ¼ buyers notified<br>
+      ✓ $100 deposit released to farmer<br>
+      ✓ Kill fee payout authorized
+    </div>
+    <button class="btn btn--block mt-6" onclick="closeScanner()" style="background: white; color: var(--brand);">Back to queue</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentBooking = null;
+
+function switchRole(r) {
+  document.querySelectorAll('.role-switcher button').forEach(b => b.classList.toggle('active', b.dataset.role === r));
+  document.getElementById('view-processor').style.display = r === 'processor' ? '' : 'none';
+  document.getElementById('view-farmer-qr').classList.toggle('is-active', r === 'farmer-qr');
+  document.getElementById('view-farmer-book').classList.toggle('is-active', r === 'farmer-book');
+}
+
+function selectBooking(el, id) {
+  document.querySelectorAll('.booking').forEach(b => b.classList.remove('is-selected'));
+  el.classList.add('is-selected');
+  // update inspector — minimal here
+  showToast('Loaded booking ' + id);
+}
+
+function openScanner(id, name, ranch) {
+  currentBooking = id;
+  document.getElementById('scanner-animal').textContent = name;
+  document.getElementById('scanner-ranch').textContent = ranch;
+  document.getElementById('success-detail').textContent = name + ' from ' + ranch;
+  document.getElementById('scanner-active').classList.remove('hidden');
+  document.getElementById('scanner-success').classList.add('hidden');
+  document.getElementById('scanner').classList.add('is-open');
+}
+
+function successScan() {
+  document.getElementById('scanner-active').classList.add('hidden');
+  document.getElementById('scanner-success').classList.remove('hidden');
+  if (currentBooking) {
+    const b = document.querySelector(`.booking[data-id="${currentBooking}"]`);
+    if (b) {
+      b.querySelector('.state-dot').className = 'state-dot checked';
+      const btn = b.querySelector('button');
+      if (btn) { btn.textContent = '✓ Checked in'; btn.classList.add('btn--ghost'); btn.classList.remove('btn--primary'); btn.disabled = true; }
+    }
+  }
+}
+
+function closeScanner() {
+  document.getElementById('scanner').classList.remove('is-open');
+}
+
+function enter6Digit() {
+  const code = prompt('Enter 6-digit code from farmer:');
+  if (code && code.length === 6) successScan();
+  else if (code !== null) alert('Code must be 6 digits.');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('is-visible');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
+}
+</script>
+</body>
+</html>

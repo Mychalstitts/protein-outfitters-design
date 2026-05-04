@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Producers · Protein Outfitters</title>
+<meta name="description" content="Meet the ranchers behind every animal. Browse all verified producers on Protein Outfitters and follow the ones that match your values." />
+<meta property="og:title" content="Producers · Protein Outfitters" />
+<meta property="og:description" content="Meet the verified producers behind every animal." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/producers" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Producers · Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.pp-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.pp-inner { max-width: 1320px; margin: 0 auto; }
+
+.pp-hero { padding: clamp(48px, 6vw, 80px) 0; }
+.pp-h1 { font-size: clamp(40px, 6.5vw, 80px); font-weight: 900; letter-spacing: -0.04em; line-height: 0.95; margin: 0 0 16px; max-width: 22ch; }
+.pp-lead { font-size: clamp(17px, 1.5vw, 22px); color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 0; }
+
+/* Filter chips */
+.filters { position: sticky; top: 64px; z-index: 60; background: rgba(251, 249, 245, 0.92); backdrop-filter: blur(12px); padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.04); margin-bottom: clamp(32px, 4vw, 48px); }
+.filters-inner { display: flex; gap: 8px; align-items: center; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+.filters-inner::-webkit-scrollbar { display: none; }
+.chip { background: var(--surface); border: 1px solid rgba(0,0,0,0.06); border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; transition: background .25s, color .25s, border-color .25s; }
+.chip:hover { color: var(--ink); border-color: rgba(0,0,0,0.14); }
+.chip.active { background: var(--brand); color: #fbf9f5; border-color: var(--brand); }
+.chip.divider { background: transparent; border: 0; pointer-events: none; padding: 0 4px; color: var(--ink-3); font-size: 11px; }
+
+/* Producer cards */
+.farm-grid { display: grid; gap: clamp(20px, 2vw, 28px); grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.farm-card { background: #fff; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s; }
+.farm-card:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(0,0,0,0.10); }
+.farm-cover { aspect-ratio: 16/10; background-color: #1a0d08; background-size: cover; background-position: center; position: relative; }
+.farm-avatar { position: absolute; bottom: -28px; left: 22px; width: 64px; height: 64px; border-radius: 18px; background: #fff; padding: 4px; box-shadow: 0 8px 18px rgba(0,0,0,0.16); }
+.farm-avatar > div { width: 100%; height: 100%; border-radius: 14px; background-size: cover; background-position: center; }
+.farm-meta { padding: 40px 22px 24px; display: flex; flex-direction: column; gap: 6px; }
+.farm-meta h3 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.022em; }
+.farm-meta .where { font-size: 13px; color: var(--ink-2); }
+.farm-meta .stats { display: flex; gap: 14px; padding-top: 14px; margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 13px; }
+.farm-meta .stats .v { font-weight: 800; color: var(--ink); }
+.farm-meta .stats .lab { color: var(--ink-2); margin-left: 4px; }
+.farm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.farm-tag { background: var(--accent-soft); color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+
+/* Hero map embed */
+.map-strip { background: linear-gradient(180deg, var(--surface) 0%, #fff 100%); border-radius: 28px; padding: clamp(24px, 3vw, 40px); margin-bottom: clamp(40px, 5vw, 64px); display: grid; gap: clamp(20px, 2vw, 32px); grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 800px) { .map-strip { grid-template-columns: 1fr 1.4fr; } }
+.map-strip h2 { margin: 0 0 8px; font-size: clamp(24px, 3vw, 36px); font-weight: 900; letter-spacing: -0.03em; }
+.map-strip p { margin: 0 0 18px; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+.map-strip a { display: inline-block; background: var(--brand); color: #fbf9f5; padding: 12px 22px; border-radius: 999px; font-size: 13px; font-weight: 700; text-decoration: none; }
+.map-strip a:hover { background: #0a2614; }
+.map-img { aspect-ratio: 16/9; background: url('/ranch.jpg') center/cover; border-radius: 18px; }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/#how">How it works</a><a href="/producers" class="active">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button data-open-sheet>Reserve</button></div>
+  </nav>
+</div>
+
+<section class="pp-shell">
+  <div class="pp-inner">
+
+    <div class="pp-hero">
+      <p class="po-eyebrow">Producers · Northland</p>
+      <h1 class="pp-h1">Meet the ranchers behind your meat.</h1>
+      <p class="pp-lead">Twelve verified producers across Minnesota, Wisconsin, and the Dakotas. Each one named the animal they're raising. Follow the operations whose values match yours.</p>
+    </div>
+
+    <div class="filters">
+      <div class="filters-inner">
+        <button class="chip active" data-filter="all">All · 12</button>
+        <span class="chip divider">By state</span>
+        <button class="chip" data-filter="mn">Minnesota</button>
+        <button class="chip" data-filter="wi">Wisconsin</button>
+        <button class="chip" data-filter="nd">North Dakota</button>
+        <button class="chip" data-filter="sd">South Dakota</button>
+        <span class="chip divider">By practice</span>
+        <button class="chip" data-filter="grass">Grass-fed</button>
+        <button class="chip" data-filter="organic">Organic</button>
+        <button class="chip" data-filter="regen">Regenerative</button>
+        <button class="chip" data-filter="heritage">Heritage breeds</button>
+      </div>
+    </div>
+
+    <div class="farm-grid">
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn grass regen">
+        <div class="farm-cover" style="background-image: url('/ranch.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Northfield Pastures</h3>
+          <span class="where">Bemidji, MN · 320 acres · since 2004</span>
+          <div class="stats"><span><span class="v">3</span><span class="lab">listings</span></span><span><span class="v">847</span><span class="lab">followers</span></span><span><span class="v">4.9★</span><span class="lab">128 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Grass-fed</span><span class="farm-tag">AGA Verified</span><span class="farm-tag">GAP Step 4</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn grass">
+        <div class="farm-cover" style="background-image: url('/hereford.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Crow Wing Cattle Co</h3>
+          <span class="where">Brainerd, MN · 480 acres · since 1998</span>
+          <div class="stats"><span><span class="v">2</span><span class="lab">listings</span></span><span><span class="v">412</span><span class="lab">followers</span></span><span><span class="v">4.7★</span><span class="lab">76 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Grass-fed</span><span class="farm-tag">USDA Verified</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn heritage">
+        <div class="farm-cover" style="background-image: url('/wagyu.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Northern Lights Wagyu</h3>
+          <span class="where">Park Rapids, MN · 200 acres · since 2014</span>
+          <div class="stats"><span><span class="v">1</span><span class="lab">listing</span></span><span><span class="v">1.2k</span><span class="lab">followers</span></span><span><span class="v">5.0★</span><span class="lab">42 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Heritage</span><span class="farm-tag">AWA member</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn heritage organic">
+        <div class="farm-cover" style="background-image: url('/hog.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Mississippi Headwaters Farm</h3>
+          <span class="where">Bemidji, MN · 140 acres · since 2010</span>
+          <div class="stats"><span><span class="v">2</span><span class="lab">listings</span></span><span><span class="v">324</span><span class="lab">followers</span></span><span><span class="v">4.8★</span><span class="lab">58 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Berkshire</span><span class="farm-tag">Heritage</span><span class="farm-tag">Pasture-raised</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn grass regen organic">
+        <div class="farm-cover" style="background-image: url('/lamb.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Boreal Pastures</h3>
+          <span class="where">Cass Lake, MN · 220 acres · since 2008</span>
+          <div class="stats"><span><span class="v">4</span><span class="lab">listings</span></span><span><span class="v">298</span><span class="lab">followers</span></span><span><span class="v">4.9★</span><span class="lab">64 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Lamb</span><span class="farm-tag">USDA Organic</span><span class="farm-tag">ROC</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="mn">
+        <div class="farm-cover" style="background-image: url('/venison.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Itasca Wilds</h3>
+          <span class="where">Grand Rapids, MN · 1,400 acres · since 2002</span>
+          <div class="stats"><span><span class="v">1</span><span class="lab">listing</span></span><span><span class="v">186</span><span class="lab">followers</span></span><span><span class="v">4.8★</span><span class="lab">29 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Venison</span><span class="farm-tag">Wild-harvest</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="wi grass">
+        <div class="farm-cover" style="background-image: url('/angus.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Driftless Hills Beef</h3>
+          <span class="where">La Crosse, WI · 240 acres · since 2007</span>
+          <div class="stats"><span><span class="v">3</span><span class="lab">listings</span></span><span><span class="v">510</span><span class="lab">followers</span></span><span><span class="v">4.8★</span><span class="lab">88 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Grass-fed</span><span class="farm-tag">AGA</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="wi heritage">
+        <div class="farm-cover" style="background-image: url('/hog.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Door County Heritage Pork</h3>
+          <span class="where">Sturgeon Bay, WI · 80 acres · since 2015</span>
+          <div class="stats"><span><span class="v">2</span><span class="lab">listings</span></span><span><span class="v">240</span><span class="lab">followers</span></span><span><span class="v">4.9★</span><span class="lab">36 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Mangalitsa</span><span class="farm-tag">Heritage</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="nd grass">
+        <div class="farm-cover" style="background-image: url('/hereford.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Red River Hereford Co</h3>
+          <span class="where">Fargo, ND · 1,200 acres · since 1962</span>
+          <div class="stats"><span><span class="v">5</span><span class="lab">listings</span></span><span><span class="v">760</span><span class="lab">followers</span></span><span><span class="v">4.7★</span><span class="lab">142 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Hereford</span><span class="farm-tag">4 generations</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="nd grass regen">
+        <div class="farm-cover" style="background-image: url('/ranch.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Prairie Wind Ranch</h3>
+          <span class="where">Bismarck, ND · 3,200 acres · since 1989</span>
+          <div class="stats"><span><span class="v">8</span><span class="lab">listings</span></span><span><span class="v">1.4k</span><span class="lab">followers</span></span><span><span class="v">4.8★</span><span class="lab">204 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Regenerative</span><span class="farm-tag">Land to Market</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="sd grass">
+        <div class="farm-cover" style="background-image: url('/angus.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Black Hills Angus Co</h3>
+          <span class="where">Rapid City, SD · 800 acres · since 1995</span>
+          <div class="stats"><span><span class="v">4</span><span class="lab">listings</span></span><span><span class="v">622</span><span class="lab">followers</span></span><span><span class="v">4.9★</span><span class="lab">96 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Certified Angus</span><span class="farm-tag">Grass-fed</span></div>
+        </div>
+      </a>
+
+      <a href="/farm/northfield-pastures" class="farm-card" data-tags="sd organic">
+        <div class="farm-cover" style="background-image: url('/poultry.jpg');">
+          <div class="farm-avatar"><div style="background-image: url('/farmer.jpg');"></div></div>
+        </div>
+        <div class="farm-meta">
+          <h3>Sage Creek Poultry</h3>
+          <span class="where">Sioux Falls, SD · 60 acres · since 2018</span>
+          <div class="stats"><span><span class="v">6</span><span class="lab">listings</span></span><span><span class="v">182</span><span class="lab">followers</span></span><span><span class="v">5.0★</span><span class="lab">22 reviews</span></span></div>
+          <div class="farm-tags"><span class="farm-tag">Heritage poultry</span><span class="farm-tag">USDA Organic</span></div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Map strip -->
+    <div class="map-strip" style="margin-top: clamp(48px, 6vw, 80px);">
+      <div>
+        <p class="po-eyebrow">Browse by location</p>
+        <h2>Find a ranch within 90 minutes of you.</h2>
+        <p>Pickup is local — most buyers drive less than an hour to get their meat. Open the map and find what's close.</p>
+        <a href="/map">Open the farm map →</a>
+      </div>
+      <div class="map-img"></div>
+    </div>
+
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+<script>
+(function () {
+  document.querySelectorAll('.chip[data-filter]').forEach(chip => chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const f = chip.dataset.filter;
+    document.querySelectorAll('.farm-card').forEach(card => {
+      const tags = (card.dataset.tags || '').split(' ');
+      card.style.display = (f === 'all' || tags.includes(f)) ? '' : 'none';
+    });
+  }));
+})();
+</script>
+</body>
+</html>

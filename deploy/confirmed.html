@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Reserved · Protein Outfitters</title>
+<meta name="description" content="Your reservation is confirmed. Build your cut sheet, mark your calendar, and we'll handle the rest." />
+<meta property="og:title" content="Reserved · Protein Outfitters" />
+<meta property="og:description" content="Your reservation is confirmed." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/confirmed" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Reserved · Protein Outfitters" />
+<meta name="twitter:description" content="Your reservation is confirmed." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+<style>
+.confirmed-shell { padding: clamp(64px, 9vw, 120px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.confirmed-inner { max-width: 880px; margin: 0 auto; }
+.confirmed-hero { text-align: center; margin-bottom: clamp(48px, 6vw, 72px); }
+.confirmed-mark { width: 96px; height: 96px; border-radius: 50%; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; margin: 0 auto 24px; font-size: 44px; }
+.confirmed-h1 { margin: 0; font-size: clamp(40px, 5.5vw, 72px); letter-spacing: -0.035em; line-height: 0.96; font-weight: 900; color: var(--ink); }
+.confirmed-sub { margin: 16px auto 0; max-width: 50ch; color: var(--ink-2); font-size: var(--po-lead); line-height: 1.5; }
+
+.summary-card { background: #fff; border-radius: 28px; padding: clamp(28px, 3vw, 40px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 28px; }
+.summary-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+.summary-head .res-id { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+.summary-head .res-num { font-size: 22px; font-weight: 900; letter-spacing: -0.022em; margin: 4px 0 0; }
+.summary-head .total-label { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0; text-align: right; }
+.summary-head .total-num { font-size: 22px; font-weight: 900; letter-spacing: -0.022em; margin: 4px 0 0; text-align: right; color: var(--brand); }
+.product-block { display: flex; gap: 18px; padding: 18px; background: var(--surface); border-radius: 18px; align-items: center; }
+.product-block-img { width: 84px; height: 84px; border-radius: 16px; background: url('/angus.jpg') center/cover; flex-shrink: 0; }
+.product-block h4 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.018em; }
+.product-block p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+
+.next-grid { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 32px; }
+@media (min-width: 720px) { .next-grid { grid-template-columns: repeat(3, 1fr); } }
+.next-card { background: var(--surface); border-radius: 22px; padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; transition: transform .2s, background .2s; }
+.next-card:hover { transform: translateY(-3px); background: var(--surface-2); }
+.next-num { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; color: var(--ink-2); }
+.next-h { font-size: 18px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
+.next-p { font-size: 14px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+.next-cta { font-size: 14px; font-weight: 700; color: var(--brand); margin-top: 4px; }
+
+.confirmed-actions { display: flex; gap: 12px; margin-top: 36px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/#how">How it works</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button data-open-sheet>Reserve another</button></div>
+  </nav>
+</div>
+
+<section class="confirmed-shell">
+  <div class="confirmed-inner">
+    <div class="confirmed-hero">
+      <div class="confirmed-mark">✓</div>
+      <h1 class="confirmed-h1">Reserved.</h1>
+      <p class="confirmed-sub">We just held a quarter share of #2641 for you. Your receipt is on the way to your inbox, and your cut sheet builder is one tap away.</p>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-head">
+        <div>
+          <p class="res-id">Reservation ID</p>
+          <p class="res-num">#PO-12048</p>
+        </div>
+        <div>
+          <p class="total-label">Total</p>
+          <p class="total-num">$1,638.00</p>
+        </div>
+      </div>
+      <div class="product-block">
+        <div class="product-block-img"></div>
+        <div>
+          <h4>#2641 · Black Angus steer</h4>
+          <p>Quarter share · Northfield Pastures · Plant 04 (Bemidji, MN)<br>Drop-off May 28 · Estimated pickup week of June 11</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="po-eyebrow" style="text-align: center;">What's next</p>
+    <h2 class="po-h3" style="text-align: center; margin: 0 auto;">Three light touches over three weeks.</h2>
+
+    <div class="next-grid">
+      <a href="/cut-sheet" class="next-card">
+        <span class="next-num">01 · This week</span>
+        <h3 class="next-h">Build your cut sheet.</h3>
+        <p class="next-p">Five minutes on your phone. Tell the processor exactly how you want every cut.</p>
+        <span class="next-cta">Open cut sheet →</span>
+      </a>
+      <a href="/account" class="next-card">
+        <span class="next-num">02 · May 28</span>
+        <h3 class="next-h">Harvest day.</h3>
+        <p class="next-p">We'll email confirmation when #2641 is dropped off. No action needed.</p>
+        <span class="next-cta">View reservation →</span>
+      </a>
+      <a href="/account" class="next-card">
+        <span class="next-num">03 · ~June 11</span>
+        <h3 class="next-h">Pick up.</h3>
+        <p class="next-p">We'll text when your cuts are wrapped, frozen, and ready. Walk in, scan, walk out.</p>
+        <span class="next-cta">Get a calendar reminder →</span>
+      </a>
+    </div>
+
+    <div class="confirmed-actions">
+      <a href="/discover" class="btn-xl btn-xl--dark">Reserve another animal →</a>
+      <a href="/" class="btn-xl" style="background: var(--surface); color: var(--ink);">Back to home</a>
+    </div>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="./po-shell.js"></script>
+</body>
+</html>

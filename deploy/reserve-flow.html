@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Protein Outfitters — Reserve Flow (Steps 1, 2, 4)</title>
+<style>
+:root {
+  --bg: #f9f9f8;
+  --surface: #ffffff;
+  --surface-2: #f3f4f3;
+  --ink: #0c1410;
+  --ink-2: #5b6660;
+  --ink-3: #8b9590;
+  --hairline: rgba(12,20,16,0.08);
+  --brand: #061b0e;
+  --brand-2: #1b3022;
+  --accent: #2f7d49;
+  --accent-soft: #cfe9d3;
+  --warn: #b1641a;
+  --warn-soft: #fbe8d2;
+  --shadow: 0 24px 40px -16px rgba(12,20,16,0.12), 0 4px 12px -4px rgba(12,20,16,0.06);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+.app { max-width: 460px; min-height: 100vh; margin: 0 auto; background: var(--bg);
+  position: relative; padding-bottom: 200px; }
+header.nav { position: sticky; top: 0; z-index: 20;
+  background: rgba(249,249,248,0.85); backdrop-filter: saturate(140%) blur(18px);
+  padding: 16px 20px 12px; display: flex; align-items: center; gap: 12px; }
+.back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--surface);
+  display: grid; place-items: center; cursor: pointer; box-shadow: 0 1px 0 var(--hairline);
+  border: 0; }
+.back-btn:hover { background: var(--surface-2); }
+.step-title { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; flex: 1; }
+.step-meta { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+.summary-bar { margin: 0 20px 16px; padding: 12px 14px; background: var(--surface);
+  border-radius: 16px; box-shadow: 0 1px 0 var(--hairline);
+  display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; }
+.summary-bar .thumb { width: 56px; height: 56px; border-radius: 12px;
+  background: linear-gradient(135deg, #1b3022, #2f7d49); }
+.summary-bar h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+.summary-bar p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); }
+.summary-bar .meta { text-align: right; font-size: 11px; color: var(--ink-3); }
+.summary-bar .meta strong { display: block; font-size: 13px; color: var(--ink); font-weight: 700; }
+.section { margin: 22px 20px 0; }
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--ink-3); margin-bottom: 10px; padding-left: 4px; }
+.card { background: var(--surface); border-radius: 18px; box-shadow: 0 1px 0 var(--hairline); overflow: hidden; }
+.card + .card { margin-top: 10px; }
+
+/* Step 1 - fraction cards */
+.fraction-card { padding: 18px; cursor: pointer; transition: background 0.15s ease;
+  border-bottom: 1px solid var(--hairline); position: relative; }
+.fraction-card:last-child { border-bottom: 0; }
+.fraction-card:hover { background: var(--surface-2); }
+.fraction-card.selected { background: linear-gradient(180deg, #fff, #f6faf7);
+  box-shadow: inset 0 0 0 1.5px var(--brand); }
+.fraction-card.disabled { opacity: 0.45; cursor: not-allowed; }
+.fraction-card .fraction-row { display: flex; align-items: center; justify-content: space-between; }
+.fraction-card .fraction-name { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+.fraction-card .fraction-meta { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.fraction-card .fraction-cost { font-size: 16px; font-weight: 700; }
+.fraction-card .fraction-cost-sub { font-size: 11px; color: var(--ink-3); }
+.fraction-card .badge { font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; padding: 3px 8px; border-radius: 999px; margin-top: 6px; display: inline-block; }
+.fraction-card .badge.avail { background: var(--accent-soft); color: var(--brand); }
+.fraction-card .badge.last { background: var(--warn-soft); color: var(--warn); }
+.fraction-card .badge.sold { background: var(--surface-2); color: var(--ink-3); }
+
+.subtoggle { margin-top: 14px; padding: 14px; background: var(--surface-2);
+  border-radius: 12px; display: none; }
+.fraction-card.selected .subtoggle { display: block; }
+.subtoggle-row { display: flex; gap: 6px; margin-top: 8px; }
+.subtoggle-row button { flex: 1; padding: 10px; border: 0; background: white;
+  border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; }
+.subtoggle-row button.active { background: var(--brand); color: white; }
+.subtoggle-row button .desc { display: block; font-size: 10px; opacity: 0.8;
+  margin-top: 2px; font-weight: 500; }
+
+.help-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px;
+  background: var(--surface); border-radius: 999px; font-size: 12px; cursor: pointer;
+  margin: 14px 20px 0; box-shadow: 0 1px 0 var(--hairline); }
+
+/* Step 2 - processor list */
+.proc-card { padding: 16px; cursor: pointer; border-bottom: 1px solid var(--hairline); }
+.proc-card:last-child { border-bottom: 0; }
+.proc-card.selected { background: linear-gradient(180deg, #fff, #f6faf7);
+  box-shadow: inset 0 0 0 1.5px var(--brand); }
+.proc-head { display: flex; align-items: flex-start; gap: 12px; }
+.proc-logo { width: 44px; height: 44px; border-radius: 10px;
+  background: linear-gradient(135deg, #4a5d52, #6b8074); flex-shrink: 0; }
+.proc-name { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.proc-meta { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.proc-fees { font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+.proc-fees strong { color: var(--ink); font-weight: 700; }
+.proc-tag { display: inline-block; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 7px;
+  border-radius: 999px; margin-right: 4px; }
+.proc-tag.usda { background: var(--accent-soft); color: var(--brand); }
+.proc-tag.score { background: var(--surface-2); color: var(--ink); }
+.proc-distance { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+
+.date-row { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0 4px;
+  scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; }
+.date-row::-webkit-scrollbar { display: none; }
+.date-cell { scroll-snap-align: start; min-width: 64px; padding: 10px 8px;
+  background: var(--surface-2); border-radius: 10px; text-align: center; cursor: pointer;
+  transition: all 0.15s ease; }
+.date-cell:hover { background: #e6e9e7; }
+.date-cell.selected { background: var(--brand); color: white; }
+.date-cell.surge { background: var(--warn-soft); }
+.date-cell.surge.selected { background: var(--warn); color: white; }
+.date-cell.disabled { opacity: 0.3; cursor: not-allowed; }
+.date-cell .dow { font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; opacity: 0.7; }
+.date-cell .dom { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+.date-cell .price { font-size: 9px; margin-top: 2px; opacity: 0.7; font-weight: 600; }
+
+/* Step 4 - pay screen */
+.pay-summary { padding: 16px; border-bottom: 1px solid var(--hairline); }
+.pay-summary h4 { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+.pay-summary p { margin: 0; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+.line { display: flex; justify-content: space-between; padding: 12px 16px;
+  border-bottom: 1px solid var(--hairline); font-size: 14px; }
+.line:last-child { border-bottom: 0; }
+.line .label { color: var(--ink-2); }
+.line .label-sub { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+.line.total { font-weight: 800; font-size: 17px; color: var(--ink); padding: 14px 16px; }
+.line.total .label { color: var(--ink); font-weight: 800; }
+
+.deposit-toggle { margin: 16px 0; padding: 0; border: 0; }
+.deposit-toggle .opt { padding: 14px 16px; border-bottom: 1px solid var(--hairline);
+  display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: center;
+  cursor: pointer; transition: background 0.15s ease; }
+.deposit-toggle .opt:hover { background: var(--surface-2); }
+.deposit-toggle .opt.selected { background: linear-gradient(180deg,#fff,#f6faf7);
+  box-shadow: inset 0 0 0 1.5px var(--brand); }
+.deposit-toggle .radio { width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--ink-3); position: relative; }
+.deposit-toggle .opt.selected .radio { border-color: var(--brand); }
+.deposit-toggle .opt.selected .radio::after { content: ''; position: absolute;
+  top: 3px; left: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+.deposit-toggle .label-title { font-size: 14px; font-weight: 700; }
+.deposit-toggle .label-sub { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.deposit-toggle .opt-amount { font-size: 15px; font-weight: 700; }
+
+.pay-method { padding: 0; }
+.pay-method .opt { padding: 14px 16px; border-bottom: 1px solid var(--hairline);
+  display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: center; cursor: pointer; }
+.pay-method .opt:last-child { border-bottom: 0; }
+.pay-method .opt.selected { background: linear-gradient(180deg,#fff,#f6faf7);
+  box-shadow: inset 0 0 0 1.5px var(--brand); }
+.pay-method .opt-icon { width: 28px; height: 20px; border-radius: 4px;
+  background: var(--ink); }
+.disclaimer { font-size: 11px; color: var(--ink-3); padding: 14px 20px 0; line-height: 1.5; }
+
+/* Sticky CTA */
+.sticky-cta { position: fixed; bottom: 0; left: 0; right: 0; max-width: 460px;
+  margin: 0 auto; background: rgba(255,255,255,0.94); backdrop-filter: saturate(140%) blur(18px);
+  padding: 14px 20px 22px; border-top: 1px solid var(--hairline); box-shadow: var(--shadow); z-index: 30; }
+.sticky-cta .recap { display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 12px; color: var(--ink-2); margin-bottom: 10px; }
+.sticky-cta .recap strong { font-size: 16px; color: var(--ink); font-weight: 800; letter-spacing: -0.02em; }
+.btn-primary { width: 100%; padding: 16px; background: var(--brand); color: white;
+  border: 0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700;
+  cursor: pointer; letter-spacing: -0.01em;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  box-shadow: 0 8px 24px -8px rgba(6,27,14,0.4); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed;
+  background: var(--surface-2); color: var(--ink-3); box-shadow: none; }
+.steps-tabs { display: flex; gap: 6px; margin: 0 20px 12px; padding: 4px;
+  background: var(--surface); border-radius: 14px; box-shadow: 0 1px 0 var(--hairline); }
+.steps-tabs button { flex: 1; padding: 10px; border: 0; background: transparent;
+  border-radius: 10px; font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; color: var(--ink-2); }
+.steps-tabs button.active { background: var(--brand); color: white; }
+
+.toast { position: fixed; bottom: 240px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: white; padding: 10px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s ease, bottom 0.2s ease; z-index: 100; }
+.toast.show { opacity: 1; bottom: 250px; }
+
+.hidden { display: none !important; }
+</style>
+<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+</head>
+<body>
+<div class="app">
+  <header class="nav">
+    <button class="back-btn" aria-label="Back" id="back-btn" onclick="goBack()">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M9 1L3 7l6 6" stroke="#0c1410" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="step-title" id="step-title">Choose your share</div>
+      <div class="step-meta" id="step-meta">Step 1 of 4 · Premium Angus Steer #402</div>
+    </div>
+  </header>
+
+  <div class="summary-bar">
+    <div class="thumb"></div>
+    <div>
+      <h3>Premium Angus Steer #402</h3>
+      <p>Rolling Hills Ranch · Billings, MT · $4.50/lb hanging</p>
+    </div>
+    <div class="meta">
+      <strong id="summary-meta-strong">1,250 lbs</strong>
+      live wt
+    </div>
+  </div>
+
+  <div class="steps-tabs" role="tablist" aria-label="Jump between prototype steps">
+    <button class="active" data-step="1" onclick="showStep(1)">1 · Fraction</button>
+    <button data-step="2" onclick="showStep(2)">2 · Processor</button>
+    <button data-step="4" onclick="showStep(4)">4 · Pay</button>
+  </div>
+
+  <!-- ======================== STEP 1: Fraction ======================== -->
+  <section id="step-1">
+    <div class="section">
+      <div class="section-label">Pick your share</div>
+      <div class="card">
+        <div class="fraction-card" data-frac="quarter" onclick="selectFraction('quarter')">
+          <div class="fraction-row">
+            <div>
+              <div class="fraction-name">¼ Beef</div>
+              <div class="fraction-meta">≈ 140 lbs take-home · feeds 2–3 for ~6 mo</div>
+              <span class="badge avail">Available</span>
+            </div>
+            <div style="text-align:right">
+              <div class="fraction-cost">≈$1,134</div>
+              <div class="fraction-cost-sub">+ processing</div>
+            </div>
+          </div>
+          <div class="subtoggle">
+            <div style="font-size:12px;font-weight:600;color:var(--ink)">Front or hind quarter?</div>
+            <div style="font-size:11px;color:var(--ink-2);margin-top:4px">Quarters split into front (chuck/brisket/ribs) or hind (loin/sirloin/round). Mixed splits both 1/8 each.</div>
+            <div class="subtoggle-row">
+              <button data-side="front" onclick="event.stopPropagation();selectQuarter('front')">Front<span class="desc">Chuck · Brisket · Ribs</span></button>
+              <button class="active" data-side="mixed" onclick="event.stopPropagation();selectQuarter('mixed')">Mixed<span class="desc">1/8 + 1/8 split</span></button>
+              <button data-side="hind" onclick="event.stopPropagation();selectQuarter('hind')">Hind<span class="desc">Loin · Sirloin · Round</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="fraction-card selected" data-frac="half" onclick="selectFraction('half')">
+          <div class="fraction-row">
+            <div>
+              <div class="fraction-name">½ Beef</div>
+              <div class="fraction-meta">≈ 282 lbs take-home · feeds 4 for ~12 mo</div>
+              <span class="badge last">1 left</span>
+            </div>
+            <div style="text-align:right">
+              <div class="fraction-cost">≈$2,142</div>
+              <div class="fraction-cost-sub">+ processing</div>
+            </div>
+          </div>
+        </div>
+        <div class="fraction-card disabled" data-frac="whole">
+          <div class="fraction-row">
+            <div>
+              <div class="fraction-name">Whole Beef</div>
+              <div class="fraction-meta">≈ 563 lbs take-home · stocks 2 freezers</div>
+              <span class="badge sold">Sold</span>
+            </div>
+            <div style="text-align:right">
+              <div class="fraction-cost">≈$4,158</div>
+              <div class="fraction-cost-sub">+ processing</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="help-pill" onclick="alert('Help drawer with weight/cost comparison would slide up here.')">Need help deciding? →</div>
+      <p style="font-size:11px;color:var(--ink-3);margin:14px 20px 0;line-height:1.5">
+        Locks today's price of $4.50/lb hanging. Processing fees vary by processor — you'll pick one next.
+      </p>
+    </div>
+  </section>
+
+  <!-- ======================== STEP 2: Processor ======================== -->
+  <section id="step-2" class="hidden">
+    <div class="section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="section-label" style="margin:0">Choose processor &amp; date</div>
+        <div style="display:flex;gap:4px;background:var(--surface);border-radius:999px;padding:3px;box-shadow:0 1px 0 var(--hairline)">
+          <button style="border:0;background:var(--brand);color:white;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer">Map</button>
+          <button style="border:0;background:transparent;color:var(--ink-2);padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer">List</button>
+        </div>
+      </div>
+
+      <div style="height:140px;border-radius:16px;background:linear-gradient(135deg,#d8e0d4,#a8b8a3) center/cover;margin-bottom:12px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:30%;left:30%;width:14px;height:14px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 6px rgba(6,27,14,0.25)"></div>
+        <div style="position:absolute;top:55%;left:50%;width:10px;height:10px;border-radius:50%;background:var(--accent)"></div>
+        <div style="position:absolute;top:42%;left:68%;width:10px;height:10px;border-radius:50%;background:var(--accent)"></div>
+        <div style="position:absolute;bottom:8px;left:8px;background:rgba(255,255,255,0.9);padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700">3 processors within 65 mi</div>
+      </div>
+
+      <div class="card">
+        <div class="proc-card selected" onclick="selectProcessor(this)">
+          <div class="proc-head">
+            <div class="proc-logo"></div>
+            <div style="flex:1">
+              <div class="proc-name">Hilltop Custom Meats</div>
+              <div class="proc-meta">USDA-inspected · Bemidji, MN</div>
+              <div style="margin-top:6px">
+                <span class="proc-tag usda">USDA</span>
+                <span class="proc-tag score">Score 94</span>
+              </div>
+            </div>
+            <div class="proc-distance">22 mi</div>
+          </div>
+          <div class="proc-fees">
+            Kill fee <strong>$95</strong> · Processing <strong>$0.90/lb hanging</strong>
+          </div>
+          <div class="date-row">
+            <div class="date-cell"><div class="dow">Mon</div><div class="dom">11</div><div class="price">$95</div></div>
+            <div class="date-cell"><div class="dow">Wed</div><div class="dom">13</div><div class="price">$95</div></div>
+            <div class="date-cell selected"><div class="dow">Thu</div><div class="dom">21</div><div class="price">$95</div></div>
+            <div class="date-cell"><div class="dow">Mon</div><div class="dom">25</div><div class="price">$95</div></div>
+            <div class="date-cell surge"><div class="dow">Wed</div><div class="dom">27</div><div class="price">+$45</div></div>
+            <div class="date-cell disabled"><div class="dow">Thu</div><div class="dom">28</div><div class="price">Booked</div></div>
+            <div class="date-cell surge"><div class="dow">Mon</div><div class="dom">2</div><div class="price">+$45</div></div>
+          </div>
+        </div>
+        <div class="proc-card" onclick="selectProcessor(this)">
+          <div class="proc-head">
+            <div class="proc-logo" style="background:linear-gradient(135deg,#5a4a3e,#7d6b5a)"></div>
+            <div style="flex:1">
+              <div class="proc-name">North Star Processing</div>
+              <div class="proc-meta">USDA-inspected · Park Rapids, MN</div>
+              <div style="margin-top:6px">
+                <span class="proc-tag usda">USDA</span>
+                <span class="proc-tag score">Score 88</span>
+              </div>
+            </div>
+            <div class="proc-distance">38 mi</div>
+          </div>
+          <div class="proc-fees">
+            Kill fee <strong>$110</strong> · Processing <strong>$0.85/lb hanging</strong>
+          </div>
+        </div>
+        <div class="proc-card" onclick="selectProcessor(this)">
+          <div class="proc-head">
+            <div class="proc-logo" style="background:linear-gradient(135deg,#3d4a4f,#5e6e75)"></div>
+            <div style="flex:1">
+              <div class="proc-name">Itasca County Meats</div>
+              <div class="proc-meta">MN Equal-To · Grand Rapids, MN</div>
+              <div style="margin-top:6px">
+                <span class="proc-tag usda">MN E-T</span>
+                <span class="proc-tag score">Score 91</span>
+              </div>
+            </div>
+            <div class="proc-distance">61 mi</div>
+          </div>
+          <div class="proc-fees">
+            Kill fee <strong>$85</strong> · Processing <strong>$0.95/lb hanging</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-pill" onclick="alert('First Purchaser: when you book the processor, all later buyers of this animal inherit your processor + date. That keeps the schedule stable for the farmer.')">First Purchaser: why does this matter? →</div>
+    </div>
+  </section>
+
+  <!-- ======================== STEP 4: Pay ======================== -->
+  <section id="step-4" class="hidden">
+    <div class="section">
+      <div class="section-label">Reserve summary</div>
+      <div class="card">
+        <div class="pay-summary">
+          <h4>½ of Premium Angus Steer #402</h4>
+          <p>Rolling Hills Ranch · Billings, MT<br>Drop-off Thu, Jun 21 at Hilltop Custom Meats, Bemidji MN</p>
+          <p style="margin-top:6px"><span style="color:var(--accent);font-weight:600">Family Pack</span> cut sheet · <a href="#" onclick="event.preventDefault();alert('Cut sheet preview modal would render here.')" style="color:var(--brand)">view cut sheet</a></p>
+        </div>
+        <div class="line">
+          <div>
+            <div class="label">Meat to farmer</div>
+            <div class="label-sub">375 lbs hanging × $4.50/lb</div>
+          </div>
+          <div>$1,687.50</div>
+        </div>
+        <div class="line">
+          <div>
+            <div class="label">Processing</div>
+            <div class="label-sub">375 lbs × $0.90/lb + ½ kill fee</div>
+          </div>
+          <div>$385.00</div>
+        </div>
+        <div class="line">
+          <div>
+            <div class="label">Platform fee</div>
+            <div class="label-sub">3% of subtotal</div>
+          </div>
+          <div>$62.18</div>
+        </div>
+        <div class="line">
+          <div>
+            <div class="label">Pickup at processor</div>
+            <div class="label-sub">Or ship for $89 (insulated, dry ice)</div>
+          </div>
+          <div>$0.00</div>
+        </div>
+        <div class="line">
+          <div>
+            <div class="label" style="display:flex;align-items:center;gap:8px">
+              Condemnation reserve <span style="font-size:9px;background:var(--accent-soft);color:var(--brand);padding:2px 6px;border-radius:999px;font-weight:700">2%</span>
+            </div>
+            <div class="label-sub">Optional · full refund if animal is condemned</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span>$42.69</span>
+            <div style="width:36px;height:22px;background:var(--brand);border-radius:11px;position:relative;cursor:pointer" onclick="this.classList.toggle('off');this.style.background = this.classList.contains('off') ? 'var(--surface-2)' : 'var(--brand)';recalcTotal()">
+              <div style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:white;transition:right 0.15s ease"></div>
+            </div>
+          </div>
+        </div>
+        <div class="line total">
+          <div class="label">Total</div>
+          <div id="grand-total">$2,177.37</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">How to pay</div>
+      <div class="card">
+        <div class="deposit-toggle">
+          <div class="opt selected" id="opt-deposit" onclick="pickDeposit('25')">
+            <div class="radio"></div>
+            <div>
+              <div class="label-title">Reserve with 25% deposit</div>
+              <div class="label-sub">Charged today. Balance posts 7 days before drop-off.</div>
+            </div>
+            <div class="opt-amount" id="deposit-amount">$544.34</div>
+          </div>
+          <div class="opt" id="opt-full" onclick="pickDeposit('full')">
+            <div class="radio"></div>
+            <div>
+              <div class="label-title">Pay in full now</div>
+              <div class="label-sub">Skip the balance reminder.</div>
+            </div>
+            <div class="opt-amount" id="full-amount">$2,177.37</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Payment method</div>
+      <div class="card">
+        <div class="pay-method">
+          <div class="opt selected" onclick="pickPay(this)">
+            <div class="opt-icon" style="background:#000;display:grid;place-items:center;color:white;font-weight:800;font-size:11px">Pay</div>
+            <div>
+              <div class="label-title">Apple Pay</div>
+              <div class="label-sub">Touch ID · Instant</div>
+            </div>
+            <div></div>
+          </div>
+          <div class="opt" onclick="pickPay(this)">
+            <div class="opt-icon" style="background:linear-gradient(45deg,#1a3473,#3a5cb0)"></div>
+            <div>
+              <div class="label-title">Credit / Debit</div>
+              <div class="label-sub">Visa · Mastercard · Amex</div>
+            </div>
+            <div></div>
+          </div>
+          <div class="opt" onclick="pickPay(this)">
+            <div class="opt-icon" style="background:linear-gradient(45deg,#2f7d49,#5fa472)"></div>
+            <div>
+              <div class="label-title">ACH bank transfer</div>
+              <div class="label-sub">2–3 business days</div>
+            </div>
+            <div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      This is a reservation, not a final sale. Final weight &amp; charge are calculated after processing.
+      Refundable in full up to 21 days before drop-off — see our
+      <a href="#" style="color:var(--brand);font-weight:600">refund policy</a>.
+    </p>
+  </section>
+
+  <!-- Sticky CTA -->
+  <div class="sticky-cta">
+    <div class="recap" id="recap">
+      <span id="recap-line">½ Beef · ≈ 282 lbs take-home</span>
+      <strong id="recap-cost">≈$2,142 + processing</strong>
+    </div>
+    <button class="btn-primary" id="cta-btn" onclick="advance()">Continue →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let state = {
+  step: 1,
+  fraction: 'half',
+  quarterSide: 'mixed',
+  processor: 'Hilltop Custom Meats',
+  date: 'Thu, Jun 21',
+  deposit: '25',
+  payMethod: 'Apple Pay',
+  insurance: true
+};
+
+function showStep(n) {
+  state.step = n;
+  document.querySelectorAll('.steps-tabs button').forEach(b => b.classList.toggle('active', Number(b.dataset.step) === n));
+  ['1','2','4'].forEach(s => {
+    document.getElementById('step-' + s).classList.toggle('hidden', String(n) !== s);
+  });
+  const titles = {1:'Choose your share', 2:'Pick processor & date', 4:'Reserve your share'};
+  const metas = {1:'Step 1 of 4 · Premium Angus Steer #402', 2:'Step 2 of 4 · Drop-off date locks in', 4:'Step 4 of 4 · Confirm and pay'};
+  document.getElementById('step-title').textContent = titles[n];
+  document.getElementById('step-meta').textContent = metas[n];
+  document.getElementById('cta-btn').textContent = n === 4 ? 'Place reservation →' : 'Continue →';
+  updateRecap();
+}
+
+function selectFraction(f) {
+  if (f === 'whole') return;
+  state.fraction = f;
+  document.querySelectorAll('.fraction-card').forEach(c => c.classList.toggle('selected', c.dataset.frac === f));
+  updateRecap();
+}
+
+function selectQuarter(side) {
+  state.quarterSide = side;
+  document.querySelectorAll('.subtoggle-row button').forEach(b => b.classList.toggle('active', b.dataset.side === side));
+}
+
+function selectProcessor(el) {
+  document.querySelectorAll('.proc-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.processor = el.querySelector('.proc-name').textContent;
+  showToast('Picked ' + state.processor);
+}
+
+function pickDeposit(d) {
+  state.deposit = d;
+  document.getElementById('opt-deposit').classList.toggle('selected', d === '25');
+  document.getElementById('opt-full').classList.toggle('selected', d === 'full');
+}
+
+function pickPay(el) {
+  document.querySelectorAll('.pay-method .opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  state.payMethod = el.querySelector('.label-title').textContent;
+}
+
+function recalcTotal() {
+  // Insurance toggle change — recompute and update
+  const toggle = document.querySelector('.line .label-sub')?.parentElement?.parentElement?.querySelector('div[onclick]');
+  const isOn = !document.querySelector('.line div[onclick]')?.classList.contains('off');
+  state.insurance = isOn;
+  const total = isOn ? '$2,177.37' : '$2,134.68';
+  const dep = isOn ? '$544.34' : '$533.67';
+  document.getElementById('grand-total').textContent = total;
+  document.getElementById('full-amount').textContent = total;
+  document.getElementById('deposit-amount').textContent = dep;
+}
+
+function updateRecap() {
+  if (state.step === 1) {
+    const fracMap = {quarter:['¼ Beef · ≈ 140 lbs take-home','≈$1,134 + processing'], half:['½ Beef · ≈ 282 lbs take-home','≈$2,142 + processing']};
+    const [line, cost] = fracMap[state.fraction] || fracMap.half;
+    document.getElementById('recap-line').textContent = line;
+    document.getElementById('recap-cost').textContent = cost;
+  } else if (state.step === 2) {
+    document.getElementById('recap-line').textContent = state.processor + ' · ' + state.date;
+    document.getElementById('recap-cost').textContent = 'Locks the slot';
+  } else if (state.step === 4) {
+    const dep = document.getElementById('deposit-amount')?.textContent || '$544.34';
+    document.getElementById('recap-line').textContent = 'Due today (deposit)';
+    document.getElementById('recap-cost').textContent = state.deposit === 'full' ? document.getElementById('grand-total').textContent : dep;
+  }
+}
+
+function advance() {
+  if (state.step === 1) showStep(2);
+  else if (state.step === 2) {
+    showToast('In the real flow → Step 3 (cut sheet)');
+    setTimeout(() => showStep(4), 1200);
+  } else if (state.step === 4) {
+    showToast(state.payMethod === 'Apple Pay' ? 'Apple Pay sheet would open' : 'Stripe ' + state.payMethod + ' modal would open');
+    setTimeout(() => alert('Real flow → /reserve/.../confirmation. Stripe Payment Intent created with split routing: farmer / processor / platform / pool.'), 1200);
+  }
+}
+
+function goBack() {
+  if (state.step === 4) showStep(2);
+  else if (state.step === 2) showStep(1);
+  else alert('In real flow → back to Listing Detail.');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 1700);
+}
+
+// Initial state
+updateRecap();
+</script>
+</body>
+</html>
