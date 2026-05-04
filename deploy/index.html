@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Protein Outfitters — A whole animal, in three taps.</title>
+<meta name="description" content="Reserve a fraction of a real, named animal from a verified producer. Pick your cuts. We handle every step. Three taps." />
+<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle every step." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
+<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+
+<style>
+/* ============================================================
+   Apple/Uber-clean homepage — Verdant Monolith
+   Massive type. Generous space. Single CTA per surface.
+   ============================================================ */
+
+:root {
+  --po-headline: clamp(48px, 9vw, 128px);
+  --po-h2: clamp(36px, 5.5vw, 72px);
+  --po-lead: clamp(18px, 1.4vw, 22px);
+  --shell-pad: clamp(24px, 5vw, 80px);
+  --section-pad: clamp(80px, 12vw, 200px);
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--bg); overflow-x: hidden; }
+
+/* ---------- Sticky glass nav ---------- */
+.po-nav-wrap {
+  position: sticky; top: 0; z-index: 80;
+  background: rgba(251, 249, 245, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+.po-nav {
+  max-width: 1320px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px var(--shell-pad);
+  gap: var(--s-4);
+}
+.po-mark {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 900; font-size: 15px;
+  letter-spacing: -0.018em; text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+}
+.po-mark img { width: 24px; height: 24px; display: block; }
+.po-nav-links {
+  display: flex; gap: 28px; align-items: center;
+  font-size: 14px; font-weight: 500;
+}
+.po-nav-links a { color: var(--ink-2); text-decoration: none; transition: color .18s; }
+.po-nav-links a:hover { color: var(--ink); }
+.po-nav-actions { display: flex; gap: 10px; align-items: center; }
+.po-nav-actions .btn--primary {
+  background: var(--brand); color: #fbf9f5;
+  border-radius: 999px; padding: 9px 18px;
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  border: 0; cursor: pointer;
+  transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s;
+}
+.po-nav-actions .btn--primary:hover { transform: scale(1.04); background: #0a2614; }
+.po-nav-actions .signin {
+  font-size: 14px; font-weight: 500; color: var(--ink-2);
+  text-decoration: none;
+}
+@media (max-width: 720px) { .po-nav-links { display: none; } }
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  min-height: 92vh;
+  display: flex; align-items: center;
+  background: #1a0d08;
+  color: white;
+  overflow: hidden;
+}
+.hero-photo {
+  position: absolute; inset: 0;
+  background: url('/img/hero-pasture.jpg') center/cover no-repeat;
+  z-index: 0;
+}
+.hero-veil {
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.20) 40%, rgba(0,0,0,0.78) 100%),
+    linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 55%);
+}
+.hero-inner {
+  position: relative; z-index: 2;
+  max-width: 1320px; margin: 0 auto;
+  width: 100%;
+  padding: var(--section-pad) var(--shell-pad);
+  display: flex; flex-direction: column; gap: clamp(28px, 4vw, 48px);
+}
+.hero-eyebrow {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(255,255,255,0.72);
+}
+.hero-headline {
+  margin: 0;
+  font-size: var(--po-headline);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  font-weight: 900;
+  max-width: 16ch;
+  color: #fff;
+}
+.hero-sub {
+  margin: 0;
+  font-size: var(--po-lead);
+  line-height: 1.45;
+  max-width: 52ch;
+  color: rgba(255,255,255,0.86);
+  font-weight: 400;
+}
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* Hero AI search box (Airbnb-style) */
+.hero-search{
+  margin-top: 32px; max-width: 720px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 6px 6px 18px;
+  background: rgba(255,255,255,.96); backdrop-filter: blur(12px);
+  border-radius: 999px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.25);
+}
+.hero-search-icon{ display: inline-flex; color: #061b0e; opacity: .55; }
+.hero-search-icon svg{ width: 22px; height: 22px; }
+.hero-search input{
+  flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+  padding: 14px 8px;
+  font: 500 16px/1.4 'Inter', system-ui, sans-serif;
+  color: #061b0e;
+}
+.hero-search input::placeholder{ color: rgba(6,27,14,.45); }
+.hero-search-ai{
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-radius: 999px;
+  background: rgba(6,27,14,.06);
+  font: 700 11px/1 'Inter', system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase;
+  color: #061b0e; opacity: .65;
+}
+.hero-search-ai svg{ width: 12px; height: 12px; }
+.hero-search-btn{
+  padding: 14px 22px; border: 0; border-radius: 999px;
+  background: #061b0e; color: #fbf9f5;
+  font: 700 14px/1 'Inter', system-ui, sans-serif;
+  cursor: pointer; transition: all .2s cubic-bezier(.2,.9,.3,1.4);
+  white-space: nowrap;
+}
+.hero-search-btn:hover{ transform: scale(1.04); background: #0a2614; }
+
+.hero-search-suggest{
+  margin-top: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font: 600 12px/1 'Inter', system-ui, sans-serif;
+}
+.hssh{ color: rgba(255,255,255,.7); letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+.hero-search-suggest button{
+  background: rgba(255,255,255,.14); color: #fff;
+  border: 1px solid rgba(255,255,255,.2);
+  padding: 7px 13px; border-radius: 999px;
+  font: 600 12.5px/1 'Inter', system-ui, sans-serif;
+  cursor: pointer; transition: all .15s ease;
+  backdrop-filter: blur(8px);
+}
+.hero-search-suggest button:hover{ background: rgba(255,255,255,.24); transform: translateY(-1px); }
+
+@media (max-width: 720px){
+  .hero-search{ flex-wrap: wrap; padding: 8px; }
+  .hero-search input{ flex: 1 1 100%; padding: 8px 12px; }
+  .hero-search-icon{ display: none; }
+  .hero-search-ai{ order: 1; }
+  .hero-search-btn{ order: 2; flex: 1; }
+  .hero-search-suggest{ display: none; }
+}
+.btn-xl {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 18px 30px;
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+  border-radius: 999px;
+  border: 0; cursor: pointer;
+  transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s, color .2s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-xl--primary { background: #fbf9f5; color: var(--brand); }
+.btn-xl--primary:hover { transform: scale(1.04); background: #fff; }
+.btn-xl--ghost {
+  background: transparent; color: #fff;
+  border: 1px solid rgba(255,255,255,0.32);
+}
+.btn-xl--ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.55); }
+.btn-xl--dark { background: var(--brand); color: #fbf9f5; }
+.btn-xl--dark:hover { transform: scale(1.04); background: #0a2614; }
+
+/* Down arrow indicator at hero bottom */
+.hero-scroll {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  z-index: 3;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  text-decoration: none;
+  animation: floaty 2.4s ease-in-out infinite;
+}
+.hero-scroll::after {
+  content: '↓'; font-size: 18px; opacity: 0.7;
+}
+@keyframes floaty { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
+
+/* ---------- Section primitive ---------- */
+.section { padding: var(--section-pad) var(--shell-pad); }
+.shell { max-width: 1320px; margin: 0 auto; }
+.section-eyebrow {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-2);
+  margin: 0 0 14px;
+}
+.section-h2 {
+  font-size: var(--po-h2);
+  line-height: 0.96; letter-spacing: -0.035em;
+  font-weight: 900; margin: 0;
+  max-width: 22ch;
+  color: var(--ink);
+}
+.section-lead {
+  font-size: var(--po-lead);
+  line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 56ch;
+  margin: clamp(20px, 2vw, 28px) 0 0;
+}
+
+/* ---------- Reserve grid (Apple Card style) ---------- */
+.reserve-grid {
+  margin-top: clamp(40px, 5vw, 72px);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: clamp(20px, 2vw, 32px);
+}
+.product {
+  background: #fff;
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.2), box-shadow .35s;
+  cursor: pointer;
+  border: 0;
+  text-align: left;
+  font: inherit; color: inherit;
+  padding: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
+}
+.product:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.04);
+}
+.product-photo {
+  aspect-ratio: 4/3;
+  background-color: #1a0d08;
+  background-size: cover; background-position: center;
+  position: relative;
+}
+.product-tag {
+  position: absolute; top: 14px; left: 14px;
+  background: rgba(251, 249, 245, 0.92);
+  backdrop-filter: blur(8px);
+  color: var(--brand);
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+.product-meta {
+  padding: 24px 24px 28px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.product-eyebrow {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-2);
+}
+.product-name {
+  font-size: 22px; font-weight: 800;
+  letter-spacing: -0.022em;
+  margin: 4px 0 0;
+}
+.product-detail {
+  font-size: 14px; color: var(--ink-2);
+  line-height: 1.5;
+  margin: 0;
+}
+.product-foot {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-top: 14px;
+}
+.product-price {
+  font-size: 14px; color: var(--ink-2);
+}
+.product-price strong {
+  font-size: 18px; color: var(--ink);
+  font-weight: 800; letter-spacing: -0.01em;
+}
+.product-cta {
+  font-size: 14px; font-weight: 700;
+  color: var(--brand);
+}
+
+/* ---------- How it works ---------- */
+.how {
+  background: var(--brand);
+  color: #fbf9f5;
+}
+.how .section-eyebrow { color: rgba(251,249,245,0.55); }
+.how .section-h2 { color: #fbf9f5; }
+.how .section-lead { color: rgba(251,249,245,0.78); }
+.steps {
+  margin-top: clamp(48px, 6vw, 88px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(28px, 3vw, 56px);
+}
+.step .num {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: 0.2em;
+  color: rgba(251,249,245,0.45);
+  display: block;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(251,249,245,0.18);
+}
+.step h3 {
+  margin: 0 0 14px;
+  font-size: clamp(24px, 2.4vw, 36px);
+  letter-spacing: -0.025em;
+  font-weight: 800; line-height: 1.05;
+  color: #fbf9f5;
+}
+.step p {
+  margin: 0;
+  font-size: 16px; line-height: 1.55;
+  color: rgba(251,249,245,0.78);
+  max-width: 32ch;
+}
+
+/* ---------- Trust strip ---------- */
+.trust {
+  background: var(--surface-2);
+}
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: clamp(28px, 3vw, 48px);
+  margin-top: clamp(32px, 4vw, 56px);
+}
+.trust-item {
+  display: flex; flex-direction: column; gap: 6px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  padding-top: 24px;
+}
+.trust-num {
+  font-size: clamp(36px, 4vw, 56px);
+  font-weight: 900; letter-spacing: -0.03em;
+  color: var(--brand);
+  line-height: 1;
+}
+.trust-label {
+  font-size: 14px; line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 22ch;
+}
+
+/* ---------- Producer spotlight ---------- */
+.spotlight {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(40px, 5vw, 72px);
+  align-items: center;
+  margin-top: clamp(40px, 5vw, 72px);
+}
+@media (min-width: 900px) { .spotlight { grid-template-columns: 1.15fr 1fr; } }
+.spotlight-img {
+  aspect-ratio: 4/5;
+  background: url('/farmer.jpg') center/cover no-repeat;
+  border-radius: 28px;
+  min-height: 360px;
+}
+.spotlight-q {
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 1.15; letter-spacing: -0.025em;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+.spotlight-q::before { content: '\201C'; }
+.spotlight-q::after { content: '\201D'; }
+.spotlight-attr {
+  font-size: 14px; font-weight: 600;
+  color: var(--ink-2);
+  margin: 24px 0 0;
+}
+
+/* ---------- Closer ---------- */
+.closer {
+  background: var(--bg);
+  text-align: center;
+}
+.closer .section-h2 {
+  margin: 0 auto;
+  max-width: 18ch;
+  text-align: center;
+}
+.closer-cta { margin-top: clamp(32px, 3vw, 48px); display: flex; justify-content: center; }
+
+/* ---------- Footer ---------- */
+.po-foot {
+  padding: 56px var(--shell-pad) 80px;
+  background: var(--bg);
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.po-foot-inner {
+  max-width: 1320px; margin: 0 auto;
+  display: grid; gap: 40px;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+}
+@media (max-width: 800px) { .po-foot-inner { grid-template-columns: 1fr 1fr; } }
+.po-foot h4 {
+  font-size: 12px; font-weight: 800;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+}
+.po-foot ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.po-foot a {
+  font-size: 14px; color: var(--ink-2);
+  text-decoration: none;
+}
+.po-foot a:hover { color: var(--ink); }
+.po-foot-mark { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.po-foot-mark img { width: 28px; height: 28px; }
+.po-foot-mark span { font-weight: 900; font-size: 15px; letter-spacing: -0.018em; text-transform: uppercase; }
+.po-foot-meta { font-size: 13px; color: var(--ink-3); line-height: 1.55; }
+.po-foot-bottom {
+  max-width: 1320px; margin: 56px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  font-size: 12px; color: var(--ink-3);
+}
+
+/* ============================================================
+   Reserve sheet — slide-up modal, 3 steps
+   ============================================================ */
+.sheet-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(6, 27, 14, 0.45);
+  backdrop-filter: blur(8px);
+  opacity: 0; pointer-events: none;
+  transition: opacity .35s ease;
+}
+.sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 101;
+  background: var(--bg);
+  border-top-left-radius: 32px; border-top-right-radius: 32px;
+  max-height: 92vh;
+  display: flex; flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .42s cubic-bezier(.2,.9,.3,1.05);
+  box-shadow: 0 -32px 64px rgba(6,27,14,0.18);
+}
+.sheet.open { transform: translateY(0); }
+@media (min-width: 900px) {
+  .sheet {
+    left: 50%; right: auto; bottom: 24px;
+    transform: translateX(-50%) translateY(120%);
+    width: min(640px, calc(100vw - 48px));
+    border-radius: 28px;
+    max-height: min(86vh, 820px);
+  }
+  .sheet.open { transform: translateX(-50%) translateY(0); }
+}
+
+.sheet-grip {
+  width: 36px; height: 4px;
+  background: var(--surface-2);
+  border-radius: 99px;
+  margin: 12px auto 0;
+}
+@media (min-width: 900px) { .sheet-grip { display: none; } }
+
+.sheet-head {
+  padding: 18px 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.sheet-progress { display: flex; gap: 8px; align-items: center; }
+.sheet-progress .dot {
+  width: 26px; height: 4px; border-radius: 99px;
+  background: var(--surface-2);
+  transition: background .28s, width .28s;
+}
+.sheet-progress .dot.active { background: var(--brand); width: 36px; }
+.sheet-progress .dot.done { background: var(--brand); }
+.sheet-close {
+  width: 36px; height: 36px;
+  border: 0; background: var(--surface-2);
+  border-radius: 50%; cursor: pointer;
+  font-size: 18px; line-height: 1;
+  color: var(--ink-2);
+  display: grid; place-items: center;
+  transition: background .2s;
+}
+.sheet-close:hover { background: rgba(0,0,0,0.06); }
+
+.sheet-body {
+  flex: 1; overflow-y: auto;
+  padding: 32px 24px 24px;
+}
+@media (min-width: 600px) { .sheet-body { padding: 40px 36px 28px; } }
+
+.sheet-context {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px;
+  background: var(--surface);
+  border-radius: 18px;
+  margin-bottom: 28px;
+}
+.sheet-context-img {
+  width: 56px; height: 56px; border-radius: 12px;
+  background-size: cover; background-position: center;
+  flex-shrink: 0;
+}
+.sheet-context-text { flex: 1; min-width: 0; }
+.sheet-context-name {
+  font-size: 15px; font-weight: 800;
+  letter-spacing: -0.018em; color: var(--ink);
+  margin: 0;
+}
+.sheet-context-sub {
+  font-size: 13px; color: var(--ink-2);
+  margin: 2px 0 0;
+}
+
+.sheet-q {
+  font-size: clamp(26px, 3.2vw, 36px);
+  letter-spacing: -0.028em;
+  font-weight: 800; line-height: 1.1;
+  margin: 0 0 24px;
+  color: var(--ink);
+}
+
+/* Share size options */
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex; align-items: center; gap: 16px;
+  cursor: pointer; text-align: left;
+  font: inherit; color: inherit;
+  transition: border-color .2s, background .2s, transform .2s;
+}
+.option:hover { border-color: rgba(6,27,14,0.32); }
+.option.selected { border-color: var(--brand); background: var(--accent-soft); }
+.option-glyph {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: var(--brand); color: #fbf9f5;
+  display: grid; place-items: center;
+  font-size: 28px; font-weight: 900; letter-spacing: -0.04em;
+  flex-shrink: 0;
+}
+.option-text { flex: 1; min-width: 0; }
+.option-title { font-size: 16px; font-weight: 700; letter-spacing: -0.018em; margin: 0; }
+.option-sub { font-size: 13px; color: var(--ink-2); margin: 2px 0 0; }
+.option-price { font-size: 17px; font-weight: 800; letter-spacing: -0.018em; }
+
+/* Order summary */
+.summary {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.summary-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-2); }
+.summary-row.total {
+  border-top: 1px solid rgba(0,0,0,0.08);
+  padding-top: 12px; margin-top: 8px;
+  font-size: 16px; font-weight: 800; color: var(--ink);
+}
+.summary-row .v { color: var(--ink); }
+
+/* Pay buttons */
+.pay-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.btn-pay {
+  width: 100%;
+  padding: 16px 22px;
+  border-radius: 14px;
+  border: 0; cursor: pointer;
+  font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: transform .2s, background .2s;
+}
+.btn-pay:hover { transform: translateY(-1px); }
+.btn-pay--apple { background: #000; color: #fff; }
+.btn-pay--card { background: var(--brand); color: #fbf9f5; }
+.btn-pay--card:hover { background: #0a2614; }
+.btn-pay-glyph {
+  font-size: 17px; line-height: 1; transform: translateY(-1px);
+}
+
+/* Sheet footer (sticky next/back) */
+.sheet-foot {
+  border-top: 1px solid rgba(0,0,0,0.06);
+  padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  background: var(--bg);
+}
+.sheet-back {
+  background: transparent; border: 0;
+  padding: 12px 16px; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: var(--ink-2);
+  border-radius: 999px;
+}
+.sheet-back:disabled { opacity: 0; pointer-events: none; }
+.sheet-back:hover:not(:disabled) { color: var(--ink); }
+.sheet-next {
+  background: var(--brand); color: #fbf9f5;
+  border: 0; cursor: pointer;
+  padding: 13px 26px;
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  border-radius: 999px;
+  transition: transform .2s, background .2s, opacity .2s;
+}
+.sheet-next:disabled { opacity: 0.4; cursor: not-allowed; }
+.sheet-next:hover:not(:disabled) { transform: scale(1.04); background: #0a2614; }
+
+/* Confirmation step */
+.confirm {
+  text-align: center;
+  padding: 24px 0 12px;
+}
+.confirm-mark {
+  width: 84px; height: 84px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--brand);
+  display: grid; place-items: center;
+  margin: 0 auto 20px;
+  font-size: 38px;
+}
+.confirm h3 {
+  font-size: clamp(26px, 3vw, 32px);
+  letter-spacing: -0.025em;
+  margin: 0 0 8px;
+  font-weight: 800;
+}
+.confirm p {
+  font-size: 15px; color: var(--ink-2);
+  line-height: 1.55; margin: 0;
+  max-width: 38ch; margin-left: auto; margin-right: auto;
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark">
+      <img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">
+      Protein Outfitters
+    </a>
+    <div class="po-nav-links">
+      <a href="#reserve">Reserve</a>
+      <a href="#how">How it works</a>
+      <a href="/producers">Producers</a>
+      <a href="/hardware">Hardware</a>
+    </div>
+    <div class="po-nav-actions">
+      <a href="/account" class="signin">Sign in</a>
+      <button class="btn--primary" data-open-sheet>Reserve</button>
+    </div>
+  </nav>
+</div>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-photo" aria-hidden="true"></div>
+  <div class="hero-veil" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <span class="hero-eyebrow">Now reserving · MN · WI · ND · SD</span>
+    <h1 class="hero-headline">A whole animal,<br>in three taps.</h1>
+    <p class="hero-sub">Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle every step from drop-off to driveway.</p>
+    <div class="hero-cta">
+      <button class="btn-xl btn-xl--primary" data-open-sheet>Reserve →</button>
+      <a href="#how" class="btn-xl btn-xl--ghost">How it works</a>
+    </div>
+
+    <!-- Airbnb-style natural-language search -->
+    <form class="hero-search" id="heroSearch" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
+      <span class="hero-search-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
+      </span>
+      <input name="q" type="text" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"' />
+      <span class="hero-search-ai">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>
+        AI
+      </span>
+      <button type="submit" class="hero-search-btn">Find →</button>
+    </form>
+    <div class="hero-search-suggest">
+      <span class="hssh">Popular:</span>
+      <button type="button" data-q="grass-fed beef under $8 within 100 miles">Grass-fed beef &lt;$8</button>
+      <button type="button" data-q="heritage hog pasture-raised">Heritage hog</button>
+      <button type="button" data-q="USDA organic lamb">Organic lamb</button>
+      <button type="button" data-q="veteran-owned beef regenerative">Veteran-owned regenerative</button>
+    </div>
+  </div>
+  <a href="#reserve" class="hero-scroll">Browse</a>
+</section>
+<script>
+  document.querySelectorAll('.hero-search-suggest button').forEach(b => {
+    b.addEventListener('click', () => { window.location = '/discover?q=' + encodeURIComponent(b.dataset.q); });
+  });
+</script>
+
+<!-- ============ RESERVE GRID ============ -->
+<section class="section" id="reserve">
+  <div class="shell">
+    <span class="section-eyebrow">Available now</span>
+    <h2 class="section-h2">Six animals.<br>One simple flow.</h2>
+    <p class="section-lead">Each listing is a real animal on a real farm. Browse, tap, reserve — the rest is handled.</p>
+
+    <div class="reserve-grid">
+      <button class="product" data-open-sheet
+        data-animal="2641" data-name="#2641 · Black Angus steer"
+        data-producer="Northfield Pastures · Bemidji, MN"
+        data-photo="/angus.jpg"
+        data-price-q="1395" data-price-h="2690" data-price-w="5180">
+        <div class="product-photo" style="background-image: url('/angus.jpg');">
+          <span class="product-tag">Reserving</span>
+        </div>
+        <div class="product-meta">
+          <span class="product-eyebrow">Beef · Grass-fed</span>
+          <h3 class="product-name">#2641 — Black Angus steer</h3>
+          <p class="product-detail">Northfield Pastures · 1,180 lb live · Harvest May 28</p>
+          <div class="product-foot">
+            <span class="product-price">From <strong>$1,395</strong></span>
+            <span class="product-cta">Reserve →</span>
+          </div>
+        </div>
+      </button>
+
+      <button class="product" data-open-sheet
+        data-animal="2702" data-name="#2702 · Hereford heifer"
+        data-producer="Crow Wing Cattle Co · Brainerd, MN"
+        data-photo="/hereford.jpg"
+        data-price-q="1280" data-price-h="2470" data-price-w="4760">
+        <div class="product-photo" style="background-image: url('/hereford.jpg');">
+          <span class="product-tag">Reserving</span>
+        </div>
+        <div class="product-meta">
+          <span class="product-eyebrow">Beef · Grass-finished</span>
+          <h3 class="product-name">#2702 — Hereford heifer</h3>
+          <p class="product-detail">Crow Wing Cattle Co · 980 lb live · Harvest June 4</p>
+          <div class="product-foot">
+            <span class="product-price">From <strong>$1,280</strong></span>
+            <span class="product-cta">Reserve →</span>
+          </div>
+        </div>
+      </button>
+
+      <button class="product" data-open-sheet
+        data-animal="W04" data-name="Wagyu × Angus, half"
+        data-producer="Northern Lights Wagyu · Park Rapids, MN"
+        data-photo="/wagyu.jpg"
+        data-price-q="2880" data-price-h="5500" data-price-w="0">
+        <div class="product-photo" style="background-image: url('/wagyu.jpg');">
+          <span class="product-tag">Limited</span>
+        </div>
+        <div class="product-meta">
+          <span class="product-eyebrow">Beef · Wagyu cross</span>
+          <h3 class="product-name">Wagyu × Angus, halves only</h3>
+          <p class="product-detail">Northern Lights Wagyu · 1,420 lb live · Harvest June 11</p>
+          <div class="product-foot">
+            <span class="product-price">Half from <strong>$5,500</strong></span>
+            <span class="product-cta">Reserve →</span>
+          </div>
+        </div>
+      </button>
+
+      <button class="product" data-open-sheet
+        data-animal="H114" data-name="Berkshire hog"
+        data-producer="Mississippi Headwaters Farm · Bemidji, MN"
+        data-photo="/hog.jpg"
+        data-price-q="395" data-price-h="725" data-price-w="1380">
+        <div class="product-photo" style="background-image: url('/hog.jpg');">
+          <span class="product-tag">Reserving</span>
+        </div>
+        <div class="product-meta">
+          <span class="product-eyebrow">Pork · Heritage</span>
+          <h3 class="product-name">Berkshire hog · 280 lb</h3>
+          <p class="product-detail">Mississippi Headwaters Farm · Harvest May 22</p>
+          <div class="product-foot">
+            <span class="product-price">From <strong>$395</strong></span>
+            <span class="product-cta">Reserve →</span>
+          </div>
+        </div>
+      </button>
+
+      <button class="product" data-open-sheet
+        data-animal="L08" data-name="Katahdin lamb"
+        data-producer="Boreal Pastures · Cass Lake, MN"
+        data-photo="/lamb.jpg"
+        data-price-q="0" data-price-h="385" data-price-w="720">
+        <div class="product-photo" style="background-image: url('/lamb.jpg');">
+          <span class="product-tag">Reserving</span>
+        </div>
+        <div class="product-meta">
+          <span class="product-eyebrow">Lamb · Pasture-raised</span>
+          <h3 class="product-name">Katahdin lamb · 105 lb</h3>
+          <p class="product-detail">Boreal Pastures · Harvest June 1</p>
+          <div class="product-foot">
+            <span class="product-price">Half from <strong>$385</strong></span>
+            <span class="product-cta">Reserve →</span>
+          </div>
+        </div>
+      </button>
+
+      <button class="product" data-open-sheet
+        data-animal="V03" data-name="Wild venison share"
+        data-producer="Itasca Wilds · Grand Rapids, MN"
+        data-photo="/venison.jpg"
+        data-price-q="0" data-price-h="540" data-price-w="0">
+        <div class="product-photo" style="background-image: url('/venison.jpg');">
+          <span class="product-tag">Wait list</span>
+        </div>
+        <div class="product-meta">
+          <span class="product-eyebrow">Venison · Wild-harvested</span>
+          <h3 class="product-name">Whitetail venison share</h3>
+          <p class="product-detail">Itasca Wilds · Fall 2026 harvest</p>
+          <div class="product-foot">
+            <span class="product-price">Share from <strong>$540</strong></span>
+            <span class="product-cta">Join waitlist →</span>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section how" id="how">
+  <div class="shell">
+    <span class="section-eyebrow">How it works</span>
+    <h2 class="section-h2">Three taps. Then three weeks.</h2>
+    <p class="section-lead">No phone tag. No paper cut sheets. No mystery beef. The whole thing happens through a single page on your phone.</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="num">01 · Reserve</span>
+        <h3>Pick your share.</h3>
+        <p>Quarter, half, or whole. From a producer you can verify, on a farm you can visit.</p>
+      </div>
+      <div class="step">
+        <span class="num">02 · Tailor</span>
+        <h3>Tell the processor how you want it cut.</h3>
+        <p>Steaks vs. roasts. Patty thickness. Bones for stock. Five minutes, in your account.</p>
+      </div>
+      <div class="step">
+        <span class="num">03 · Pick up</span>
+        <h3>Walk in. Scan. Walk out.</h3>
+        <p>We tell you when it's ready. Bring a cooler. Your freezer fills up that afternoon.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRUST ============ -->
+<section class="section trust">
+  <div class="shell">
+    <span class="section-eyebrow">Built right</span>
+    <h2 class="section-h2">Inspected. Insured. Inevitable.</h2>
+
+    <div class="trust-grid">
+      <div class="trust-item">
+        <span class="trust-num">USDA</span>
+        <span class="trust-label">Every animal processed at a federally inspected plant.</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-num">21 days</span>
+        <span class="trust-label">Free cancellation. Full refund. Up until harvest.</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-num">$2M</span>
+        <span class="trust-label">Insurance pool backstop on every reservation.</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-num">4 states</span>
+        <span class="trust-label">Live in Minnesota, Wisconsin, North Dakota, South Dakota.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRODUCER SPOTLIGHT ============ -->
+<section class="section">
+  <div class="shell">
+    <span class="section-eyebrow">From the farm</span>
+    <h2 class="section-h2">Every animal has a name.<br>And so does the rancher.</h2>
+
+    <div class="spotlight">
+      <div class="spotlight-img" role="img" aria-label="Rancher walking the pasture at dawn"></div>
+      <div>
+        <p class="spotlight-q">For two decades I've been telling families exactly which animal they're buying. Protein Outfitters is finally a tool that lets me say it at scale.</p>
+        <p class="spotlight-attr">Mychal Stittsworth · Founder, Stittsworth Meats · Bemidji, MN</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLOSER ============ -->
+<section class="section closer">
+  <div class="shell">
+    <span class="section-eyebrow">The freezer is open</span>
+    <h2 class="section-h2">Reserve your animal today.</h2>
+    <div class="closer-cta">
+      <button class="btn-xl btn-xl--dark" data-open-sheet>Reserve now →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="po-foot">
+  <div class="po-foot-inner">
+    <div>
+      <div class="po-foot-mark">
+        <img src="/brand/logo-monogram.svg" alt="">
+        <span>Protein Outfitters</span>
+      </div>
+      <p class="po-foot-meta">A whole animal, in three taps.<br>By Stittsworth Meats · Bemidji, MN.</p>
+    </div>
+    <div>
+      <h4>Marketplace</h4>
+      <ul>
+        <li><a href="/discover">Discover</a></li>
+        <li><a href="/producers">Producers</a></li>
+        <li><a href="/map">Farm map</a></li>
+        <li><a href="/hardware">Hardware</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For partners</h4>
+      <ul>
+        <li><a href="/farmer">Producer dashboard</a></li>
+        <li><a href="/processor">Processor portal</a></li>
+        <li><a href="/processor-saas">Processor pricing</a></li>
+        <li><a href="/donation-flow">Producer Partnership</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <ul>
+        <li><a href="/account">Account</a></li>
+        <li><a href="/screens">All screens</a></li>
+        <li><a href="/brand">Brand</a></li>
+        <li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="po-foot-bottom">
+    <span>© 2026 Protein Outfitters. All rights reserved.</span>
+    <span>Built in Bemidji, MN.</span>
+  </div>
+</footer>
+
+<!-- ============ RESERVE SHEET ============ -->
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+<aside class="sheet" id="sheet" aria-hidden="true" aria-label="Reserve">
+  <div class="sheet-grip" aria-hidden="true"></div>
+  <header class="sheet-head">
+    <div class="sheet-progress" aria-hidden="true">
+      <span class="dot active" data-dot="1"></span>
+      <span class="dot" data-dot="2"></span>
+      <span class="dot" data-dot="3"></span>
+    </div>
+    <button class="sheet-close" id="sheetClose" aria-label="Close">✕</button>
+  </header>
+
+  <div class="sheet-body">
+    <div class="sheet-context" id="sheetContext">
+      <div class="sheet-context-img" id="sheetContextImg"></div>
+      <div class="sheet-context-text">
+        <p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p>
+        <p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p>
+      </div>
+    </div>
+
+    <!-- Step 1: share size -->
+    <section class="sheet-step" data-step="1">
+      <h3 class="sheet-q">Pick your share.</h3>
+      <div class="options" id="shareOptions"></div>
+    </section>
+
+    <!-- Step 2: processor -->
+    <section class="sheet-step" data-step="2" hidden>
+      <h3 class="sheet-q">Where will you pick up?</h3>
+      <div class="options">
+        <button class="option" data-processor="04">
+          <span class="option-glyph">04</span>
+          <span class="option-text">
+            <span class="option-title">Plant 04 · Bemidji, MN</span>
+            <span class="option-sub">12 mi · Suggested · Pickup window: 8 AM – 5 PM</span>
+          </span>
+          <span class="option-price">Free</span>
+        </button>
+        <button class="option" data-processor="17">
+          <span class="option-glyph">17</span>
+          <span class="option-text">
+            <span class="option-title">Plant 17 · Cass Lake, MN</span>
+            <span class="option-sub">38 mi · Pickup window: 7 AM – 4 PM</span>
+          </span>
+          <span class="option-price">Free</span>
+        </button>
+        <button class="option" data-processor="22">
+          <span class="option-glyph">22</span>
+          <span class="option-text">
+            <span class="option-title">Plant 22 · Brainerd, MN</span>
+            <span class="option-sub">62 mi · Pickup window: 8 AM – 6 PM</span>
+          </span>
+          <span class="option-price">Free</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Step 3: pay -->
+    <section class="sheet-step" data-step="3" hidden>
+      <h3 class="sheet-q">Reserve it.</h3>
+      <div class="summary" id="paySummary">
+        <div class="summary-row"><span id="sumShareLabel">Share</span><span class="v" id="sumShareVal">$0</span></div>
+        <div class="summary-row"><span>Processing fee</span><span class="v">$225</span></div>
+        <div class="summary-row"><span>Insurance pool</span><span class="v">$18</span></div>
+        <div class="summary-row total"><span>Reserve today</span><span class="v" id="sumTotalVal">$0</span></div>
+      </div>
+      <div class="pay-stack">
+        <button class="btn-pay btn-pay--apple" id="payApple"><span class="btn-pay-glyph"></span> Pay</button>
+        <button class="btn-pay btn-pay--card" id="payCard">Reserve with card →</button>
+      </div>
+      <p style="font-size:12px;color:var(--ink-3);text-align:center;margin:14px 0 0;line-height:1.5;">Free cancellation up to 21 days before harvest. We'll email your cut sheet within 24 hours.</p>
+    </section>
+
+    <!-- Step 4: confirmation -->
+    <section class="sheet-step" data-step="4" hidden>
+      <div class="confirm">
+        <div class="confirm-mark">✓</div>
+        <h3 id="confirmTitle">Reserved.</h3>
+        <p id="confirmBody">We just sent your reservation details and your cut sheet builder. Build it whenever, we'll remind you.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer class="sheet-foot">
+    <button class="sheet-back" id="sheetBack" disabled>← Back</button>
+    <button class="sheet-next" id="sheetNext" disabled>Continue →</button>
+  </footer>
+</aside>
+
+<script>
+(function () {
+  'use strict';
+
+  const sheet = document.getElementById('sheet');
+  const backdrop = document.getElementById('sheetBackdrop');
+  const closeBtn = document.getElementById('sheetClose');
+  const backBtn = document.getElementById('sheetBack');
+  const nextBtn = document.getElementById('sheetNext');
+  const dots = sheet.querySelectorAll('.dot');
+  const steps = sheet.querySelectorAll('.sheet-step');
+  const ctxImg = document.getElementById('sheetContextImg');
+  const ctxName = document.getElementById('sheetContextName');
+  const ctxSub = document.getElementById('sheetContextSub');
+  const shareWrap = document.getElementById('shareOptions');
+  const sumShareLabel = document.getElementById('sumShareLabel');
+  const sumShareVal = document.getElementById('sumShareVal');
+  const sumTotalVal = document.getElementById('sumTotalVal');
+  const confirmTitle = document.getElementById('confirmTitle');
+  const confirmBody = document.getElementById('confirmBody');
+
+  let state = { step: 1, animal: null, share: null, processor: null };
+
+  function fmt(n) { return '$' + Number(n).toLocaleString(); }
+
+  function buildShareOptions() {
+    const a = state.animal;
+    if (!a) return;
+    const opts = [
+      { key: 'q', glyph: '¼', title: 'Quarter share', sub: '~110 lb of cuts · fits a 7 cu ft freezer', price: a.priceQ },
+      { key: 'h', glyph: '½', title: 'Half share',    sub: '~220 lb of cuts · fits a 14 cu ft freezer', price: a.priceH },
+      { key: 'w', glyph: '1', title: 'Whole animal',  sub: '~440 lb of cuts · for serious operators',  price: a.priceW }
+    ].filter(o => o.price > 0);
+
+    shareWrap.innerHTML = opts.map(o => `
+      <button class="option" data-share="${o.key}" data-price="${o.price}">
+        <span class="option-glyph">${o.glyph}</span>
+        <span class="option-text">
+          <span class="option-title">${o.title}</span>
+          <span class="option-sub">${o.sub}</span>
+        </span>
+        <span class="option-price">${fmt(o.price)}</span>
+      </button>`).join('');
+
+    shareWrap.querySelectorAll('.option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        shareWrap.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        state.share = { key: btn.dataset.share, price: Number(btn.dataset.price) };
+        nextBtn.disabled = false;
+      });
+    });
+  }
+
+  document.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sheet.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.processor = btn.dataset.processor;
+      nextBtn.disabled = false;
+    });
+  });
+
+  function setStep(n) {
+    state.step = n;
+    steps.forEach(s => { s.hidden = Number(s.dataset.step) !== n; });
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === n - 1);
+      d.classList.toggle('done', i < n - 1);
+    });
+    backBtn.disabled = n === 1 || n === 4;
+
+    if (n === 4) {
+      nextBtn.style.visibility = 'hidden';
+      backBtn.style.visibility = 'hidden';
+    } else {
+      nextBtn.style.visibility = 'visible';
+      backBtn.style.visibility = 'visible';
+      // Enabled state per step
+      if (n === 1) nextBtn.disabled = !state.share;
+      if (n === 2) nextBtn.disabled = !state.processor;
+      if (n === 3) nextBtn.disabled = false;
+      if (n === 3) nextBtn.textContent = 'Reserve →';
+      else nextBtn.textContent = 'Continue →';
+    }
+
+    if (n === 3 && state.share) {
+      sumShareLabel.textContent = (state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole') + ' share';
+      sumShareVal.textContent = fmt(state.share.price);
+      sumTotalVal.textContent = fmt(state.share.price + 225 + 18);
+    }
+  }
+
+  function open(a) {
+    if (a) {
+      state.animal = a;
+      ctxImg.style.backgroundImage = `url('${a.photo}')`;
+      ctxName.textContent = a.name;
+      ctxSub.textContent = a.producer;
+    } else {
+      // No animal: jump to listings, close
+      backdrop.classList.add('open');
+      sheet.classList.add('open');
+      sheet.setAttribute('aria-hidden', 'false');
+      setTimeout(() => {
+        document.querySelector('#reserve').scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+      return;
+    }
+    state.share = null; state.processor = null;
+    shareWrap.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+    sheet.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(b => b.classList.remove('selected'));
+    buildShareOptions();
+    setStep(1);
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+    sheet.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    backdrop.classList.remove('open');
+    sheet.classList.remove('open');
+    sheet.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  // Wire buttons
+  document.querySelectorAll('[data-open-sheet]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const card = e.currentTarget;
+      if (card.dataset.animal) {
+        open({
+          id: card.dataset.animal,
+          name: card.dataset.name,
+          producer: card.dataset.producer,
+          photo: card.dataset.photo,
+          priceQ: Number(card.dataset.priceQ || 0),
+          priceH: Number(card.dataset.priceH || 0),
+          priceW: Number(card.dataset.priceW || 0)
+        });
+      } else {
+        // Open with placeholder — first card
+        const first = document.querySelector('.product');
+        if (first) {
+          open({
+            id: first.dataset.animal,
+            name: first.dataset.name,
+            producer: first.dataset.producer,
+            photo: first.dataset.photo,
+            priceQ: Number(first.dataset.priceQ || 0),
+            priceH: Number(first.dataset.priceH || 0),
+            priceW: Number(first.dataset.priceW || 0)
+          });
+        }
+      }
+    });
+  });
+
+  closeBtn.addEventListener('click', close);
+  backdrop.addEventListener('click', close);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  backBtn.addEventListener('click', () => {
+    if (state.step > 1) setStep(state.step - 1);
+  });
+  nextBtn.addEventListener('click', () => {
+    if (state.step < 3) setStep(state.step + 1);
+    else if (state.step === 3) {
+      confirmTitle.textContent = 'Reserved.';
+      confirmBody.textContent = `We just held the ${state.share.key === 'q' ? 'quarter' : state.share.key === 'h' ? 'half' : 'whole'} share of ${state.animal.name.replace(/^#?\d+\s·\s/, '')} for you. Cut sheet builder is in your inbox.`;
+      setStep(4);
+    }
+  });
+
+  document.getElementById('payApple').addEventListener('click', () => nextBtn.click());
+  document.getElementById('payCard').addEventListener('click', () => nextBtn.click());
+})();
+</script>
+
+</body>
+</html>

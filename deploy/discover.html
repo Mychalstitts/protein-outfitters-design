@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Discover · Protein Outfitters</title>
+  <meta name="description" content="Find pasture-raised cattle, hogs, lamb, and poultry from real farms. Filter by certifications, location, finish date, and more — like Airbnb for the meat marketplace." />
+  <link rel="icon" type="image/svg+xml" href="/brand/po-favicon.svg" />
+  <meta property="og:title" content="Discover · Protein Outfitters" />
+  <meta property="og:description" content="Filter the marketplace by species, breed, certifications, location, and price. Smart natural-language search powered by AI." />
+  <meta property="og:image" content="/img/hero-pasture.jpg" />
+  <link rel="stylesheet" href="/po-shell.css" />
+  <style>
+    :root{
+      --rail-w: 320px;
+      --filter-bg: #fff;
+      --filter-border: rgba(6,27,14,.08);
+      --chip-bg: rgba(6,27,14,.06);
+    }
+    body{ background: var(--parchment); }
+
+    .discover-search{
+      position: sticky; top: 0; z-index: 40;
+      background: rgba(251,249,245,.92);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--filter-border);
+      padding: 14px var(--shell-pad);
+    }
+    .ds-bar{ max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; }
+    .ds-input-wrap{ position: relative; background: #fff; border: 1px solid var(--filter-border); border-radius: 999px; padding: 10px 18px 10px 50px; transition: all .2s var(--ease-spring); }
+    .ds-input-wrap:focus-within{ border-color: var(--ink); box-shadow: 0 0 0 4px rgba(6,27,14,.06); }
+    .ds-input-wrap .ico-search{ position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; color: var(--ink); opacity: .55; }
+    .ds-input{ width: 100%; border: 0; background: transparent; outline: none; font: 500 16px/1.4 var(--ff-sans); color: var(--ink); }
+    .ds-input::placeholder{ color: rgba(6,27,14,.45); }
+    .ds-ai-badge{ position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 5px; font: 700 10px/1 var(--ff-sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink); opacity: .55; padding: 5px 9px; background: rgba(6,27,14,.05); border-radius: 999px; }
+    .ds-ai-badge svg{ width: 12px; height: 12px; }
+    .ds-go-btn{ background: var(--ink); color: var(--parchment); border: 0; border-radius: 999px; padding: 12px 22px; font: 700 14px/1 var(--ff-sans); cursor: pointer; transition: all .2s var(--ease-spring); }
+    .ds-go-btn:hover{ transform: translateY(-1px) scale(1.025); box-shadow: 0 8px 20px rgba(6,27,14,.18); }
+    .ds-view-toggle{ display: flex; background: #fff; border: 1px solid var(--filter-border); border-radius: 999px; padding: 3px; }
+    .ds-view-btn{ border: 0; background: transparent; padding: 8px 14px; border-radius: 999px; font: 600 13px/1 var(--ff-sans); color: var(--ink); cursor: pointer; opacity: .55; display: inline-flex; align-items: center; gap: 6px; transition: all .15s ease; }
+    .ds-view-btn svg{ width: 14px; height: 14px; }
+    .ds-view-btn.active{ background: var(--ink); color: var(--parchment); opacity: 1; }
+
+    .discover-layout{ display: grid; grid-template-columns: var(--rail-w) 1fr; gap: 32px; max-width: 1500px; margin: 0 auto; padding: 24px var(--shell-pad) 80px; }
+    .filter-rail{ position: sticky; top: 88px; align-self: start; max-height: calc(100vh - 110px); overflow-y: auto; padding-right: 8px; }
+    .filter-rail::-webkit-scrollbar{ width: 6px; }
+    .filter-rail::-webkit-scrollbar-thumb{ background: rgba(6,27,14,.12); border-radius: 3px; }
+    .fr-header{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--filter-border); }
+    .fr-title{ font: 700 18px/1.2 var(--ff-sans); }
+    .fr-clear{ border: 0; background: transparent; color: var(--ink); opacity: .55; font: 600 12px/1 var(--ff-sans); text-decoration: underline; cursor: pointer; }
+    .fr-clear:hover{ opacity: 1; }
+    .fr-section{ margin-bottom: 20px; }
+    .fr-section h4{ font: 700 11px/1 var(--ff-sans); letter-spacing: .14em; text-transform: uppercase; margin: 0 0 10px; opacity: .65; }
+    .fr-chips{ display: flex; flex-wrap: wrap; gap: 6px; }
+    .fr-chip{ display: inline-flex; align-items: center; gap: 5px; padding: 7px 11px; border-radius: 999px; background: var(--chip-bg); border: 1px solid transparent; font: 600 12.5px/1 var(--ff-sans); color: var(--ink); cursor: pointer; user-select: none; transition: all .15s var(--ease-spring); }
+    .fr-chip svg{ width: 12px; height: 12px; }
+    .fr-chip:hover{ background: rgba(6,27,14,.1); transform: translateY(-1px); }
+    .fr-chip.active{ background: var(--ink); color: var(--parchment); }
+    .fr-range{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .fr-range input{ width: 100%; border: 1px solid var(--filter-border); border-radius: 8px; padding: 9px 12px; font: 500 13px/1 var(--ff-sans); color: var(--ink); background: #fff; }
+    .fr-range input:focus{ outline: none; border-color: var(--ink); }
+    .fr-slider{ width: 100%; appearance: none; height: 4px; background: rgba(6,27,14,.15); border-radius: 2px; }
+    .fr-slider::-webkit-slider-thumb{ appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); cursor: pointer; box-shadow: 0 2px 6px rgba(6,27,14,.25); }
+    .fr-slider-label{ display: flex; justify-content: space-between; font: 600 11px/1 var(--ff-sans); margin-top: 6px; opacity: .6; }
+    .fr-toggle{ display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--chip-bg); border-radius: 10px; cursor: pointer; user-select: none; font: 600 13px/1.3 var(--ff-sans); }
+    .fr-toggle .switch{ width: 36px; height: 20px; background: rgba(6,27,14,.2); border-radius: 999px; position: relative; transition: background .2s ease; }
+    .fr-toggle .switch::after{ content: ''; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform .2s var(--ease-spring); box-shadow: 0 2px 4px rgba(6,27,14,.2); }
+    .fr-toggle.on .switch{ background: var(--ink); }
+    .fr-toggle.on .switch::after{ transform: translateX(16px); }
+
+    .results-head{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .results-count{ font: 700 22px/1.2 var(--ff-sans); }
+    .results-count em{ opacity: .55; font-weight: 500; font-style: normal; }
+    .sort-select{ background: #fff; border: 1px solid var(--filter-border); border-radius: 999px; padding: 9px 16px; font: 600 13px/1 var(--ff-sans); color: var(--ink); cursor: pointer; }
+    .sort-select:focus{ outline: none; border-color: var(--ink); }
+
+    .listing-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+    .listing-card{ background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--filter-border); transition: all .25s var(--ease-spring); cursor: pointer; display: flex; flex-direction: column; }
+    .listing-card:hover{ transform: translateY(-4px); box-shadow: 0 16px 40px rgba(6,27,14,.12); }
+    .lc-photo-wrap{ position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--chip-bg); }
+    .lc-photo{ width: 100%; height: 100%; object-fit: cover; transition: transform .4s var(--ease-spring); }
+    .listing-card:hover .lc-photo{ transform: scale(1.04); }
+    .lc-heart{ position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.9); border: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s var(--ease-spring); backdrop-filter: blur(8px); }
+    .lc-heart svg{ width: 18px; height: 18px; color: var(--ink); }
+    .lc-heart:hover{ transform: scale(1.1); background: #fff; }
+    .lc-heart.saved svg{ color: #c2415a; fill: #c2415a; }
+    .lc-badges{ position: absolute; top: 12px; left: 12px; display: flex; flex-wrap: wrap; gap: 5px; max-width: calc(100% - 60px); }
+    .lc-badge{ background: rgba(255,255,255,.92); backdrop-filter: blur(8px); padding: 4px 9px; border-radius: 999px; font: 700 10px/1 var(--ff-sans); letter-spacing: .04em; color: var(--ink); display: inline-flex; align-items: center; gap: 3px; }
+    .lc-badge svg{ width: 10px; height: 10px; }
+    .lc-badge.organic{ background: rgba(125,160,93,.95); color: #fff; }
+    .lc-badge.usda{ background: rgba(193,53,55,.95); color: #fff; }
+    .lc-body{ padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .lc-row1{ display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .lc-name{ font: 700 16px/1.25 var(--ff-sans); color: var(--ink); }
+    .lc-price{ font: 700 16px/1 var(--ff-sans); color: var(--ink); white-space: nowrap; }
+    .lc-price em{ font-weight: 500; font-style: normal; opacity: .55; font-size: 12px; }
+    .lc-farm{ font: 500 12.5px/1.3 var(--ff-sans); opacity: .6; }
+    .lc-farm a{ color: inherit; text-decoration: none; }
+    .lc-farm a:hover{ text-decoration: underline; }
+    .lc-meta{ display: flex; gap: 12px; font: 500 12px/1 var(--ff-sans); opacity: .65; margin-top: 4px; }
+    .lc-meta span{ display: inline-flex; align-items: center; gap: 4px; }
+    .lc-meta svg{ width: 12px; height: 12px; }
+
+    .map-pane{ display: none; background: #e8eee5; border-radius: 16px; overflow: hidden; min-height: 600px; position: relative; }
+    .map-pane.active{ display: block; }
+    .listing-grid.hidden{ display: none; }
+    .map-placeholder{ position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--ink); opacity: .65; background-image: radial-gradient(circle at 20% 30%, rgba(125,160,93,.25) 0%, transparent 50%), radial-gradient(circle at 75% 60%, rgba(193,167,118,.3) 0%, transparent 55%), repeating-linear-gradient(45deg, rgba(6,27,14,.02) 0 20px, transparent 20px 40px); }
+    .map-placeholder svg{ width: 48px; height: 48px; }
+    .map-placeholder p{ font: 600 14px/1.4 var(--ff-sans); max-width: 380px; text-align: center; }
+
+    .saved-banner{ background: linear-gradient(135deg, var(--ink) 0%, #0e2c19 100%); color: var(--parchment); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: 0 8px 24px rgba(6,27,14,.15); }
+    .saved-banner-content{ font: 500 13.5px/1.4 var(--ff-sans); }
+    .saved-banner-content strong{ font-weight: 700; }
+    .saved-banner button{ background: rgba(255,255,255,.15); color: var(--parchment); border: 0; padding: 8px 14px; border-radius: 999px; cursor: pointer; font: 700 12px/1 var(--ff-sans); letter-spacing: .04em; transition: background .15s ease; }
+    .saved-banner button:hover{ background: rgba(255,255,255,.25); }
+
+    .ai-parsed{ background: linear-gradient(135deg, rgba(125,160,93,.15) 0%, rgba(193,167,118,.12) 100%); border: 1px solid rgba(125,160,93,.3); border-radius: 12px; padding: 11px 14px; margin: 10px auto 0; max-width: 1300px; font: 500 13px/1.45 var(--ff-sans); color: var(--ink); display: flex; gap: 10px; align-items: flex-start; }
+    .ai-parsed svg{ width: 16px; height: 16px; color: #6b8a4f; flex-shrink: 0; margin-top: 1px; }
+    .ai-parsed strong{ font-weight: 700; }
+
+    @media (max-width: 1099px) {
+      .discover-layout{ grid-template-columns: 1fr; }
+      .filter-rail{ position: relative; top: 0; max-height: none; margin-bottom: 8px; }
+      .fr-section{ display: inline-block; vertical-align: top; margin-right: 10px; }
+    }
+    @media (max-width: 720px) {
+      .ds-bar{ grid-template-columns: 1fr auto; gap: 8px; }
+      .ds-go-btn{ display: none; }
+      .ds-view-toggle{ grid-column: 1 / -1; justify-self: stretch; }
+      .ds-view-btn{ flex: 1; justify-content: center; }
+      .listing-grid{ grid-template-columns: 1fr; gap: 16px; }
+      .results-count{ font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="discover-search">
+      <div class="ds-bar">
+        <label class="ds-input-wrap">
+          <svg class="ico-search" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
+          <input id="aiSearch" class="ds-input" type="text" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"'>
+          <span class="ds-ai-badge"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>AI</span>
+        </label>
+        <button class="ds-go-btn" id="goBtn">Search</button>
+        <div class="ds-view-toggle">
+          <button class="ds-view-btn active" data-view="grid"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Grid</button>
+          <button class="ds-view-btn" data-view="map"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linejoin="round"/><circle cx="12" cy="10" r="3"/></svg>Map</button>
+        </div>
+      </div>
+      <div id="aiParsed" class="ai-parsed" style="display:none;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>
+        <span id="aiParsedText"></span>
+      </div>
+    </div>
+
+    <section class="discover-layout">
+      <aside class="filter-rail">
+        <div class="fr-header"><span class="fr-title">Filters</span><button class="fr-clear" id="clearFilters">Clear all</button></div>
+        <div class="fr-section"><h4>Species</h4><div class="fr-chips" data-group="species"><button class="fr-chip active" data-val="all">All</button><button class="fr-chip" data-val="cattle">Cattle</button><button class="fr-chip" data-val="hog">Hog</button><button class="fr-chip" data-val="lamb">Lamb</button><button class="fr-chip" data-val="poultry">Poultry</button><button class="fr-chip" data-val="bison">Bison</button></div></div>
+        <div class="fr-section"><h4>Production practice</h4><div class="fr-chips" data-group="practice"><button class="fr-chip" data-val="grass-fed">Grass-fed</button><button class="fr-chip" data-val="grain-finished">Grain-finished</button><button class="fr-chip" data-val="pasture-raised">Pasture-raised</button><button class="fr-chip" data-val="regenerative">Regenerative</button><button class="fr-chip" data-val="heritage">Heritage breed</button><button class="fr-chip" data-val="dry-aged">Dry-aged</button></div></div>
+        <div class="fr-section"><h4>Certifications</h4><div class="fr-chips" data-group="certs"><button class="fr-chip" data-val="organic">USDA Organic</button><button class="fr-chip" data-val="non-gmo">Non-GMO</button><button class="fr-chip" data-val="amwa">Animal Welfare</button><button class="fr-chip" data-val="aga">Grassfed AGA</button><button class="fr-chip" data-val="usda-insp">USDA Inspected</button><button class="fr-chip" data-val="state-insp">State Inspected</button></div></div>
+        <div class="fr-section"><h4>Producer identity</h4><div class="fr-chips" data-group="identity"><button class="fr-chip" data-val="veteran">Veteran-owned</button><button class="fr-chip" data-val="woman">Woman-owned</button><button class="fr-chip" data-val="bipoc">BIPOC-owned</button><button class="fr-chip" data-val="family">Family farm</button><button class="fr-chip" data-val="indigenous">Indigenous-led</button></div></div>
+        <div class="fr-section"><h4>Price · $/lb hanging weight</h4><div class="fr-range"><input id="priceMin" type="number" placeholder="Min" min="0" max="20" /><input id="priceMax" type="number" placeholder="Max" min="0" max="20" /></div></div>
+        <div class="fr-section"><h4>Distance from <span id="zipDisplay">56601</span></h4><input id="distSlider" class="fr-slider" type="range" min="25" max="500" value="200" step="25" /><div class="fr-slider-label"><span>25 mi</span><span><strong id="distVal">200</strong> mi</span><span>500+ mi</span></div></div>
+        <div class="fr-section"><h4>Pickup window</h4><div class="fr-chips" data-group="window"><button class="fr-chip" data-val="this-month">This month</button><button class="fr-chip" data-val="3mo">Next 3 mo</button><button class="fr-chip" data-val="6mo">Next 6 mo</button></div></div>
+        <div class="fr-section"><div class="fr-toggle" id="instantBookToggle"><span>Instant Reserve only</span><span class="switch"></span></div></div>
+        <div class="fr-section"><div class="fr-toggle" id="newOnlyToggle"><span>New listings (last 7 days)</span><span class="switch"></span></div></div>
+      </aside>
+
+      <section>
+        <div id="savedBanner" class="saved-banner" style="display:none;">
+          <div class="saved-banner-content"><strong>Save this search?</strong> &nbsp;Get notified when farms post listings matching your filters.</div>
+          <button id="saveSearchBtn">Save search</button>
+        </div>
+        <div class="results-head">
+          <div class="results-count" id="resultsCount">12 listings <em>· near Bemidji, MN</em></div>
+          <select class="sort-select" id="sortSelect">
+            <option value="best">Best match</option>
+            <option value="closest">Closest to me</option>
+            <option value="newest">Newest first</option>
+            <option value="price-low">Price: low to high</option>
+            <option value="price-high">Price: high to low</option>
+            <option value="ready-soon">Ready soonest</option>
+          </select>
+        </div>
+        <div class="listing-grid" id="listingGrid"></div>
+        <div class="map-pane" id="mapPane"><div class="map-placeholder"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linejoin="round"/><circle cx="12" cy="10" r="3"/></svg><p><strong>Interactive map coming soon.</strong><br/>For now, every listing card shows distance and farm location. Toggle back to Grid view to browse.</p></div></div>
+      </section>
+    </section>
+
+    <div data-po-footer></div>
+  </main>
+
+  <script src="/po-shell.js"></script>
+  <script>
+    const LISTINGS = [
+      { id:'l1', name:'#118 · Half Black Angus',  farm:'Northfield Pastures',     farmSlug:'northfield-pastures', species:'cattle', practice:['grass-fed','regenerative'], certs:['organic','aga','amwa'], identity:['family'], priceLb:7.85, distance:42, ready:'2026-07-15', img:'/img/cattle-pasture.jpg', new:true, instant:true },
+      { id:'l2', name:'#214 · Quarter Hereford',  farm:'Twin Pines Ranch',        farmSlug:'twin-pines',         species:'cattle', practice:['grass-fed'], certs:['amwa','usda-insp'], identity:['veteran'], priceLb:6.95, distance:78, ready:'2026-06-30', img:'/img/hero-pasture.jpg', new:false, instant:true },
+      { id:'l3', name:'#41 · Whole Berkshire Hog',farm:'Cedar Hollow Farm',       farmSlug:'cedar-hollow',       species:'hog', practice:['heritage','pasture-raised'], certs:['non-gmo'], identity:['woman','family'], priceLb:5.50, distance:110, ready:'2026-06-15', img:'/img/premium-pig.jpg', new:false, instant:false },
+      { id:'l4', name:'#7 · Half Wagyu (F1)',     farm:'Northfield Pastures',     farmSlug:'northfield-pastures', species:'cattle', practice:['grain-finished','dry-aged'], certs:['amwa'], identity:['family'], priceLb:14.25, distance:42, ready:'2026-08-10', img:'/img/wagyu.jpg', new:true, instant:true },
+      { id:'l5', name:'#88 · Whole Lamb',         farm:'Iron Range Lambworks',    farmSlug:'iron-range',         species:'lamb', practice:['pasture-raised','heritage'], certs:['organic','amwa'], identity:['indigenous'], priceLb:9.10, distance:165, ready:'2026-07-01', img:'/img/premium-sheep.jpg', new:false, instant:true },
+      { id:'l6', name:'#312 · Half Red Angus',    farm:'Twin Pines Ranch',        farmSlug:'twin-pines',         species:'cattle', practice:['grass-fed','regenerative'], certs:['aga','organic'], identity:['veteran'], priceLb:7.40, distance:78, ready:'2026-09-05', img:'/img/cattle-pasture.jpg', new:false, instant:false },
+      { id:'l7', name:'#19 · Whole Mangalitsa',   farm:'Cedar Hollow Farm',       farmSlug:'cedar-hollow',       species:'hog', practice:['heritage','pasture-raised'], certs:['non-gmo'], identity:['woman'], priceLb:7.85, distance:110, ready:'2026-08-20', img:'/img/premium-pig.jpg', new:true, instant:false },
+      { id:'l8', name:'#2 · Quarter Highland',    farm:'Headwaters Heritage',     farmSlug:'headwaters-heritage', species:'cattle', practice:['grass-fed','heritage'], certs:['organic','aga','amwa'], identity:['family'], priceLb:8.95, distance:215, ready:'2026-07-22', img:'/img/cattle-pasture.jpg', new:false, instant:true },
+      { id:'l9', name:'#55 · Half Hampshire Hog', farm:'Wildflower Acres',        farmSlug:'wildflower',         species:'hog', practice:['pasture-raised'], certs:['usda-insp'], identity:['woman','bipoc'], priceLb:4.75, distance:55, ready:'2026-06-01', img:'/img/premium-pig.jpg', new:true, instant:true },
+      { id:'l10',name:'#9 · Half Bison',          farm:'Prairie Wind Bison Co.',  farmSlug:'prairie-wind',       species:'bison', practice:['grass-fed','regenerative'], certs:['organic','amwa'], identity:['indigenous','family'], priceLb:11.50, distance:295, ready:'2026-08-15', img:'/img/cattle-pasture.jpg', new:false, instant:false },
+      { id:'l11',name:'#220 · Half Charolais',    farm:'Twin Pines Ranch',        farmSlug:'twin-pines',         species:'cattle', practice:['grain-finished'], certs:['usda-insp'], identity:['veteran'], priceLb:6.25, distance:78, ready:'2026-07-08', img:'/img/hero-pasture.jpg', new:false, instant:true },
+      { id:'l12',name:'#33 · Whole Lamb',         farm:'Iron Range Lambworks',    farmSlug:'iron-range',         species:'lamb', practice:['pasture-raised'], certs:['amwa'], identity:['indigenous'], priceLb:8.50, distance:165, ready:'2026-09-12', img:'/img/premium-sheep.jpg', new:false, instant:true }
+    ];
+
+    const state = { species:'all', practice:new Set(), certs:new Set(), identity:new Set(), window:null, priceMin:null, priceMax:null, distance:200, instant:false, newOnly:false, sort:'best', saved:new Set(JSON.parse(localStorage.getItem('po_saved')||'[]')) };
+
+    async function parseQuery(q) {
+      try { const r = await fetch('/api/parse-search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query:q}) }); if (r.ok) return await r.json(); } catch(e) {}
+      const ql=q.toLowerCase(); const out={filters:{},summary:[]};
+      if (/(beef|cattle|cow|steer|angus|hereford|wagyu|highland|charolais)/.test(ql)) { out.filters.species='cattle'; out.summary.push('cattle'); }
+      else if (/(pig|hog|pork|berkshire|mangalitsa|hampshire)/.test(ql)) { out.filters.species='hog'; out.summary.push('hog'); }
+      else if (/(lamb|sheep|mutton)/.test(ql)) { out.filters.species='lamb'; out.summary.push('lamb'); }
+      else if (/(bison|buffalo)/.test(ql)) { out.filters.species='bison'; out.summary.push('bison'); }
+      else if (/(chicken|poultry|turkey)/.test(ql)) { out.filters.species='poultry'; out.summary.push('poultry'); }
+      const practice=new Set();
+      if (/grass[- ]fed|grass[- ]finished/.test(ql)) { practice.add('grass-fed'); out.summary.push('grass-fed'); }
+      if (/grain[- ]finished|corn[- ]fed/.test(ql)) { practice.add('grain-finished'); out.summary.push('grain-finished'); }
+      if (/pasture[- ]raised/.test(ql)) { practice.add('pasture-raised'); out.summary.push('pasture-raised'); }
+      if (/regenerative/.test(ql)) { practice.add('regenerative'); out.summary.push('regenerative'); }
+      if (/heritage/.test(ql)) { practice.add('heritage'); out.summary.push('heritage breed'); }
+      if (/dry[- ]aged/.test(ql)) { practice.add('dry-aged'); out.summary.push('dry-aged'); }
+      if (practice.size) out.filters.practice=[...practice];
+      const certs=new Set();
+      if (/organic/.test(ql)) { certs.add('organic'); out.summary.push('organic'); }
+      if (/non[- ]gmo/.test(ql)) { certs.add('non-gmo'); out.summary.push('non-GMO'); }
+      if (/animal welfare|amwa/.test(ql)) { certs.add('amwa'); out.summary.push('animal welfare'); }
+      if (/aga|grassfed cert/.test(ql)) { certs.add('aga'); }
+      if (certs.size) out.filters.certs=[...certs];
+      const pm=ql.match(/(?:under|below|less than|<)\s*\$?(\d+(?:\.\d+)?)/);
+      if (pm) { out.filters.priceMax=parseFloat(pm[1]); out.summary.push(`under $${pm[1]}/lb`); }
+      const pm2=ql.match(/\$?(\d+(?:\.\d+)?)\s*(?:to|[-–])\s*\$?(\d+(?:\.\d+)?)/);
+      if (pm2) { out.filters.priceMin=parseFloat(pm2[1]); out.filters.priceMax=parseFloat(pm2[2]); }
+      const dm=ql.match(/within\s*(\d+)\s*(?:mi|miles)/);
+      if (dm) { out.filters.distance=parseInt(dm[1]); out.summary.push(`within ${dm[1]} mi`); }
+      const identity=new Set();
+      if (/veteran/.test(ql)) { identity.add('veteran'); out.summary.push('veteran-owned'); }
+      if (/woman[- ]owned/.test(ql)) { identity.add('woman'); out.summary.push('woman-owned'); }
+      if (/family farm/.test(ql)) { identity.add('family'); out.summary.push('family farm'); }
+      if (/indigenous|native/.test(ql)) { identity.add('indigenous'); out.summary.push('Indigenous-led'); }
+      if (identity.size) out.filters.identity=[...identity];
+      out.localFallback=true; return out;
+    }
+
+    function applyFilters() {
+      let r = LISTINGS.slice();
+      if (state.species !== 'all') r = r.filter(l => l.species === state.species);
+      if (state.practice.size) r = r.filter(l => l.practice.some(p => state.practice.has(p)));
+      if (state.certs.size) r = r.filter(l => l.certs.some(c => state.certs.has(c)));
+      if (state.identity.size) r = r.filter(l => l.identity.some(i => state.identity.has(i)));
+      if (state.priceMin !== null) r = r.filter(l => l.priceLb >= state.priceMin);
+      if (state.priceMax !== null) r = r.filter(l => l.priceLb <= state.priceMax);
+      r = r.filter(l => l.distance <= state.distance);
+      if (state.instant) r = r.filter(l => l.instant);
+      if (state.newOnly) r = r.filter(l => l.new);
+      if (state.window === 'this-month') r = r.filter(l => new Date(l.ready) <= new Date(Date.now() + 30*86400000));
+      else if (state.window === '3mo') r = r.filter(l => new Date(l.ready) <= new Date(Date.now() + 90*86400000));
+      else if (state.window === '6mo') r = r.filter(l => new Date(l.ready) <= new Date(Date.now() + 180*86400000));
+      if (state.sort === 'closest') r.sort((a,b)=>a.distance-b.distance);
+      else if (state.sort === 'price-low') r.sort((a,b)=>a.priceLb-b.priceLb);
+      else if (state.sort === 'price-high') r.sort((a,b)=>b.priceLb-a.priceLb);
+      else if (state.sort === 'newest') r.sort((a,b)=>(b.new?1:0)-(a.new?1:0));
+      else if (state.sort === 'ready-soon') r.sort((a,b)=>new Date(a.ready)-new Date(b.ready));
+      return r;
+    }
+
+    function render() {
+      const r = applyFilters();
+      const grid = document.getElementById('listingGrid');
+      const count = document.getElementById('resultsCount');
+      count.innerHTML = `${r.length} listing${r.length===1?'':'s'} <em>· near Bemidji, MN</em>`;
+      grid.innerHTML = r.map(l => `
+        <article class="listing-card" data-id="${l.id}" onclick="window.location='/listing?id=${l.id}'">
+          <div class="lc-photo-wrap">
+            <img class="lc-photo" src="${l.img}" alt="${l.name}" loading="lazy" onerror="this.src='/img/cattle-pasture.jpg'"/>
+            <div class="lc-badges">
+              ${l.certs.includes('organic') ? '<span class="lc-badge organic">USDA Organic</span>' : ''}
+              ${l.practice.includes('grass-fed') ? '<span class="lc-badge">Grass-fed</span>' : ''}
+              ${l.identity.includes('veteran') ? '<span class="lc-badge">Veteran-owned</span>' : ''}
+              ${l.new ? '<span class="lc-badge usda">New</span>' : ''}
+            </div>
+            <button class="lc-heart ${state.saved.has(l.id)?'saved':''}" onclick="event.stopPropagation(); toggleSave('${l.id}', this)">
+              <svg fill="${state.saved.has(l.id)?'currentColor':'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="lc-body">
+            <div class="lc-row1"><span class="lc-name">${l.name}</span><span class="lc-price">$${l.priceLb.toFixed(2)}<em>/lb</em></span></div>
+            <div class="lc-farm"><a href="/farm/${l.farmSlug}" onclick="event.stopPropagation()">${l.farm}</a></div>
+            <div class="lc-meta">
+              <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${l.distance} mi</span>
+              <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Ready ${new Date(l.ready).toLocaleDateString('en',{month:'short',day:'numeric'})}</span>
+              ${l.instant ? '<span style="color:#6b8a4f;font-weight:700">⚡ Instant</span>' : ''}
+            </div>
+          </div>
+        </article>
+      `).join('');
+      if (r.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;background:#fff;border-radius:16px;border:1px solid var(--filter-border);"><div style="font:700 22px/1.3 var(--ff-sans);margin-bottom:8px;">No listings match those filters</div><div style="opacity:.6;font:500 14px/1.5 var(--ff-sans);max-width:380px;margin:0 auto 18px;">Try widening your distance, removing a certification filter, or saving this search to be notified when a match is posted.</div><button class="ds-go-btn" onclick="document.getElementById('clearFilters').click()">Clear all filters</button></div>`;
+      }
+      const anyFilter = state.species !== 'all' || state.practice.size || state.certs.size || state.identity.size || state.priceMin !== null || state.priceMax !== null || state.window;
+      document.getElementById('savedBanner').style.display = anyFilter ? 'flex' : 'none';
+    }
+
+    function toggleSave(id, el) {
+      if (state.saved.has(id)) state.saved.delete(id); else state.saved.add(id);
+      localStorage.setItem('po_saved', JSON.stringify([...state.saved]));
+      el.classList.toggle('saved');
+      el.querySelector('svg').setAttribute('fill', state.saved.has(id)?'currentColor':'none');
+    }
+
+    document.querySelectorAll('.fr-chips').forEach(group => {
+      const groupName = group.dataset.group;
+      group.addEventListener('click', e => {
+        const btn = e.target.closest('.fr-chip'); if (!btn) return;
+        const val = btn.dataset.val;
+        if (groupName === 'species') {
+          group.querySelectorAll('.fr-chip').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active'); state.species = val;
+        } else if (groupName === 'window') {
+          group.querySelectorAll('.fr-chip').forEach(c => c.classList.remove('active'));
+          if (state.window === val) state.window = null;
+          else { btn.classList.add('active'); state.window = val; }
+        } else {
+          btn.classList.toggle('active');
+          const set = state[groupName];
+          if (set.has(val)) set.delete(val); else set.add(val);
+        }
+        render();
+      });
+    });
+
+    document.getElementById('priceMin').addEventListener('change', e => { state.priceMin = e.target.value ? parseFloat(e.target.value) : null; render(); });
+    document.getElementById('priceMax').addEventListener('change', e => { state.priceMax = e.target.value ? parseFloat(e.target.value) : null; render(); });
+    document.getElementById('distSlider').addEventListener('input', e => { state.distance = parseInt(e.target.value); document.getElementById('distVal').textContent = state.distance; render(); });
+    document.getElementById('sortSelect').addEventListener('change', e => { state.sort = e.target.value; render(); });
+    document.getElementById('instantBookToggle').addEventListener('click', e => { e.currentTarget.classList.toggle('on'); state.instant = e.currentTarget.classList.contains('on'); render(); });
+    document.getElementById('newOnlyToggle').addEventListener('click', e => { e.currentTarget.classList.toggle('on'); state.newOnly = e.currentTarget.classList.contains('on'); render(); });
+
+    document.getElementById('clearFilters').addEventListener('click', () => {
+      state.species='all'; state.practice.clear(); state.certs.clear(); state.identity.clear();
+      state.priceMin=null; state.priceMax=null; state.distance=200; state.window=null;
+      state.instant=false; state.newOnly=false;
+      document.querySelectorAll('.fr-chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('[data-group="species"] [data-val="all"]').classList.add('active');
+      document.getElementById('priceMin').value=''; document.getElementById('priceMax').value='';
+      document.getElementById('distSlider').value=200; document.getElementById('distVal').textContent=200;
+      document.getElementById('instantBookToggle').classList.remove('on');
+      document.getElementById('newOnlyToggle').classList.remove('on');
+      document.getElementById('aiParsed').style.display='none';
+      document.getElementById('aiSearch').value='';
+      render();
+    });
+
+    document.getElementById('saveSearchBtn').addEventListener('click', () => {
+      const banner = document.getElementById('savedBanner');
+      banner.querySelector('.saved-banner-content').innerHTML = '<strong>✓ Search saved.</strong> &nbsp;You\'ll be emailed when matching listings are posted.';
+      banner.querySelector('button').style.display = 'none';
+    });
+
+    document.querySelectorAll('.ds-view-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.ds-view-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const view = b.dataset.view;
+        document.getElementById('listingGrid').classList.toggle('hidden', view === 'map');
+        document.getElementById('mapPane').classList.toggle('active', view === 'map');
+      });
+    });
+
+    async function runAISearch(q) {
+      if (!q.trim()) return;
+      const parsed = await parseQuery(q);
+      const summary = parsed.summary || [];
+      if (parsed.filters.species) {
+        state.species = parsed.filters.species;
+        document.querySelectorAll('[data-group="species"] .fr-chip').forEach(c => c.classList.toggle('active', c.dataset.val === parsed.filters.species));
+      }
+      if (parsed.filters.practice) {
+        state.practice = new Set(parsed.filters.practice);
+        document.querySelectorAll('[data-group="practice"] .fr-chip').forEach(c => c.classList.toggle('active', state.practice.has(c.dataset.val)));
+      }
+      if (parsed.filters.certs) {
+        state.certs = new Set(parsed.filters.certs);
+        document.querySelectorAll('[data-group="certs"] .fr-chip').forEach(c => c.classList.toggle('active', state.certs.has(c.dataset.val)));
+      }
+      if (parsed.filters.identity) {
+        state.identity = new Set(parsed.filters.identity);
+        document.querySelectorAll('[data-group="identity"] .fr-chip').forEach(c => c.classList.toggle('active', state.identity.has(c.dataset.val)));
+      }
+      if (parsed.filters.priceMax) { state.priceMax = parsed.filters.priceMax; document.getElementById('priceMax').value = parsed.filters.priceMax; }
+      if (parsed.filters.priceMin) { state.priceMin = parsed.filters.priceMin; document.getElementById('priceMin').value = parsed.filters.priceMin; }
+      if (parsed.filters.distance) { state.distance = parsed.filters.distance; document.getElementById('distSlider').value = parsed.filters.distance; document.getElementById('distVal').textContent = parsed.filters.distance; }
+      const aiP = document.getElementById('aiParsed');
+      const aiPT = document.getElementById('aiParsedText');
+      if (summary.length) {
+        aiPT.innerHTML = `Searching for <strong>${summary.join('</strong>, <strong>')}</strong>${parsed.localFallback ? ' <span style="opacity:.6">· offline parser</span>' : ' <span style="opacity:.6">· Gemini</span>'}`;
+        aiP.style.display = 'flex';
+      } else {
+        aiPT.innerHTML = `Couldn't parse anything specific. Try filters or rephrase.`;
+        aiP.style.display = 'flex';
+      }
+      render();
+    }
+    document.getElementById('aiSearch').addEventListener('keydown', e => { if (e.key === 'Enter') runAISearch(e.target.value); });
+    document.getElementById('goBtn').addEventListener('click', () => runAISearch(document.getElementById('aiSearch').value));
+
+    const params = new URLSearchParams(location.search);
+    if (params.get('q')) {
+      document.getElementById('aiSearch').value = params.get('q');
+      runAISearch(params.get('q'));
+    }
+    render();
+  </script>
+</body>
+</html>
