@@ -1,0 +1,225 @@
+// /api/fsis-import — bulk-load USDA FSIS Meat & Poultry Inspection Directory
+//   POST text/csv body OR { csv: "..." } JSON
+//   Filters for federally-inspected plants that handle our target species
+//   (cattle, hogs, sheep, goats, bison, cervidae) and inserts them into
+//   discovered_partners with source='fsis'.
+//
+// Source: download the XLSX from
+//   https://www.fsis.usda.gov/inspection/establishments/meat-poultry-and-egg-product-inspection-directory
+// Open in Excel/Numbers/Sheets, Save As → CSV, then upload here.
+//
+// Auth: any signed-in user during early ops. Tighten to admin role later.
+import { sql, currentUser, err, json } from './_lib/db.js';
+
+export const config = { runtime: 'nodejs' };
+
+// Strict CSV parser (handles quoted fields, escaped quotes, embedded commas/newlines)
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cur = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], n = text[i + 1];
+    if (inQuotes) {
+      if (c === '"' && n === '"') { cur += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { cur += c; }
+    } else {
+      if (c === '"') { inQuotes = true; }
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+      else if (c === '\r') { /* skip */ }
+      else { cur += c; }
+    }
+  }
+  if (cur.length || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+
+// Normalize a column header so different FSIS export variants map to one canonical key.
+function normalizeHeader(h) {
+  const k = (h || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  const map = {
+    establishment_number: 'establishment_number',
+    estab_no: 'establishment_number',
+    establishment_no: 'establishment_number',
+    establishment_id: 'establishment_number',
+    establishment_name: 'name',
+    company_name: 'name',
+    name: 'name',
+    dba_name: 'dba',
+    dba: 'dba',
+    mailing_address: 'address',
+    address: 'address',
+    physical_address: 'address',
+    street: 'address',
+    mailing_city: 'city',
+    city: 'city',
+    mailing_state: 'state',
+    state: 'state',
+    mailing_zip_code: 'zip',
+    zip_code: 'zip',
+    zip: 'zip',
+    mailing_phone: 'phone',
+    phone: 'phone',
+    phone_number: 'phone',
+    activities: 'activities',
+    activity: 'activities',
+    inspection_type: 'inspection_type',
+    grant_inspection_type: 'inspection_type',
+    species: 'species',
+    species_inspected: 'species',
+    federally_inspected_plant: 'federal',
+    federal_inspection: 'federal',
+    federally_inspected: 'federal',
+    email: 'email',
+    email_address: 'email',
+    website: 'website',
+    web_site: 'website',
+  };
+  return map[k] || k;
+}
+
+// Species patterns we care about (Protein Outfitters ICP)
+const TARGET_SPECIES = [
+  { match: /cattle|beef|bovine/i, key: 'beef' },
+  { match: /hog|swine|pork|porcine/i, key: 'pork' },
+  { match: /sheep|lamb|ovine/i, key: 'lamb' },
+  { match: /goat|caprine/i, key: 'goat' },
+  { match: /bison|buffalo/i, key: 'bison' },
+  { match: /cervid|deer|elk|reindeer/i, key: 'venison' },
+  { match: /rabbit/i, key: 'rabbit' },
+  { match: /poultry|chicken|turkey|duck|goose|game_bird/i, key: 'poultry' },
+];
+
+function speciesMatch(speciesStr) {
+  if (!speciesStr) return [];
+  const matched = [];
+  for (const { match, key } of TARGET_SPECIES) {
+    if (match.test(speciesStr)) matched.push(key);
+  }
+  return matched;
+}
+
+function looksFederal(row) {
+  // FSIS plants in this directory are federally inspected by definition,
+  // BUT the directory also lists state-inspected ones with a flag column.
+  const flag = (row.federal || '').toString().toLowerCase().trim();
+  if (flag === 'n' || flag === 'no' || flag === 'false') return false;
+  // Establishment numbers like "M40-A" / "P12-B" / "EST. 12345" are federal
+  const en = (row.establishment_number || '').toString().toUpperCase();
+  if (/^(M|P|EST)\s*\.?\s*\d/i.test(en)) return true;
+  // Default: trust the row unless explicitly state-only
+  return true;
+}
+
+function activitiesMatch(actStr) {
+  if (!actStr) return false;
+  return /slaughter|processing|cut|wrap|grind/i.test(actStr);
+}
+
+export default async function handler(req) {
+  if (req.method !== 'POST') return err(405, 'Method not allowed');
+
+  const user = await currentUser(req);
+  if (!user) return err(401, 'Sign in required');
+
+  // Accept text/csv body OR { csv: "..." } JSON
+  const ct = (req.headers.get('content-type') || '').toLowerCase();
+  let csvText = '';
+  if (ct.includes('text/csv') || ct.includes('text/plain')) {
+    csvText = await req.text();
+  } else {
+    try { const body = await req.json(); csvText = body.csv || ''; }
+    catch { return err(400, 'Send CSV as text/csv body or JSON {csv: "..."}'); }
+  }
+  if (!csvText || csvText.length < 100) return err(400, 'CSV too short or empty');
+
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return err(400, 'CSV must have a header row + data rows');
+
+  const headers = rows[0].map(normalizeHeader);
+  const dataRows = rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (r[i] || '').trim(); });
+    return obj;
+  }).filter(r => r.name); // drop blank rows
+
+  const filtered = dataRows
+    .filter(r => looksFederal(r))
+    .filter(r => activitiesMatch(r.activities))
+    .map(r => ({
+      ...r,
+      _species: speciesMatch(r.species),
+    }))
+    .filter(r => r._species.length > 0); // must handle at least one target species
+
+  let inserted = 0, updated = 0, skipped = 0;
+  const errors = [];
+
+  for (const r of filtered) {
+    try {
+      const sourceRef = (r.establishment_number || `${r.name}|${r.zip}`).toUpperCase();
+      const phone = r.phone ? r.phone.replace(/[^\d]/g, '').slice(0, 11) : null;
+      const phoneFmt = phone && phone.length >= 10
+        ? `(${phone.slice(-10, -7)}) ${phone.slice(-7, -4)}-${phone.slice(-4)}`
+        : (r.phone || null);
+
+      const result = await sql`
+        INSERT INTO discovered_partners (
+          kind, name, address, city, state, zip,
+          phone, email, website, species,
+          source, source_ref, raw_data, invite_status
+        ) VALUES (
+          'processor',
+          ${r.name},
+          ${r.address || null},
+          ${r.city || null},
+          ${(r.state || '').toUpperCase().slice(0, 2) || null},
+          ${(r.zip || '').slice(0, 10) || null},
+          ${phoneFmt},
+          ${r.email || null},
+          ${r.website || null},
+          ${r._species},
+          'fsis',
+          ${sourceRef},
+          ${JSON.stringify({ activities: r.activities, inspection: r.inspection_type, fsis_species: r.species, dba: r.dba })},
+          'new'
+        )
+        ON CONFLICT (source, source_ref) DO UPDATE SET
+          name = EXCLUDED.name,
+          address = COALESCE(EXCLUDED.address, discovered_partners.address),
+          city = COALESCE(EXCLUDED.city, discovered_partners.city),
+          state = COALESCE(EXCLUDED.state, discovered_partners.state),
+          zip = COALESCE(EXCLUDED.zip, discovered_partners.zip),
+          phone = COALESCE(EXCLUDED.phone, discovered_partners.phone),
+          species = EXCLUDED.species,
+          raw_data = EXCLUDED.raw_data,
+          updated_at = NOW()
+        RETURNING (xmax = 0) AS inserted`;
+
+      if (result[0]?.inserted) inserted++;
+      else updated++;
+    } catch (e) {
+      skipped++;
+      if (errors.length < 20) errors.push(`${r.name}: ${e.message}`);
+    }
+  }
+
+  // Summary stats per state
+  const byState = {};
+  for (const r of filtered) {
+    const s = (r.state || '??').toUpperCase().slice(0, 2);
+    byState[s] = (byState[s] || 0) + 1;
+  }
+
+  return json({
+    received_rows: dataRows.length,
+    matched_rows: filtered.length,
+    inserted,
+    updated,
+    skipped,
+    by_state: byState,
+    errors,
+    sample: filtered.slice(0, 3).map(r => ({ name: r.name, state: r.state, species: r._species }))
+  });
+}
