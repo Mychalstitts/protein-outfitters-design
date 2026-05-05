@@ -67,7 +67,8 @@ export default async function handler(req) {
       if (!finalSlug) { skipped++; continue; }
 
       // Build a sensible processors row from FSIS data
-      const inspection = r.raw_data?.inspection || 'Federal (USDA)';
+      // CHECK constraint allows: 'usda','state','custom-exempt','equal-to' — all FSIS plants are 'usda'.
+      const inspection = 'usda';
       const capabilities = {
         species: Array.isArray(r.species) ? r.species : [],
         slaughter: /slaughter/i.test(r.raw_data?.activities || ''),
