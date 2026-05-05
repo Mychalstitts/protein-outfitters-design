@@ -759,120 +759,11 @@ body { background: var(--bg); overflow-x: hidden; }
     <h2 class="section-h2">Real animals.<br>Real farms.</h2>
     <p class="section-lead">Every listing is one specific animal on a farm you can drive to. Pick a share, set your cuts, pick it up. We handle the rest.</p>
 
-    <div class="reserve-grid">
-      <button class="product" data-open-sheet
-        data-animal="2641" data-name="#2641 · Black Angus steer"
-        data-producer="Northfield Pastures · Bemidji, MN"
-        data-photo="/img/angus.jpg"
-        data-price-q="1395" data-price-h="2690" data-price-w="5180">
-        <div class="product-photo" style="background-image: url('/img/angus.jpg');">
-          <span class="product-tag">Reserving</span>
-        </div>
-        <div class="product-meta">
-          <span class="product-eyebrow">Beef · Grass-fed</span>
-          <h3 class="product-name">#2641 — Black Angus steer</h3>
-          <p class="product-detail">Northfield Pastures · 1,180 lb live · Harvest May 28</p>
-          <div class="product-foot">
-            <span class="product-price">From <strong>$1,395</strong></span>
-            <span class="product-cta">Reserve →</span>
-          </div>
-        </div>
-      </button>
-
-      <button class="product" data-open-sheet
-        data-animal="2702" data-name="#2702 · Hereford heifer"
-        data-producer="Crow Wing Cattle Co · Brainerd, MN"
-        data-photo="/img/hereford.jpg"
-        data-price-q="1280" data-price-h="2470" data-price-w="4760">
-        <div class="product-photo" style="background-image: url('/img/hereford.jpg');">
-          <span class="product-tag">Reserving</span>
-        </div>
-        <div class="product-meta">
-          <span class="product-eyebrow">Beef · Grass-finished</span>
-          <h3 class="product-name">#2702 — Hereford heifer</h3>
-          <p class="product-detail">Crow Wing Cattle Co · 980 lb live · Harvest June 4</p>
-          <div class="product-foot">
-            <span class="product-price">From <strong>$1,280</strong></span>
-            <span class="product-cta">Reserve →</span>
-          </div>
-        </div>
-      </button>
-
-      <button class="product" data-open-sheet
-        data-animal="W04" data-name="Wagyu × Angus, half"
-        data-producer="Northern Lights Wagyu · Park Rapids, MN"
-        data-photo="/img/wagyu.jpg"
-        data-price-q="2880" data-price-h="5500" data-price-w="0">
-        <div class="product-photo" style="background-image: url('/img/wagyu.jpg');">
-          <span class="product-tag">Limited</span>
-        </div>
-        <div class="product-meta">
-          <span class="product-eyebrow">Beef · Wagyu cross</span>
-          <h3 class="product-name">Wagyu × Angus, halves only</h3>
-          <p class="product-detail">Northern Lights Wagyu · 1,420 lb live · Harvest June 11</p>
-          <div class="product-foot">
-            <span class="product-price">Half from <strong>$5,500</strong></span>
-            <span class="product-cta">Reserve →</span>
-          </div>
-        </div>
-      </button>
-
-      <button class="product" data-open-sheet
-        data-animal="H114" data-name="Berkshire hog"
-        data-producer="Mississippi Headwaters Farm · Bemidji, MN"
-        data-photo="/img/hog.jpg"
-        data-price-q="395" data-price-h="725" data-price-w="1380">
-        <div class="product-photo" style="background-image: url('/img/hog.jpg');">
-          <span class="product-tag">Reserving</span>
-        </div>
-        <div class="product-meta">
-          <span class="product-eyebrow">Pork · Heritage</span>
-          <h3 class="product-name">Berkshire hog · 280 lb</h3>
-          <p class="product-detail">Mississippi Headwaters Farm · Harvest May 22</p>
-          <div class="product-foot">
-            <span class="product-price">From <strong>$395</strong></span>
-            <span class="product-cta">Reserve →</span>
-          </div>
-        </div>
-      </button>
-
-      <button class="product" data-open-sheet
-        data-animal="L08" data-name="Katahdin lamb"
-        data-producer="Boreal Pastures · Cass Lake, MN"
-        data-photo="/img/lamb.jpg"
-        data-price-q="0" data-price-h="385" data-price-w="720">
-        <div class="product-photo" style="background-image: url('/img/lamb.jpg');">
-          <span class="product-tag">Reserving</span>
-        </div>
-        <div class="product-meta">
-          <span class="product-eyebrow">Lamb · Pasture-raised</span>
-          <h3 class="product-name">Katahdin lamb · 105 lb</h3>
-          <p class="product-detail">Boreal Pastures · Harvest June 1</p>
-          <div class="product-foot">
-            <span class="product-price">Half from <strong>$385</strong></span>
-            <span class="product-cta">Reserve →</span>
-          </div>
-        </div>
-      </button>
-
-      <button class="product" data-open-sheet
-        data-animal="V03" data-name="Wild venison share"
-        data-producer="Itasca Wilds · Grand Rapids, MN"
-        data-photo="/img/venison.jpg"
-        data-price-q="0" data-price-h="540" data-price-w="0">
-        <div class="product-photo" style="background-image: url('/img/venison.jpg');">
-          <span class="product-tag">Wait list</span>
-        </div>
-        <div class="product-meta">
-          <span class="product-eyebrow">Venison · Wild-harvested</span>
-          <h3 class="product-name">Whitetail venison share</h3>
-          <p class="product-detail">Itasca Wilds · Fall 2026 harvest</p>
-          <div class="product-foot">
-            <span class="product-price">Share from <strong>$540</strong></span>
-            <span class="product-cta">Join waitlist →</span>
-          </div>
-        </div>
-      </button>
+    <div class="reserve-grid" id="homeReserveGrid">
+      <div class="product" style="grid-column:1/-1;text-align:center;padding:60px 20px;background:#fff;border-radius:18px;border:1px solid rgba(6,27,14,.06);">
+        <img src="/brand/logo-monogram.svg" alt="" width="56" height="56" style="display:block;margin:0 auto 14px;border-radius:13px;opacity:.7" />
+        <p style="font:600 14px/1.5 'Inter';color:rgba(6,27,14,.7);margin:0;">Loading available animals…</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1105,6 +996,82 @@ body { background: var(--bg); overflow-x: hidden; }
   </footer>
 </aside>
 
+<script>
+// Render homepage product cards from real /api/listings
+(async function loadHomeListings(){
+  const grid = document.getElementById('homeReserveGrid');
+  if (!grid) return;
+  let listings = [];
+  try {
+    const r = await fetch('/api/listings?limit=12', { credentials: 'include' });
+    const data = await r.json();
+    listings = data.listings || [];
+  } catch (e) { /* keep loading state */ }
+
+  if (!listings.length) {
+    grid.innerHTML = `
+      <div class="product" style="grid-column:1/-1;text-align:center;padding:60px 24px;background:#fff;border-radius:18px;border:1px solid rgba(6,27,14,.06);">
+        <img src="/brand/logo-monogram.svg" alt="" width="68" height="68" style="display:block;margin:0 auto 16px;border-radius:16px;box-shadow:0 8px 20px rgba(6,27,14,.12)" />
+        <h3 style="font:800 22px/1.3 'Inter';margin:0 0 8px;letter-spacing:-0.02em;">No animals reserving right now.</h3>
+        <p style="font:500 14px/1.5 'Inter';color:rgba(6,27,14,.7);margin:0 auto 18px;max-width:380px;">New listings post weekly. Or invite your local farm to put up an animal.</p>
+        <a href="/invite-partner" style="display:inline-block;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:12px 22px;font:700 13px/1 'Inter';">Invite a farm →</a>
+      </div>`;
+    return;
+  }
+
+  // PO_PRICING is loaded by po-shell.js but may not be ready yet — fallback to farmer rate × lbs estimate
+  function allInPerLb(farmerRate, share, hw){
+    if (window.PO_PRICING) return window.PO_PRICING.allInPerLbHW(farmerRate, share, hw);
+    return Number(farmerRate || 0) + 1.55; // rough fallback (processing + insurance + platform + kill share)
+  }
+
+  function fmt$(n){ return '$' + Number(n||0).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+  function speciesLabel(s){ return ({cattle:'Beef', hog:'Pork', lamb:'Lamb', goat:'Goat', bison:'Bison', venison:'Venison', poultry:'Poultry'})[s] || s; }
+  function photoFor(l){
+    if (l.photos && l.photos[0]) return l.photos[0];
+    const map = { cattle:'/img/cattle-pasture.jpg', hog:'/img/premium-pig.jpg', lamb:'/img/premium-sheep.jpg', goat:'/img/premium-sheep.jpg', bison:'/img/cattle-pasture.jpg', venison:'/img/premium-deer.jpg', poultry:'/img/poultry.jpg' };
+    return map[l.species] || '/img/cattle-pasture.jpg';
+  }
+
+  grid.innerHTML = listings.slice(0, 6).map(l => {
+    const farmerRate = Number(l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0);
+    const hw = Number(l.estimated_hanging_weight || 700);
+    const cheapestShare = l.shares?.quarter?.available > 0 ? 'quarter'
+                       : l.shares?.half?.available > 0 ? 'half'
+                       : l.shares?.whole?.available > 0 ? 'whole'
+                       : 'half';
+    const fractionLbs = (cheapestShare === 'whole' ? 1 : cheapestShare === 'half' ? 0.5 : 0.25) * hw;
+    const totalShare = farmerRate * fractionLbs; // approximate "from $X" headline
+    const photo = photoFor(l);
+    const tag = l.status === 'sold' ? 'Sold out' : (l.shares?.quarter?.available || l.shares?.half?.available) ? 'Reserving' : 'Limited';
+    const harvestLabel = l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en-US', {month:'long',day:'numeric'}) : 'TBD';
+    const practice = (l.practice && l.practice[0]) ? ' · ' + l.practice[0].replace('-',' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
+    const farmName = l.farm_name || 'Independent farm';
+    const animalLabel = `${l.number ? l.number + ' — ' : ''}${l.breed || speciesLabel(l.species)}${l.sex ? ' ' + l.sex : ''}`;
+
+    return `<button class="product" data-open-sheet
+        data-animal="${l.id}" data-name="${animalLabel}"
+        data-producer="${farmName}${l.farm_city ? ' · ' + l.farm_city + ', ' + l.farm_state : ''}"
+        data-photo="${photo}"
+        data-price-q="${l.shares?.quarter?.price || 0}"
+        data-price-h="${l.shares?.half?.price || 0}"
+        data-price-w="${l.shares?.whole?.price || 0}">
+        <div class="product-photo" style="background-image: url('${photo}');">
+          <span class="product-tag">${tag}</span>
+        </div>
+        <div class="product-meta">
+          <span class="product-eyebrow">${speciesLabel(l.species)}${practice}</span>
+          <h3 class="product-name">${animalLabel}</h3>
+          <p class="product-detail">${farmName} · ${hw} lb HW · Harvest ${harvestLabel}</p>
+          <div class="product-foot">
+            <span class="product-price">From <strong>${fmt$(totalShare)}</strong></span>
+            <span class="product-cta">Reserve →</span>
+          </div>
+        </div>
+      </button>`;
+  }).join('');
+})();
+</script>
 <script>
 (function () {
   'use strict';

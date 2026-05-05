@@ -170,269 +170,11 @@
     <h1 class="rv-h1">Reputation works both ways.</h1>
     <p class="rv-lead">Every transaction generates three reviews. Buyer rates the farmer + processor. Farmer rates the buyer + processor. Processor rates the farmer + buyer. Both sides stay hidden until both submit — you don't see what someone said about you until you've said your piece. Just like Airbnb.</p>
 
-    <!-- Your standing -->
-    <div class="standing">
-      <div class="standing-id">
-        <div class="standing-avatar"></div>
-        <div class="standing-meta">
-          <p class="role">Mychal Stittsworth · Northfield Pastures · Producer</p>
-          <p class="name">4.9<span class="stars" style="font-size: 22px; vertical-align: 4px;"> <span class="star">★★★★★</span></span><span class="meta">128 reviews</span></p>
-        </div>
-      </div>
-
-      <div class="subratings">
-        <div class="subrate"><span class="lab">Communication</span><span class="bar"><span style="width: 98%;"></span></span><span class="num">4.9</span></div>
-        <div class="subrate"><span class="lab">Punctuality</span><span class="bar"><span style="width: 96%;"></span></span><span class="num">4.8</span></div>
-        <div class="subrate"><span class="lab">Quality</span><span class="bar"><span style="width: 100%;"></span></span><span class="num">5.0</span></div>
-        <div class="subrate"><span class="lab">Easy to work with</span><span class="bar"><span style="width: 96%;"></span></span><span class="num">4.8</span></div>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="rv-tabs">
-      <button class="rv-tab active" data-tab="pending">Awaiting your review <span class="badge">3</span></button>
-      <button class="rv-tab" data-tab="received">Reviews about you <span class="badge">128</span></button>
-      <button class="rv-tab" data-tab="given">Reviews you've given <span class="badge">94</span></button>
-      <button class="rv-tab" data-tab="alerts">Reputation alerts <span class="badge">2</span></button>
-    </div>
-
-    <!-- ============ PENDING ============ -->
-    <div class="rv-pane" data-pane="pending">
-      <div class="rv-section-head">
-        <h3>Three transactions need your review</h3>
-        <p>You have 14 days from pickup to leave a review. After that, the auto-default is "no rating."</p>
-      </div>
-
-      <!-- Pending card 1: Customer reviewing farmer + processor -->
-      <article class="pending-card" data-pending="1">
-        <div class="pending-head">
-          <div class="pending-avatar" style="background-image: url('/img/farmer.jpg');"></div>
-          <div class="pending-meta">
-            <h4>Sarah R. · Bemidji, MN</h4>
-            <p>Quarter share of <strong>#2598</strong> · picked up June 11 · ⏰ 6 days left to review</p>
-          </div>
-          <span class="pending-pill">Buyer review</span>
-        </div>
-
-        <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700;">How was your experience with this buyer?</p>
-        <div class="stars-input" data-stars="overall1"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div>
-
-        <div class="subgrid">
-          <div class="subrow"><span class="lab">Communication</span><div class="stars-mini" data-stars="comm1"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">Picked up on time</span><div class="stars-mini" data-stars="punc1"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">Cut sheet clarity</span><div class="stars-mini" data-stars="qual1"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">Easy to work with</span><div class="stars-mini" data-stars="ease1"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-        </div>
-
-        <textarea class="review-text" placeholder="A line or two about working with Sarah. Buyers see this on their profile. Be honest but kind."></textarea>
-
-        <div class="pending-foot">
-          <span class="privacy-note">🔒 Hidden until Sarah also submits her review of you.</span>
-          <button class="btn-submit" data-submit="1">Submit review</button>
-        </div>
-      </article>
-
-      <!-- Pending card 2: Reviewing the processor -->
-      <article class="pending-card" data-pending="2">
-        <div class="pending-head">
-          <div class="pending-avatar" style="background-image: url('/img/processor.jpg');"></div>
-          <div class="pending-meta">
-            <h4>Plant 04 · Bemidji, MN</h4>
-            <p>Processed <strong>#2598</strong> · drop-off May 28 · pickup June 11 · ⏰ 6 days left to review</p>
-          </div>
-          <span class="pending-pill">Processor review</span>
-        </div>
-
-        <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700;">How did Plant 04 do on this animal?</p>
-        <div class="stars-input" data-stars="overall2"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div>
-
-        <div class="subgrid">
-          <div class="subrow"><span class="lab">Communication</span><div class="stars-mini" data-stars="comm2"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">On schedule</span><div class="stars-mini" data-stars="punc2"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">Cut quality</span><div class="stars-mini" data-stars="qual2"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">Cleanliness</span><div class="stars-mini" data-stars="ease2"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-        </div>
-
-        <textarea class="review-text" placeholder="How was the cut quality? Hot to drop off? Friendly to deal with?"></textarea>
-
-        <div class="pending-foot">
-          <span class="privacy-note">🔒 Hidden until Plant 04 also reviews you.</span>
-          <button class="btn-submit" data-submit="2">Submit review</button>
-        </div>
-      </article>
-
-      <!-- Pending card 3 -->
-      <article class="pending-card" data-pending="3">
-        <div class="pending-head">
-          <div class="pending-avatar" style="background-image: url('/img/hereford.jpg');"></div>
-          <div class="pending-meta">
-            <h4>Jenna T. · Duluth, MN</h4>
-            <p>Half share of <strong>#2702</strong> · picked up May 30 · ⏰ Last day to review</p>
-          </div>
-          <span class="pending-pill">Buyer review</span>
-        </div>
-
-        <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700;">How was your experience with this buyer?</p>
-        <div class="stars-input" data-stars="overall3"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div>
-
-        <div class="subgrid">
-          <div class="subrow"><span class="lab">Communication</span><div class="stars-mini" data-stars="comm3"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">Picked up on time</span><div class="stars-mini" data-stars="punc3"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">Cut sheet clarity</span><div class="stars-mini" data-stars="qual3"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-          <div class="subrow"><span class="lab">Easy to work with</span><div class="stars-mini" data-stars="ease3"><button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button><button data-v="4">★</button><button data-v="5">★</button></div></div>
-        </div>
-
-        <textarea class="review-text" placeholder="A line or two about working with Jenna."></textarea>
-
-        <div class="pending-foot">
-          <span class="privacy-note">🔒 Hidden until Jenna also reviews you.</span>
-          <button class="btn-submit" data-submit="3">Submit review</button>
-        </div>
-      </article>
-    </div>
-
-    <!-- ============ RECEIVED ============ -->
-    <div class="rv-pane" data-pane="received" hidden>
-      <div class="rv-section-head">
-        <h3>What buyers + processors say about you</h3>
-        <p>128 verified reviews · all from completed transactions. Reviews from incomplete transactions don't count.</p>
-      </div>
-
-      <article class="received">
-        <div class="received-head">
-          <div class="received-avatar" style="background-image: url('/img/farmer.jpg');"></div>
-          <div class="received-meta">
-            <h4>Sarah R. · Bemidji</h4>
-            <p>Reviewed your operation · 2 weeks ago</p>
-          </div>
-          <span class="received-stars">★★★★★</span>
-        </div>
-        <p class="received-text">Bought a half from #2598 last fall. The flavor was unreal — the kind of beef you can't find at any grocery. Northfield is the real deal. Already reserved a quarter from #2641.</p>
-        <div class="received-foot">
-          <span class="received-tag">Verified buyer</span>
-          <span>Communication 5 · Quality 5 · Punctuality 5</span>
-        </div>
-      </article>
-
-      <article class="received">
-        <div class="received-head">
-          <div class="received-avatar" style="background-image: url('/img/processor.jpg');"></div>
-          <div class="received-meta">
-            <h4>Plant 04 · Bemidji</h4>
-            <p>Reviewed your last drop-off · 1 month ago</p>
-          </div>
-          <span class="received-stars">★★★★★</span>
-        </div>
-        <p class="received-text">Animals always show up clean and on schedule. Mychal preps the paperwork ahead of time. Easy producer to work with — we've never had a no-show in 4 years.</p>
-        <div class="received-foot">
-          <span class="received-tag">Verified processor</span>
-          <span>Drop-off prep 5 · Communication 5 · Animal condition 5</span>
-        </div>
-      </article>
-
-      <article class="received hidden-until">
-        <div class="received-head">
-          <div class="received-avatar" style="background: var(--surface-2);"></div>
-          <div class="received-meta">
-            <h4>Mark K. · Park Rapids</h4>
-            <p>Submitted a review · waiting on yours</p>
-          </div>
-          <span class="received-stars">★★★★★</span>
-        </div>
-        <p class="received-text">Lorem ipsum dolor sit amet consectetur adipiscing elit Lorem ipsum dolor sit amet</p>
-      </article>
-
-      <article class="received">
-        <div class="received-head">
-          <div class="received-avatar" style="background-image: url('/img/farmer.jpg');"></div>
-          <div class="received-meta">
-            <h4>Jenna T. · Duluth</h4>
-            <p>Reviewed your operation · 2 months ago</p>
-          </div>
-          <span class="received-stars">★★★★★</span>
-        </div>
-        <p class="received-text">First time buying a quarter and the Hansens walked me through every cut decision. Pickup was painless. We've already split a half with my sister-in-law.</p>
-        <div class="received-foot">
-          <span class="received-tag">Verified buyer</span>
-          <span>Communication 5 · Quality 5</span>
-        </div>
-      </article>
-    </div>
-
-    <!-- ============ GIVEN ============ -->
-    <div class="rv-pane" data-pane="given" hidden>
-      <div class="rv-section-head">
-        <h3>Reviews you've given</h3>
-        <p>94 reviews · 47 of buyers, 38 of processors, 9 mutual reviews waiting on the other side.</p>
-      </div>
-
-      <article class="received">
-        <div class="received-head">
-          <div class="received-avatar" style="background-image: url('/img/farmer.jpg');"></div>
-          <div class="received-meta">
-            <h4>You reviewed Sarah R.</h4>
-            <p>Quarter share of #2598 · 2 weeks ago</p>
-          </div>
-          <span class="received-stars">★★★★★</span>
-        </div>
-        <p class="received-text">Sarah was a dream buyer. Asked thoughtful questions about cuts, picked up exactly when she said she would, and brought her own coolers ready. Would sell to her again any day.</p>
-      </article>
-
-      <article class="received">
-        <div class="received-head">
-          <div class="received-avatar" style="background-image: url('/img/processor.jpg');"></div>
-          <div class="received-meta">
-            <h4>You reviewed Plant 04</h4>
-            <p>Processed #2598 · 1 month ago</p>
-          </div>
-          <span class="received-stars">★★★★★</span>
-        </div>
-        <p class="received-text">Plant 04 has been our partner since 2007. Cuts are precise, packaging is consistent, and they call within 24 hours of any issue. Worth the 12 mile drive.</p>
-      </article>
-    </div>
-
-    <!-- ============ ALERTS ============ -->
-    <div class="rv-pane" data-pane="alerts" hidden>
-      <div class="rv-section-head">
-        <h3>Heads up — reputation flags on incoming reservations</h3>
-        <p>Two new reservations have buyer history that needs your eyes. You can accept, talk to them first, or cancel without penalty.</p>
-      </div>
-
-      <div class="rep-alert red">
-        <span class="ico">⚠️</span>
-        <div class="body">
-          <h4>Buyer flag · 2 no-shows in last 12 months</h4>
-          <p><strong>Tyler W. · Brainerd</strong> reserved a quarter of #2671 · pickup July 23. Track record: 3.2★ from 6 reviews · 2 no-shows · 1 dispute.</p>
-        </div>
-        <div class="actions">
-          <button class="rep-btn">View profile</button>
-          <button class="rep-btn">Talk first</button>
-          <button class="rep-btn danger">Cancel reservation</button>
-        </div>
-      </div>
-
-      <div class="rep-alert amber">
-        <span class="ico">🟡</span>
-        <div class="body">
-          <h4>New buyer · no review history</h4>
-          <p><strong>Alex P. · St. Cloud</strong> reserved a half of #2641 · pickup June 11. First-time buyer on the platform. ID verified, payment method on file. No history yet.</p>
-        </div>
-        <div class="actions">
-          <button class="rep-btn">View profile</button>
-          <button class="rep-btn">Send welcome note</button>
-        </div>
-      </div>
-
-      <div class="rep-alert green">
-        <span class="ico">✅</span>
-        <div class="body">
-          <h4>Trusted buyer · 12 completed transactions</h4>
-          <p><strong>Sarah R. · Bemidji</strong> reserved another quarter of #2641. 4.9★ from 12 reviews · always on time · easy to work with.</p>
-        </div>
-        <div class="actions">
-          <button class="rep-btn">View profile</button>
-          <button class="rep-btn" style="background: var(--brand); color: #fff; border-color: var(--brand);">Auto-accept</button>
-        </div>
+    <!-- Real reviews surface — only renders when signed in with completed reservations -->
+    <div id="rvBody" style="margin-top: 32px;">
+      <div style="background:#fff;border-radius:18px;padding:60px 24px;text-align:center;">
+        <img src="/brand/logo-monogram.svg" alt="" width="56" height="56" style="display:block;margin:0 auto 16px;border-radius:13px;opacity:.7" />
+        <p style="font:600 14px/1.5 'Inter';color:rgba(6,27,14,.7);margin:0;">Loading your reviews…</p>
       </div>
     </div>
   </div>
@@ -442,76 +184,74 @@
 <script src="./po-shell.js"></script>
 <script src="./po-api.js"></script>
 <script>
-(function () {
-  'use strict';
+(async function loadRealReviews() {
+  const body = document.getElementById('rvBody');
+  if (!body) return;
 
-  // Tabs
-  document.querySelectorAll('.rv-tab').forEach(t => t.addEventListener('click', () => {
-    document.querySelectorAll('.rv-tab').forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    const pane = t.dataset.tab;
-    document.querySelectorAll('.rv-pane').forEach(p => p.hidden = p.dataset.pane !== pane);
-  }));
+  // Need to be signed in to see your own reservation reviews
+  let me;
+  try { me = await window.PO_API.me(); } catch { me = { user: null }; }
 
-  // Star inputs (overall + sub)
-  function wireStars(group) {
-    const buttons = group.querySelectorAll('button');
-    buttons.forEach(b => b.addEventListener('click', () => {
-      const v = Number(b.dataset.v);
-      buttons.forEach((x, i) => x.classList.toggle('lit', i < v));
-      group.dataset.value = v;
-    }));
-    // Hover preview
-    buttons.forEach(b => b.addEventListener('mouseenter', () => {
-      const v = Number(b.dataset.v);
-      buttons.forEach((x, i) => x.style.color = i < v ? '#f5b400' : '');
-    }));
-    group.addEventListener('mouseleave', () => {
-      buttons.forEach((x, i) => x.style.color = '');
-    });
+  if (!me.user) {
+    body.innerHTML = `
+      <div style="background:#fff;border-radius:18px;padding:60px 24px;text-align:center;">
+        <img src="/brand/logo-monogram.svg" alt="" width="56" height="56" style="display:block;margin:0 auto 14px;border-radius:13px;opacity:.7" />
+        <h3 style="font:800 20px/1.3 'Inter';margin:0 0 8px;letter-spacing:-0.02em;">Sign in to see your reviews</h3>
+        <p style="font:500 14px/1.5 'Inter';color:rgba(6,27,14,.7);max-width:380px;margin:0 auto 18px;">Reviews are tied to your account. Sign in with a magic link — no passwords.</p>
+        <button onclick="window.PO_API.openAuth('Sign in to see your reviews', 'buyer')" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer;">Sign in →</button>
+      </div>`;
+    return;
   }
-  document.querySelectorAll('.stars-input, .stars-mini').forEach(wireStars);
 
-  // Submit pending review — also persists to /api/reviews when card has the right data-* attrs.
-  document.querySelectorAll('[data-submit]').forEach(b => b.addEventListener('click', async () => {
-    const id = b.dataset.submit;
-    const card = document.querySelector(`.pending-card[data-pending="${id}"]`);
-    if (!card) return;
-    if (window.PO_API && card.dataset.reservation && card.dataset.subjectType && card.dataset.subjectId) {
-      const rating = parseInt(card.querySelector('input[type="radio"]:checked')?.value || card.dataset.rating || 5);
-      const body = card.querySelector('textarea')?.value || '';
-      try {
-        await window.PO_API.submitReview({
-          reservation_id: card.dataset.reservation,
-          subject_type: card.dataset.subjectType,
-          subject_id: card.dataset.subjectId,
-          rating, body
-        });
-      } catch (e) {
-        if (e.status === 401) { window.PO_API.openAuth('Sign in to submit your review'); return; }
-      }
-    }
-    card.style.transition = 'transform .5s cubic-bezier(.2,.9,.3,1.05), opacity .5s';
-    card.style.transform = 'scale(0.98) translateX(20px)';
-    card.style.opacity = '0';
-    setTimeout(() => {
-      card.style.height = card.offsetHeight + 'px';
-      requestAnimationFrame(() => {
-        card.style.transition = 'height .35s ease, margin .35s ease, padding .35s ease, opacity .35s';
-        card.style.height = '0';
-        card.style.margin = '0';
-        card.style.padding = '0';
-        card.style.overflow = 'hidden';
-        setTimeout(() => card.remove(), 360);
-      });
-    }, 500);
-    // Update badge count
-    const badge = document.querySelector('.rv-tab[data-tab="pending"] .badge');
-    if (badge) {
-      const n = Math.max(0, Number(badge.textContent) - 1);
-      badge.textContent = n;
-    }
-  }));
+  // Pull your reservations to build the review surface
+  let reservations = [];
+  try { const r = await window.PO_API.reservations(); reservations = r.reservations || []; }
+  catch { reservations = []; }
+
+  if (!reservations.length) {
+    body.innerHTML = `
+      <div style="background:#fff;border-radius:18px;padding:60px 24px;text-align:center;">
+        <img src="/brand/logo-monogram.svg" alt="" width="56" height="56" style="display:block;margin:0 auto 14px;border-radius:13px;opacity:.7" />
+        <h3 style="font:800 20px/1.3 'Inter';margin:0 0 8px;letter-spacing:-0.02em;">No reviews yet — you haven't reserved anything.</h3>
+        <p style="font:500 14px/1.5 'Inter';color:rgba(6,27,14,.7);max-width:420px;margin:0 auto 18px;">After your first reservation is delivered, you'll be able to rate the farmer and processor here. Both sides stay hidden until both submit.</p>
+        <a href="/discover" style="display:inline-block;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';">Browse listings →</a>
+      </div>`;
+    return;
+  }
+
+  // Group reservations by review-readiness
+  const completed = reservations.filter(r => ['picked-up','ready'].includes(r.status));
+  const inFlight  = reservations.filter(r => ['deposit-paid','paid','processing'].includes(r.status));
+
+  body.innerHTML = `
+    <div style="display:grid;gap:14px;">
+      <div style="background:#fff;border-radius:18px;padding:24px 26px;">
+        <p style="font:800 11px/1 'Inter';letter-spacing:.16em;text-transform:uppercase;color:rgba(6,27,14,.55);margin:0 0 6px;">Reviews you can leave</p>
+        <h3 style="font:800 22px/1.2 'Inter';letter-spacing:-0.02em;margin:0 0 6px;">${completed.length} ready · ${inFlight.length} after pickup</h3>
+        <p style="font:500 14px/1.5 'Inter';color:rgba(6,27,14,.7);margin:0;">${completed.length === 0 ? "You'll be able to rate the farmer + processor for each reservation once it's delivered." : 'Tap to rate the farmer and processor for each completed reservation.'}</p>
+      </div>
+      ${completed.map(r => {
+        const animal = `${r.number ? r.number + ' · ' : ''}${r.breed || r.species}`;
+        const farm = r.farm_name || 'Independent farm';
+        return `<div style="background:#fff;border-radius:18px;padding:20px 22px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;">
+          <div>
+            <h4 style="font:800 16px/1.3 'Inter';margin:0 0 4px;letter-spacing:-0.01em;">${animal}</h4>
+            <p style="font:500 13px/1.4 'Inter';color:rgba(6,27,14,.7);margin:0;">${farm} · ${r.farm_city || ''}, ${r.farm_state || ''} · ${r.status.replace('-', ' ')}</p>
+          </div>
+          <a href="/account?write_review=${r.id}" style="background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:10px 18px;font:700 13px/1 'Inter';white-space:nowrap;">Write review →</a>
+        </div>`;
+      }).join('')}
+      ${inFlight.map(r => {
+        const animal = `${r.number ? r.number + ' · ' : ''}${r.breed || r.species}`;
+        const farm = r.farm_name || 'Independent farm';
+        return `<div style="background:rgba(6,27,14,.03);border-radius:18px;padding:20px 22px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;">
+          <div>
+            <h4 style="font:700 15px/1.3 'Inter';margin:0 0 4px;letter-spacing:-0.01em;color:rgba(6,27,14,.65);">${animal}</h4>
+            <p style="font:500 12.5px/1.4 'Inter';color:rgba(6,27,14,.55);margin:0;">${farm} · ${r.status.replace('-',' ')} — review unlocks at pickup</p>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
 })();
 </script>
 </body>
