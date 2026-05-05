@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>Protein Outfitters — Farmer donation flow</title>
+<title>Protein Outfitters — Donation Depot</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,9 +12,120 @@
 <link rel="stylesheet" href="./theme.css">
 
 <style>
-.role-bar { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: var(--r-3); box-shadow: var(--sh-0); max-width: 460px; margin: var(--s-6) auto; }
-.role-bar button { flex: 1; padding: 10px 14px; border-radius: var(--r-2); font-size: var(--text-sm); font-weight: 700; color: var(--ink-2); }
+.role-bar { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: var(--r-3); box-shadow: var(--sh-0); max-width: 720px; margin: var(--s-6) auto; flex-wrap: wrap; }
+.role-bar button { flex: 1; padding: 10px 12px; border-radius: var(--r-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-2); white-space: nowrap; }
 .role-bar button.active { background: var(--brand); color: var(--ink-inverse); }
+
+/* === Depot hero (intro band at top of page) === */
+.depot-hero {
+  position: relative;
+  background:
+    linear-gradient(110deg, rgba(8,12,10,0.85) 0%, rgba(8,12,10,0.55) 50%, rgba(8,12,10,0.25) 100%),
+    linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%);
+  color: var(--ink-inverse);
+  padding: clamp(60px, 8vw, 100px) 0;
+}
+.depot-hero h1 { color: white; max-width: 18ch; margin: var(--s-3) 0; }
+.depot-hero p { color: rgba(255,255,255,0.85); max-width: 56ch; font-size: var(--text-lg); }
+
+/* Two-up depot model card grid (donor / institution) */
+.depot-model-grid {
+  display: grid; gap: var(--s-5); grid-template-columns: 1fr;
+  margin-top: var(--s-8);
+}
+@media (min-width: 768px) { .depot-model-grid { grid-template-columns: 1fr 1fr; } }
+.depot-side {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: var(--r-4);
+  padding: var(--s-6);
+  display: flex; flex-direction: column; gap: var(--s-3);
+}
+.depot-side h3 { color: white; font-size: var(--text-xl); font-weight: 800; margin: 0; letter-spacing: var(--tracking-snug); }
+.depot-side .eyebrow { color: var(--accent-soft); }
+.depot-side p { color: rgba(255,255,255,0.78); font-size: var(--text-sm); line-height: 1.55; margin: 0; }
+.depot-side ul { margin: var(--s-2) 0 0; padding: 0; list-style: none; }
+.depot-side ul li { padding: 6px 0; font-size: var(--text-sm); color: rgba(255,255,255,0.78); border-bottom: 1px solid rgba(255,255,255,0.08); }
+.depot-side ul li:last-child { border: 0; }
+.depot-side ul li::before { content: "·"; color: var(--accent-soft); margin-right: 8px; font-weight: 900; }
+.depot-side .btn { margin-top: auto; }
+
+/* Process strip — 4-step flow on the depot hero */
+.depot-process {
+  display: grid; gap: var(--s-3);
+  grid-template-columns: 1fr;
+  margin-top: var(--s-10);
+  padding-top: var(--s-8);
+  border-top: 1px solid rgba(255,255,255,0.10);
+}
+@media (min-width: 768px) { .depot-process { grid-template-columns: repeat(4, 1fr); } }
+.depot-step { color: rgba(255,255,255,0.85); }
+.depot-step .step-num { display: block; color: var(--accent-soft); font-size: var(--text-2xl); font-weight: 900; line-height: 1; margin-bottom: var(--s-2); }
+.depot-step .step-title { display: block; color: white; font-size: var(--text-md); font-weight: 800; margin-bottom: var(--s-1); }
+.depot-step .step-meta { font-size: var(--text-sm); color: rgba(255,255,255,0.72); }
+
+/* Institution apply form */
+.apply-form {
+  background: var(--surface);
+  border-radius: var(--r-4);
+  padding: var(--s-6);
+  display: grid; gap: var(--s-4);
+  box-shadow: var(--sh-1);
+  max-width: 720px; margin: var(--s-6) auto 0;
+}
+.apply-form .form-row { display: grid; gap: 6px; }
+.apply-form label { font-size: var(--text-sm); font-weight: 700; }
+.apply-form .hint { font-size: var(--text-xs); color: var(--ink-3); }
+.apply-form input[type="text"], .apply-form input[type="email"], .apply-form input[type="tel"], .apply-form input[type="number"], .apply-form select, .apply-form textarea {
+  padding: 10px 12px; border-radius: var(--r-2); border: 1px solid var(--hairline); background: var(--surface-2); font: inherit;
+}
+.apply-form .row-2 { display: grid; gap: var(--s-3); grid-template-columns: 1fr 1fr; }
+.apply-form .pill-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+.apply-form .pill-grid label {
+  padding: 8px 14px; border-radius: 999px; background: var(--surface-2); cursor: pointer;
+  font-size: var(--text-sm); font-weight: 600; user-select: none;
+}
+.apply-form .pill-grid input { display: none; }
+.apply-form .pill-grid input:checked + span { display: inline-block; }
+.apply-form .pill-grid label:has(input:checked) { background: var(--brand); color: var(--ink-inverse); }
+
+/* Institution dashboard — available inventory cards */
+.inventory-grid {
+  display: grid; gap: var(--s-4);
+  grid-template-columns: 1fr;
+  margin-top: var(--s-6);
+}
+@media (min-width: 768px) { .inventory-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .inventory-grid { grid-template-columns: repeat(3, 1fr); } }
+.inventory-card {
+  background: var(--surface);
+  border-radius: var(--r-4);
+  padding: var(--s-5);
+  box-shadow: var(--sh-1);
+  display: flex; flex-direction: column; gap: var(--s-2);
+}
+.inventory-card .meta-row { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+.inventory-card .pill { font-size: 10px; }
+.inventory-card .qty { font-size: var(--text-2xl); font-weight: 900; letter-spacing: var(--tracking-tight); }
+.inventory-card .qty span { font-size: var(--text-sm); font-weight: 600; color: var(--ink-3); margin-left: 4px; }
+.inventory-card .breakdown { font-size: var(--text-xs); color: var(--ink-3); }
+.inventory-card .request-cta { margin-top: auto; }
+
+/* Institution status banner */
+.status-banner {
+  background: var(--accent-soft); border-radius: var(--r-3);
+  padding: var(--s-4) var(--s-5);
+  display: flex; gap: var(--s-3); align-items: center;
+  margin-bottom: var(--s-5);
+}
+.status-banner .icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--brand); color: var(--ink-inverse);
+  display: grid; place-items: center; font-weight: 900;
+  flex-shrink: 0;
+}
+.status-banner strong { display: block; font-size: var(--text-sm); }
+.status-banner small { font-size: var(--text-xs); color: var(--ink-3); }
 
 /* Donation banner */
 .donation-banner {
@@ -154,15 +265,74 @@
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
       <a href="#" style="font-weight: 900; font-size: 16px; text-transform: uppercase;">Protein Outfitters</a>
-      <span class="pill pill--accent" style="font-size: 10px;">DONATION FLOW</span>
+      <span class="pill pill--accent" style="font-size: 10px;">DONATION DEPOT</span>
     </nav>
   </div>
 </header>
 
+<!-- ============ DEPOT HERO (intro) ============ -->
+<section class="depot-hero">
+  <div class="container">
+    <span class="eyebrow" style="color: var(--accent-soft);">Protein Outfitters Donation Depot</span>
+    <h1 class="display-2xl">Donate an animal.<br>Feed a school.</h1>
+    <p>A two-sided depot, the way a clothing-donation depot works. Producers, processors, and buyers donate animals or fractions and walk away with a tax-deductible donation form. Qualified institutions — schools, government feeding programs, food banks, and food shelves — register, get approved, and request the meat we have on hand.</p>
+
+    <div class="depot-model-grid">
+      <div class="depot-side">
+        <span class="eyebrow">Donate</span>
+        <h3>Drop off, get a form, walk away.</h3>
+        <p>If you have an unsold fraction, an excess animal, or a buyer's share you'd like to donate, we route it through the same processor pipeline as a paid sale. Program funds cover the kill fee. You get a tax-deductible acknowledgment letter.</p>
+        <ul>
+          <li>Farmers — donate unsold fractions or whole animals</li>
+          <li>Processors — donate excess inventory or salvageable yield</li>
+          <li>Buyers — donate part of your share at checkout</li>
+        </ul>
+        <button class="btn btn--primary btn--lg" onclick="showView('farmer')">Start a donation →</button>
+      </div>
+      <div class="depot-side">
+        <span class="eyebrow">Receive</span>
+        <h3>Apply, qualify, request.</h3>
+        <p>If you're a qualified feeding program, get on our recipient list once. From then on, you see real-time inventory of available donated meat, request what you need, and we coordinate pickup or delivery from the depot's processor partners.</p>
+        <ul>
+          <li>Schools — K-12, child nutrition, and Farm-to-School programs</li>
+          <li>Government — state-run feeding, tribal nations, veterans, corrections</li>
+          <li>Food banks &amp; food shelves — 501(c)(3) and equivalents</li>
+        </ul>
+        <button class="btn btn--secondary btn--lg" onclick="showView('apply')">Apply as institution →</button>
+      </div>
+    </div>
+
+    <div class="depot-process">
+      <div class="depot-step">
+        <span class="step-num">01</span>
+        <span class="step-title">Donor drops off</span>
+        <span class="step-meta">Farmer, processor, or buyer flips a toggle on a listing or share. The fraction is removed from sale.</span>
+      </div>
+      <div class="depot-step">
+        <span class="step-num">02</span>
+        <span class="step-title">Processor processes</span>
+        <span class="step-meta">USDA harvest, hanging, fabrication, packaging. Program funds cover the kill + processing fees.</span>
+      </div>
+      <div class="depot-step">
+        <span class="step-num">03</span>
+        <span class="step-title">Institution receives</span>
+        <span class="step-meta">Qualified school / government / food bank requests from inventory. Pickup or delivery is arranged.</span>
+      </div>
+      <div class="depot-step">
+        <span class="step-num">04</span>
+        <span class="step-title">Donor gets the form</span>
+        <span class="step-meta">IRS-compliant tax letter mailed within 10 days of processing — actual hanging weight, EIN, FMV.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <div class="container">
   <div class="role-bar">
-    <button class="active" onclick="showView('farmer')">Farmer</button>
+    <button class="active" onclick="showView('farmer')">Donate</button>
     <button onclick="showView('confirm')">Confirm</button>
+    <button onclick="showView('apply')">Apply as institution</button>
+    <button onclick="showView('institution')">Institution dashboard</button>
     <button onclick="showView('letter')">Tax letter</button>
     <button onclick="showView('admin')">Admin</button>
     <button onclick="showView('impact')">Impact</button>
@@ -293,6 +463,262 @@
   </div>
 </section>
 
+<!-- ============ INSTITUTION APPLY (qualification form) ============ -->
+<section id="view-apply" class="hidden container container--narrow section">
+  <div class="row row--between mb-6">
+    <div>
+      <span class="eyebrow">Apply as a recipient institution</span>
+      <h2 class="display-md mt-2">Get on the depot recipient list.</h2>
+    </div>
+    <span class="pill pill--accent">APPLICATION</span>
+  </div>
+
+  <p class="body" style="max-width: 60ch;">One-time application. Once we verify your tax-exempt or government status and confirm storage/handling capacity, you'll see the inventory dashboard and can request donated meat anytime.</p>
+
+  <form class="apply-form" onsubmit="event.preventDefault(); showView('institution');">
+    <div class="form-row">
+      <label>Institution type</label>
+      <div class="pill-grid">
+        <label><input type="radio" name="inst-type" value="school" checked /><span>School / district</span></label>
+        <label><input type="radio" name="inst-type" value="government" /><span>Government agency</span></label>
+        <label><input type="radio" name="inst-type" value="foodbank" /><span>Food bank / shelf</span></label>
+        <label><input type="radio" name="inst-type" value="tribal" /><span>Tribal nation</span></label>
+        <label><input type="radio" name="inst-type" value="veterans" /><span>Veterans program</span></label>
+        <label><input type="radio" name="inst-type" value="other" /><span>Other 501(c)(3)</span></label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Legal name of institution</label>
+      <input type="text" placeholder="e.g. Bemidji Public Schools — Independent District 31" required />
+    </div>
+
+    <div class="row-2">
+      <div class="form-row">
+        <label>EIN / federal tax ID</label>
+        <input type="text" placeholder="00-0000000" required />
+        <span class="hint">Required for IRS-compliant tax letter to donor. We verify against the IRS Tax Exempt Organization Search or government registry.</span>
+      </div>
+      <div class="form-row">
+        <label>State of operation</label>
+        <select required>
+          <option value="">Select…</option>
+          <option>Minnesota</option>
+          <option>Wisconsin</option>
+          <option>North Dakota</option>
+          <option>South Dakota</option>
+          <option>Iowa</option>
+          <option>Illinois</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Mailing address</label>
+      <input type="text" placeholder="Street, city, ZIP" required />
+    </div>
+
+    <div class="row-2">
+      <div class="form-row">
+        <label>Primary contact name</label>
+        <input type="text" placeholder="Director / Coordinator / Procurement lead" required />
+      </div>
+      <div class="form-row">
+        <label>Title / role</label>
+        <input type="text" placeholder="Food Service Director, Pantry Coordinator, etc." required />
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="form-row">
+        <label>Email</label>
+        <input type="email" placeholder="contact@institution.org" required />
+      </div>
+      <div class="form-row">
+        <label>Phone</label>
+        <input type="tel" placeholder="(218) 555-0123" required />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>People served per week</label>
+      <input type="number" min="0" placeholder="e.g. 480 student lunches, 220 pantry households" required />
+      <span class="hint">Used for sizing matches — we don't send 800 lbs of beef to a 60-meal program.</span>
+    </div>
+
+    <div class="form-row">
+      <label>Cold storage capacity</label>
+      <div class="pill-grid">
+        <label><input type="radio" name="storage" value="freezer" checked /><span>Walk-in freezer</span></label>
+        <label><input type="radio" name="storage" value="reach-in" /><span>Reach-in freezer (≤ 200 lbs)</span></label>
+        <label><input type="radio" name="storage" value="cooler" /><span>Cooler only (same-day use)</span></label>
+        <label><input type="radio" name="storage" value="distribution" /><span>Distribution / no on-site storage</span></label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Accepted species</label>
+      <div class="pill-grid">
+        <label><input type="checkbox" checked /><span>Beef</span></label>
+        <label><input type="checkbox" checked /><span>Pork</span></label>
+        <label><input type="checkbox" /><span>Lamb</span></label>
+        <label><input type="checkbox" /><span>Goat</span></label>
+        <label><input type="checkbox" /><span>Venison</span></label>
+        <label><input type="checkbox" /><span>Poultry</span></label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Pickup capability</label>
+      <div class="pill-grid">
+        <label><input type="radio" name="pickup" value="self" checked /><span>We can pick up from processor</span></label>
+        <label><input type="radio" name="pickup" value="delivery" /><span>Need delivery (cost shared from program funds)</span></label>
+        <label><input type="radio" name="pickup" value="depot" /><span>Pickup at central depot only</span></label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Tax-exempt determination letter or government authorization</label>
+      <input type="text" placeholder="Upload disabled in prototype — emailed to depot@proteinoutfitters.com" />
+      <span class="hint">For 501(c)(3): IRS determination letter. For government / school: a letter from your governing authority confirming program eligibility.</span>
+    </div>
+
+    <div class="form-row">
+      <label>Anything else we should know?</label>
+      <textarea rows="3" placeholder="Religious dietary requirements, allergen concerns, distribution model, USDA Foods participation, etc."></textarea>
+    </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" required />
+      <span>I confirm this institution complies with applicable food safety, handling, and recipient-eligibility regulations, and that donated meat will be used only for the program described above.</span>
+    </label>
+
+    <button type="submit" class="btn btn--primary btn--xl btn--block">Submit application</button>
+    <small class="text-faint text-center" style="font-size: 11px;">Most applications are reviewed within 3 business days. We'll email you when your status changes.</small>
+  </form>
+</section>
+
+<!-- ============ INSTITUTION DASHBOARD (browse + request) ============ -->
+<section id="view-institution" class="hidden container section">
+  <div class="row row--between mb-4">
+    <div>
+      <span class="eyebrow">Bemidji Public Schools — Approved Institution</span>
+      <h2 class="display-md mt-2">Available donations.</h2>
+    </div>
+    <div class="row gap-2">
+      <button class="btn btn--ghost btn--sm" onclick="showView('apply')">Edit profile</button>
+      <button class="btn btn--secondary btn--sm">Past requests</button>
+    </div>
+  </div>
+
+  <div class="status-banner">
+    <div class="icon">✓</div>
+    <div>
+      <strong>Approved · Walk-in freezer · Beef/Pork accepted · Self-pickup</strong>
+      <small>Verified Apr 18, 2026 · 480 lunches/wk · IRS letter on file · 1,840 lbs received YTD</small>
+    </div>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="grid grid-cols-4" style="gap: var(--s-3); margin-bottom: var(--s-5);">
+    <div class="card impact-card">
+      <span class="num">12</span>
+      <span class="label">animals available now</span>
+    </div>
+    <div class="card impact-card">
+      <span class="num">2,148</span>
+      <span class="label">lbs in pipeline</span>
+    </div>
+    <div class="card impact-card">
+      <span class="num">3</span>
+      <span class="label">your active requests</span>
+    </div>
+    <div class="card impact-card">
+      <span class="num">22</span>
+      <span class="label">mi to nearest processor</span>
+    </div>
+  </div>
+
+  <!-- Inventory -->
+  <h3 class="h3 mt-6">Available within 50 miles</h3>
+  <div class="inventory-grid">
+    <article class="inventory-card">
+      <div class="meta-row">
+        <span class="pill pill--accent">Beef</span>
+        <span class="pill" style="background: var(--surface-2);">Ready Jun 22</span>
+      </div>
+      <h4 style="margin: 4px 0 0; font-size: var(--text-md); font-weight: 800;">Angus Steer #402 · ¼ donation</h4>
+      <span class="qty">~140 lbs<span>take-home protein</span></span>
+      <span class="breakdown">Sterling Trust Farms · processed at Hilltop Custom Meats (22 mi) · USDA</span>
+      <span class="breakdown">Default cut: 100% ground · alternate cuts available on request</span>
+      <button class="btn btn--primary btn--block request-cta" onclick="showToast('Request sent · admin will confirm pickup window')">Request this donation</button>
+    </article>
+
+    <article class="inventory-card">
+      <div class="meta-row">
+        <span class="pill pill--accent">Pork</span>
+        <span class="pill" style="background: var(--surface-2);">Ready Jun 14</span>
+      </div>
+      <h4 style="margin: 4px 0 0; font-size: var(--text-md); font-weight: 800;">Berkshire Hog #88 · whole donation</h4>
+      <span class="qty">~210 lbs<span>take-home protein</span></span>
+      <span class="breakdown">Heritage Pork Co. · processed at Northwoods Locker (38 mi) · USDA</span>
+      <span class="breakdown">Default cut: chops + ground + sausage · pre-portioned for school lunches</span>
+      <button class="btn btn--primary btn--block request-cta" onclick="showToast('Request sent · admin will confirm pickup window')">Request this donation</button>
+    </article>
+
+    <article class="inventory-card">
+      <div class="meta-row">
+        <span class="pill pill--accent">Beef</span>
+        <span class="pill" style="background: var(--surface-2);">Ready Jul 18</span>
+      </div>
+      <h4 style="margin: 4px 0 0; font-size: var(--text-md); font-weight: 800;">Wagyu Cross #102 · ½ donation</h4>
+      <span class="qty">~280 lbs<span>take-home protein</span></span>
+      <span class="breakdown">Agri-Credit Union (corporate donor) · Bemidji-area processor · USDA</span>
+      <span class="breakdown">Default cut: ground + roasts · larger institution priority</span>
+      <button class="btn btn--primary btn--block request-cta" onclick="showToast('Request sent · admin will confirm pickup window')">Request this donation</button>
+    </article>
+
+    <article class="inventory-card">
+      <div class="meta-row">
+        <span class="pill pill--accent">Lamb</span>
+        <span class="pill" style="background: var(--surface-2);">Ready Jun 28</span>
+      </div>
+      <h4 style="margin: 4px 0 0; font-size: var(--text-md); font-weight: 800;">Lamb #L20 · ½ donation</h4>
+      <span class="qty">~32 lbs<span>take-home protein</span></span>
+      <span class="breakdown">North Star Sheep · Itasca County processor (47 mi) · USDA</span>
+      <span class="breakdown">Default cut: ground + leg roasts · culturally-relevant for some communities</span>
+      <button class="btn btn--primary btn--block request-cta" onclick="showToast('Request sent · admin will confirm pickup window')">Request this donation</button>
+    </article>
+
+    <article class="inventory-card">
+      <div class="meta-row">
+        <span class="pill pill--accent">Beef</span>
+        <span class="pill" style="background: var(--surface-2);">Pending funding</span>
+      </div>
+      <h4 style="margin: 4px 0 0; font-size: var(--text-md); font-weight: 800;">Hereford #339 · ¼ donation</h4>
+      <span class="qty">~135 lbs<span>est. yield</span></span>
+      <span class="breakdown">Sterling Trust · processor not yet booked · drop-off Jun 28</span>
+      <span class="breakdown">Need $185 in program funds to confirm — first-request priority once funded</span>
+      <button class="btn btn--secondary btn--block request-cta" onclick="showToast('Pre-request logged · we\'ll notify when funded')">Pre-request</button>
+    </article>
+
+    <article class="inventory-card">
+      <div class="meta-row">
+        <span class="pill pill--accent">Beef</span>
+        <span class="pill" style="background: var(--surface-2);">Distribution open</span>
+      </div>
+      <h4 style="margin: 4px 0 0; font-size: var(--text-md); font-weight: 800;">Steer #380 · ¼ donation · partial</h4>
+      <span class="qty">~78 lbs<span>remaining</span></span>
+      <span class="breakdown">Already distributed: 60 lbs to Bemidji Food Shelf · 78 lbs still available</span>
+      <span class="breakdown">Cuts available: ground · stew meat · soup bones</span>
+      <button class="btn btn--primary btn--block request-cta" onclick="showToast('Request sent · admin will confirm pickup window')">Request remaining</button>
+    </article>
+  </div>
+
+  <p class="body-sm text-faint mt-6" style="text-align: center;">Don't see what you need? Email <a href="mailto:depot@proteinoutfitters.com">depot@proteinoutfitters.com</a> with your weekly volume and we'll match upcoming donations to your program.</p>
+</section>
+
 <!-- ============ TAX LETTER PREVIEW ============ -->
 <section id="view-letter" class="hidden container container--narrow section">
   <div class="row row--between mb-6">
@@ -371,12 +797,64 @@
       <span class="label">lbs in pipeline</span>
     </div>
     <div class="card impact-card">
+      <span class="num">38</span>
+      <span class="label">Approved institutions</span>
+    </div>
+    <div class="card impact-card">
       <span class="num">$28k</span>
       <span class="label">Program fund balance</span>
     </div>
-    <div class="card impact-card">
-      <span class="num">94%</span>
-      <span class="label">Distribution rate</span>
+  </div>
+
+  <!-- Institution applications queue -->
+  <div class="card mb-6" style="padding: var(--s-5);">
+    <div class="row row--between">
+      <div>
+        <span class="eyebrow">Institutions awaiting approval (3)</span>
+        <h3 class="h3 mt-2" style="margin: 4px 0 0;">Verify EIN, storage, and capacity</h3>
+      </div>
+      <button class="btn btn--ghost btn--sm">View all</button>
+    </div>
+    <div class="mt-4">
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico" style="background: linear-gradient(135deg, #5a7268, #8aa395);">S</div>
+          <div>
+            <strong>Park Rapids ISD #309 (school)</strong>
+            <div class="meta">EIN 41-0987654 · 612 lunches/wk · walk-in freezer · self-pickup</div>
+          </div>
+        </div>
+        <div class="row gap-2">
+          <button class="btn btn--secondary btn--sm">Review</button>
+          <button class="btn btn--primary btn--sm">Approve</button>
+        </div>
+      </div>
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico" style="background: linear-gradient(135deg,#7d4c4c,#a86b6b);">F</div>
+          <div>
+            <strong>Itasca County Mutual Aid (food bank)</strong>
+            <div class="meta">EIN 47-2233445 · 220 households/wk · cooler only · need delivery</div>
+          </div>
+        </div>
+        <div class="row gap-2">
+          <button class="btn btn--secondary btn--sm">Review</button>
+          <button class="btn btn--primary btn--sm">Approve</button>
+        </div>
+      </div>
+      <div class="admin-row">
+        <div class="admin-row-body">
+          <div class="ico" style="background: linear-gradient(135deg,#5a5048,#3a3028);">G</div>
+          <div>
+            <strong>Red Lake Nation Veterans Program (tribal)</strong>
+            <div class="meta">Tribal authorization on file · 80 elders/wk · walk-in freezer · self-pickup</div>
+          </div>
+        </div>
+        <div class="row gap-2">
+          <button class="btn btn--secondary btn--sm">Review</button>
+          <button class="btn btn--primary btn--sm">Approve</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -515,13 +993,16 @@
 
 <script>
 function showView(v) {
+  const map = ['farmer','confirm','apply','institution','letter','admin','impact'];
   document.querySelectorAll('.role-bar button').forEach((b,i) => {
-    const map = ['farmer','confirm','letter','admin','impact'];
     b.classList.toggle('active', map[i] === v);
   });
-  ['farmer','confirm','letter','admin','impact'].forEach(id => {
-    document.getElementById('view-'+id).classList.toggle('hidden', id !== v);
+  map.forEach(id => {
+    const el = document.getElementById('view-'+id);
+    if (el) el.classList.toggle('hidden', id !== v);
   });
+  // Scroll to top of the visible view so the user sees its top
+  window.scrollTo({ top: document.querySelector('.role-bar').offsetTop - 20, behavior: 'smooth' });
 }
 function showToast(msg) {
   const t = document.getElementById('toast');
