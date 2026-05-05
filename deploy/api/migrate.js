@@ -174,7 +174,64 @@ const SCHEMA_STATEMENTS = [
     filters JSONB NOT NULL,
     notify_email BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
-  )`
+  )`,
+
+  // Discovered candidates from Places API / USDA FSIS / AAMP / Eat Wild — staging
+  // until they sign up and claim a real farm/processor row.
+  `CREATE TABLE IF NOT EXISTS discovered_partners (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    kind TEXT NOT NULL CHECK (kind IN ('farm','processor')),
+    name TEXT NOT NULL,
+    address TEXT,
+    city TEXT,
+    state TEXT,
+    zip TEXT,
+    lat DOUBLE PRECISION,
+    lng DOUBLE PRECISION,
+    phone TEXT,
+    email TEXT,
+    website TEXT,
+    species TEXT[],
+    source TEXT NOT NULL CHECK (source IN ('places','fsis','aamp','eatwild','customer','manual')),
+    source_ref TEXT,
+    raw_data JSONB,
+    invite_status TEXT NOT NULL DEFAULT 'new' CHECK (invite_status IN ('new','queued','sent','bounced','clicked','signed_up','declined','dnc')),
+    invited_by UUID REFERENCES users(id),
+    invited_at TIMESTAMPTZ,
+    signed_up_user UUID REFERENCES users(id),
+    signed_up_at TIMESTAMPTZ,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(source, source_ref)
+  )`,
+  `CREATE INDEX IF NOT EXISTS discovered_partners_state_idx ON discovered_partners(state)`,
+  `CREATE INDEX IF NOT EXISTS discovered_partners_kind_idx ON discovered_partners(kind)`,
+  `CREATE INDEX IF NOT EXISTS discovered_partners_status_idx ON discovered_partners(invite_status)`,
+  `CREATE INDEX IF NOT EXISTS discovered_partners_geo_idx ON discovered_partners(lat, lng)`,
+
+  // Audit trail of every invite sent (so a partner can be invited by multiple people)
+  `CREATE TABLE IF NOT EXISTS invites (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    discovered_id UUID REFERENCES discovered_partners(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL CHECK (kind IN ('farm','processor')),
+    name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    inviter_user_id UUID REFERENCES users(id),
+    inviter_email TEXT,
+    inviter_name TEXT,
+    message TEXT,
+    channel TEXT NOT NULL DEFAULT 'email' CHECK (channel IN ('email','sms','manual')),
+    status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','sent','delivered','opened','clicked','bounced','converted','failed')),
+    resend_message_id TEXT,
+    converted_user_id UUID REFERENCES users(id),
+    sent_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS invites_email_idx ON invites(email)`,
+  `CREATE INDEX IF NOT EXISTS invites_inviter_idx ON invites(inviter_user_id)`,
+  `CREATE INDEX IF NOT EXISTS invites_status_idx ON invites(status)`
 ];
 
 const SEED_SQL = [
