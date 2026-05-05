@@ -14,15 +14,17 @@ import { sql, currentUser, err, json } from './_lib/db.js';
 // Stripe SDK uses Node Buffer/crypto — must run on Node runtime, not edge.
 export const config = { runtime: 'nodejs' };
 
+// Price/product IDs come from env vars. Defaults are LIVE — set test-mode IDs
+// in Vercel Preview/Development env to test with sk_test keys.
 const PRICING = {
   processingPerLbHW: 1.25,
   killFeeFlat: 100,
   insurancePerLbHW: 0.05,
   platformPerLbHW: 0.25,
   cutsYield: 0.72,
-  PROCESSING_PRICE_ID: 'price_1TTXarAEMYhoRW98GApM48vP',  // $225 flat
-  INSURANCE_PRICE_ID:  'price_1TTXb2AEMYhoRW98KrLcSbj3',  // $18 flat
-  DEPOSIT_PRODUCT_ID:  'prod_USSVhZDnkZakBC',             // variable-price product
+  PROCESSING_PRICE_ID: process.env.STRIPE_PROCESSING_PRICE_ID || 'price_1TTXarAEMYhoRW98GApM48vP',
+  INSURANCE_PRICE_ID:  process.env.STRIPE_INSURANCE_PRICE_ID  || 'price_1TTXb2AEMYhoRW98KrLcSbj3',
+  DEPOSIT_PRODUCT_ID:  process.env.STRIPE_DEPOSIT_PRODUCT_ID  || 'prod_USSVhZDnkZakBC',
 };
 
 function shareFraction(key) {
