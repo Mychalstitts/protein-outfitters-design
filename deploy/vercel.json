@@ -5,6 +5,9 @@
   "rewrites": [
     { "source": "/farm/:slug", "destination": "/farm-profile.html" }
   ],
+  "redirects": [
+    { "source": "/produced", "destination": "/producers", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",

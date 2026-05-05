@@ -933,34 +933,11 @@ body { background: var(--bg); overflow-x: hidden; }
       <div class="options" id="shareOptions"></div>
     </section>
 
-    <!-- Step 2: processor -->
+    <!-- Step 2: processor (populated dynamically from /api/processors) -->
     <section class="sheet-step" data-step="2" hidden>
       <h3 class="sheet-q">Where will you pick up?</h3>
-      <div class="options">
-        <button class="option" data-processor="04">
-          <span class="option-glyph">04</span>
-          <span class="option-text">
-            <span class="option-title">Plant 04 · Bemidji, MN</span>
-            <span class="option-sub">12 mi · Suggested · Pickup window: 8 AM – 5 PM</span>
-          </span>
-          <span class="option-price">Free</span>
-        </button>
-        <button class="option" data-processor="17">
-          <span class="option-glyph">17</span>
-          <span class="option-text">
-            <span class="option-title">Plant 17 · Cass Lake, MN</span>
-            <span class="option-sub">38 mi · Pickup window: 7 AM – 4 PM</span>
-          </span>
-          <span class="option-price">Free</span>
-        </button>
-        <button class="option" data-processor="22">
-          <span class="option-glyph">22</span>
-          <span class="option-text">
-            <span class="option-title">Plant 22 · Brainerd, MN</span>
-            <span class="option-sub">62 mi · Pickup window: 8 AM – 6 PM</span>
-          </span>
-          <span class="option-price">Free</span>
-        </button>
+      <div class="options" id="processorOptions">
+        <p class="sheet-context-sub" style="padding: 14px 4px;">Loading nearby processors…</p>
       </div>
     </section>
 
@@ -1003,10 +980,16 @@ body { background: var(--bg); overflow-x: hidden; }
   if (!grid) return;
   let listings = [];
   try {
-    const r = await fetch('/api/listings?limit=12', { credentials: 'include' });
+    const r = await fetch('/api/listings?limit=24', { credentials: 'include' });
     const data = await r.json();
     listings = data.listings || [];
   } catch (e) { /* keep loading state */ }
+
+  // Hide listings with no real pricing yet — placeholder/draft data shouldn't reach buyers.
+  listings = listings.filter(l => {
+    const anyPrice = (l.shares?.quarter?.price || 0) + (l.shares?.half?.price || 0) + (l.shares?.whole?.price || 0);
+    return anyPrice > 0 || (l.price_per_lb && l.price_per_lb > 0);
+  });
 
   if (!listings.length) {
     grid.innerHTML = `
@@ -1090,6 +1073,34 @@ body { background: var(--bg); overflow-x: hidden; }
   const sumShareLabel = document.getElementById('sumShareLabel');
   const sumShareVal = document.getElementById('sumShareVal');
   const sumTotalVal = document.getElementById('sumTotalVal');
+  const processorWrap = document.getElementById('processorOptions');
+
+  // Populate processor options from real DB once on first sheet open.
+  let processorsLoaded = false;
+  async function loadProcessors() {
+    if (processorsLoaded || !processorWrap) return;
+    processorsLoaded = true;
+    try {
+      const r = await fetch('/api/processors', { credentials: 'include' });
+      const data = await r.json();
+      const list = (data.processors || []).filter(p => p.name && p.city);
+      if (!list.length) {
+        processorWrap.innerHTML = `<p class="sheet-context-sub" style="padding:14px 4px;">No processors yet — we'll match you after you reserve. <a href="/invite-partner?type=processor" style="color:var(--ink);font-weight:700;">Invite yours →</a></p>`;
+        return;
+      }
+      processorWrap.innerHTML = list.slice(0, 6).map((p, i) => `
+        <button class="option" data-processor="${p.slug}">
+          <span class="option-glyph">${String(i + 1).padStart(2, '0')}</span>
+          <span class="option-text">
+            <span class="option-title">${p.name}</span>
+            <span class="option-sub">${[p.city, p.state].filter(Boolean).join(', ')}${p.inspection ? ' · ' + p.inspection : ''}</span>
+          </span>
+          <span class="option-price">Free</span>
+        </button>`).join('');
+    } catch (e) {
+      processorWrap.innerHTML = `<p class="sheet-context-sub" style="padding:14px 4px;">Couldn't load processors right now — we'll match you after you reserve.</p>`;
+    }
+  }
   const confirmTitle = document.getElementById('confirmTitle');
   const confirmBody = document.getElementById('confirmBody');
 
@@ -1185,6 +1196,7 @@ body { background: var(--bg); overflow-x: hidden; }
     shareWrap.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
     sheet.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(b => b.classList.remove('selected'));
     buildShareOptions();
+    loadProcessors(); // fire-and-forget; populates Step 2 from real DB
     setStep(1);
     backdrop.classList.add('open');
     sheet.classList.add('open');
