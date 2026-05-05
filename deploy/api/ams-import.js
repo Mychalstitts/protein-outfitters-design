@@ -10,7 +10,7 @@
 // Auth: any signed-in user during early ops. Tighten to admin role later.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
 async function ensureSchema() {
   await sql`CREATE TABLE IF NOT EXISTS discovered_partners (
