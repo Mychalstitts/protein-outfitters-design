@@ -126,6 +126,20 @@ function speciesMatch(speciesStr) {
   return matched;
 }
 
+// FSIS establishment numbers encode species: M = meat (red meat), P = poultry, E = egg, V = voluntary.
+// When the source CSV lacks a species column we fall back to inferring from the est. number.
+function inferSpeciesFromEstNumber(en) {
+  if (!en) return [];
+  const u = en.toString().toUpperCase().trim();
+  // Some entries are "M40-A", "P12-B", "M40-A,P12-B" (combined meat+poultry plant), or "EST. 12345"
+  const meat = /(^|[\s,;])M\s*\.?\s*\d|^EST\s*\.?\s*\d/i.test(u);
+  const poultry = /(^|[\s,;])P\s*\.?\s*\d/i.test(u);
+  const out = [];
+  if (meat) out.push('beef', 'pork', 'lamb', 'goat'); // red-meat plant — capable of all four
+  if (poultry) out.push('poultry');
+  return out;
+}
+
 function looksFederal(row) {
   // FSIS plants in this directory are federally inspected by definition,
   // BUT the directory also lists state-inspected ones with a flag column.
@@ -197,10 +211,12 @@ export default async function handler(req) {
   const filtered = dataRows
     .filter(r => looksFederal(r))
     .filter(r => activitiesMatch(r.activities))
-    .map(r => ({
-      ...r,
-      _species: speciesMatch(r.species),
-    }))
+    .map(r => {
+      // Prefer explicit species column; fall back to inferring from establishment number prefix.
+      let sp = speciesMatch(r.species);
+      if (sp.length === 0) sp = inferSpeciesFromEstNumber(r.establishment_number);
+      return { ...r, _species: sp };
+    })
     .filter(r => r._species.length > 0); // must handle at least one target species
 
   let inserted = 0, updated = 0, skipped = 0;
