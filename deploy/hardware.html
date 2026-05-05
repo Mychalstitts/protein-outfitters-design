@@ -19,10 +19,11 @@
 /* Hero */
 .hw-hero {
   position: relative;
-  min-height: 520px;
+  min-height: 620px;
   display: grid; align-items: center;
   background:
-    radial-gradient(ellipse at 70% 20%, rgba(207,233,211,0.4) 0%, transparent 50%),
+    linear-gradient(110deg, rgba(8,12,10,0.85) 0%, rgba(8,12,10,0.55) 50%, rgba(8,12,10,0.25) 100%),
+    url('/img/hardware/hero-mhu-fallback.jpg') center/cover no-repeat,
     linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%);
   color: var(--ink-inverse);
   overflow: hidden;
@@ -30,8 +31,7 @@
 .hw-hero::before {
   content: ''; position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse at 80% 50%, rgba(74,40,32,0.4) 0%, transparent 60%),
-    linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.4) 100%);
+    linear-gradient(180deg, transparent 70%, rgba(0,0,0,0.55) 100%);
 }
 .hw-hero-content { position: relative; z-index: 2; padding-block: var(--s-16); }
 .hw-hero h1 { color: white; max-width: 18ch; }
@@ -56,9 +56,9 @@
   position: relative;
   overflow: hidden;
 }
-.sku-photo.ps1 { background: linear-gradient(135deg, #4a4f4d 0%, #2a2e2c 50%, #1a1e1c 100%); }
-.sku-photo.cut-wrap { background: linear-gradient(135deg, #5a5048 0%, #3a3028 50%, #1f1812 100%); }
-.sku-photo.aging { background: linear-gradient(135deg, #4a5d52 0%, #2a382f 50%, #131a16 100%); }
+.sku-photo.ps1 { background: url('/img/hardware/mhu-farm-setup.jpg') center/cover no-repeat, linear-gradient(135deg, #4a4f4d 0%, #2a2e2c 50%, #1a1e1c 100%); }
+.sku-photo.cut-wrap { background: url('/img/hardware/modular-aerial.jpg') center/cover no-repeat, linear-gradient(135deg, #5a5048 0%, #3a3028 50%, #1f1812 100%); }
+.sku-photo.aging { background: url('/img/hardware/cut-package-interior.jpg') center/cover no-repeat, linear-gradient(135deg, #4a5d52 0%, #2a382f 50%, #131a16 100%); }
 .sku-photo::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.4) 100%);
@@ -108,7 +108,7 @@
 @media (min-width: 900px) { .detail-layout { grid-template-columns: 1.5fr 1fr; } }
 .detail-photo {
   height: 360px; border-radius: var(--r-5);
-  background: linear-gradient(135deg, #4a4f4d 0%, #2a2e2c 50%, #1a1e1c 100%);
+  background: url('/img/hardware/mhu-farm-setup.jpg') center/cover no-repeat, linear-gradient(135deg, #4a4f4d 0%, #2a2e2c 50%, #1a1e1c 100%);
   position: relative;
 }
 .detail-photo .controls {
@@ -260,10 +260,10 @@
   overflow: hidden;
   box-shadow: var(--sh-2);
 }
-.feature-photo.farm { background: linear-gradient(135deg, #6b7d68 0%, #3a4a3c 50%, #1f2a22 100%); }
-.feature-photo.modules { background: linear-gradient(135deg, #4a4f4d 0%, #2a2e2c 50%, #1a1e1c 100%); }
-.feature-photo.scale { background: linear-gradient(135deg, #5a5048 0%, #3a3028 50%, #1f1812 100%); }
-.feature-photo.software { background: linear-gradient(135deg, #2c4a3f 0%, #1a2e26 50%, #0c1814 100%); }
+.feature-photo.farm { background: url('/img/hardware/mhu-farm-setup.jpg') center/cover no-repeat, linear-gradient(135deg, #6b7d68 0%, #3a4a3c 100%); }
+.feature-photo.modules { background: url('/img/hardware/knock-pen-system.jpg') center/cover no-repeat, linear-gradient(135deg, #4a4f4d 0%, #2a2e2c 100%); }
+.feature-photo.scale { background: url('/img/hardware/bandsaw-cut.jpg') center/cover no-repeat, linear-gradient(135deg, #5a5048 0%, #3a3028 100%); }
+.feature-photo.software { background: url('/img/hardware/cut-package-interior.jpg') center/cover no-repeat, linear-gradient(135deg, #2c4a3f 0%, #1a2e26 100%); }
 .feature-photo::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.35) 100%);
@@ -334,7 +334,8 @@
   margin-top: var(--s-12);
   position: relative;
   background:
-    radial-gradient(ellipse at 30% 20%, rgba(207,233,211,0.25) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(8,12,10,0.85) 0%, rgba(8,12,10,0.92) 100%),
+    url('/img/hardware/knock-pen-system.jpg') center/cover no-repeat,
     linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%);
   color: var(--ink-inverse);
   padding: clamp(60px, 10vw, 120px) var(--s-6);
@@ -482,9 +483,11 @@
   border-radius: var(--r-5);
   overflow: hidden;
   margin-block: var(--s-8);
-  min-height: 420px;
+  min-height: 480px;
   display: grid; align-items: end;
-  background: linear-gradient(135deg, #4a3527 0%, #2a1d14 50%, #15100a 100%);
+  background:
+    url('/img/hardware/modular-aerial.jpg') center/cover no-repeat,
+    linear-gradient(135deg, #4a3527 0%, #2a1d14 50%, #15100a 100%);
   box-shadow: var(--sh-3);
 }
 .featured-client::before {
