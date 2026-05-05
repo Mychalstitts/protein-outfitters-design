@@ -10,6 +10,10 @@ export default async function handler(req) {
   const url = new URL(req.url);
   const id = url.searchParams.get('id');
   if (!id) return err(400, 'id required');
+  // UUID v4-ish guard so a bad ?id= doesn't blow up the SQL cast
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    return err(404, 'Listing not found');
+  }
 
   if (req.method === 'GET') {
     const rows = await sql`

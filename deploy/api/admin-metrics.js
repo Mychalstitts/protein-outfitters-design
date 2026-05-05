@@ -4,7 +4,15 @@
 // or even without the stripe npm package installed.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
+
+// Race a promise against a timeout so a hung upstream doesn't 504 the whole page.
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(`${label} timed out after ${ms}ms`)), ms)),
+  ]);
+}
 
 async function safeQuery(label, fn) {
   try { return { ok: true, data: await fn() }; }
@@ -74,12 +82,12 @@ export default async function handler(req) {
       const StripeModule = await import('stripe');
       const Stripe = StripeModule.default || StripeModule;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-      const bal = await stripe.balance.retrieve();
+      const bal = await withTimeout(stripe.balance.retrieve(), 4000, 'stripe.balance');
       balance = {
         available: bal.available.map(b => ({ amount: b.amount / 100, currency: b.currency })),
         pending:   bal.pending.map(b => ({ amount: b.amount / 100, currency: b.currency }))
       };
-      const pis = await stripe.paymentIntents.list({ limit: 10 });
+      const pis = await withTimeout(stripe.paymentIntents.list({ limit: 10 }), 4000, 'stripe.paymentIntents');
       recentPayments = pis.data.map(pi => ({
         id: pi.id,
         amount: pi.amount / 100,
