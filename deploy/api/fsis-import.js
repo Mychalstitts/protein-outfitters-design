@@ -165,7 +165,14 @@ export default async function handler(req) {
         if (!/^(www\.)?(fsis\.usda\.gov|usdalocalfoodportal\.com|ams\.usda\.gov)$/i.test(u.hostname)) {
           return err(400, 'URL must point to a USDA host (fsis.usda.gov, usdalocalfoodportal.com, ams.usda.gov)');
         }
-        const r = await fetch(u.toString(), { redirect: 'follow' });
+        const r = await fetch(u.toString(), {
+          redirect: 'follow',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; ProteinOutfittersBot/1.0; +https://www.proteinoutfitters.com)',
+            'Accept': 'text/csv,application/csv,text/plain;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+          },
+        });
         if (!r.ok) return err(502, `Upstream fetch failed: HTTP ${r.status}`);
         csvText = await r.text();
       } else {
