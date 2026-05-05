@@ -219,10 +219,17 @@ export default async function handler(req) {
     })
     .filter(r => r._species.length > 0); // must handle at least one target species
 
+  // Optional offset/limit so the client can chunk through a large dataset.
+  // Lets us stay under the 25s edge-runtime initial-response limit.
+  const url = new URL(req.url);
+  const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+  const limit = parseInt(url.searchParams.get('limit') || '0', 10);
+  const slice = limit > 0 ? filtered.slice(offset, offset + limit) : filtered;
+
   let inserted = 0, updated = 0, skipped = 0;
   const errors = [];
 
-  for (const r of filtered) {
+  async function upsertOne(r) {
     try {
       const sourceRef = (r.establishment_number || `${r.name}|${r.zip}`).toUpperCase();
       const phone = r.phone ? r.phone.replace(/[^\d]/g, '').slice(0, 11) : null;
@@ -271,6 +278,13 @@ export default async function handler(req) {
     }
   }
 
+  // Parallel inserts in chunks of 25 — keeps the Neon HTTP pool happy
+  // and finishes ~5,000 rows in well under 25s.
+  const CHUNK = 25;
+  for (let i = 0; i < slice.length; i += CHUNK) {
+    await Promise.all(slice.slice(i, i + CHUNK).map(upsertOne));
+  }
+
   // Summary stats per state
   const byState = {};
   for (const r of filtered) {
@@ -281,6 +295,10 @@ export default async function handler(req) {
   return json({
     received_rows: dataRows.length,
     matched_rows: filtered.length,
+    processed_in_this_call: slice.length,
+    offset,
+    has_more: limit > 0 && (offset + slice.length) < filtered.length,
+    next_offset: offset + slice.length,
     inserted,
     updated,
     skipped,
