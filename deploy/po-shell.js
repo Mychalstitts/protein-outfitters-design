@@ -277,33 +277,28 @@
         }
 
         try {
-          const totalEstimate = (state.share?.price || 0) + 225 + 18;
-          const payload = {
-            listing_id: state.animal.id,
-            share_size,
-            buyer_email: email,
-            buyer_name: name,
-            processor_id: null, // processor selection currently uses string label, future: real UUID
-            total_estimate: totalEstimate,
-            deposit_amount: Math.round(totalEstimate * 0.1 * 100) / 100,
-            notes: state.processor ? ('Processor: ' + state.processor) : null
-          };
-          const r = await fetch('/api/reservations', {
+          // Send to /api/checkout — creates pending reservation + Stripe Checkout Session
+          const r = await fetch('/api/checkout', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+              listing_id: state.animal.id,
+              share_size,
+              buyer_email: email,
+              buyer_name: name,
+              processor_id: null, // future: real processor UUID
+              notes: state.processor ? ('Processor: ' + state.processor) : null
+            })
           });
           const data = await r.json().catch(() => ({}));
-          if (!r.ok) {
+          if (!r.ok || !data.url) {
             nextBtn.disabled = false; nextBtn.textContent = origText;
-            alert('Could not reserve: ' + (data.error || ('HTTP ' + r.status)));
+            alert('Could not start checkout: ' + (data.error || ('HTTP ' + r.status)));
             return;
           }
-          confirmTitle.textContent = 'Reserved.';
-          const animalLabel = (state.animal.name || '').replace(/^#?\d+\s·\s/, '') || 'this animal';
-          confirmBody.textContent = `We held the ${share_size} share of ${animalLabel} for you. Confirmation sent to ${email}. Cut-sheet builder follows.`;
-          setStep(4);
+          // Hand off to Stripe-hosted checkout
+          window.location.href = data.url;
         } catch (e) {
           nextBtn.disabled = false; nextBtn.textContent = origText;
           alert('Network error: ' + e.message);
