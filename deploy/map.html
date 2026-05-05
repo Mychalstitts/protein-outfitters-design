@@ -10,41 +10,50 @@
 <link rel="stylesheet" href="./po-shell.css" />
 <style>
   body { background: #fbf9f5; color: var(--ink); }
-  .map-shell { max-width: 1280px; margin: 0 auto; padding: 28px var(--shell-pad) 80px; }
+  .map-shell { max-width: 1320px; margin: 0 auto; padding: 28px var(--shell-pad) 80px; }
   .map-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom: 24px; }
-  .map-title { font: 900 clamp(34px, 4vw, 52px)/1.05 var(--ff-sans); letter-spacing:-0.025em; margin:0 0 6px; }
-  .map-sub { font: 500 16px/1.5 var(--ff-sans); color: var(--ink-2); margin:0; max-width: 560px; }
-  .map-eyebrow { font: 800 12px/1 var(--ff-sans); letter-spacing:.18em; text-transform:uppercase; color: var(--ink-2); margin:0 0 10px; }
-  .map-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 22px; align-items:start; }
-  @media (max-width: 920px) { .map-grid { grid-template-columns: 1fr; } }
+  .map-head h1 { font: 900 clamp(38px, 4.4vw, 60px)/1.02 var(--ff-sans); letter-spacing: -0.028em; margin: 0 0 8px; color: var(--ink); }
+  .map-head .eyebrow { font: 800 12px/1 var(--ff-sans); letter-spacing: .18em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px; }
+  .map-head p.lead { font: 500 16px/1.55 var(--ff-sans); color: var(--ink-2); margin: 0; max-width: 600px; }
 
-  .map-canvas { background: linear-gradient(180deg,#0e2c19 0%, #1c2a22 100%); border-radius: 26px; aspect-ratio: 5/4; position: relative; overflow: hidden; box-shadow: 0 12px 40px rgba(6,27,14,.18); }
-  .map-canvas::before { content:""; position:absolute; inset:0; background:
-    radial-gradient(circle at 18% 28%, rgba(125,160,93,.20) 0, transparent 38%),
-    radial-gradient(circle at 82% 72%, rgba(220,165,74,.18) 0, transparent 42%); }
-  .map-pin { position:absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--po-sun, #dca54a); border: 3px solid #fbf9f5; box-shadow: 0 6px 14px rgba(0,0,0,.28); cursor: pointer; transition: transform .2s ease, background .2s ease; display:grid; place-items:center; color:#1c2a22; font:900 11px/1 var(--ff-sans); }
-  .map-pin:hover { transform: scale(1.15); background: var(--po-pasture,#7da05d); color:#fbf9f5; }
-  .map-pin.active { background: var(--po-pasture,#7da05d); color:#fbf9f5; transform: scale(1.18); }
-  .map-key { position:absolute; bottom:14px; left:14px; background: rgba(251,249,245,.92); border-radius: 12px; padding: 10px 14px; font:700 11px/1.3 var(--ff-sans); color: var(--ink); display:flex; gap:14px; }
-  .map-key span { display:inline-flex; align-items:center; gap:6px; }
-  .map-key .dot { width:10px; height:10px; border-radius:50%; }
-  .map-marker-label { position:absolute; top:14px; left:14px; background: rgba(6,27,14,.7); color:#fbf9f5; border-radius: 999px; padding: 6px 12px; font:700 11px/1 var(--ff-sans); letter-spacing:.05em; text-transform:uppercase; backdrop-filter: blur(6px); }
+  .map-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 22px; align-items: stretch; }
+  @media (max-width: 980px) { .map-grid { grid-template-columns: 1fr; } }
 
-  .farms-list { display: grid; gap: 12px; }
-  .farm-row { background: #fff; border-radius: 18px; padding: 18px 20px; display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; cursor: pointer; transition: box-shadow .2s ease, transform .2s ease; border: 1px solid rgba(6,27,14,.05); }
+  .map-canvas-wrap { background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 12px 40px rgba(6,27,14,.10); position: relative; min-height: 540px; }
+  #poMap { width: 100%; height: 100%; min-height: 540px; }
+
+  .map-loading, .map-error {
+    position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center;
+    background: linear-gradient(180deg,#0e2c19 0%, #1c2a22 100%);
+    color: #fbf9f5; font: 600 14px/1.5 var(--ff-sans);
+  }
+  .map-loading img, .map-error img { width: 56px; height: 56px; margin-bottom: 14px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+  .map-error h3 { margin: 0 0 6px; font: 800 18px/1.3 var(--ff-sans); }
+  .map-error p { margin: 0; opacity: .82; max-width: 360px; }
+
+  .farms-side { display: grid; gap: 12px; align-content: start; }
+  .farms-side h3 { margin: 0 0 4px; font: 800 14px/1.2 var(--ff-sans); letter-spacing: -0.01em; color: var(--ink-2); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; }
+
+  .farm-row { background: #fff; border-radius: 18px; padding: 16px 18px; display: grid; grid-template-columns: 52px 1fr auto; gap: 14px; align-items: center; cursor: pointer; transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease; border: 1.5px solid transparent; text-decoration: none; color: inherit; }
   .farm-row:hover { box-shadow: 0 8px 24px rgba(6,27,14,.10); transform: translateY(-1px); }
-  .farm-row.active { border-color: var(--po-pasture,#7da05d); box-shadow: 0 0 0 2px rgba(125,160,93,.25); }
-  .farm-avatar { width: 56px; height: 56px; border-radius: 14px; background: var(--po-pasture,#7da05d); color: #fbf9f5; display: grid; place-items: center; font: 900 16px/1 var(--ff-sans); letter-spacing: .04em; flex-shrink: 0; overflow: hidden; }
+  .farm-row.active { border-color: var(--po-pasture, #7da05d); box-shadow: 0 0 0 2px rgba(125,160,93,.20); }
+  .farm-avatar { width: 52px; height: 52px; border-radius: 13px; background: linear-gradient(135deg, var(--po-pasture, #7da05d), var(--po-clay, #b48a5a)); color: #fbf9f5; display: grid; place-items: center; font: 900 15px/1 var(--ff-sans); letter-spacing: .04em; flex-shrink: 0; overflow: hidden; }
   .farm-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .farm-meta h3 { margin: 0; font: 800 16px/1.2 var(--ff-sans); letter-spacing: -0.01em; }
-  .farm-meta p { margin: 3px 0 0; font: 500 12.5px/1.4 var(--ff-sans); color: var(--ink-2); }
+  .farm-meta h4 { margin: 0; font: 800 15px/1.2 var(--ff-sans); letter-spacing: -0.01em; color: var(--ink); }
+  .farm-meta p { margin: 3px 0 0; font: 500 12px/1.4 var(--ff-sans); color: var(--ink-2); }
   .farm-stat { font: 800 13px/1 var(--ff-sans); color: var(--ink); text-align: right; white-space: nowrap; }
   .farm-stat span { display:block; font: 600 10.5px/1.2 var(--ff-sans); color: var(--ink-2); margin-top: 4px; letter-spacing: .04em; text-transform: uppercase; }
 
   .map-empty { background: #fff; border-radius: 18px; padding: 48px 24px; text-align: center; }
-  .map-empty img { width: 64px; height: 64px; border-radius: 14px; margin: 0 auto 14px; display:block; }
+  .map-empty img { width: 64px; height: 64px; border-radius: 14px; margin: 0 auto 14px; display: block; }
   .map-empty h3 { font: 800 18px/1.3 var(--ff-sans); margin: 0 0 6px; }
   .map-empty p { font: 500 14px/1.5 var(--ff-sans); color: var(--ink-2); margin: 0; max-width: 360px; margin-inline: auto; }
+
+  /* Custom map InfoWindow content */
+  .iw-card { font: 500 13px/1.4 var(--ff-sans); color: var(--ink); padding: 4px 4px 6px; min-width: 200px; }
+  .iw-card h4 { margin: 0 0 4px; font: 800 15px/1.2 var(--ff-sans); }
+  .iw-card .meta { color: var(--ink-2); font-size: 12px; margin: 0 0 8px; }
+  .iw-card a.cta { display: inline-block; background: #061b0e; color: #fbf9f5; text-decoration: none; padding: 7px 12px; border-radius: 999px; font: 700 12px/1 var(--ff-sans); }
 </style>
 </head>
 <body>
@@ -68,111 +77,208 @@
 <main class="map-shell">
   <div class="map-head">
     <div>
-      <p class="map-eyebrow">Where the animals graze</p>
-      <h1 class="map-title">Farm map.</h1>
-      <p class="map-sub">Every farm with an animal reserving right now, dropped onto the map. Tap a pin to see what's available, drive out and meet the rancher if you want.</p>
+      <p class="eyebrow">Where the animals graze</p>
+      <h1>Farm map.</h1>
+      <p class="lead">Every farm with an animal reserving right now, dropped onto the map. Tap a pin to see what's available — drive out and meet the rancher if you want.</p>
     </div>
   </div>
 
   <div class="map-grid">
-    <div class="map-canvas" id="mapCanvas">
-      <div class="map-marker-label" id="mapLabel">Loading farms…</div>
-      <div class="map-key">
-        <span><span class="dot" style="background:var(--po-sun,#dca54a)"></span>Reserving</span>
-        <span><span class="dot" style="background:var(--po-pasture,#7da05d)"></span>Selected</span>
+    <div class="map-canvas-wrap">
+      <div id="poMap"></div>
+      <div class="map-loading" id="mapLoading">
+        <div>
+          <img src="/brand/logo-monogram.svg" alt="" />
+          <div>Loading map…</div>
+        </div>
       </div>
     </div>
-    <div class="farms-list" id="farmsList">
-      <div class="map-empty">
-        <img src="/brand/logo-monogram.svg" alt="" />
-        <h3>Loading farms…</h3>
-        <p>Pulling the latest listings from the marketplace.</p>
-      </div>
-    </div>
+    <aside class="farms-side" id="farmsList">
+      <h3>Farms reserving now</h3>
+    </aside>
   </div>
 </main>
 
 <script src="./po-shell.js"></script>
 <script>
 (async function () {
-  const canvas = document.getElementById('mapCanvas');
-  const list = document.getElementById('farmsList');
-  const label = document.getElementById('mapLabel');
+  const sideList = document.getElementById('farmsList');
+  const mapEl = document.getElementById('poMap');
+  const loadingEl = document.getElementById('mapLoading');
 
-  let farms = [];
-  try {
-    const r = await fetch('/api/farms');
-    const data = await r.json();
-    farms = (data.farms || []).filter(f => f.lat && f.lng); // skip un-geocoded
-    if (!farms.length) farms = (data.farms || []); // fall back to all if none have coords
-  } catch (e) {
-    farms = [];
-  }
+  // ── 1. Pull farms + Maps API key in parallel ──────────────────
+  const [farmsResp, configResp] = await Promise.all([
+    fetch('/api/farms').then(r => r.json()).catch(() => ({ farms: [] })),
+    fetch('/api/config').then(r => r.json()).catch(() => ({ mapsKey: '' }))
+  ]);
+
+  const farms = (farmsResp.farms || []).filter(f => f.status !== 'archived');
+  const mapsKey = configResp.mapsKey || '';
 
   if (!farms.length) {
-    label.textContent = 'No farms yet';
-    list.innerHTML = `
-      <div class="map-empty">
-        <img src="/brand/logo-monogram.svg" alt="" />
-        <h3>No farms reserving right now</h3>
-        <p>Check back soon — new producers are joining every week. Or browse all listings to see what's reserving.</p>
-        <a href="/discover" style="display:inline-block;margin-top:14px;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:11px 22px;font:700 13px/1 'Inter';">Browse listings →</a>
-      </div>`;
+    loadingEl.remove();
+    mapEl.outerHTML = '<div class="map-error" style="position:relative;background:linear-gradient(180deg,#fbf9f5,#f0e6d2);color:var(--ink);"><div><img src="/brand/logo-monogram.svg" alt=""/><h3>No farms reserving right now</h3><p>Check back soon — new producers are joining every week.</p></div></div>';
+    sideList.innerHTML += '<div class="map-empty"><p>Browse all listings to see what\'s available across the marketplace.</p><a href="/discover" style="display:inline-block;margin-top:12px;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:11px 22px;font:700 13px/1 \'Inter\';">Browse listings →</a></div>';
     return;
   }
 
-  label.textContent = `${farms.length} farm${farms.length === 1 ? '' : 's'} reserving`;
-
-  // Synthetic geographic spread — until we add real lat/lng, lay pins out evenly across canvas
-  // mapped roughly to upper-midwest bounds (we know all farms are MN/WI/ND/SD)
-  const minLat = 43, maxLat = 49, minLng = -104, maxLng = -89;
-  function pinPos(f, idx) {
-    if (f.lat && f.lng) {
-      const x = ((f.lng - minLng) / (maxLng - minLng)) * 100;
-      const y = ((maxLat - f.lat) / (maxLat - minLat)) * 100;
-      return { x: Math.max(5, Math.min(95, x)), y: Math.max(8, Math.min(88, y)) };
-    }
-    // Synthetic spread: distribute across canvas in a soft grid
-    const cols = Math.ceil(Math.sqrt(farms.length));
-    const col = idx % cols;
-    const row = Math.floor(idx / cols);
-    return { x: 12 + (col / Math.max(1, cols - 1)) * 76, y: 18 + (row / Math.max(1, Math.ceil(farms.length / cols) - 1)) * 64 };
-  }
-
-  // Render pins
-  farms.forEach((f, i) => {
-    const pos = pinPos(f, i);
-    const pin = document.createElement('button');
-    pin.className = 'map-pin';
-    pin.style.left = pos.x + '%';
-    pin.style.top = pos.y + '%';
-    pin.dataset.slug = f.slug;
-    pin.title = f.name;
-    pin.textContent = (f.name || '?').charAt(0).toUpperCase();
-    pin.addEventListener('click', () => selectFarm(f.slug));
-    canvas.appendChild(pin);
-  });
-
-  // Render list
-  list.innerHTML = farms.map(f => {
-    const initials = (f.name || '?').split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+  // ── 2. Render side list immediately (works even if Maps fails) ──
+  sideList.innerHTML += farms.map(f => {
+    const initials = (f.name || '?').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
     const avatar = f.avatar_url ? `<img src="${f.avatar_url}" alt="" onerror="this.outerHTML='${initials}'" />` : initials;
-    const certs = (f.certs || []).slice(0,2).map(c => c.toUpperCase()).join(' · ');
-    return `<a class="farm-row" data-slug="${f.slug}" href="/farm/${f.slug}">
+    const certs = (f.certs || []).slice(0, 2).map(c => c.toUpperCase()).join(' · ');
+    return `<a class="farm-row" data-slug="${f.slug}" href="/farm/${f.slug}" data-row>
       <div class="farm-avatar">${avatar}</div>
       <div class="farm-meta">
-        <h3>${f.name}</h3>
-        <p>${[f.city, f.state].filter(Boolean).join(', ')}${certs ? ' · ' + certs : ''}</p>
+        <h4>${f.name}</h4>
+        <p>${[f.city, f.state].filter(Boolean).join(', ') || '—'}${certs ? ' · ' + certs : ''}</p>
       </div>
       <div class="farm-stat">${f.listing_count || '—'}<span>animals</span></div>
     </a>`;
   }).join('');
 
+  // ── 3. If no Maps key, show a graceful explanation in the canvas ──
+  if (!mapsKey) {
+    loadingEl.outerHTML = `
+      <div class="map-error" style="background:linear-gradient(180deg,#0e2c19 0%, #1c2a22 100%);">
+        <div>
+          <img src="/brand/logo-monogram.svg" alt="" />
+          <h3>Map setup needed</h3>
+          <p>Add <code style="background:rgba(255,255,255,.10);padding:1px 6px;border-radius:4px;font-size:.92em;">GOOGLE_MAPS_KEY</code> to Vercel env vars to enable the live Google Map. Farms below still link through to profiles.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // ── 4. Inject Google Maps JS asynchronously ────────────────────
+  await new Promise((resolve, reject) => {
+    if (window.google?.maps) return resolve();
+    const s = document.createElement('script');
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(mapsKey)}&libraries=places&v=weekly&loading=async`;
+    s.async = true;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  }).catch(() => {
+    loadingEl.innerHTML = `<div><img src="/brand/logo-monogram.svg" alt=""/><h3>Map couldn't load</h3><p>Check that the Maps JavaScript API is enabled on your Google Cloud project.</p></div>`;
+  });
+
+  if (!window.google?.maps) return;
+
+  // ── 5. Initialize the map ──────────────────────────────────────
+  loadingEl.remove();
+  // Center on Bemidji, MN — heart of upper Midwest where most farms sit
+  const map = new google.maps.Map(mapEl, {
+    center: { lat: 47.4736, lng: -94.8803 },
+    zoom: 6,
+    mapId: 'DEMO_MAP_ID', // optional: use a styled mapId; falls back to default styles
+    gestureHandling: 'cooperative',
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: true,
+    styles: [
+      { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+      { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+      { featureType: 'road', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+      { featureType: 'water', stylers: [{ color: '#cfe5e8' }] },
+      { featureType: 'landscape.natural', stylers: [{ color: '#f3eedc' }] },
+      { featureType: 'landscape.man_made', stylers: [{ color: '#fbf9f5' }] },
+      { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#3a4a3f' }] }
+    ]
+  });
+
+  const geocoder = new google.maps.Geocoder();
+  const bounds = new google.maps.LatLngBounds();
+  const markers = new Map();
+  const infoWindow = new google.maps.InfoWindow();
+
+  function pinIcon(active = false) {
+    const fill = active ? '#7da05d' : '#dca54a';
+    const stroke = '#1c2a22';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="56" viewBox="0 0 44 56">
+      <path d="M22 1c11.6 0 21 9.4 21 21 0 14.5-21 33-21 33S1 36.5 1 22C1 10.4 10.4 1 22 1z" fill="${fill}" stroke="${stroke}" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="22" cy="20" r="7" fill="${stroke}"/>
+      <text x="22" y="24" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="900" font-size="10" fill="#fbf9f5">PO</text>
+    </svg>`;
+    return {
+      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+      scaledSize: new google.maps.Size(44, 56),
+      anchor: new google.maps.Point(22, 56)
+    };
+  }
+
+  function geocodeOne(f) {
+    if (f.lat && f.lng) return Promise.resolve({ lat: f.lat, lng: f.lng });
+    const q = [f.address, f.city, f.state, f.zip].filter(Boolean).join(', ');
+    if (!q) return Promise.resolve(null);
+    return new Promise((res) => {
+      geocoder.geocode({ address: q }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          const loc = results[0].geometry.location;
+          res({ lat: loc.lat(), lng: loc.lng() });
+        } else res(null);
+      });
+    });
+  }
+
+  // Geocode + place markers
+  for (const f of farms) {
+    const pos = await geocodeOne(f);
+    if (!pos) continue;
+    const marker = new google.maps.Marker({
+      map, position: pos, title: f.name, icon: pinIcon(false), optimized: true
+    });
+    markers.set(f.slug, marker);
+    bounds.extend(pos);
+    marker.addListener('click', () => selectFarm(f.slug));
+  }
+
+  // Fit to all farms with padding (or fall back to default zoom if 0–1 farms)
+  if (markers.size >= 2) {
+    map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+  } else if (markers.size === 1) {
+    map.setCenter([...markers.values()][0].getPosition());
+    map.setZoom(8);
+  }
+
+  // Wire side-list rows to map
+  document.querySelectorAll('[data-row]').forEach(row => {
+    row.addEventListener('mouseenter', (e) => {
+      // hover preview; stop nav default
+      const slug = row.dataset.slug;
+      const m = markers.get(slug);
+      if (m) m.setIcon(pinIcon(true));
+    });
+    row.addEventListener('mouseleave', () => {
+      markers.forEach((m, slug) => {
+        if (!row.classList.contains('active')) m.setIcon(pinIcon(false));
+      });
+    });
+    row.addEventListener('click', (e) => {
+      // Allow CMD/CTRL-click to navigate to farm page
+      if (e.metaKey || e.ctrlKey || e.button === 1) return;
+      e.preventDefault();
+      selectFarm(row.dataset.slug);
+    });
+  });
+
   function selectFarm(slug) {
-    document.querySelectorAll('.map-pin').forEach(p => p.classList.toggle('active', p.dataset.slug === slug));
-    document.querySelectorAll('.farm-row').forEach(r => r.classList.toggle('active', r.dataset.slug === slug));
     const f = farms.find(x => x.slug === slug);
-    if (f) label.textContent = f.name + (f.city ? ' · ' + f.city + ', ' + f.state : '');
+    const m = markers.get(slug);
+    document.querySelectorAll('.farm-row').forEach(r => r.classList.toggle('active', r.dataset.slug === slug));
+    markers.forEach((mk, s) => mk.setIcon(pinIcon(s === slug)));
+    if (m && f) {
+      map.panTo(m.getPosition());
+      if (map.getZoom() < 8) map.setZoom(9);
+      const certs = (f.certs || []).map(c => c.toUpperCase()).join(' · ');
+      infoWindow.setContent(`
+        <div class="iw-card">
+          <h4>${f.name}</h4>
+          <p class="meta">${[f.city, f.state].filter(Boolean).join(', ')}${certs ? ' · ' + certs : ''}</p>
+          <a class="cta" href="/farm/${f.slug}">View profile →</a>
+        </div>`);
+      infoWindow.open({ map, anchor: m });
+    }
   }
 })();
 </script>
