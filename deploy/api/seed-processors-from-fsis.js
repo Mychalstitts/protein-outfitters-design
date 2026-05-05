@@ -27,6 +27,14 @@ export default async function handler(req) {
   const states = (url.searchParams.get('states') || 'MN,WI,ND,SD,IA,IL').toUpperCase().split(',').map(s => s.trim()).filter(Boolean);
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '300', 10), 1000);
 
+  // Add contact columns if they don't exist yet (idempotent — safe to run repeatedly).
+  try {
+    await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS phone TEXT`;
+    await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS email TEXT`;
+    await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS website TEXT`;
+    await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS address TEXT`;
+  } catch (e) { /* ignore — best-effort */ }
+
   // Pull candidates ordered by state, then name
   const rows = await sql`
     SELECT id, name, address, city, state, zip, phone, email, website, raw_data, species
