@@ -142,22 +142,22 @@
     <!-- Hero -->
     <div class="fm-hero">
       <div class="fm-greeting">
-        <p class="eye">Tuesday · May 5</p>
-        <h1>Good morning, Mychal.</h1>
-        <p>You've got <strong>3 reservations</strong> waiting on cut sheets, <strong>2 reviews</strong> ready to leave, and <strong>#2641</strong> drops at Plant 04 in 23 days.</p>
+        <p class="eye" id="fmDayLabel">Today</p>
+        <h1>Good morning, <span data-user-name>there</span>.</h1>
+        <p id="fmGreetSub">Welcome to your producer dashboard.</p>
       </div>
-      <div class="fm-standing">
+      <div class="fm-standing" id="fmStanding" style="display:none;">
         <div class="fm-standing-row">
-          <div class="fm-standing-avatar"></div>
+          <div class="fm-standing-avatar" id="fmFarmAvatar"></div>
           <div class="fm-standing-meta">
-            <p class="role">Northfield Pastures · Bemidji, MN</p>
-            <p class="name">4.9★ · 128 reviews · 22 yrs</p>
+            <p class="role" id="fmFarmRole">—</p>
+            <p class="name" id="fmFarmName">—</p>
           </div>
         </div>
         <div class="fm-standing-stats">
-          <div class="fm-standing-stat"><div class="v">3</div><div class="lab">Active listings</div></div>
-          <div class="fm-standing-stat"><div class="v">847</div><div class="lab">Followers</div></div>
-          <div class="fm-standing-stat"><div class="v">$48k</div><div class="lab">YTD revenue</div></div>
+          <div class="fm-standing-stat"><div class="v" id="fmStatListings">—</div><div class="lab">Active listings</div></div>
+          <div class="fm-standing-stat"><div class="v" id="fmStatReservations">—</div><div class="lab">Reservations</div></div>
+          <div class="fm-standing-stat"><div class="v" id="fmStatRevenue">—</div><div class="lab">Earned</div></div>
         </div>
       </div>
     </div>
@@ -183,61 +183,26 @@
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></span>
         <h4>Credentials</h4>
         <p>Certifications + claims.</p>
-        <span class="qa-pip warn">2 expiring</span>
       </a>
       <a href="/reviews" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></span>
         <h4>Reviews</h4>
         <p>Mutual rating system.</p>
-        <span class="qa-pip">3 to leave</span>
       </a>
-      <a href="/farm/northfield-pastures" class="qa">
+      <a href="#" id="fmPublicProfileLink" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#house"/></svg></span>
         <h4>Public profile</h4>
         <p>What buyers see.</p>
       </a>
     </div>
 
-    <!-- Today -->
-    <section class="fm-section">
+    <!-- Today (real reservations + harvest dates) -->
+    <section class="fm-section" id="fmTodaySection" style="display:none;">
       <div class="fm-section-head">
-        <h2>Today</h2>
-        <a class="more" href="#">View all 7 →</a>
+        <h2>What needs your attention</h2>
+        <a class="more" href="/account">All activity →</a>
       </div>
-      <div class="today-grid">
-        <div class="today-card warn">
-          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#alert"/></svg></div>
-          <div class="today-meta">
-            <h4>Buyer flag · Tyler W. reserved #2671</h4>
-            <p>3.2★ · 2 no-shows in 12mo · 1 dispute</p>
-          </div>
-          <a href="/reviews" class="today-cta">Review →</a>
-        </div>
-        <div class="today-card">
-          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></div>
-          <div class="today-meta">
-            <h4>3 cut sheets pending</h4>
-            <p>#2641 (Sarah) · #2658 (Alex) · #2671 (Mark)</p>
-          </div>
-          <a href="/cut-sheet" class="today-cta">Review →</a>
-        </div>
-        <div class="today-card ok">
-          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></div>
-          <div class="today-meta">
-            <h4>Drop-off in 23 days · #2641 → Plant 04</h4>
-            <p>May 28, 7:00 AM · QR ticket ready</p>
-          </div>
-          <a href="#" class="today-cta">Open ticket →</a>
-        </div>
-        <div class="today-card">
-          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></div>
-          <div class="today-meta">
-            <h4>2 reviews waiting on yours</h4>
-            <p>Sarah R. + Plant 04 already submitted</p>
-          </div>
-          <a href="/reviews" class="today-cta">Write →</a>
-        </div>
-      </div>
+      <div class="today-grid" id="fmTodayGrid"></div>
     </section>
 
     <!-- Active listings -->
@@ -254,11 +219,11 @@
       </div>
     </section>
 
-    <!-- This week -->
-    <section class="fm-section">
+    <!-- This week (hidden until we have real Stripe-verified payouts) -->
+    <section class="fm-section" id="fmWeekSection" style="display:none;">
       <div class="fm-section-head">
         <h2>This week</h2>
-        <a class="more" href="#">Full report →</a>
+        <a class="more" href="/finance">Full report →</a>
       </div>
       <div class="week-stats">
         <div class="week-stat">
@@ -338,6 +303,21 @@
   let me;
   try { me = await window.PO_API.me(); } catch { me = { user: null }; }
 
+  // Day label = today's actual date
+  const dayEl = document.getElementById('fmDayLabel');
+  if (dayEl) dayEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase();
+
+  // Greeting first-name
+  const firstName = (() => {
+    if (!me.user) return 'there';
+    const n = (me.user.name || '').trim();
+    if (n) return n.split(/\s+/)[0];
+    const handle = (me.user.email || '').split('@')[0].replace(/[._-]+/g, ' ').trim();
+    const word = handle.split(/\s+/)[0] || 'there';
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  })();
+  document.querySelectorAll('[data-user-name]').forEach(e => e.textContent = firstName);
+
   if (!me.user) {
     grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:#fff; border-radius:16px; border:1px solid rgba(6,27,14,.08)">
       <div style="font:700 22px/1.3 'Inter';margin-bottom:10px;">Sign in to your producer dashboard</div>
@@ -363,11 +343,67 @@
 
   // Pull all listings for all my farms
   const allListings = [];
+  const allReservations = [];
   for (const farm of myFarms) {
     try {
       const r = await window.PO_API.farm(farm.slug);
       (r.listings || []).forEach(l => allListings.push({ ...l, farm_slug: farm.slug, farm_name: farm.name }));
     } catch {}
+  }
+  // Reservations against this user's listings — would need a /api/reservations?for=producer route eventually.
+  // For now we count pending cut-sheets via listings.
+  const primaryFarm = myFarms[0];
+  if (primaryFarm) {
+    // Standing card
+    document.getElementById('fmStanding').style.display = '';
+    const link = document.getElementById('fmPublicProfileLink');
+    if (link) link.href = '/farm/' + primaryFarm.slug;
+    document.getElementById('fmFarmRole').textContent = `${primaryFarm.name}${primaryFarm.city ? ' · ' + primaryFarm.city + ', ' + primaryFarm.state : ''}`;
+    const certs = (primaryFarm.certs || []).map(c => c.toUpperCase()).slice(0, 3).join(' · ');
+    document.getElementById('fmFarmName').textContent = certs || 'Verified producer';
+    document.getElementById('fmStatListings').textContent = allListings.filter(l => l.status === 'active').length;
+    const reservedShares = allListings.reduce((s, l) => s + ['whole','half','quarter'].reduce((s2, k) => s2 + (l.shares?.[k]?.reserved || 0), 0), 0);
+    document.getElementById('fmStatReservations').textContent = reservedShares;
+    document.getElementById('fmStatRevenue').textContent = '—';
+
+    if (primaryFarm.avatar_url) {
+      const av = document.getElementById('fmFarmAvatar');
+      if (av) av.style.backgroundImage = `url(${JSON.stringify(primaryFarm.avatar_url)})`;
+    }
+
+    // Greeting sub: count reservations + nearest harvest
+    const upcomingHarvests = allListings.filter(l => l.expected_finish_date && new Date(l.expected_finish_date) > new Date()).sort((a,b) => new Date(a.expected_finish_date) - new Date(b.expected_finish_date));
+    const sub = document.getElementById('fmGreetSub');
+    if (sub) {
+      const parts = [];
+      if (allListings.length) parts.push(`<strong>${allListings.length}</strong> active listing${allListings.length === 1 ? '' : 's'}`);
+      if (reservedShares) parts.push(`<strong>${reservedShares}</strong> reserved share${reservedShares === 1 ? '' : 's'}`);
+      if (upcomingHarvests[0]) {
+        const d = new Date(upcomingHarvests[0].expected_finish_date);
+        const days = Math.round((d - Date.now()) / 86400000);
+        parts.push(`next harvest in <strong>${days} day${days === 1 ? '' : 's'}</strong>`);
+      }
+      sub.innerHTML = parts.length ? `You've got ${parts.join(', ')}.` : 'No active listings yet — tap "List an animal" to add one.';
+    }
+
+    // Today feed: build from real upcoming harvests
+    const today = document.getElementById('fmTodaySection');
+    const tgrid = document.getElementById('fmTodayGrid');
+    if (today && tgrid && upcomingHarvests.length) {
+      today.style.display = '';
+      tgrid.innerHTML = upcomingHarvests.slice(0, 4).map(l => {
+        const d = new Date(l.expected_finish_date);
+        const days = Math.round((d - Date.now()) / 86400000);
+        return `<div class="today-card ok">
+          <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></div>
+          <div class="today-meta">
+            <h4>${l.number ? l.number + ' · ' : ''}${l.breed || l.species} → harvest in ${days} day${days === 1 ? '' : 's'}</h4>
+            <p>${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · ${l.farm_name}</p>
+          </div>
+          <a href="/listing?id=${l.id}" class="today-cta">Manage →</a>
+        </div>`;
+      }).join('');
+    }
   }
 
   // Render

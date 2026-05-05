@@ -145,10 +145,10 @@
         <div>
           <div class="wallet-balance">
             <p class="lab">Available balance</p>
-            <p class="v"><span class="cur">$</span><span id="walletAvail">4,287.50</span></p>
+            <p class="v"><span class="cur">$</span><span id="walletAvail">0.00</span></p>
           </div>
           <p class="wallet-pending">
-            <strong id="walletPending">$1,395.00</strong> pending — releases when buyer picks up<br>
+            <strong id="walletPending">$0.00</strong> pending — releases when buyer picks up<br>
             <strong id="walletScheduled">$0.00</strong> scheduled to land in your bank Friday
           </p>
         </div>
@@ -459,29 +459,34 @@
     document.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== pane);
   }));
 
-  // Role switcher — flip the data
+  // Role switcher — UI only. Real numbers come from /api/admin-metrics below.
   document.querySelectorAll('.role-switch button').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.role-switch button').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
-    const role = b.dataset.role;
-    if (role === 'processor') {
-      document.getElementById('walletAvail').textContent = '7,124.00';
-      document.getElementById('walletPending').textContent = '$2,890.00';
-      document.getElementById('walletScheduled').textContent = '$3,200.00';
-      document.getElementById('statWeek').textContent = '$12,940';
-      document.getElementById('statMonth').textContent = '$38,720';
-      document.getElementById('statYTD').textContent = '$72,180';
-      document.getElementById('statAvg').textContent = '$1,283';
-    } else {
-      document.getElementById('walletAvail').textContent = '4,287.50';
-      document.getElementById('walletPending').textContent = '$1,395.00';
-      document.getElementById('walletScheduled').textContent = '$0.00';
-      document.getElementById('statWeek').textContent = '$8,420';
-      document.getElementById('statMonth').textContent = '$24,180';
-      document.getElementById('statYTD').textContent = '$48,940';
-      document.getElementById('statAvg').textContent = '$5,438';
-    }
   }));
+
+  // Real wallet — pulls Stripe balance + DB reservation totals.
+  // Empty state: zeros if user is not signed in or has no payments yet.
+  (async function loadRealFinance(){
+    const ZERO = '0.00';
+    const setT = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    setT('walletAvail', ZERO);
+    setT('walletPending', '$' + ZERO);
+    setT('walletScheduled', '$' + ZERO);
+    ['statWeek','statMonth','statYTD','statAvg'].forEach(id => setT(id, '$0'));
+    try {
+      const r = await fetch('/api/admin-metrics', { credentials: 'include' });
+      if (!r.ok) return;
+      const data = await r.json();
+      const balUSD = (data.balance?.available || []).find(b => b.currency === 'usd')?.amount || 0;
+      const pendUSD = (data.balance?.pending || []).find(b => b.currency === 'usd')?.amount || 0;
+      const fmt = (n) => Number(n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      setT('walletAvail', fmt(balUSD));
+      setT('walletPending', '$' + fmt(pendUSD));
+      const ytd = data.counts?.paid_deposits_sum || 0;
+      setT('statYTD', '$' + Number(ytd).toLocaleString('en-US', { maximumFractionDigits: 0 }));
+    } catch (e) { /* leave zeros */ }
+  })();
 
   // Transfer button feedback
   const tb = document.getElementById('transferBtn');

@@ -110,22 +110,22 @@
 
     <div class="pr-hero">
       <div class="pr-greeting">
-        <p class="eye">Tuesday · May 5</p>
-        <h1>Good morning, Plant 04.</h1>
-        <p>You've got <strong>3 drop-offs</strong> on the calendar today, <strong>2 animals</strong> hanging in cooler 3, and <strong>4 pickups</strong> ready for buyers.</p>
+        <p class="eye" id="prDayLabel">Today</p>
+        <h1>Good morning, <span data-user-name>there</span>.</h1>
+        <p id="prGreetSub">Welcome to your processor dashboard.</p>
       </div>
-      <div class="pr-standing">
+      <div class="pr-standing" id="prStanding" style="display:none;">
         <div class="pr-standing-row">
-          <div class="pr-standing-avatar"></div>
+          <div class="pr-standing-avatar" id="prAvatar"></div>
           <div class="pr-standing-meta">
-            <p class="role">Plant 04 · Bemidji, MN · USDA</p>
-            <p class="name">4.8★ · 92 reviews · 19 yrs</p>
+            <p class="role" id="prRole">—</p>
+            <p class="name" id="prName">—</p>
           </div>
         </div>
         <div class="pr-standing-stats">
-          <div class="pr-standing-stat"><div class="v">14</div><div class="lab">In queue</div></div>
-          <div class="pr-standing-stat"><div class="v">87%</div><div class="lab">Capacity used</div></div>
-          <div class="pr-standing-stat"><div class="v">$12k</div><div class="lab">This week</div></div>
+          <div class="pr-standing-stat"><div class="v" id="prStatQueue">—</div><div class="lab">In queue</div></div>
+          <div class="pr-standing-stat"><div class="v" id="prStatCapacity">—</div><div class="lab">Capacity used</div></div>
+          <div class="pr-standing-stat"><div class="v" id="prStatRevenue">—</div><div class="lab">This week</div></div>
         </div>
       </div>
     </div>
@@ -145,19 +145,16 @@
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#clipboard"/></svg></span>
         <h4>Today's queue</h4>
         <p>Drop-offs · processing · ready for pickup.</p>
-        <span class="qa-pip">14 active</span>
       </a>
       <a href="/credentials" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></span>
         <h4>Credentials</h4>
         <p>USDA + state inspections, special lines.</p>
-        <span class="qa-pip warn">USDA renewal in 60d</span>
       </a>
       <a href="/reviews" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></span>
         <h4>Reviews</h4>
         <p>Rate farmers + buyers · check yours.</p>
-        <span class="qa-pip">2 to leave</span>
       </a>
       <a href="/finance" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#package"/></svg></span>
@@ -167,7 +164,7 @@
     </div>
 
     <!-- Today's queue -->
-    <section class="pr-section" id="queue">
+    <section class="pr-section" id="queue" style="display:none;">
       <div class="pr-section-head">
         <h2>Today's queue</h2>
         <a class="more" href="/processor-schedule">Open full calendar →</a>
@@ -239,8 +236,7 @@
       </div>
     </section>
 
-    <!-- This week stats -->
-    <section class="pr-section">
+    <!-- This week stats --> <section class="pr-section" style="display:none;">
       <div class="pr-section-head">
         <h2>This week</h2>
         <a class="more" href="/finance">Full report →</a>
@@ -321,7 +317,48 @@
   }
   // Greet by name
   const h1 = document.querySelector('.pr-greeting h1');
-  if (h1) h1.textContent = `Good morning, ${me.user.name || me.user.email.split('@')[0]}.`;
+  // Day label = today's actual date
+  const prDayEl = document.getElementById('prDayLabel');
+  if (prDayEl) prDayEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase();
+
+  const firstName = (() => {
+    if (!me.user) return 'there';
+    const n = (me.user.name || '').trim();
+    if (n) return n.split(/\s+/)[0];
+    const handle = (me.user.email || '').split('@')[0].replace(/[._-]+/g, ' ').trim();
+    const word = handle.split(/\s+/)[0] || 'there';
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  })();
+  document.querySelectorAll('[data-user-name]').forEach(e => e.textContent = firstName);
+
+  // Pull processor record + listings for stats
+  let myProcessors = [];
+  try {
+    const r = await window.PO_API.processors();
+    const allProcessors = r.processors || [];
+    myProcessors = allProcessors.filter(p => p.owner_id === me.user.id);
+  } catch {}
+
+  const sub = document.getElementById('prGreetSub');
+  if (myProcessors.length === 0) {
+    if (sub) sub.innerHTML = "You haven't claimed a plant yet. <a href='/credentials' style='color:inherit;border-bottom:2px solid currentColor;text-decoration:none;'>Set up your processor profile</a> to start receiving drop-offs.";
+  } else {
+    const plant = myProcessors[0];
+    document.getElementById('prStanding').style.display = '';
+    document.getElementById('prRole').textContent = `${plant.name}${plant.city ? ' · ' + plant.city + ', ' + plant.state : ''}${plant.inspection ? ' · ' + plant.inspection.toUpperCase() : ''}`;
+    const certs = (plant.certs || []).slice(0,3).map(c=>c.toUpperCase()).join(' · ');
+    document.getElementById('prName').textContent = certs || 'Verified processor';
+    if (plant.avatar_url) {
+      const av = document.getElementById('prAvatar');
+      if (av) av.style.backgroundImage = `url(${JSON.stringify(plant.avatar_url)})`;
+    }
+    document.getElementById('prStatQueue').textContent = '0';
+    document.getElementById('prStatCapacity').textContent = '—';
+    document.getElementById('prStatRevenue').textContent = '—';
+    if (sub) sub.textContent = `${plant.name} is connected. Once buyers pick you at checkout, drop-offs land here.`;
+  }
+
+
 
   if (me.user.role !== 'processor' && me.user.role !== 'admin') {
     const greet = document.querySelector('.pr-greeting');
