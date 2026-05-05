@@ -50,6 +50,7 @@
     <div class="po-nav-links">
       <a href="/admin-overview">Overview</a>
       <a href="/admin-fsis-import" style="font-weight:800">FSIS import</a>
+      <a href="/admin-ams-import">AMS import</a>
       <a href="/discover">Marketplace</a>
     </div>
     <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
@@ -75,6 +76,9 @@
     <h3><span class="num">3</span> Upload CSV here</h3>
     <p>Either drag-drop the file or paste the raw CSV text. We'll filter for relevant plants (federal + meat + cattle/hogs/sheep/goats/bison/deer) and insert into the staging table.</p>
 
+    <p style="background: rgba(125,160,93,.10); border-radius: 10px; padding: 10px 12px; font-size: 13px;">⚡️ <strong>Skip the download:</strong> click below to pull the latest USDA FSIS file directly server-side. Updated weekly by FSIS.</p>
+    <button id="pullBtn" class="submit" style="background: var(--po-pasture, #7da05d); margin-bottom: 14px;">Pull latest from fsis.usda.gov →</button>
+
     <input type="file" id="fileInput" accept=".csv,text/csv" style="margin-bottom: 10px;" />
     <textarea id="csvPaste" placeholder='Or paste CSV here…  e.g.
 "Establishment Number","Establishment Name","City","State","Activities","Inspection Type","Species"
@@ -99,6 +103,50 @@ file.addEventListener('change', async () => {
   paste.value = await file.files[0].text();
 });
 
+const pullBtn = document.getElementById('pullBtn');
+pullBtn.addEventListener('click', async () => {
+  pullBtn.disabled = true;
+  pullBtn.textContent = 'Pulling + filtering + inserting…';
+  out.innerHTML = '<div class="ok-card"><h4>Working…</h4><p>Server is fetching the latest CSV from fsis.usda.gov, filtering, and inserting. ~30–90s.</p></div>';
+  try {
+    const r = await fetch('/api/fsis-import', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'https://www.fsis.usda.gov/sites/default/files/media_file/documents/MPI_Directory_by_Establishment_Name.csv' })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'HTTP ' + r.status);
+    renderResult(data);
+  } catch (e) {
+    out.innerHTML = `<div class="err-card"><strong>Import failed:</strong> ${e.message}</div>`;
+  } finally {
+    pullBtn.disabled = false;
+    pullBtn.textContent = 'Pull latest from fsis.usda.gov →';
+  }
+});
+
+function renderResult(data) {
+  const states = Object.entries(data.by_state || {}).sort((a,b) => b[1] - a[1]);
+  out.innerHTML = `
+    <div class="ok-card">
+      <h4>✅ Import complete.</h4>
+      <div class="stat-row">
+        <div><strong>${data.received_rows.toLocaleString()}</strong> rows received</div>
+        <div><strong>${data.matched_rows.toLocaleString()}</strong> matched our criteria</div>
+        <div><strong>${data.inserted.toLocaleString()}</strong> new records</div>
+        <div><strong>${data.updated.toLocaleString()}</strong> records updated</div>
+        ${data.skipped ? `<div><strong>${data.skipped}</strong> skipped</div>` : ''}
+      </div>
+      <p>Filtered for: federally-inspected · slaughter or processing · target species (cattle, hogs, sheep, goats, bison, deer/elk).</p>
+      <div class="state-list">
+        ${states.map(([s, n]) => `<span class="state-pill">${s} <em>${n}</em></span>`).join('')}
+      </div>
+      ${data.errors.length ? `<details style="margin-top:10px;"><summary style="cursor:pointer;font-weight:700;">${data.errors.length} import errors</summary><pre style="font-size:11px;margin-top:8px;background:rgba(6,27,14,.04);padding:10px;border-radius:8px;white-space:pre-wrap;">${data.errors.join('\n')}</pre></details>` : ''}
+      <p style="margin-top:14px;">Next: <a href="/admin-overview">go to admin overview</a> to start sending invites.</p>
+    </div>`;
+}
+
 go.addEventListener('click', async () => {
   const csv = paste.value.trim();
   if (csv.length < 100) {
@@ -119,24 +167,7 @@ go.addEventListener('click', async () => {
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || 'HTTP ' + r.status);
 
-    const states = Object.entries(data.by_state || {}).sort((a,b) => b[1] - a[1]);
-    out.innerHTML = `
-      <div class="ok-card">
-        <h4>✅ Import complete.</h4>
-        <div class="stat-row">
-          <div><strong>${data.received_rows.toLocaleString()}</strong> rows received</div>
-          <div><strong>${data.matched_rows.toLocaleString()}</strong> matched our criteria</div>
-          <div><strong>${data.inserted.toLocaleString()}</strong> new records</div>
-          <div><strong>${data.updated.toLocaleString()}</strong> records updated</div>
-          ${data.skipped ? `<div><strong>${data.skipped}</strong> skipped</div>` : ''}
-        </div>
-        <p>Filtered for: federally-inspected · slaughter or processing · target species (cattle, hogs, sheep, goats, bison, deer/elk).</p>
-        <div class="state-list">
-          ${states.map(([s, n]) => `<span class="state-pill">${s} <em>${n}</em></span>`).join('')}
-        </div>
-        ${data.errors.length ? `<details style="margin-top:10px;"><summary style="cursor:pointer;font-weight:700;">${data.errors.length} import errors</summary><pre style="font-size:11px;margin-top:8px;background:rgba(6,27,14,.04);padding:10px;border-radius:8px;white-space:pre-wrap;">${data.errors.join('\n')}</pre></details>` : ''}
-        <p style="margin-top:14px;">Next: <a href="/admin-overview">go to admin overview</a> to start sending invites.</p>
-      </div>`;
+    renderResult(data);
   } catch (e) {
     out.innerHTML = `<div class="err-card"><strong>Import failed:</strong> ${e.message}</div>`;
   } finally {
