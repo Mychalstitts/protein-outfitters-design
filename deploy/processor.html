@@ -343,5 +343,22 @@ async function setupPlant() {
 }
 window.setupPlant = setupPlant;
 </script>
+
+<script id="__poDateAutofix__">
+(function(){
+  function fmt(){
+    return new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  }
+  function run(){
+    document.querySelectorAll('p,span,div,h1,h2,h3,h4').forEach(function(el){
+      if (el.children.length===0 && el.textContent.indexOf('Tuesday · May 5') > -1) {
+        el.textContent = el.textContent.replace('Tuesday · May 5', fmt().toUpperCase());
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+})();
+</script>
 </body>
 </html>
