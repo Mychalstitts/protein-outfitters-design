@@ -1,20 +1,17 @@
-// /api/fsis-import — bulk-load USDA FSIS Meat & Poultry Inspection Directory
+// /api/ams-import — bulk-load USDA AMS Local Food Directory listings
 //   POST text/csv body OR { csv: "..." } JSON
-//   Filters for federally-inspected plants that handle our target species
-//   (cattle, hogs, sheep, goats, bison, cervidae) and inserts them into
-//   discovered_partners with source='fsis'.
+//   Filters for farms that produce meat (beef, pork, lamb, goat, bison, venison, poultry, eggs)
+//   and inserts them into discovered_partners with source='ams'.
 //
-// Source: download the XLSX from
-//   https://www.fsis.usda.gov/inspection/establishments/meat-poultry-and-egg-product-inspection-directory
-// Open in Excel/Numbers/Sheets, Save As → CSV, then upload here.
+// Source: download a CSV from the USDA AMS Local Food Portal:
+//   https://www.usdalocalfoodportal.com/  (CSA, On-Farm Markets, Farmers Markets, Food Hubs)
+//   The portal exposes "Export to CSV" on each directory.
 //
 // Auth: any signed-in user during early ops. Tighten to admin role later.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-// Lazy schema bootstrap — runs once per cold start, idempotent.
-// Lets the import work even if the main /api/migrate hasn't been run.
 async function ensureSchema() {
   await sql`CREATE TABLE IF NOT EXISTS discovered_partners (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -61,86 +58,82 @@ function parseCSV(text) {
   return rows;
 }
 
-// Normalize a column header so different FSIS export variants map to one canonical key.
+// Normalize a column header so different AMS directory exports map to one canonical key.
 function normalizeHeader(h) {
   const k = (h || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
   const map = {
-    establishment_number: 'establishment_number',
-    estab_no: 'establishment_number',
-    establishment_no: 'establishment_number',
-    establishment_id: 'establishment_number',
-    establishment_name: 'name',
-    company_name: 'name',
+    listing_id: 'source_ref',
+    id: 'source_ref',
+    listing_name: 'name',
+    market_name: 'name',
+    farm_name: 'name',
+    business_name: 'name',
     name: 'name',
-    dba_name: 'dba',
-    dba: 'dba',
-    mailing_address: 'address',
+    location_address: 'address',
     address: 'address',
-    physical_address: 'address',
+    location_street: 'address',
     street: 'address',
-    mailing_city: 'city',
+    location_city: 'city',
     city: 'city',
-    mailing_state: 'state',
+    location_state: 'state',
     state: 'state',
-    mailing_zip_code: 'zip',
+    location_zipcode: 'zip',
+    location_zip: 'zip',
+    zipcode: 'zip',
     zip_code: 'zip',
     zip: 'zip',
-    mailing_phone: 'phone',
-    phone: 'phone',
-    phone_number: 'phone',
-    activities: 'activities',
-    activity: 'activities',
-    inspection_type: 'inspection_type',
-    grant_inspection_type: 'inspection_type',
-    species: 'species',
-    species_inspected: 'species',
-    federally_inspected_plant: 'federal',
-    federal_inspection: 'federal',
-    federally_inspected: 'federal',
+    contact_email: 'email',
     email: 'email',
-    email_address: 'email',
+    contact_phone: 'phone',
+    phone: 'phone',
+    media_website: 'website',
     website: 'website',
-    web_site: 'website',
+    location_x: 'lng',
+    longitude: 'lng',
+    location_y: 'lat',
+    latitude: 'lat',
+    products: 'products',
+    product_list: 'products',
+    food_products: 'products',
+    listing_categories: 'categories',
+    categories: 'categories',
+    type: 'kind_hint',
+    listing_type: 'kind_hint',
   };
   return map[k] || k;
 }
 
-// Species patterns we care about (Protein Outfitters ICP)
+// Species patterns we care about — Protein Outfitters ICP (farm side)
 const TARGET_SPECIES = [
-  { match: /cattle|beef|bovine/i, key: 'beef' },
-  { match: /hog|swine|pork|porcine/i, key: 'pork' },
-  { match: /sheep|lamb|ovine/i, key: 'lamb' },
-  { match: /goat|caprine/i, key: 'goat' },
-  { match: /bison|buffalo/i, key: 'bison' },
-  { match: /cervid|deer|elk|reindeer/i, key: 'venison' },
-  { match: /rabbit/i, key: 'rabbit' },
-  { match: /poultry|chicken|turkey|duck|goose|game_bird/i, key: 'poultry' },
+  { match: /\bbeef\b|\bcattle\b|\bbovine\b/i, key: 'beef' },
+  { match: /\bpork\b|\bhog\b|\bswine\b|\bpig\b/i, key: 'pork' },
+  { match: /\blamb\b|\bsheep\b|\bovine\b|\bmutton\b/i, key: 'lamb' },
+  { match: /\bgoat\b|\bcaprine\b|\bchevon\b/i, key: 'goat' },
+  { match: /\bbison\b|\bbuffalo\b/i, key: 'bison' },
+  { match: /\bvenison\b|\bdeer\b|\belk\b|\bcervid/i, key: 'venison' },
+  { match: /\brabbit\b/i, key: 'rabbit' },
+  { match: /\bpoultry\b|\bchicken\b|\bturkey\b|\bduck\b|\bgoose\b/i, key: 'poultry' },
+  { match: /\beggs?\b/i, key: 'eggs' },
 ];
 
-function speciesMatch(speciesStr) {
-  if (!speciesStr) return [];
+function speciesMatch(text) {
+  if (!text) return [];
   const matched = [];
   for (const { match, key } of TARGET_SPECIES) {
-    if (match.test(speciesStr)) matched.push(key);
+    if (match.test(text)) matched.push(key);
   }
   return matched;
 }
 
-function looksFederal(row) {
-  // FSIS plants in this directory are federally inspected by definition,
-  // BUT the directory also lists state-inspected ones with a flag column.
-  const flag = (row.federal || '').toString().toLowerCase().trim();
-  if (flag === 'n' || flag === 'no' || flag === 'false') return false;
-  // Establishment numbers like "M40-A" / "P12-B" / "EST. 12345" are federal
-  const en = (row.establishment_number || '').toString().toUpperCase();
-  if (/^(M|P|EST)\s*\.?\s*\d/i.test(en)) return true;
-  // Default: trust the row unless explicitly state-only
-  return true;
-}
-
-function activitiesMatch(actStr) {
-  if (!actStr) return false;
-  return /slaughter|processing|cut|wrap|grind/i.test(actStr);
+// AMS directories use a "type" column we can use to distinguish CSA vs on-farm market vs farmers market
+function inferKind(row) {
+  const hint = (row.kind_hint || '').toLowerCase();
+  if (/csa|community.?supported/i.test(hint)) return 'farm';
+  if (/on.?farm/i.test(hint)) return 'farm';
+  if (/farmers?.?market/i.test(hint)) return 'market';
+  if (/food.?hub|hub/i.test(hint)) return 'hub';
+  // Default: treat as farm — most AMS listings are farms
+  return 'farm';
 }
 
 export default async function handler(req) {
@@ -160,10 +153,9 @@ export default async function handler(req) {
     try {
       const body = await req.json();
       if (body.url) {
-        // Server-side fetch (sidesteps CORS + browser truncation). Allow USDA hosts only.
         const u = new URL(body.url);
-        if (!/^(www\.)?(fsis\.usda\.gov|usdalocalfoodportal\.com|ams\.usda\.gov)$/i.test(u.hostname)) {
-          return err(400, 'URL must point to a USDA host (fsis.usda.gov, usdalocalfoodportal.com, ams.usda.gov)');
+        if (!/^(www\.)?(usdalocalfoodportal\.com|ams\.usda\.gov|fsis\.usda\.gov)$/i.test(u.hostname)) {
+          return err(400, 'URL must point to a USDA host (usdalocalfoodportal.com, ams.usda.gov, fsis.usda.gov)');
         }
         const r = await fetch(u.toString(), { redirect: 'follow' });
         if (!r.ok) return err(502, `Upstream fetch failed: HTTP ${r.status}`);
@@ -187,45 +179,51 @@ export default async function handler(req) {
     return obj;
   }).filter(r => r.name); // drop blank rows
 
+  // Filter: must mention at least one target species in products or categories
   const filtered = dataRows
-    .filter(r => looksFederal(r))
-    .filter(r => activitiesMatch(r.activities))
-    .map(r => ({
-      ...r,
-      _species: speciesMatch(r.species),
-    }))
-    .filter(r => r._species.length > 0); // must handle at least one target species
+    .map(r => {
+      const blob = `${r.products || ''} ${r.categories || ''} ${r.name || ''}`;
+      return { ...r, _species: speciesMatch(blob), _kind: inferKind(r) };
+    })
+    .filter(r => r._species.length > 0)
+    // Skip non-meat filters (eggs-only is fine, that's still livestock)
+    .filter(r => !(r._species.length === 1 && r._species[0] === 'poultry' && /produce|vegetable|fruit/i.test(r.products || '')));
 
   let inserted = 0, updated = 0, skipped = 0;
   const errors = [];
 
   for (const r of filtered) {
     try {
-      const sourceRef = (r.establishment_number || `${r.name}|${r.zip}`).toUpperCase();
+      const sourceRef = (r.source_ref || `${r.name}|${r.zip}`).toString().toUpperCase();
       const phone = r.phone ? r.phone.replace(/[^\d]/g, '').slice(0, 11) : null;
       const phoneFmt = phone && phone.length >= 10
         ? `(${phone.slice(-10, -7)}) ${phone.slice(-7, -4)}-${phone.slice(-4)}`
         : (r.phone || null);
 
+      const lat = r.lat ? parseFloat(r.lat) : null;
+      const lng = r.lng ? parseFloat(r.lng) : null;
+
       const result = await sql`
         INSERT INTO discovered_partners (
           kind, name, address, city, state, zip,
-          phone, email, website, species,
+          lat, lng, phone, email, website, species,
           source, source_ref, raw_data, invite_status
         ) VALUES (
-          'processor',
+          ${r._kind},
           ${r.name},
           ${r.address || null},
           ${r.city || null},
           ${(r.state || '').toUpperCase().slice(0, 2) || null},
           ${(r.zip || '').slice(0, 10) || null},
+          ${Number.isFinite(lat) ? lat : null},
+          ${Number.isFinite(lng) ? lng : null},
           ${phoneFmt},
           ${r.email || null},
           ${r.website || null},
           ${r._species},
-          'fsis',
+          'ams',
           ${sourceRef},
-          ${JSON.stringify({ activities: r.activities, inspection: r.inspection_type, fsis_species: r.species, dba: r.dba })},
+          ${JSON.stringify({ products: r.products, categories: r.categories, kind_hint: r.kind_hint })},
           'new'
         )
         ON CONFLICT (source, source_ref) DO UPDATE SET
@@ -234,7 +232,11 @@ export default async function handler(req) {
           city = COALESCE(EXCLUDED.city, discovered_partners.city),
           state = COALESCE(EXCLUDED.state, discovered_partners.state),
           zip = COALESCE(EXCLUDED.zip, discovered_partners.zip),
+          lat = COALESCE(EXCLUDED.lat, discovered_partners.lat),
+          lng = COALESCE(EXCLUDED.lng, discovered_partners.lng),
           phone = COALESCE(EXCLUDED.phone, discovered_partners.phone),
+          email = COALESCE(EXCLUDED.email, discovered_partners.email),
+          website = COALESCE(EXCLUDED.website, discovered_partners.website),
           species = EXCLUDED.species,
           raw_data = EXCLUDED.raw_data,
           updated_at = NOW()
@@ -255,6 +257,14 @@ export default async function handler(req) {
     byState[s] = (byState[s] || 0) + 1;
   }
 
+  // Summary stats per species
+  const bySpecies = {};
+  for (const r of filtered) {
+    for (const sp of r._species) {
+      bySpecies[sp] = (bySpecies[sp] || 0) + 1;
+    }
+  }
+
   return json({
     received_rows: dataRows.length,
     matched_rows: filtered.length,
@@ -262,6 +272,7 @@ export default async function handler(req) {
     updated,
     skipped,
     by_state: byState,
+    by_species: bySpecies,
     errors,
     sample: filtered.slice(0, 3).map(r => ({ name: r.name, state: r.state, species: r._species }))
   });
