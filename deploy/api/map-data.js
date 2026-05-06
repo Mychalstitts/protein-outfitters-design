@@ -90,50 +90,89 @@ async function loadProcessors() {
 }
 
 async function loadDemand() {
-  // Aggregate user signups + recent reservations by state+zip prefix.
-  // We use ZIP-3 as the bucket so a single farm/buyer can't get pinpointed,
-  // and so the heatmap renders as regional density rather than a noisy dot map.
+  // Aggregate buyer signups + recent reservations clustered at the state level
+  // (since we only have ZIP, not city, on user rows). When buyer profiles
+  // start carrying city, we can switch to per-city or per-zip-prefix clustering.
   const rows = await sql`
     SELECT
-      COALESCE(LEFT(u.zip, 3), '___') AS zip3,
+      COALESCE(LOWER(LEFT(u.zip, 1)), '_') AS zip_region,
       u.zip AS zip,
       COUNT(DISTINCT u.id)::int AS user_count,
-      COUNT(DISTINCT r.id)::int AS reservation_count,
-      MAX(u.zip) AS sample_zip
+      COUNT(DISTINCT r.id)::int AS reservation_count
     FROM users u
     LEFT JOIN reservations r ON r.buyer_id = u.id AND r.created_at > NOW() - INTERVAL '90 days'
     WHERE u.role = 'buyer' AND u.zip IS NOT NULL
-    GROUP BY zip3, u.zip
+    GROUP BY u.zip
     ORDER BY user_count DESC
     LIMIT 500`;
 
-  // Demand zips can't synchronously resolve from city centroids (we only have
-  // a zip code, no city). For now we'll cluster demand at the state level so
-  // the heatmap still has signal even without per-zip lat/lngs. A future
-  // backfill can add precise zip centroids via Nominatim.
-  const byState = {};
+  // Map US ZIP first-digit → state-region centroid. Crude but useful as a
+  // signal-not-noise visualization. Buyers in 5xxxx → MN/WI/MI region;
+  // 6xxxx → IA/NE/IL/MO; etc. When user profiles get city/state we'll
+  // switch to per-city.
+  const REGION_BY_ZIP_FIRST = {
+    '0': 'ma', '1': 'pa', '2': 'va', '3': 'fl', '4': 'mi',
+    '5': 'mn', '6': 'ia', '7': 'tx', '8': 'co', '9': 'ca',
+  };
+  const byRegion = {};
   for (const r of rows) {
     if (!r.zip) continue;
-    // First 1 char of zip approximates state region in the US.
-    // Better: pull state from joined users table. For now, skip — state field
-    // isn't on this query, so cluster all into a state-of-MN default.
-    const stateKey = 'mn'; // TODO: join users for actual state
-    byState[stateKey] = byState[stateKey] || { user_count: 0, reservation_count: 0, zips: [], state: stateKey };
-    byState[stateKey].user_count += r.user_count;
-    byState[stateKey].reservation_count += r.reservation_count;
-    byState[stateKey].zips.push(r.zip);
+    const firstDigit = String(r.zip).charAt(0);
+    const region = REGION_BY_ZIP_FIRST[firstDigit] || 'mn';
+    if (!byRegion[region]) byRegion[region] = { user_count: 0, reservation_count: 0, zips: [], region };
+    byRegion[region].user_count += r.user_count;
+    byRegion[region].reservation_count += r.reservation_count;
+    byRegion[region].zips.push(r.zip);
   }
   const out = [];
-  for (const [stateKey, agg] of Object.entries(byState)) {
-    const g = geocodeSync({ state: stateKey });
+  for (const [region, agg] of Object.entries(byRegion)) {
+    const g = geocodeSync({ state: region });
     if (!g) continue;
     out.push({
-      zip: agg.zips[0] || stateKey.toUpperCase(),
+      zip: agg.zips[0] || region.toUpperCase(),
       zip3: '',
       user_count: agg.user_count,
       reservation_count: agg.reservation_count,
       lat: g.lat,
       lng: g.lng,
+    });
+  }
+  return out;
+}
+
+// Discovered prospects — farms / processors found in public datasets
+// (USDA FSIS, AAMP, EatWild, Google Places) but not yet signed up. This
+// is the recruiting funnel.
+async function loadProspects() {
+  const rows = await sql`
+    SELECT id, kind, name, address, city, state, zip, lat, lng,
+           phone, email, website, species, source, invite_status,
+           invited_at, signed_up_at, notes
+    FROM discovered_partners
+    WHERE invite_status NOT IN ('dnc', 'signed_up', 'declined')
+    ORDER BY
+      CASE invite_status WHEN 'new' THEN 0 WHEN 'queued' THEN 1 WHEN 'sent' THEN 2 WHEN 'clicked' THEN 3 ELSE 4 END,
+      created_at DESC
+    LIMIT 1000`;
+  const out = [];
+  for (const r of rows) {
+    let { lat, lng } = r;
+    if ((lat == null || lng == null) && (r.city || r.state)) {
+      const g = geocodeSync({ city: r.city, state: r.state });
+      if (g) { lat = g.lat; lng = g.lng; }
+    }
+    if (lat == null || lng == null) continue;
+    out.push({
+      id: r.id,
+      kind: r.kind,
+      name: r.name,
+      city: r.city, state: r.state, zip: r.zip,
+      lat, lng,
+      phone: r.phone, email: r.email, website: r.website,
+      species: r.species || [],
+      source: r.source,
+      invite_status: r.invite_status,
+      invited_at: r.invited_at,
     });
   }
   return out;
@@ -184,11 +223,15 @@ export default async function handler(req) {
     const processors = (layer === null || layer === 'processors' || !layer || layer === 'opportunity') ? await loadProcessors() : [];
     let demand = [];
     let opportunity = [];
+    let prospects = [];
     if (isAdmin && (layer === null || layer === 'demand' || layer === 'opportunity' || !layer)) {
       demand = await loadDemand();
       if (layer === null || layer === 'opportunity' || !layer) {
         opportunity = await buildOpportunity(processors, demand);
       }
+    }
+    if (isAdmin && (layer === null || layer === 'prospects' || !layer)) {
+      prospects = await loadProspects();
     }
 
     return json({
@@ -196,11 +239,13 @@ export default async function handler(req) {
       processors,
       demand: isAdmin ? demand : [],
       opportunity: isAdmin ? opportunity : [],
+      prospects: isAdmin ? prospects : [],
       counts: {
         farms: farms.length,
         processors: processors.length,
         demand_zips: demand.length,
         opportunity_targets: opportunity.filter(o => o.hardware_target).length,
+        prospects_new: prospects.filter(p => p.invite_status === 'new').length,
       },
       is_admin: isAdmin,
     });
