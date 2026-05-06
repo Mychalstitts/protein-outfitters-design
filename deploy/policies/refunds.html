@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Refund &amp; Cancellation — Protein Outfitters</title>
+<meta name="description" content="How refunds work, when you owe a deposit vs. full balance, and the public condemnation insurance pool that backs every reservation." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
+
+<style>
+.policy-hero {
+  background:
+    radial-gradient(ellipse at 80% 30%, rgba(207,233,211,0.18) 0%, transparent 50%),
+    linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%);
+  color: var(--ink-inverse);
+  padding: clamp(60px, 8vw, 100px) 0;
+}
+.policy-hero h1 { color: white; max-width: 22ch; margin: var(--s-3) 0 var(--s-4); }
+.policy-hero p { color: rgba(255,255,255,0.85); max-width: 62ch; font-size: var(--text-lg); }
+
+/* Timeline */
+.refund-timeline {
+  display: grid; gap: var(--s-3);
+  grid-template-columns: 1fr;
+  margin-top: var(--s-8);
+}
+@media (min-width: 768px) { .refund-timeline { grid-template-columns: repeat(3, 1fr); } }
+.refund-stage {
+  background: var(--surface); border-radius: var(--r-4);
+  padding: var(--s-6); box-shadow: var(--sh-1);
+  border-top: 4px solid var(--brand);
+}
+.refund-stage.warn { border-top-color: #d57f30; }
+.refund-stage.crit { border-top-color: #c25250; }
+.refund-stage h3 { margin: 0 0 var(--s-2); font-size: var(--text-lg); font-weight: 800; }
+.refund-stage .when { font-size: var(--text-sm); color: var(--ink-3); margin-bottom: var(--s-3); font-weight: 600; }
+.refund-stage p { font-size: var(--text-sm); color: var(--ink-2); line-height: 1.55; margin: 0 0 var(--s-2); }
+.refund-stage strong { color: var(--ink); }
+
+/* Pool transparency widget */
+.pool-widget {
+  margin-top: var(--s-12);
+  padding: var(--s-8) var(--s-6);
+  background: var(--brand-grad);
+  color: var(--ink-inverse);
+  border-radius: var(--r-5);
+  box-shadow: var(--sh-3);
+}
+.pool-widget h2 { color: white; margin: 0 0 var(--s-3); }
+.pool-widget p { color: rgba(255,255,255,0.85); max-width: 60ch; }
+.pool-grid {
+  display: grid; gap: var(--s-5);
+  grid-template-columns: 1fr;
+  margin-top: var(--s-6);
+}
+@media (min-width: 768px) { .pool-grid { grid-template-columns: repeat(4, 1fr); } }
+.pool-stat strong {
+  display: block;
+  font-size: clamp(28px, 4vw, 44px); font-weight: 900;
+  letter-spacing: var(--tracking-tight); line-height: 1;
+  margin-bottom: var(--s-2);
+}
+.pool-stat span { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); font-weight: 700; opacity: 0.78; }
+
+/* Detail sections */
+.detail-section { padding: var(--s-12) 0; border-top: 1px solid var(--hairline); }
+.detail-section h2 { margin: 0 0 var(--s-4); }
+.detail-section p { font-size: var(--text-md); color: var(--ink-2); line-height: 1.6; max-width: 70ch; }
+.detail-section ul { padding-left: var(--s-5); }
+.detail-section ul li { padding: 6px 0; font-size: var(--text-sm); color: var(--ink-2); line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<header class="po-nav">
+  <div class="po-nav-inner">
+    <a href="/" class="po-nav-mark">
+      <img src="/brand/logo-monogram.svg" alt="" />
+      <span>Protein Outfitters</span>
+    </a>
+    <nav class="po-nav-links">
+      <a href="/discover">Discover</a>
+      <a href="/producers">Producers</a>
+      <a href="/map">Map</a>
+      <a href="/hardware">Hardware</a>
+      <a href="/donation-flow">Donation Depot</a>
+      <a href="/faq">FAQ</a>
+    </nav>
+    <div class="po-nav-actions">
+      <a href="/account" class="btn btn--ghost btn--sm">Sign in</a>
+      <button class="btn--primary" data-open-sheet>Reserve</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="policy-hero">
+  <div class="container">
+    <span class="eyebrow" style="color: var(--accent-soft);">Refund &amp; cancellation policy</span>
+    <h1 class="display-2xl">How refunds and cancellations actually work.</h1>
+    <p>Three windows from drop-off, one insurance pool that covers condemnation events, and a public balance so you can see we mean it. This page is the source of truth — every reservation links here.</p>
+  </div>
+</section>
+
+<div class="container">
+
+  <!-- ===== Three-stage timeline ===== -->
+  <section class="detail-section" style="border-top: 0;">
+    <h2 class="display-md">Three windows. One clear rule each.</h2>
+    <p>The further out from drop-off, the more flexibility. The closer to drop-off, the more committed you are — because the animal is being scheduled, the processor's slot is being held, and the farmer is making real-life decisions on your behalf.</p>
+
+    <div class="refund-timeline">
+      <div class="refund-stage">
+        <h3>Free cancel</h3>
+        <p class="when">More than 21 days before drop-off</p>
+        <p>Cancel for any reason. <strong>Full refund</strong> of your deposit and any prepaid balance. We re-list the share without impact to the farmer.</p>
+      </div>
+      <div class="refund-stage warn">
+        <h3>Deposit forfeit</h3>
+        <p class="when">21 to 7 days before drop-off</p>
+        <p>You can still cancel, but your <strong>deposit is forfeit</strong>. We hold it as platform credit toward a future reservation if you want one within 12 months.</p>
+      </div>
+      <div class="refund-stage crit">
+        <h3>Full balance</h3>
+        <p class="when">Less than 7 days before drop-off</p>
+        <p>The animal is locked into the processor's calendar. <strong>Full balance is owed</strong>, regardless of pickup. This protects the farmer and processor who have committed real labor.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Insurance pool ===== -->
+  <section class="pool-widget" id="poolWidget">
+    <span class="eyebrow" style="color: var(--accent-soft);">Condemnation insurance pool</span>
+    <h2 class="display-md">If the animal fails inspection, you don't lose money.</h2>
+    <p>Every reservation contributes a small per-pound amount to a dedicated Stripe-managed pool. When a USDA inspector condemns an animal — pre-kill, post-kill, or during fabrication — the pool refunds the buyer in full and pays the processor's kill fee so the farmer doesn't eat the loss either. The pool is real money in a real account. Here's the live balance.</p>
+
+    <div class="pool-grid" id="poolGrid">
+      <div class="pool-stat"><strong id="poolBalance">—</strong><span>Pool balance</span></div>
+      <div class="pool-stat"><strong id="poolEvents">—</strong><span>Events covered (12 mo)</span></div>
+      <div class="pool-stat"><strong id="poolReimbursed">—</strong><span>Reimbursed to date</span></div>
+      <div class="pool-stat"><strong id="poolContribRate">—</strong><span>Contribution per lb</span></div>
+    </div>
+  </section>
+
+  <!-- ===== Detail sections ===== -->
+  <section class="detail-section">
+    <h2 class="display-md">What counts as condemnation?</h2>
+    <p>Three timing variations, each handled differently:</p>
+    <ul>
+      <li><strong>Ante-mortem</strong> — animal arrives sick or injured, fails inspection before kill. <strong>Buyer fully refunded</strong>; no kill fee charged; animal goes back to the farmer (or is destroyed at the farmer's election).</li>
+      <li><strong>Post-mortem (full)</strong> — entire carcass condemned during inspection. <strong>Buyer fully refunded</strong>; pool pays the processor's kill fee. Farmer is not flagged unless this is repeat behavior (3+ events in 12 months).</li>
+      <li><strong>Post-mortem (partial / fabrication)</strong> — disease found in a single primal during cutting. <strong>Buyer gets pro-rata refund</strong> on the affected portion; processor gets full kill fee + processing on the salvaged portion.</li>
+    </ul>
+  </section>
+
+  <section class="detail-section">
+    <h2 class="display-md">Quality complaints (post-pickup)</h2>
+    <p>If the meat you receive is <strong>not as described</strong> — wrong cuts, off-spec, off-flavor, freezer burn from delayed pickup, etc. — you have <strong>7 days from pickup</strong> to flag it through your account. Submit photos and a description; our support team reviews within 2 business days. Outcomes are refund, replacement, or platform credit, depending on what we and the processor can verify.</p>
+  </section>
+
+  <section class="detail-section">
+    <h2 class="display-md">Card chargebacks</h2>
+    <p>If you initiate a chargeback through your bank instead of cancelling in-app, Stripe forwards the dispute. We have 7–21 days to respond depending on the reason code. Our default policy: for amounts under $250 without airtight evidence, we accept the chargeback rather than fight it. For amounts over $250 with strong documentation (delivery proof, signed receipt, cut-sheet match, chain-of-custody), we contest with an evidence packet. Stripe's win rate when contested with documentation is around 35%.</p>
+  </section>
+
+  <section class="detail-section">
+    <h2 class="display-md">When refunds are <em>not</em> available</h2>
+    <ul>
+      <li>You changed your mind inside the 7-day window.</li>
+      <li>You missed your pickup window and didn't contact the processor.</li>
+      <li>The cuts you received match the cut sheet you submitted (or "Processor's Choice" if you skipped the cut sheet).</li>
+      <li>Cosmetic differences in fat color, marbling, or trim that fall within USDA grade tolerances.</li>
+    </ul>
+  </section>
+
+  <section class="detail-section">
+    <h2 class="display-md">How to start a refund or complaint</h2>
+    <p>Sign in at <a href="/account" style="color:var(--brand);">/account</a>, find the reservation, and tap "Cancel" or "Flag a quality issue." For complex situations email <a href="mailto:hello@proteinoutfitters.com" style="color:var(--brand);">hello@proteinoutfitters.com</a>. We respond same business day.</p>
+  </section>
+</div>
+
+<div id="poFooterMount"></div>
+<script src="/po-shell.js"></script>
+
+<script>
+(async function loadPoolStats() {
+  // Eventually wired to /api/admin-metrics or a dedicated pool endpoint.
+  // For now we render a graceful "pool isn't seeded yet" state so this page is honest.
+  const fmt$ = n => '$' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  let pool = { balance: 0, events: 0, reimbursed: 0, contribRate: 0.05 };
+  try {
+    const r = await fetch('/api/admin-metrics', { credentials: 'include' });
+    if (r.ok) {
+      const data = await r.json();
+      // Counts present on metrics endpoint will populate here once /api/pool is wired.
+      // Until then, show seed state.
+    }
+  } catch (e) { /* keep seed state */ }
+  document.getElementById('poolBalance').textContent = pool.balance ? fmt$(pool.balance) : 'Seeding';
+  document.getElementById('poolEvents').textContent = pool.events || '0';
+  document.getElementById('poolReimbursed').textContent = pool.reimbursed ? fmt$(pool.reimbursed) : '$0';
+  document.getElementById('poolContribRate').textContent = '$' + pool.contribRate.toFixed(2) + '/lb HW';
+})();
+</script>
+</body>
+</html>
