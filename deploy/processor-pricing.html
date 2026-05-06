@@ -438,6 +438,11 @@
   });
 
   applyDefaults();
+
+  // Pill-toggle controls — click to flip on/off
+  document.querySelectorAll('.pill-toggle').forEach(p => {
+    p.addEventListener('click', () => p.classList.toggle('on'));
+  });
 })();
 </script>
 </body>

@@ -157,7 +157,7 @@
             <span>Transfer to bank</span>
             <svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg>
           </button>
-          <button class="wallet-cta wallet-cta-secondary">
+          <button class="wallet-cta wallet-cta-secondary" onclick="document.querySelector('[data-pane=\'banks\']')?.scrollIntoView({behavior:'smooth'})">
             <span>Schedule auto-transfer</span>
             <svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg>
           </button>
@@ -219,7 +219,7 @@
       <div class="fn-section-head">
         <h2>Sales · last 30 days</h2>
         <p>9 fractions across 4 animals · $24,180 gross</p>
-        <a class="more" href="#">Export CSV →</a>
+        <a class="more" href="javascript:void(0)" onclick="exportCSV('sales')">Export CSV →</a>
       </div>
       <div class="card-block">
         <div class="row-l">
@@ -272,7 +272,7 @@
       <div class="fn-section-head">
         <h2>Listing analytics · last 30 days</h2>
         <p>How buyers find and convert on your listings</p>
-        <a class="more" href="#">Export →</a>
+        <a class="more" href="javascript:void(0)" onclick="exportCSV('analytics')">Export →</a>
       </div>
       <div class="card-block">
         <div class="row-l" style="grid-template-columns: 60px 1fr 80px 80px 80px 100px; align-items: center;">
@@ -375,7 +375,7 @@
       <div class="fn-section-head">
         <h2>Bank accounts</h2>
         <p>Linked via Stripe · ACH transfers settle next business day</p>
-        <a class="more" href="#">+ Link new account</a>
+        <a class="more" href="/settings">+ Link new account</a>
       </div>
       <div class="bank-grid">
         <div class="bank-card primary">
@@ -386,7 +386,7 @@
         <div class="bank-card">
           <div class="bank-glyph"><svg class="ico ico-md" aria-hidden="true"><use href="/icons.svg#building"/></svg></div>
           <div class="bank-meta"><h4>First National · Savings ••0288</h4><p>For tax reserves</p></div>
-          <a href="#" style="font-size: 12px; font-weight: 700; color: var(--accent-2); text-decoration: none;">Make default →</a>
+          <a href="/settings" style="font-size: 12px; font-weight: 700; color: var(--accent-2); text-decoration: none;">Make default →</a>
         </div>
       </div>
 
@@ -490,11 +490,34 @@
 
   // Transfer button feedback
   const tb = document.getElementById('transferBtn');
-  tb.addEventListener('click', () => {
+  if (tb) tb.addEventListener('click', () => {
     tb.querySelector('span').textContent = '✓ Transfer initiated';
     setTimeout(() => { tb.querySelector('span').textContent = 'Transfer to bank'; }, 1800);
   });
 })();
+
+// Export visible table rows to CSV (works for any data-pane section).
+window.exportCSV = function (paneName) {
+  try {
+    const pane = document.querySelector('[data-pane="' + paneName + '"]');
+    if (!pane) { alert('Nothing to export yet.'); return; }
+    const rows = [];
+    rows.push(['Date', 'Description', 'Amount']);
+    pane.querySelectorAll('.row-l').forEach(r => {
+      const desc = (r.querySelector('.meta h4')?.textContent || '').trim();
+      const sub  = (r.querySelector('.meta p')?.textContent || '').trim();
+      const amt  = (r.querySelector('.stat-cell')?.textContent || '').trim().replace(/\s+/g, ' ');
+      if (desc || amt) rows.push([sub, desc, amt]);
+    });
+    const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'protein-outfitters-' + paneName + '-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) { alert('Export failed: ' + e.message); }
+};
 </script>
 </body>
 </html>

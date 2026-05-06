@@ -212,7 +212,7 @@ nav a:hover { opacity: 0.7; }
                     </div>
 </div>
 </div>
-<button class="bg-primary text-on-primary px-8 py-3.5 rounded-full font-bold tracking-tight text-sm transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/10">
+<button onclick="window.location.href='/credentials'" class="bg-primary text-on-primary px-8 py-3.5 rounded-full font-bold tracking-tight text-sm transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/10">
                 Edit Profile
             </button>
 </section>
@@ -367,7 +367,7 @@ nav a:hover { opacity: 0.7; }
 </section>
 <!-- Sign Out Section -->
 <section class="mt-8 flex flex-col items-center gap-6">
-<button class="group flex items-center gap-3 px-8 py-4 rounded-full text-error font-bold tracking-tight hover:bg-error-container/20 transition-all duration-300">
+<button onclick="(async()=>{try{await fetch('/api/auth/logout',{method:'POST'});}catch{} window.location.href='/'})()" class="group flex items-center gap-3 px-8 py-4 rounded-full text-error font-bold tracking-tight hover:bg-error-container/20 transition-all duration-300">
 <span class="material-symbols-outlined text-error" data-icon="logout">logout</span>
                     Sign Out
                 </button>

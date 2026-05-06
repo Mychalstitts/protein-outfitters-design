@@ -145,6 +145,19 @@
     // Follow button — local only for now (would persist to DB in a future round)
     const fb = document.getElementById('fpFollow');
     fb.addEventListener('click', () => { fb.classList.toggle('followed'); fb.innerHTML = fb.classList.contains('followed') ? '✓ Following' : '+ Follow'; });
+
+    // Share button — Web Share API with copy-to-clipboard fallback
+    document.querySelectorAll('.btn-share').forEach(sb => sb.addEventListener('click', async () => {
+      const url = location.href;
+      const title = (document.querySelector('.farm-id h1')?.textContent || 'Farm on Protein Outfitters').trim();
+      try {
+        if (navigator.share) { await navigator.share({ title, url }); return; }
+        await navigator.clipboard.writeText(url);
+        const orig = sb.textContent;
+        sb.textContent = '✓ Link copied';
+        setTimeout(() => { sb.textContent = orig; }, 1600);
+      } catch (e) { /* user cancelled */ }
+    }));
   })();
   </script>
 </body>

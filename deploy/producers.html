@@ -261,6 +261,7 @@
 <script src="./po-shell.js"></script>
 <script>
 (function () {
+  // Filter chips
   document.querySelectorAll('.chip[data-filter]').forEach(chip => chip.addEventListener('click', () => {
     document.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
@@ -270,6 +271,37 @@
       card.style.display = (f === 'all' || tags.includes(f)) ? '' : 'none';
     });
   }));
+
+  // Try to load real farms and replace mock cards if any are returned
+  (async () => {
+    try {
+      const r = await fetch('/api/map-data?layer=farms', { cache: 'no-store' });
+      if (!r.ok) return;
+      const data = await r.json();
+      const farms = (data.farms || []).filter(f => f.slug && f.name);
+      if (!farms.length) return;
+      const grid = document.querySelector('.farm-grid');
+      if (!grid) return;
+      // Build new cards
+      grid.innerHTML = farms.map(f => {
+        const tags = []
+          .concat((f.identity || []).map(x => String(x).toLowerCase()))
+          .concat((f.practices || []).map(x => String(x).toLowerCase()))
+          .concat([(f.state || '').toLowerCase()])
+          .filter(Boolean).join(' ');
+        const cover = f.cover_url || '/img/ranch.jpg';
+        const loc = [f.city, f.state].filter(Boolean).join(', ') || 'Northland';
+        return `
+          <a href="/farm/${f.slug}" class="farm-card" data-tags="${tags}">
+            <div class="farm-cover" style="background-image:url('${cover}')"></div>
+            <div class="farm-meta">
+              <h3>${f.name}</h3>
+              <p>${loc} · ${f.listings_count || 0} listings</p>
+            </div>
+          </a>`;
+      }).join('');
+    } catch (e) { /* keep static fallback cards */ }
+  })();
 })();
 </script>
 </body>

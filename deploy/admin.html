@@ -193,15 +193,15 @@ body { background: var(--surface-2); }
     <h1>Protein Outfitters</h1>
     <p class="sub">Admin · HQ Command</p>
     <nav>
-      <button>📊 Overview</button>
-      <button class="active">⚖️ Disputes <span class="count">4</span></button>
-      <button>⚙️ Processors <span class="count">12</span></button>
-      <button>🐄 Animals <span class="count">87</span></button>
-      <button>👥 Users</button>
-      <button>💰 Pool ($28k)</button>
-      <button>📈 Reports</button>
-      <button>🔔 Alerts</button>
-      <button>🛠️ Settings</button>
+      <a href="/admin-overview"><button>📊 Overview</button></a>
+      <a href="/admin"><button class="active">⚖️ Disputes <span class="count">4</span></button></a>
+      <a href="/admin#tab-config" onclick="setTimeout(() => window.showTab && window.showTab('config'), 0)"><button>⚙️ Processors <span class="count">12</span></button></a>
+      <a href="/discover"><button>🐄 Animals <span class="count">87</span></button></a>
+      <a href="/admin-overview"><button>👥 Users</button></a>
+      <a href="/admin-overview"><button>💰 Pool ($28k)</button></a>
+      <a href="/admin-overview"><button>📈 Reports</button></a>
+      <a href="/notifications"><button>🔔 Alerts</button></a>
+      <a href="/admin-health"><button>🛠️ Settings</button></a>
     </nav>
   </aside>
 
@@ -212,8 +212,8 @@ body { background: var(--surface-2); }
         <h2 class="display-md mt-2" id="page-title">Disputes &amp; Processor Config</h2>
       </div>
       <div class="row gap-2">
-        <button class="btn btn--ghost btn--sm">Export</button>
-        <button class="btn btn--secondary btn--sm">Audit log</button>
+        <a class="btn btn--ghost btn--sm" href="/admin-overview">Export</a>
+        <a class="btn btn--secondary btn--sm" href="/admin-health">Audit log</a>
       </div>
     </div>
 

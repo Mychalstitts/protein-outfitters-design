@@ -590,6 +590,11 @@
 
   syncWeekUI();
   renderCalendars();
+
+  // Pill-toggle controls — click to flip on/off (skip locked-on which can't be unset)
+  document.querySelectorAll('.pill-toggle:not(.locked-on)').forEach(p => {
+    p.addEventListener('click', () => p.classList.toggle('on'));
+  });
 })();
 </script>
 <script src="./po-api.js"></script>

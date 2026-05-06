@@ -264,7 +264,7 @@
 <header class="glass-nav">
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
-      <a href="#" style="font-weight: 900; font-size: 16px; text-transform: uppercase;">Protein Outfitters</a>
+      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase;">Protein Outfitters</a>
       <span class="pill pill--accent" style="font-size: 10px;">DONATION DEPOT</span>
     </nav>
   </div>
@@ -609,7 +609,7 @@
     </div>
     <div class="row gap-2">
       <button class="btn btn--ghost btn--sm" onclick="showView('apply')">Edit profile</button>
-      <button class="btn btn--secondary btn--sm">Past requests</button>
+      <button class="btn btn--secondary btn--sm" onclick="showToast('Past requests view coming soon')">Past requests</button>
     </div>
   </div>
 
@@ -783,8 +783,8 @@
       <h2 class="display-md mt-2">Active donations</h2>
     </div>
     <div class="row gap-2">
-      <button class="btn btn--ghost btn--sm">Export</button>
-      <button class="btn btn--secondary btn--sm">Audit log</button>
+      <a class="btn btn--ghost btn--sm" href="/admin-overview">Export</a>
+      <a class="btn btn--secondary btn--sm" href="/admin">Audit log</a>
     </div>
   </div>
 
@@ -815,7 +815,7 @@
         <span class="eyebrow">Institutions awaiting approval (3)</span>
         <h3 class="h3 mt-2" style="margin: 4px 0 0;">Verify EIN, storage, and capacity</h3>
       </div>
-      <button class="btn btn--ghost btn--sm">View all</button>
+      <a class="btn btn--ghost btn--sm" href="/admin">View all</a>
     </div>
     <div class="mt-4">
       <div class="admin-row">
@@ -827,8 +827,8 @@
           </div>
         </div>
         <div class="row gap-2">
-          <button class="btn btn--secondary btn--sm">Review</button>
-          <button class="btn btn--primary btn--sm">Approve</button>
+          <button class="btn btn--secondary btn--sm" onclick="showToast('Review form opens')">Review</button>
+          <button class="btn btn--primary btn--sm" onclick="showToast('Marked approved')">Approve</button>
         </div>
       </div>
       <div class="admin-row">
@@ -840,8 +840,8 @@
           </div>
         </div>
         <div class="row gap-2">
-          <button class="btn btn--secondary btn--sm">Review</button>
-          <button class="btn btn--primary btn--sm">Approve</button>
+          <button class="btn btn--secondary btn--sm" onclick="showToast('Review form opens')">Review</button>
+          <button class="btn btn--primary btn--sm" onclick="showToast('Marked approved')">Approve</button>
         </div>
       </div>
       <div class="admin-row">
@@ -853,8 +853,8 @@
           </div>
         </div>
         <div class="row gap-2">
-          <button class="btn btn--secondary btn--sm">Review</button>
-          <button class="btn btn--primary btn--sm">Approve</button>
+          <button class="btn btn--secondary btn--sm" onclick="showToast('Review form opens')">Review</button>
+          <button class="btn btn--primary btn--sm" onclick="showToast('Marked approved')">Approve</button>
         </div>
       </div>
     </div>
@@ -885,7 +885,7 @@
             <div class="meta">Sterling Trust · funded · drop-off Thu Jun 21</div>
           </div>
         </div>
-        <button class="btn btn--secondary btn--sm">View</button>
+        <button class="btn btn--secondary btn--sm" onclick="showToast('Donation detail view opens')">View</button>
       </div>
       <div class="admin-row">
         <div class="admin-row-body">
@@ -895,7 +895,7 @@
             <div class="meta">Agri-Credit Union · funded · drop-off Jul 18</div>
           </div>
         </div>
-        <button class="btn btn--secondary btn--sm">View</button>
+        <button class="btn btn--secondary btn--sm" onclick="showToast('Donation detail view opens')">View</button>
       </div>
       <div class="admin-row">
         <div class="admin-row-body">
@@ -905,7 +905,7 @@
             <div class="meta">Heritage Pork · funded · drop-off Jun 14</div>
           </div>
         </div>
-        <button class="btn btn--secondary btn--sm">View</button>
+        <button class="btn btn--secondary btn--sm" onclick="showToast('Donation detail view opens')">View</button>
       </div>
 
       <h3 class="h3" style="margin-top: var(--s-5);">Tax letters in queue (4)</h3>
