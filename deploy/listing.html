@@ -251,6 +251,38 @@
     farmCard.insertAdjacentHTML('beforeend', `<a href="/api/ics?listing=${l.id}" style="display:inline-flex;gap:6px;align-items:center;margin-top:14px;padding:10px 14px;background:rgba(6,27,14,.06);color:var(--ink);border-radius:999px;font:700 12px/1 'Inter';text-decoration:none">📅 Add harvest date to calendar</a>`);
   }
 
+  // ─── Refund window timeline (21d / 7d / 0d) ─────────────────────
+  if (farmCard && l.expected_finish_date) {
+    const drop = new Date(l.expected_finish_date);
+    const now = new Date();
+    const daysOut = Math.max(0, Math.round((drop - now) / 86400000));
+    const stage = daysOut > 21 ? 'free' : daysOut > 7 ? 'partial' : 'final';
+    const stages = [
+      { id: 'free',    title: 'Free cancel',    sub: '> 21 days out',  ok: ['free','partial','final'].indexOf(stage) >= 0 ? (stage === 'free') : false },
+      { id: 'partial', title: 'Deposit forfeit', sub: '21–7 days out', active: stage === 'partial' },
+      { id: 'final',   title: 'Full balance',   sub: '< 7 days out',   active: stage === 'final' },
+    ];
+    const dot = (active) => active
+      ? 'background:var(--brand);color:#fbf9f5;'
+      : 'background:rgba(6,27,14,.08);color:rgba(6,27,14,.5);';
+    farmCard.insertAdjacentHTML('beforeend', `
+      <div style="margin-top:14px;padding:14px;background:rgba(125,160,93,.06);border-radius:14px;font:500 12.5px/1.5 'Inter'">
+        <div style="font-weight:800;color:var(--ink);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+          <span>Refund window</span>
+          <span style="font-weight:600;color:var(--ink-2);">${daysOut} days to drop-off</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+          ${stages.map(s => `
+            <div style="text-align:center;">
+              <div style="height:6px;border-radius:999px;${dot(stage === s.id)}margin-bottom:6px;"></div>
+              <div style="font-weight:700;color:${stage === s.id ? 'var(--brand)' : 'var(--ink)'};">${s.title}</div>
+              <div style="font-size:11px;color:var(--ink-2);">${s.sub}</div>
+            </div>`).join('')}
+        </div>
+        <a href="/policies/refunds" style="display:block;margin-top:10px;font-size:11.5px;color:var(--ink-2);text-decoration:underline;">Refund policy + pool transparency →</a>
+      </div>`);
+  }
+
   // ─── Wire all .js-reserve buttons to open the sheet with REAL data ──
   // The reserve sheet (po-shell.js) reads data-* on the clicked element, so
   // we set them on each .js-reserve here using the listing UUID as data-animal.

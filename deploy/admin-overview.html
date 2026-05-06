@@ -145,6 +145,9 @@
       <div class="ov-stat"><p class="lab">Verified farms</p><div class="v">${c.farms || 0}<small>ranches</small></div></div>
       <div class="ov-stat"><p class="lab">Processors</p><div class="v">${c.processors || 0}<small>plants</small></div></div>
       <div class="ov-stat"><p class="lab">Total accounts</p><div class="v">${c.users || 0}<small>users</small></div></div>
+      <div class="ov-stat" style="${c.disputes_open > 0 ? 'background: linear-gradient(135deg, #fff5e6, #ffe9c2);' : ''}"><p class="lab">Open disputes</p><div class="v">${c.disputes_open || 0}<small>${c.disputes_open ? fmt$(c.disputes_total_amount) : 'all clear'}</small></div></div>
+      <div class="ov-stat"><p class="lab">Inst. pending review</p><div class="v">${c.institutions_pending || 0}<small>applications</small></div></div>
+      <div class="ov-stat"><p class="lab">Inst. approved</p><div class="v">${c.institutions_approved || 0}<small>recipients</small></div></div>
     </div>`;
 
   // Recent payments + recent reservations columns
@@ -178,6 +181,40 @@
       <div class="ov-card">
         <h2>Recent reservations<small>last ${reservations.length} in DB</small></h2>
         ${reservationsHtml}
+      </div>
+    </div>`;
+
+  // Disputes + Institutions row (renders only when there's data)
+  const disputes = data.recent_disputes || [];
+  const institutions = data.recent_institutions || [];
+
+  const disputesHtml = disputes.length ? disputes.map(d => `
+    <div class="ov-row">
+      <div class="meta">
+        <h4>${d.animal_number ? d.animal_number + ' · ' : ''}${(d.farm_name || 'Unknown')} <span class="pill pill-warn">${(d.status || 'open').replace('_',' ')}</span></h4>
+        <p>${d.reason || 'no reason code'} · ${d.buyer_email || 'unknown buyer'}${d.evidence_due ? ' · evidence due ' + dateOnly(d.evidence_due) : ''}</p>
+      </div>
+      <div class="right">${fmt$(d.amount)}<span class="s">disputed</span></div>
+    </div>`).join('') : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No active disputes.<br><span style="opacity:.7;font-size:12px;">Stripe \`charge.dispute.*\` events land here automatically.</span></div>`;
+
+  const institutionsHtml = institutions.length ? institutions.map(i => `
+    <div class="ov-row">
+      <div class="meta">
+        <h4>${i.legal_name} <span class="pill pill-${i.status}">${i.status}</span></h4>
+        <p>${(i.type || '').replace('foodbank','food bank')} · ${i.state || '—'} · ${i.people_per_week ? i.people_per_week + ' people/wk' : 'capacity TBD'}<br>${i.contact_email}</p>
+      </div>
+      <div class="right"><a href="/donation-flow" style="font-size:13px;">Review →</a></div>
+    </div>`).join('') : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No institution applications yet.<br><span style="opacity:.7;font-size:12px;">Schools, food banks, and government agencies apply via /donation-flow.</span></div>`;
+
+  html += `
+    <div class="ov-cols">
+      <div class="ov-card">
+        <h2>Open disputes<small>${disputes.length || 0} from Stripe</small></h2>
+        ${disputesHtml}
+      </div>
+      <div class="ov-card">
+        <h2>Donation Depot — institution queue<small>${institutions.length || 0} latest</small></h2>
+        ${institutionsHtml}
       </div>
     </div>`;
 

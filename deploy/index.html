@@ -991,6 +991,16 @@ body { background: var(--bg); overflow-x: hidden; }
     return anyPrice > 0 || (l.price_per_lb && l.price_per_lb > 0);
   });
 
+  // Hide listings that are fully sold or marked sold/donated — no reserve CTA should be presented.
+  listings = listings.filter(l => {
+    if (l.status === 'sold' || l.status === 'donated') return false;
+    const anyAvailable = (l.shares?.quarter?.available || 0)
+                       + (l.shares?.half?.available || 0)
+                       + (l.shares?.whole?.available || 0);
+    // If no shares object exists, treat as available (legacy listings); otherwise need at least one.
+    return !l.shares || anyAvailable > 0;
+  });
+
   if (!listings.length) {
     grid.innerHTML = `
       <div class="product" style="grid-column:1/-1;text-align:center;padding:60px 24px;background:#fff;border-radius:18px;border:1px solid rgba(6,27,14,.06);">

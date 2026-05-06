@@ -475,7 +475,7 @@
 
   <p class="body" style="max-width: 60ch;">One-time application. Once we verify your tax-exempt or government status and confirm storage/handling capacity, you'll see the inventory dashboard and can request donated meat anytime.</p>
 
-  <form class="apply-form" onsubmit="event.preventDefault(); showView('institution');">
+  <form class="apply-form" id="instApplyForm" onsubmit="submitInstitutionApply(event)">
     <div class="form-row">
       <label>Institution type</label>
       <div class="pill-grid">
@@ -490,18 +490,18 @@
 
     <div class="form-row">
       <label>Legal name of institution</label>
-      <input type="text" placeholder="e.g. Bemidji Public Schools — Independent District 31" required />
+      <input name="legal_name" type="text" placeholder="e.g. Bemidji Public Schools — Independent District 31" required />
     </div>
 
     <div class="row-2">
       <div class="form-row">
         <label>EIN / federal tax ID</label>
-        <input type="text" placeholder="00-0000000" required />
+        <input name="ein" type="text" placeholder="00-0000000" required />
         <span class="hint">Required for IRS-compliant tax letter to donor. We verify against the IRS Tax Exempt Organization Search or government registry.</span>
       </div>
       <div class="form-row">
         <label>State of operation</label>
-        <select required>
+        <select name="state" required>
           <option value="">Select…</option>
           <option>Minnesota</option>
           <option>Wisconsin</option>
@@ -516,34 +516,34 @@
 
     <div class="form-row">
       <label>Mailing address</label>
-      <input type="text" placeholder="Street, city, ZIP" required />
+      <input name="address" type="text" placeholder="Street, city, ZIP" required />
     </div>
 
     <div class="row-2">
       <div class="form-row">
         <label>Primary contact name</label>
-        <input type="text" placeholder="Director / Coordinator / Procurement lead" required />
+        <input name="contact_name" type="text" placeholder="Director / Coordinator / Procurement lead" required />
       </div>
       <div class="form-row">
         <label>Title / role</label>
-        <input type="text" placeholder="Food Service Director, Pantry Coordinator, etc." required />
+        <input name="contact_title" type="text" placeholder="Food Service Director, Pantry Coordinator, etc." required />
       </div>
     </div>
 
     <div class="row-2">
       <div class="form-row">
         <label>Email</label>
-        <input type="email" placeholder="contact@institution.org" required />
+        <input name="contact_email" type="email" placeholder="contact@institution.org" required />
       </div>
       <div class="form-row">
         <label>Phone</label>
-        <input type="tel" placeholder="(218) 555-0123" required />
+        <input name="contact_phone" type="tel" placeholder="(218) 555-0123" required />
       </div>
     </div>
 
     <div class="form-row">
       <label>People served per week</label>
-      <input type="number" min="0" placeholder="e.g. 480 student lunches, 220 pantry households" required />
+      <input name="people_per_week" type="number" min="0" placeholder="e.g. 480 student lunches, 220 pantry households" required />
       <span class="hint">Used for sizing matches — we don't send 800 lbs of beef to a 60-meal program.</span>
     </div>
 
@@ -586,7 +586,7 @@
 
     <div class="form-row">
       <label>Anything else we should know?</label>
-      <textarea rows="3" placeholder="Religious dietary requirements, allergen concerns, distribution model, USDA Foods participation, etc."></textarea>
+      <textarea name="notes" rows="3" placeholder="Religious dietary requirements, allergen concerns, distribution model, USDA Foods participation, etc."></textarea>
     </div>
 
     <label class="checkbox-row">
@@ -596,6 +596,7 @@
 
     <button type="submit" class="btn btn--primary btn--xl btn--block">Submit application</button>
     <small class="text-faint text-center" style="font-size: 11px;">Most applications are reviewed within 3 business days. We'll email you when your status changes.</small>
+    <p id="instApplyStatus" style="font-size: 12px; text-align:center; margin-top: 8px;"></p>
   </form>
 </section>
 
@@ -1010,6 +1011,55 @@ function showToast(msg) {
   t.classList.add('is-visible');
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
+}
+
+// ─── Institution apply form: POST /api/institutions ───
+async function submitInstitutionApply(ev) {
+  ev.preventDefault();
+  const form = ev.target;
+  const statusEl = document.getElementById('instApplyStatus');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalLabel = submitBtn ? submitBtn.textContent : '';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+  if (statusEl) statusEl.textContent = '';
+
+  // Gather fields. Pill-grid radios + species checkboxes + pickup are read by their inputs.
+  const data = {
+    type:           form.querySelector('input[name="inst-type"]:checked')?.value || 'school',
+    legal_name:     form.querySelector('input[name="legal_name"]')?.value || '',
+    ein:            form.querySelector('input[name="ein"]')?.value || '',
+    state:          form.querySelector('select[name="state"]')?.value || '',
+    address:        form.querySelector('input[name="address"]')?.value || '',
+    contact_name:   form.querySelector('input[name="contact_name"]')?.value || '',
+    contact_title:  form.querySelector('input[name="contact_title"]')?.value || '',
+    contact_email:  form.querySelector('input[name="contact_email"]')?.value || '',
+    contact_phone:  form.querySelector('input[name="contact_phone"]')?.value || '',
+    people_per_week: form.querySelector('input[name="people_per_week"]')?.value || '',
+    storage:        form.querySelector('input[name="storage"]:checked')?.value || '',
+    pickup:         form.querySelector('input[name="pickup"]:checked')?.value || '',
+    notes:          form.querySelector('textarea[name="notes"]')?.value || '',
+    species:        Array.from(form.querySelectorAll('input[type="checkbox"]:checked'))
+                          .map(c => c.parentElement?.querySelector('span')?.textContent?.toLowerCase())
+                          .filter(Boolean)
+  };
+
+  try {
+    const r = await fetch('/api/institutions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+    const out = await r.json();
+    if (!r.ok) throw new Error(out.error || 'Submission failed');
+    if (statusEl) statusEl.textContent = 'Application received. We\'ll email you within 3 business days.';
+    showToast('Application submitted ✓');
+    setTimeout(() => showView('institution'), 900);
+  } catch (e) {
+    if (statusEl) statusEl.textContent = 'Couldn\'t submit: ' + e.message + '. Email depot@proteinoutfitters.com if this keeps happening.';
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalLabel; }
+  }
 }
 </script>
 </body>

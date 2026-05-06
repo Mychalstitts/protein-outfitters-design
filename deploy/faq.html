@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Protein Outfitters — FAQ</title>
+<meta name="description" content="Answers to the questions buyers, producers, and processors ask most." />
+<meta property="og:title" content="Protein Outfitters — FAQ" />
+<meta property="og:description" content="Answers to the questions buyers, producers, and processors ask most." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+
+<style>
+.faq-hero {
+  background:
+    radial-gradient(ellipse at 70% 20%, rgba(207,233,211,0.18) 0%, transparent 50%),
+    linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%);
+  color: var(--ink-inverse);
+  padding: clamp(60px, 8vw, 100px) 0;
+}
+.faq-hero h1 { color: white; max-width: 18ch; margin: var(--s-3) 0 var(--s-4); }
+.faq-hero p { color: rgba(255,255,255,0.85); max-width: 56ch; font-size: var(--text-lg); }
+
+.faq-tabs {
+  display: flex; gap: 4px; padding: 4px; background: var(--surface);
+  border-radius: var(--r-3); box-shadow: var(--sh-0); max-width: 720px;
+  margin: var(--s-8) auto var(--s-6); flex-wrap: wrap;
+}
+.faq-tabs button {
+  flex: 1; padding: 10px 14px; border-radius: var(--r-2);
+  font-size: var(--text-sm); font-weight: 700; color: var(--ink-2); white-space: nowrap;
+}
+.faq-tabs button.active { background: var(--brand); color: var(--ink-inverse); }
+
+.faq-list { display: flex; flex-direction: column; gap: var(--s-3); max-width: 760px; margin: 0 auto; }
+.faq-item { background: var(--surface); border-radius: var(--r-3); box-shadow: var(--sh-1); overflow: hidden; }
+.faq-item summary {
+  list-style: none; cursor: pointer;
+  padding: var(--s-5) var(--s-6);
+  font-size: var(--text-md); font-weight: 700;
+  display: flex; justify-content: space-between; align-items: center; gap: var(--s-3);
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: "+"; font-size: 22px; font-weight: 300;
+  width: 28px; height: 28px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--surface-2);
+  flex-shrink: 0;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.faq-item[open] summary::after { content: "−"; transform: rotate(180deg); }
+.faq-item .faq-body { padding: 0 var(--s-6) var(--s-6); color: var(--ink-2); font-size: var(--text-sm); line-height: 1.6; }
+.faq-item .faq-body strong { color: var(--ink); }
+.faq-item .faq-body a { color: var(--brand); }
+
+.cta-strip {
+  margin-top: var(--s-12);
+  padding: var(--s-10) var(--s-6);
+  background: var(--surface-2);
+  text-align: center;
+  border-radius: var(--r-5);
+}
+.cta-strip h2 { margin-bottom: var(--s-3); }
+.cta-strip p { color: var(--ink-2); max-width: 50ch; margin: 0 auto var(--s-6); }
+.cta-strip .row { justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header class="po-nav">
+  <div class="po-nav-inner">
+    <a href="/" class="po-nav-mark">
+      <img src="/brand/logo-monogram.svg" alt="Protein Outfitters" />
+      <span>Protein Outfitters</span>
+    </a>
+    <nav class="po-nav-links">
+      <a href="/discover">Discover</a>
+      <a href="/producers">Producers</a>
+      <a href="/map">Map</a>
+      <a href="/hardware">Hardware</a>
+      <a href="/donation-flow">Donation Depot</a>
+    </nav>
+    <div class="po-nav-actions">
+      <a href="/account" class="btn btn--ghost btn--sm">Sign in</a>
+      <button class="btn--primary" data-open-sheet>Reserve</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="faq-hero">
+  <div class="container">
+    <span class="eyebrow" style="color: var(--accent-soft);">Help center</span>
+    <h1 class="display-2xl">Questions, plainly answered.</h1>
+    <p>Everything we get asked most often — by buyers reserving an animal, farmers and producers selling one, processors running the harvest, and institutions on the donation depot. Nothing here is legal, tax, or medical advice — just how the platform actually works.</p>
+  </div>
+</section>
+
+<!-- ===== Audience tabs ===== -->
+<div class="container">
+  <div class="faq-tabs">
+    <button class="active" data-grp="buyer">For buyers</button>
+    <button data-grp="farmer">For farmers</button>
+    <button data-grp="processor">For processors</button>
+    <button data-grp="institution">For institutions</button>
+    <button data-grp="general">General</button>
+  </div>
+
+  <!-- ===== BUYERS ===== -->
+  <div class="faq-list" data-grp="buyer">
+
+    <details class="faq-item"><summary>What am I actually buying when I "reserve a fraction"?</summary>
+      <div class="faq-body">A real, identified animal that's still on a farm. You're claiming a fraction of the take-home meat — usually a quarter, half, or whole. The all-in price you see covers the farmer's per-lb rate, processing (cut/wrap/vacuum-seal), the kill fee (split across the animal), the condemnation insurance pool, and Protein Outfitters' platform fee. You pay a deposit at reservation and the balance before pickup.</div>
+    </details>
+
+    <details class="faq-item"><summary>How does pricing work — is it $/lb live, hanging, or cuts?</summary>
+      <div class="faq-body">All listings are priced in <strong>$/lb hanging weight</strong> — the industry standard. Hanging weight is the dressed carcass after the head, hide, and viscera are removed. After cut and wrap, you typically take home roughly 65–72% of hanging weight in finished cuts depending on species, bone-in choice, and grind ratio. Each listing's "What's included" breakdown shows both per-lb hanging and per-lb finished cuts.</div>
+    </details>
+
+    <details class="faq-item"><summary>How big a freezer do I need?</summary>
+      <div class="faq-body">Rough planning rule for beef: 1 cubic foot per 35–40 lb of cuts.<br><br>· <strong>Quarter beef</strong> (~110 lb cuts) → 7 cu ft chest freezer<br>· <strong>Half beef</strong> (~220 lb cuts) → 14 cu ft chest freezer<br>· <strong>Whole beef</strong> (~440 lb cuts) → 22+ cu ft (or two smaller freezers)<br>· <strong>Whole hog</strong> (~140 lb cuts) → 7–10 cu ft</div>
+    </details>
+
+    <details class="faq-item"><summary>Can I cancel after I reserve?</summary>
+      <div class="faq-body">Yes, with a window. Free cancel up to 21 days before drop-off. Inside 21 days, your deposit is forfeit and we offer credit toward a future reservation. Inside 7 days you owe the full balance because the animal is locked into the processor's schedule. The full Refund &amp; Cancellation Policy is at <a href="/policies/refunds">/policies/refunds</a>.</div>
+    </details>
+
+    <details class="faq-item"><summary>What happens if the animal fails inspection?</summary>
+      <div class="faq-body">If a USDA inspector condemns the animal — pre-kill (ante-mortem) or during fabrication (post-mortem) — you get a refund. The condemnation insurance pool, which every reservation contributes a small per-lb amount to, makes you whole and covers the processor's kill fee so the loss doesn't fall on the farmer either. Pool balance and event history are public at <a href="/policies/refunds">/policies/refunds</a>.</div>
+    </details>
+
+    <details class="faq-item"><summary>Do I have to fill out a cut sheet?</summary>
+      <div class="faq-body">No. If you skip it, your share gets the "Processor's Choice" package — a balanced default of steaks, roasts, and ground in standard sizes. If you want to customize, our two-tier cut sheet lets you set Order Defaults (steak thickness, roast size, grind ratio) and then override per sub-primal if you care about specific cuts.</div>
+    </details>
+
+    <details class="faq-item"><summary>How do I pick up?</summary>
+      <div class="faq-body">Pickup at the processor is included in your all-in price for buyers within typical local range. Some metro areas qualify for same-day local delivery (in evaluation). Long-distance buyers can order insulated dry-ice shipping; the option appears in checkout when applicable.</div>
+    </details>
+
+    <details class="faq-item"><summary>Is the meat USDA-inspected?</summary>
+      <div class="faq-body">Every animal sold through the marketplace is processed at a federally-inspected (USDA) plant or a state-inspected plant for in-state sales where allowed. Look for the establishment number in the listing. Custom-exempt processing is not eligible for retail sale and isn't allowed on the platform.</div>
+    </details>
+
+    <details class="faq-item"><summary>Why isn't the animal I want showing up anymore?</summary>
+      <div class="faq-body">Three possible reasons: it sold out, it was removed by the farmer, or it was donated through the Donation Depot to a qualified school / food bank / government feeding program. Once a fraction is donated, it's removed from public listings.</div>
+    </details>
+  </div>
+
+  <!-- ===== FARMERS ===== -->
+  <div class="faq-list hidden" data-grp="farmer">
+
+    <details class="faq-item"><summary>How much does it cost a farmer to list?</summary>
+      <div class="faq-body">Listing is free. The platform fee is a small per-lb-hanging amount baked into the all-in price the buyer sees — it does not come out of your farmer rate. You set your $/lb hanging rate; we add processing, kill share, insurance, and our fee on top. You see the full cumulative breakdown when you list.</div>
+    </details>
+
+    <details class="faq-item"><summary>When do I get paid?</summary>
+      <div class="faq-body">Funds settle after the animal is dropped off at the processor and accepted (the processor confirms via QR check-in, and the state machine flips the reservation to "in-process"). Payouts are routed via Stripe Connect to your bank account, typically within 2 business days of acceptance.</div>
+    </details>
+
+    <details class="faq-item"><summary>What happens if a buyer cancels late?</summary>
+      <div class="faq-body">Inside 7 days of drop-off, the buyer owes the full balance — you still get paid. Inside 21 days but outside 7, the deposit is forfeit (held by the platform) and we re-list the share. Outside 21 days, the buyer cancels free and we re-list with no impact to you.</div>
+    </details>
+
+    <details class="faq-item"><summary>Can I change my price after a fraction has sold?</summary>
+      <div class="faq-body">No. The first purchaser locks the price for that animal — same for processor selection. This protects buyers who reserved early and protects you from the awkwardness of mixed prices on one animal. If demand is strong, that's pricing intel for your next listing.</div>
+    </details>
+
+    <details class="faq-item"><summary>What if the animal is sick on drop-off day?</summary>
+      <div class="faq-body">The processor performs an ante-mortem inspection. If they refuse the animal (visible illness, condition, etc.), no kill fee is charged, the buyer is refunded from the pool, and the animal goes back home with you. We don't flag farmers for one-off events; only repeat ante-mortem rejections (3+ in 12 months) trigger a review.</div>
+    </details>
+
+    <details class="faq-item"><summary>Is there a deposit when I book a processor slot?</summary>
+      <div class="faq-body">Yes — a refundable dropoff deposit ($100 flat or 10% of processing, whichever is greater, capped at $300). It's refunded automatically when you check the animal in via QR scan at the processor. If you no-show, the deposit goes to the processor to compensate them for the locked slot.</div>
+    </details>
+
+    <details class="faq-item"><summary>What's the donation toggle on my listing?</summary>
+      <div class="faq-body">If a fraction hasn't sold and drop-off is approaching, you can flip "Donate this fraction" and route it through the same processor pipeline as a paid sale. Program funds cover the processor's kill fee. You receive an IRS-compliant tax acknowledgment letter (final amount based on actual hanging weight). The meat goes to a qualified institution — school, food bank, or government feeding program — through the Donation Depot.</div>
+    </details>
+  </div>
+
+  <!-- ===== PROCESSORS ===== -->
+  <div class="faq-list hidden" data-grp="processor">
+
+    <details class="faq-item"><summary>What does the processor SaaS subscription cost?</summary>
+      <div class="faq-body">Free tier: 4 bookings per month, basic calendar, customer messaging. Paid tiers add unlimited bookings, advanced scheduling, automated customer comms (drop-off reminders, cut-sheet nudges, ready-for-pickup notifications), and the Outlook-style Queue View. Final pricing is in the active policy decision queue. The first 25 processors lock in a discounted lifetime rate.</div>
+    </details>
+
+    <details class="faq-item"><summary>How do customers pay me?</summary>
+      <div class="faq-body">When a buyer reserves through the platform, the all-in payment is split via Stripe Connect: the processor's portion (cut + wrap + vac-pack on the customer's hanging-weight share) routes to your account on the same payout cadence Stripe gives you. The kill fee is split across all buyers of the animal and routed similarly.</div>
+    </details>
+
+    <details class="faq-item"><summary>What's the QR check-in?</summary>
+      <div class="faq-body">When a farmer arrives with an animal, you scan their booking QR code from your dashboard. That single scan is the source of truth — it flips the reservation state to "in-process," releases the farmer's dropoff deposit, and starts the customer's countdown to "ready for pickup." This replaces farmer self-report and prevents the "I dropped it off / no you didn't" disputes.</div>
+    </details>
+
+    <details class="faq-item"><summary>Can I set my own cut options and upcharges?</summary>
+      <div class="faq-body">Yes. The Processor Config dashboard lets you set: species you process, available cuts, smoking offerings (and whether bacon is pork-only at your plant), grind ratios you offer, and any upcharges (vacuum seal, ground-in-chubs, stew meat, etc.). Customer cut sheets read your config — buyers only see options you actually offer.</div>
+    </details>
+
+    <details class="faq-item"><summary>What if I find disease during fabrication?</summary>
+      <div class="faq-body">Post-mortem condemnation is covered by the insurance pool. The buyer gets a pro-rata refund on the affected primal portion. You receive your full kill fee plus processing on the salvaged portion. The state machine handles email and refund automation; you just enter what was condemned.</div>
+    </details>
+
+    <details class="faq-item"><summary>How do I block out a week for vacation?</summary>
+      <div class="faq-body">Calendar view → select range → Block out. Existing reservations stay in place; new bookings can't land in the blocked period. We email any buyers attempting to book that range with the next available slot.</div>
+    </details>
+  </div>
+
+  <!-- ===== INSTITUTIONS ===== -->
+  <div class="faq-list hidden" data-grp="institution">
+
+    <details class="faq-item"><summary>Who qualifies to receive donated meat?</summary>
+      <div class="faq-body">Schools (K-12, child nutrition, Farm-to-School), government agencies (state-run feeding, tribal nations, veterans, corrections), food banks and food shelves (501(c)(3) and equivalents), and similar charitable feeding programs. The qualification step verifies tax-exempt status or government authorization, storage capacity, and recipient-eligibility compliance.</div>
+    </details>
+
+    <details class="faq-item"><summary>How do I apply?</summary>
+      <div class="faq-body">Visit <a href="/donation-flow">/donation-flow</a> and tap "Apply as institution." It's a one-time form: institution type, EIN or government auth, address, contact, weekly volume served, cold-storage capacity, accepted species, and pickup capability. Most applications are reviewed within 3 business days.</div>
+    </details>
+
+    <details class="faq-item"><summary>How does pickup or delivery work?</summary>
+      <div class="faq-body">Three options on application: self-pickup from the processor (most common, fastest), delivery from program funds (cost shared, available where local courier coverage exists), or pickup at the central depot for high-volume institutions. We confirm the window after you request a specific donation.</div>
+    </details>
+
+    <details class="faq-item"><summary>Is the meat USDA-inspected?</summary>
+      <div class="faq-body">Yes — every donation routes through a federally-inspected plant. The establishment number is on every package. This matters for school nutrition programs and government feeding programs that require USDA inspection.</div>
+    </details>
+
+    <details class="faq-item"><summary>Can we request specific cuts or species?</summary>
+      <div class="faq-body">You'll see real-time inventory of what's available within your service radius. Default cuts on donated animals are typically ground (most flexible for institutional use), but several donations are pre-portioned for school lunches or have specialty cuts. You request what fits your program; we match what's available.</div>
+    </details>
+  </div>
+
+  <!-- ===== GENERAL ===== -->
+  <div class="faq-list hidden" data-grp="general">
+
+    <details class="faq-item"><summary>Where do you operate?</summary>
+      <div class="faq-body">Active reservations: Minnesota, Wisconsin, North Dakota, South Dakota. Listings are expanding into Iowa and Illinois. The Hardware (processing systems) line ships nationwide. Donation Depot recipient institutions are accepted in any state where we have processor coverage.</div>
+    </details>
+
+    <details class="faq-item"><summary>How is Protein Outfitters different from a CSA or a meat box?</summary>
+      <div class="faq-body">A CSA gives you a recurring assortment of cuts; a meat box gives you a curated package. Protein Outfitters lets you reserve a specific named animal, pick the processor, customize the cut sheet, and pay one all-in price that already includes processing. You buy from the farm, not a re-seller.</div>
+    </details>
+
+    <details class="faq-item"><summary>Do you ever ship raw meat through the mail?</summary>
+      <div class="faq-body">Only with insulated cooler + dry ice from licensed shipping partners, when local pickup or delivery isn't viable. Most reservations are picked up at the processor.</div>
+    </details>
+
+    <details class="faq-item"><summary>What's the Hardware section about?</summary>
+      <div class="faq-body">For producers who want to process their own animals, we source mobile harvest units (MHU) and modular processing systems. Free 30-min discovery call → $40K consultation phase → 50% non-refundable down → balance prior to delivery. Full details and the de-risk thesis (10K → 2,300 processor gap) at <a href="/hardware">/hardware</a>.</div>
+    </details>
+
+    <details class="faq-item"><summary>How do I get in touch?</summary>
+      <div class="faq-body">General questions: <a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a><br>Donation depot: <a href="mailto:depot@proteinoutfitters.com">depot@proteinoutfitters.com</a><br>Hardware sales: <a href="mailto:mychal@proteinoutfitters.com">mychal@proteinoutfitters.com</a></div>
+    </details>
+  </div>
+
+  <!-- ===== Closing CTA ===== -->
+  <div class="cta-strip">
+    <h2 class="display-md">Still stuck?</h2>
+    <p>Email us with the part of the platform you're using — buyer, farmer, processor, institution — and we'll come back with a real answer, typically same business day.</p>
+    <div class="row gap-3">
+      <a class="btn btn--primary btn--xl" href="mailto:hello@proteinoutfitters.com?subject=Question%20from%20FAQ">Email support</a>
+      <a class="btn btn--secondary btn--xl" href="/discover">Browse animals</a>
+    </div>
+  </div>
+
+</div>
+
+<div id="poFooterMount"></div>
+<script src="/po-shell.js"></script>
+
+<script>
+(function () {
+  const tabs = document.querySelectorAll('.faq-tabs button');
+  const lists = document.querySelectorAll('[data-grp].faq-list');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(b => b.classList.toggle('active', b === t));
+    const g = t.dataset.grp;
+    lists.forEach(l => l.classList.toggle('hidden', l.dataset.grp !== g));
+  }));
+})();
+</script>
+</body>
+</html>
