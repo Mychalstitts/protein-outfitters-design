@@ -304,7 +304,43 @@ const SCHEMA_STATEMENTS = [
      consumed_by     UUID REFERENCES users(id),
      created_at      TIMESTAMPTZ DEFAULT NOW()
    )`,
-  `CREATE INDEX IF NOT EXISTS checkin_codes_booking_idx ON checkin_codes(booking_id)`
+  `CREATE INDEX IF NOT EXISTS checkin_codes_booking_idx ON checkin_codes(booking_id)`,
+
+  // ──────────────────────────────────────────────────────────
+  // Listing detail polish — feed type, sub-breed, sex detail.
+  // Existing `sex` column kept (free text) for compatibility.
+  // sex_detail is the structured species-aware enum.
+  // ──────────────────────────────────────────────────────────
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS feed_type        TEXT`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS finish_feed      TEXT`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS subbreed         TEXT`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS sex_detail       TEXT`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS antibiotics      TEXT`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS hormones         TEXT`,
+
+  // ──────────────────────────────────────────────────────────
+  // Referral codes — per-user invite codes, redemption ledger.
+  // ──────────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS referral_codes (
+     code            TEXT PRIMARY KEY,
+     owner_user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     created_at      TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS referral_codes_owner_idx ON referral_codes(owner_user_id)`,
+
+  `CREATE TABLE IF NOT EXISTS referral_redemptions (
+     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     code            TEXT NOT NULL REFERENCES referral_codes(code) ON DELETE CASCADE,
+     redeemed_by     UUID REFERENCES users(id) ON DELETE SET NULL,
+     redeemed_email  TEXT,
+     reservation_id  UUID REFERENCES reservations(id) ON DELETE SET NULL,
+     reward_amount   NUMERIC(10,2),
+     reward_status   TEXT NOT NULL DEFAULT 'pending'
+                     CHECK (reward_status IN ('pending','credited','denied','reversed')),
+     created_at      TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS referral_redemptions_code_idx ON referral_redemptions(code)`,
+  `CREATE INDEX IF NOT EXISTS referral_redemptions_user_idx ON referral_redemptions(redeemed_by)`
 ];
 
 const SEED_SQL = [

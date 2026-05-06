@@ -25,18 +25,32 @@ async function listListings(url) {
   let rows;
   if (species && species !== 'all') {
     rows = await sql`
-      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.identity as farm_identity
+      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.identity as farm_identity,
+             ROUND(rs.avg_rating::numeric, 1) as farm_avg_rating, rs.review_count as farm_review_count
       FROM listings l
       JOIN farms f ON f.id = l.farm_id
+      LEFT JOIN (
+        SELECT subject_id, AVG(rating)::float AS avg_rating, COUNT(*)::int AS review_count
+        FROM reviews
+        WHERE subject_type = 'farm' AND rating IS NOT NULL
+        GROUP BY subject_id
+      ) rs ON rs.subject_id = f.id
       WHERE l.status = ${status} AND l.species = ${species}
       ORDER BY l.created_at DESC
       LIMIT ${limit}
     `;
   } else {
     rows = await sql`
-      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.identity as farm_identity
+      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.identity as farm_identity,
+             ROUND(rs.avg_rating::numeric, 1) as farm_avg_rating, rs.review_count as farm_review_count
       FROM listings l
       JOIN farms f ON f.id = l.farm_id
+      LEFT JOIN (
+        SELECT subject_id, AVG(rating)::float AS avg_rating, COUNT(*)::int AS review_count
+        FROM reviews
+        WHERE subject_type = 'farm' AND rating IS NOT NULL
+        GROUP BY subject_id
+      ) rs ON rs.subject_id = f.id
       WHERE l.status = ${status}
       ORDER BY l.created_at DESC
       LIMIT ${limit}
@@ -79,9 +93,16 @@ async function createListing(req) {
   const donate_to_foodbank = !!body.donate_to_foodbank;
   const donation_recipient_org = body.donation_recipient_org || null;
 
+  const feed_type   = body.feed_type   || null;
+  const finish_feed = body.finish_feed || null;
+  const subbreed    = body.subbreed    || null;
+  const sex_detail  = body.sex_detail  || null;
+  const antibiotics = body.antibiotics || null;
+  const hormones    = body.hormones    || null;
+
   const rows = await sql`
-    INSERT INTO listings (farm_id, number, species, breed, sex, birth_date, expected_finish_date, current_weight, estimated_finish_weight, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, photos, status, donate_to_foodbank, donation_recipient_org)
-    VALUES (${body.farm_id}, ${number}, ${body.species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org})
+    INSERT INTO listings (farm_id, number, species, breed, sex, birth_date, expected_finish_date, current_weight, estimated_finish_weight, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, photos, status, donate_to_foodbank, donation_recipient_org, feed_type, finish_feed, subbreed, sex_detail, antibiotics, hormones)
+    VALUES (${body.farm_id}, ${number}, ${body.species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org}, ${feed_type}, ${finish_feed}, ${subbreed}, ${sex_detail}, ${antibiotics}, ${hormones})
     RETURNING *
   `;
   return json({ listing: rows[0] });

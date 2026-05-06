@@ -130,6 +130,38 @@ export default async function handler(req) {
       LIMIT 1`;
     if (existing[0]) return err(409, 'Booking already exists for this listing × processor');
 
+    // ── Conflict guard: processor capacity per day ──
+    // Read processor.capabilities.daily_capacity (default 1 animal/day until set).
+    // If at-or-over capacity, suggest the nearest available date.
+    const capRows = await sql`SELECT capabilities FROM processors WHERE id = ${processor_id} LIMIT 1`;
+    const dailyCap = Number(capRows[0]?.capabilities?.daily_capacity) || 1;
+    const sameDay = await sql`
+      SELECT COUNT(*)::int AS c FROM bookings
+      WHERE processor_id = ${processor_id}
+        AND drop_off_date = ${drop_off_date}
+        AND status NOT IN ('cancelled','rejected')`;
+    if (Number(sameDay[0]?.c || 0) >= dailyCap) {
+      // Find next free date within 14 days
+      const nextFree = await sql`
+        WITH days AS (
+          SELECT generate_series(${drop_off_date}::date + 1, ${drop_off_date}::date + 14, INTERVAL '1 day')::date AS d
+        ), filled AS (
+          SELECT drop_off_date::date AS d, COUNT(*) AS n FROM bookings
+          WHERE processor_id = ${processor_id} AND status NOT IN ('cancelled','rejected')
+          GROUP BY drop_off_date
+        )
+        SELECT days.d FROM days
+        LEFT JOIN filled ON filled.d = days.d
+        WHERE COALESCE(filled.n, 0) < ${dailyCap}
+        ORDER BY days.d ASC
+        LIMIT 1`;
+      const suggestion = nextFree[0]?.d;
+      return err(409, `Processor is at capacity (${dailyCap}/day) on ${drop_off_date}.${suggestion ? ` Next open day: ${new Date(suggestion).toISOString().slice(0,10)}.` : ''}`, {
+        suggested_date: suggestion ? new Date(suggestion).toISOString().slice(0,10) : null,
+        daily_capacity: dailyCap,
+      });
+    }
+
     const depositAmount = calcDeposit(l.estimated_hanging_weight, procPerLb);
 
     const bRows = await sql`
