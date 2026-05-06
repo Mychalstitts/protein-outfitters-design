@@ -25,7 +25,7 @@ export default async function handler(req) {
 
   const url = new URL(req.url);
   const states = (url.searchParams.get('states') || 'MN,WI,ND,SD,IA,IL').toUpperCase().split(',').map(s => s.trim()).filter(Boolean);
-  const limit = Math.min(parseInt(url.searchParams.get('limit') || '300', 10), 1000);
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '300', 10), 10000);
 
   // Add contact columns if they don't exist yet (idempotent — safe to run repeatedly).
   try {
