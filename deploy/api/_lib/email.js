@@ -344,6 +344,27 @@ export const TEMPLATES = {
     }),
   },
 
+  'Hardware.lead_received': {
+    subject: () => 'Got your hardware quote request — talking soon',
+    render: (c) => layout({
+      heading: 'Thanks for the inquiry.',
+      body: `<p>Hi ${firstName(c.full_name)},</p>
+<p>I got your quote request${c.bundle_interest ? ` (interest: <strong>${c.bundle_interest}</strong>)` : ''}${c.timeline ? `, timeline <strong>${c.timeline}</strong>` : ''}. I'll review and reach out within <strong>24 hours</strong>.</p>
+<p><strong>What happens next:</strong></p>
+<ol style="padding-left:20px;">
+  <li>Quick review of your config + timeline (24 hrs)</li>
+  <li>30-min discovery call to understand your operation</li>
+  <li>Site visit if you're 0–6 months out</li>
+  <li>Custom proposal with pricing, timeline, financing options, USDA path</li>
+  <li>You decide. No pressure, no follow-up calls if you say "not now"</li>
+</ol>
+<p>If you'd rather skip the wait, <a href="${baseUrl()}/hardware?page=schedule">book directly on my calendar</a> — same outcome, faster.</p>
+<p>— Mychal Stittsworth · 4th-gen processor · Original MHU designer (2017)</p>`,
+      ctaLabel: 'Book a 30-min call →',
+      ctaHref: `${baseUrl()}/hardware?page=schedule`,
+    }),
+  },
+
   'D2.institution_approved': {
     subject: () => 'You\'re approved — request donations any time',
     render: (c) => layout({
