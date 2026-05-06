@@ -382,6 +382,32 @@ export const TEMPLATES = {
       ctaHref: `${baseUrl()}/donation-flow`,
     }),
   },
+
+  // D3 — Annual consolidated acknowledgment for individual donors.
+  // Fired by /api/annual-donor-acknowledgment cron, once per donor per year.
+  // The body summarizes the donor's full year of giving with a link to the
+  // PDF (which itemizes every donation + totals for the year).
+  //   ctx: { to, donor_name, year, donation_count, total_lb, total_fmv,
+  //          oldest_date, newest_date, dedupKey: 'D3::donor::year' }
+  'D3.annual_acknowledgment': {
+    subject: (c) => `Your ${c.year || ''} giving summary — annual tax letter`,
+    render: (c) => layout({
+      heading: `Thank you for your ${c.year || ''} generosity.`,
+      body: `<p>Hi ${firstName(c.donor_name)},</p>
+<p>Here's the consolidated tax acknowledgment letter for everything you donated through Protein Outfitters in <strong>${c.year}</strong>.</p>
+<p style="background:rgba(125,160,93,.10);border-radius:14px;padding:16px;font-size:14px;">
+  <strong>Year summary</strong><br>
+  ${c.donation_count || 0} donation${(c.donation_count || 0) === 1 ? '' : 's'}${c.oldest_date && c.newest_date ? ` between ${fmtDate(c.oldest_date)} and ${fmtDate(c.newest_date)}` : ''}<br>
+  ${c.total_lb ? `${Number(c.total_lb).toLocaleString()} lb donated<br>` : ''}
+  ${c.total_fmv ? `Estimated FMV (informational): ${fmt$(c.total_fmv)}<br>` : ''}
+</p>
+<p>The PDF below itemizes every gift and includes the IRS Pub 1771 disclosures your CPA will want at tax time. Save it with your records — the recipient charity does not assign a dollar value to non-cash gifts; valuation for tax purposes is your responsibility (see IRS Pub 561).</p>
+<p>If anything looks off — wrong name, wrong total, missing donation — reply to this email and we'll fix it.</p>`,
+      ctaLabel: `Download ${c.year || ''} tax letter (PDF) →`,
+      ctaHref: `${baseUrl()}/api/pdf/annual-tax-letter?year=${c.year || new Date().getFullYear() - 1}`,
+      footerNote: 'Producer Partnership, Inc. is a 501(c)(3) charitable organization. Donations are deductible to the extent allowed by law.',
+    }),
+  },
 };
 
 // ─── Send entry point ──────────────────────────────────────────
@@ -477,6 +503,7 @@ const NOTIFY_MAP = {
   // Donation
   'D1.tax_letter_ready':            { icon: 'receipt_long', link: (c) => `/donation-flow?donation=${c.donation_id || ''}` },
   'D2.institution_approved':        { icon: 'verified',   link: (c) => `/donation-flow?institution=${c.institution_id || ''}` },
+  'D3.annual_acknowledgment':       { icon: 'volunteer_activism', link: (c) => `/api/pdf/annual-tax-letter?year=${c.year || ''}` },
   // Hardware
   'Hardware.lead_received':         { icon: 'precision_manufacturing', link: () => `/hardware` },
 };
