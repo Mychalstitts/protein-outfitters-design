@@ -184,26 +184,32 @@ export default async function handler(req) {
   const requiredMissing = envReport.filter(e => e.required && !e.set);
   const optionalMissing = envReport.filter(e => !e.required && !e.set);
 
-  // ── Schema (single information_schema query — much faster than 25 round-trips) ──
+  // ── Schema (single query against info_schema, no array binding) ──
   let schemaReport = [];
   try {
     const present = await withTimeout(sql`
       SELECT table_name
       FROM information_schema.tables
-      WHERE table_schema = 'public' AND table_name = ANY(${TABLES})`,
-      4000, 'schema.tables');
+      WHERE table_schema = 'public'`,
+      5000, 'schema.tables');
     const presentSet = new Set(present.map(r => r.table_name));
     schemaReport = TABLES.map(t => ({ table: t, exists: presentSet.has(t) }));
   } catch (e) {
-    schemaReport = TABLES.map(t => ({ table: t, exists: false, error: e.message.slice(0, 80) }));
+    schemaReport = TABLES.map(t => ({ table: t, exists: false, error: (e.message || 'query failed').slice(0, 80) }));
   }
   const tablesMissing = schemaReport.filter(t => t.exists === false);
 
-  // ── Integrations (run in parallel, each with its own internal timeouts) ──
-  const [stripe, resend] = await Promise.all([
-    checkStripe().catch(e => ({ connected: false, reason: e.message.slice(0, 200) })),
-    checkResend().catch(e => ({ connected: false, reason: e.message.slice(0, 200) })),
-  ]);
+  // ── Integrations: each wrapped in a hard outer timeout so a hung upstream
+  // can't take down the whole dashboard. If a check times out we just report
+  // it as disconnected — the user can debug separately.
+  const stripe = await withTimeout(
+    checkStripe().catch(e => ({ connected: false, reason: (e.message || 'failed').slice(0, 200) })),
+    7000, 'checkStripe'
+  ).catch(e => ({ connected: false, reason: (e.message || 'timed out').slice(0, 200) }));
+  const resend = await withTimeout(
+    checkResend().catch(e => ({ connected: false, reason: (e.message || 'failed').slice(0, 200) })),
+    7000, 'checkResend'
+  ).catch(e => ({ connected: false, reason: (e.message || 'timed out').slice(0, 200) }));
 
   // ── Score ──
   // Each required-env, each table, stripe-connected, resend-connected is a check.
