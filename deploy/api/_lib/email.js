@@ -417,6 +417,8 @@ export async function sendLifecycleEmail(templateId, ctx = {}) {
               ${ctx.reservation_id || null}, ${ctx.listing_id || null}, ${ctx.farm_id || null}, ${ctx.processor_id || null}, ${ctx.institution_id || null},
               'skipped', 'RESEND_API_KEY missing')
     `;
+    // Even without a sendable email, write the in-app notification so the user sees it.
+    await writeInAppNotification(templateId, ctx, subject, dedupKey).catch(() => {});
     return { sent: false, skipped: 'no_api_key' };
   }
 
@@ -431,6 +433,7 @@ export async function sendLifecycleEmail(templateId, ctx = {}) {
               ${ctx.reservation_id || null}, ${ctx.listing_id || null}, ${ctx.farm_id || null}, ${ctx.processor_id || null}, ${ctx.institution_id || null},
               'sent', ${providerId})
     `;
+    await writeInAppNotification(templateId, ctx, subject, dedupKey).catch(() => {});
     return { sent: true, providerId };
   } catch (e) {
     await sql`
@@ -441,6 +444,63 @@ export async function sendLifecycleEmail(templateId, ctx = {}) {
     `;
     return { sent: false, error: String(e).slice(0, 200) };
   }
+}
+
+// ─── In-app notification mirror ───────────────────────────────────
+// Every successful (or RESEND_API_KEY-missing) lifecycle email also drops
+// a row into `notifications` so the bell icon + /notifications page reflect
+// what we told the user. The link is what makes the icon useful.
+//
+// Map template-id → { icon, link(ctx) }. Title falls back to subject if absent.
+const NOTIFY_MAP = {
+  // Customer (buyer) notifications
+  'C1.reservation_confirmed':       { icon: 'package_2',  link: (c) => `/account?reservation=${c.reservation_id || ''}` },
+  'C2.cutsheet_reminder':           { icon: 'edit_note',  link: (c) => `/cut-sheet?reservation=${c.reservation_id || ''}` },
+  'C4.balance_capture_warning':     { icon: 'payments',   link: (c) => `/account?reservation=${c.reservation_id || ''}` },
+  'C8.cancel_confirmation':         { icon: 'cancel',     link: (c) => `/account` },
+  'C9.cancel_confirmation':         { icon: 'cancel',     link: (c) => `/account` },
+  'C10.cancel_confirmation':        { icon: 'cancel',     link: (c) => `/account` },
+  'C11.animal_condemned_refund':    { icon: 'medical_services', link: (c) => `/account` },
+  'C16.animal_arrived':             { icon: 'local_shipping', link: (c) => `/account?reservation=${c.reservation_id || ''}` },
+  'C18.ready_for_pickup':           { icon: 'check_circle', link: (c) => `/account?reservation=${c.reservation_id || ''}` },
+  'C19.delivered_complaint_window': { icon: 'reviews',    link: (c) => `/account?reservation=${c.reservation_id || ''}` },
+  'C20.complaint_received':         { icon: 'support_agent', link: (c) => `/account?reservation=${c.reservation_id || ''}` },
+  // Farmer notifications
+  'F2.first_sale_pick_processor':   { icon: 'storefront', link: (c) => `/farmer?listing=${c.listing_id || ''}` },
+  'F4.dropoff_reminder':            { icon: 'event',      link: (c) => `/farmer?booking=${c.booking_id || ''}` },
+  'F7.payout_disbursed':            { icon: 'paid',       link: (c) => `/farmer` },
+  'F11.no_show_flag':               { icon: 'flag',       link: (c) => `/farmer` },
+  // Processor notifications
+  'P1.new_booking':                 { icon: 'inbox',      link: (c) => `/processor?booking=${c.booking_id || ''}` },
+  'P2.cut_sheet_finalized':         { icon: 'description', link: (c) => `/processor?booking=${c.booking_id || ''}` },
+  'P3.checkin_reminder':            { icon: 'pin_drop',   link: (c) => `/processor` },
+  // Donation
+  'D1.tax_letter_ready':            { icon: 'receipt_long', link: (c) => `/donation-flow?donation=${c.donation_id || ''}` },
+  'D2.institution_approved':        { icon: 'verified',   link: (c) => `/donation-flow?institution=${c.institution_id || ''}` },
+  // Hardware
+  'Hardware.lead_received':         { icon: 'precision_manufacturing', link: () => `/hardware` },
+};
+
+async function writeInAppNotification(templateId, ctx, subject, dedupKey) {
+  const cfg = NOTIFY_MAP[templateId];
+  // Even unmapped templates get a generic notification — better than none.
+  const link = cfg?.link ? cfg.link(ctx) : `/account`;
+  const icon = cfg?.icon || 'notifications';
+  const title = ctx.notifyTitle || subject || templateId;
+  const body  = ctx.notifyBody  || null;
+  const notifKey = `notif::${dedupKey}`;
+  await sql`
+    INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
+    VALUES (
+      ${String(ctx.to).toLowerCase()},
+      ${templateId},
+      ${title},
+      ${body},
+      ${link},
+      ${icon},
+      ${notifKey}
+    )
+    ON CONFLICT (dedup_key) DO NOTHING`;
 }
 
 // Convenience: list available templates (used by /api/email-tick to log support).
