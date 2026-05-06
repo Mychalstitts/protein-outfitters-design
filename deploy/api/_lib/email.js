@@ -297,7 +297,7 @@ export const TEMPLATES = {
 </p>
 <p>"No goods or services were provided in exchange for this donation." Per IRS rules, raised-livestock donations are typically deductible to the donor's basis. Talk to your CPA for your specific deduction.</p>`,
       ctaLabel: 'Download letter (PDF) →',
-      ctaHref: `${baseUrl()}/account?donation=${c.donation_id}`,
+      ctaHref: `${baseUrl()}/api/pdf/tax-letter?donation=${c.donation_id}`,
     }),
   },
 
