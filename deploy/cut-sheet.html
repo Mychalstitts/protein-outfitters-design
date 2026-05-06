@@ -854,6 +854,96 @@
   });
 
   updateMeter();
+  // Expose for the processor-config filter below.
+  window.updateMeter = updateMeter;
+})();
+</script>
+
+<!-- ============================================================
+     Processor config filter — when ?processor=<slug> is in the URL,
+     fetch that processor's config and hide cuts / species they don't
+     offer. Lightweight overlay on top of the existing cut sheet UI.
+     ============================================================ -->
+<script>
+(async function applyProcessorConfig() {
+  const params = new URLSearchParams(location.search);
+  const slug = params.get('processor');
+  if (!slug) return;
+
+  let cfg;
+  try {
+    const r = await fetch('/api/processors?slug=' + encodeURIComponent(slug), { credentials: 'include' });
+    if (!r.ok) return;
+    const data = await r.json();
+    cfg = data.processor;
+  } catch (e) { return; }
+  if (!cfg) return;
+
+  const cap = cfg.capabilities || {};
+  const species = cap.species || [];
+  const beefCuts = cap.cutOptions?.beef;
+
+  // Banner showing active processor
+  const tabs = document.querySelector('.species-tabs');
+  if (tabs) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background: rgba(125,160,93,.10); border: 1px solid rgba(125,160,93,.25); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; font: 500 13px/1.5 Inter; color: var(--ink);';
+    banner.innerHTML = `<strong>Cut sheet tuned to ${cfg.name}.</strong><br>Only the cuts, smoking, and grinding ratios this plant offers are shown below.`;
+    tabs.parentElement.insertBefore(banner, tabs);
+  }
+
+  // Species tabs
+  if (species.length) {
+    const allow = new Set(species.map(s => ({cattle:'beef', hog:'pork', lamb:'lamb', goat:'goat', venison:'venison', poultry:'poultry', bison:'beef'})[s] || s));
+    document.querySelectorAll('.species-tab').forEach(t => {
+      if (!allow.has(t.dataset.species)) t.style.display = 'none';
+    });
+  }
+
+  // Beef cut filtering — match by cut-name text content
+  if (Array.isArray(beefCuts) && beefCuts.length) {
+    const cutNameMap = {
+      ribeye: ['Ribeye'],
+      ny_strip: ['NY strip'],
+      tbone: ['T-bone', 'Porterhouse'],
+      porterhouse: ['Porterhouse'],
+      filet: ['Tenderloin', 'filet'],
+      sirloin: ['Sirloin steak', 'Top sirloin', 'Sirloin tip'],
+      flank: ['Flank'],
+      skirt: ['Skirt'],
+      brisket: ['Brisket'],
+      chuck_roast: ['Chuck roast', 'Chuck steak', 'Country-style ribs'],
+      rump_roast: ['Rump roast'],
+      round_roast: ['Round roast', 'Round steaks', 'Sirloin tip roast'],
+      short_ribs: ['Short ribs'],
+      oxtail: ['Oxtail'],
+      soup_bones: ['Soup bones', 'Marrow'],
+      suet: ['Suet'],
+      liver: ['Liver'],
+      heart: ['Heart'],
+      tongue: ['Tongue'],
+      ground_lean: ['Ground'],
+      ground_regular: ['Ground'],
+      stew_meat: ['Stew meat'],
+    };
+    const allowedNames = new Set(beefCuts.flatMap(k => cutNameMap[k] || []).map(s => s.toLowerCase()));
+    document.querySelectorAll('.cut-row').forEach(row => {
+      const name = (row.querySelector('.cut-name')?.textContent || '').toLowerCase();
+      if (!name) return;
+      const keep = [...allowedNames].some(allowed => name.includes(allowed));
+      if (!keep) {
+        row.style.display = 'none';
+        const cb = row.querySelector('input[type="checkbox"][data-cut]');
+        if (cb && cb.checked) cb.checked = false;
+      }
+    });
+    document.querySelectorAll('.subp-row').forEach(sub => {
+      const visible = sub.querySelectorAll('.cut-row:not([style*="display: none"])').length;
+      if (visible === 0) sub.style.display = 'none';
+    });
+  }
+
+  if (typeof window.updateMeter === 'function') window.updateMeter();
 })();
 </script>
 </body>

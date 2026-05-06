@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Processor Config — Protein Outfitters</title>
+<meta name="description" content="Set the species you process, cuts you offer, smoking and grinding options, and your fees. Customer cut sheets read this." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+
+<style>
+.cfg-hero {
+  background:
+    radial-gradient(ellipse at 70% 20%, rgba(207,233,211,0.18) 0%, transparent 50%),
+    linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%);
+  color: var(--ink-inverse);
+  padding: clamp(50px, 6vw, 80px) 0;
+}
+.cfg-hero h1 { color: white; max-width: 22ch; margin: var(--s-3) 0 var(--s-3); }
+.cfg-hero p { color: rgba(255,255,255,0.85); max-width: 60ch; }
+
+.cfg-grid { display: grid; gap: var(--s-6); grid-template-columns: 1fr; padding-block: var(--s-8); }
+@media (min-width: 980px) { .cfg-grid { grid-template-columns: 1fr 320px; } }
+
+.cfg-section {
+  background: var(--surface); border-radius: var(--r-4);
+  padding: var(--s-6); box-shadow: var(--sh-1);
+  margin-bottom: var(--s-5);
+}
+.cfg-section h3 { margin: 0 0 var(--s-2); font-size: var(--text-lg); font-weight: 800; }
+.cfg-section p.hint { font-size: var(--text-xs); color: var(--ink-3); margin: 0 0 var(--s-4); }
+
+.pill-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill-grid label {
+  padding: 8px 14px; border-radius: 999px; background: var(--surface-2); cursor: pointer;
+  font-size: var(--text-sm); font-weight: 600; user-select: none;
+}
+.pill-grid input { display: none; }
+.pill-grid label:has(input:checked) { background: var(--brand); color: var(--ink-inverse); }
+
+.cuts-grid { display: grid; gap: 6px; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 768px) { .cuts-grid { grid-template-columns: repeat(3, 1fr); } }
+.cuts-grid label {
+  padding: 8px 12px; background: var(--surface-2); border-radius: var(--r-2);
+  font-size: var(--text-sm); cursor: pointer;
+  display: flex; align-items: center; gap: 8px; user-select: none;
+}
+.cuts-grid input { margin: 0; }
+
+.fee-row { display: grid; grid-template-columns: 1fr 140px; gap: var(--s-3); align-items: center; padding: var(--s-3) 0; border-bottom: 1px solid var(--hairline); }
+.fee-row:last-of-type { border: 0; }
+.fee-row label { font-size: var(--text-sm); }
+.fee-row label small { display: block; font-size: var(--text-xs); color: var(--ink-3); margin-top: 2px; }
+.fee-row .input-money { display: flex; align-items: center; background: var(--surface-2); border-radius: var(--r-2); padding-left: 10px; }
+.fee-row .input-money span { font-size: var(--text-sm); color: var(--ink-3); }
+.fee-row .input-money input { padding: 8px; border: 0; background: transparent; font: inherit; flex: 1; min-width: 0; }
+.fee-row .post { font-size: var(--text-xs); color: var(--ink-3); padding-right: 10px; }
+
+.aside-card {
+  position: sticky; top: var(--s-12);
+  background: var(--surface); border-radius: var(--r-4);
+  padding: var(--s-5); box-shadow: var(--sh-1);
+}
+.aside-card h4 { margin: 0 0 var(--s-2); font-size: var(--text-md); font-weight: 800; }
+.aside-card p { margin: 0; font-size: var(--text-xs); color: var(--ink-2); line-height: 1.55; }
+.save-bar { position: sticky; bottom: 16px; margin-top: var(--s-5); padding: var(--s-4) var(--s-5); background: var(--brand-grad); color: var(--ink-inverse); border-radius: var(--r-4); display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); box-shadow: var(--sh-3); }
+.save-bar strong { font-size: var(--text-md); }
+.save-bar small { font-size: var(--text-xs); opacity: 0.85; display: block; }
+</style>
+</head>
+<body>
+
+<header class="glass-nav">
+  <div class="container">
+    <nav class="row row--between" style="padding: 14px 0;">
+      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; text-decoration: none; color: inherit;">Protein Outfitters</a>
+      <span class="pill" style="font-size: 10px;">PROCESSOR CONFIG</span>
+    </nav>
+  </div>
+</header>
+
+<section class="cfg-hero">
+  <div class="container">
+    <span class="eyebrow" style="color: var(--accent-soft);">Processor settings</span>
+    <h1 class="display-md">Tell us what you actually process.</h1>
+    <p>Customers see only the cuts, smoking, and grinding options you offer. Fees flow into the all-in price they see at checkout. Save changes anytime — they apply to new reservations only.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="cfg-grid">
+    <main>
+      <form id="cfgForm">
+        <div class="cfg-section">
+          <h3>1. Plant identity</h3>
+          <p class="hint">Edits push to your public processor page.</p>
+          <div class="form-row mb-3"><label>Plant name</label><input id="fldName" type="text" placeholder="Hilltop Custom Meats" /></div>
+          <div class="row gap-3" style="flex-wrap: wrap;">
+            <div class="form-row" style="flex:1;min-width:160px;"><label>City</label><input id="fldCity" type="text" placeholder="Bemidji" /></div>
+            <div class="form-row" style="flex:1;min-width:120px;"><label>State</label><input id="fldState" type="text" placeholder="MN" maxlength="2" style="text-transform: uppercase;" /></div>
+            <div class="form-row" style="flex:1;min-width:120px;"><label>ZIP</label><input id="fldZip" type="text" placeholder="56601" /></div>
+          </div>
+          <div class="form-row mt-3">
+            <label>Inspection level</label>
+            <div class="pill-grid">
+              <label><input type="radio" name="insp" value="usda" /><span>USDA</span></label>
+              <label><input type="radio" name="insp" value="state" /><span>State-inspected</span></label>
+              <label><input type="radio" name="insp" value="custom-exempt" /><span>Custom-exempt</span></label>
+              <label><input type="radio" name="insp" value="equal-to" /><span>Equal-to</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="cfg-section">
+          <h3>2. Species you accept</h3>
+          <p class="hint">Customers can only select your plant for animals you actually process.</p>
+          <div class="pill-grid" id="speciesGrid">
+            <label><input type="checkbox" value="cattle" /><span>Beef</span></label>
+            <label><input type="checkbox" value="hog" /><span>Pork</span></label>
+            <label><input type="checkbox" value="lamb" /><span>Lamb</span></label>
+            <label><input type="checkbox" value="goat" /><span>Goat</span></label>
+            <label><input type="checkbox" value="venison" /><span>Venison</span></label>
+            <label><input type="checkbox" value="poultry" /><span>Poultry</span></label>
+            <label><input type="checkbox" value="bison" /><span>Bison</span></label>
+          </div>
+        </div>
+
+        <div class="cfg-section">
+          <h3>3. Beef cuts you offer</h3>
+          <p class="hint">Uncheck anything you don't actually do. Customers won't see those options on their cut sheet.</p>
+          <div class="cuts-grid" id="beefCutsGrid">
+            <label><input type="checkbox" value="ribeye" checked /> Ribeye</label>
+            <label><input type="checkbox" value="ny_strip" checked /> NY Strip</label>
+            <label><input type="checkbox" value="tbone" checked /> T-Bone</label>
+            <label><input type="checkbox" value="porterhouse" checked /> Porterhouse</label>
+            <label><input type="checkbox" value="filet" checked /> Filet Mignon</label>
+            <label><input type="checkbox" value="sirloin" checked /> Sirloin</label>
+            <label><input type="checkbox" value="flank" checked /> Flank</label>
+            <label><input type="checkbox" value="skirt" checked /> Skirt</label>
+            <label><input type="checkbox" value="brisket" checked /> Brisket</label>
+            <label><input type="checkbox" value="chuck_roast" checked /> Chuck Roast</label>
+            <label><input type="checkbox" value="rump_roast" checked /> Rump Roast</label>
+            <label><input type="checkbox" value="round_roast" checked /> Round Roast</label>
+            <label><input type="checkbox" value="short_ribs" checked /> Short Ribs</label>
+            <label><input type="checkbox" value="oxtail" /> Oxtail</label>
+            <label><input type="checkbox" value="soup_bones" checked /> Soup Bones</label>
+            <label><input type="checkbox" value="suet" /> Suet</label>
+            <label><input type="checkbox" value="liver" /> Liver</label>
+            <label><input type="checkbox" value="heart" /> Heart</label>
+            <label><input type="checkbox" value="tongue" /> Tongue</label>
+            <label><input type="checkbox" value="ground_lean" checked /> Ground (lean)</label>
+            <label><input type="checkbox" value="ground_regular" checked /> Ground (regular)</label>
+            <label><input type="checkbox" value="stew_meat" checked /> Stew Meat</label>
+          </div>
+        </div>
+
+        <div class="cfg-section">
+          <h3>4. Smoking &amp; sausage</h3>
+          <p class="hint">Things you make in-house. Bacon is pork-only at most plants — uncheck if you don't smoke pork.</p>
+          <div class="pill-grid" id="smokingGrid">
+            <label><input type="checkbox" value="bacon" /><span>Bacon</span></label>
+            <label><input type="checkbox" value="ham" /><span>Smoked Ham</span></label>
+            <label><input type="checkbox" value="summer_sausage" /><span>Summer Sausage</span></label>
+            <label><input type="checkbox" value="brats" /><span>Brats</span></label>
+            <label><input type="checkbox" value="breakfast_sausage" /><span>Breakfast Sausage</span></label>
+            <label><input type="checkbox" value="snack_sticks" /><span>Snack Sticks</span></label>
+            <label><input type="checkbox" value="jerky" /><span>Jerky</span></label>
+            <label><input type="checkbox" value="hot_dogs" /><span>Hot Dogs</span></label>
+          </div>
+        </div>
+
+        <div class="cfg-section">
+          <h3>5. Grinding ratios offered</h3>
+          <p class="hint">Default is 80/20 in most plants. Some offer leaner blends.</p>
+          <div class="pill-grid" id="grindingGrid">
+            <label><input type="checkbox" value="80/20" checked /><span>80/20</span></label>
+            <label><input type="checkbox" value="85/15" checked /><span>85/15</span></label>
+            <label><input type="checkbox" value="90/10" /><span>90/10</span></label>
+            <label><input type="checkbox" value="93/7" /><span>93/7</span></label>
+            <label><input type="checkbox" value="custom" /><span>Custom on request</span></label>
+          </div>
+        </div>
+
+        <div class="cfg-section">
+          <h3>6. Fees</h3>
+          <p class="hint">These flow into the customer's all-in $/lb price. We add platform fee + insurance separately.</p>
+          <div class="fee-row">
+            <label>Kill fee <small>charged once per animal, split across all share buyers</small></label>
+            <div class="input-money"><span>$</span><input id="feeKill" type="number" step="1" min="0" placeholder="100" /><span class="post">/ animal</span></div>
+          </div>
+          <div class="fee-row">
+            <label>Cut &amp; wrap <small>standard butcher paper, hanging-weight basis</small></label>
+            <div class="input-money"><span>$</span><input id="feeCutLb" type="number" step="0.05" min="0" placeholder="1.25" /><span class="post">/ lb HW</span></div>
+          </div>
+          <div class="fee-row">
+            <label>Vacuum seal <small>add-on, optional</small></label>
+            <div class="input-money"><span>$</span><input id="feeVac" type="number" step="0.05" min="0" placeholder="0.30" /><span class="post">/ lb HW</span></div>
+          </div>
+          <div class="fee-row">
+            <label>Boneless cuts <small>chuck/round trim out</small></label>
+            <div class="input-money"><span>$</span><input id="feeBone" type="number" step="0.05" min="0" placeholder="0.15" /><span class="post">/ lb HW</span></div>
+          </div>
+          <div class="fee-row">
+            <label>Smoking surcharge <small>per smoked product line</small></label>
+            <div class="input-money"><span>$</span><input id="feeSmoke" type="number" step="0.10" min="0" placeholder="2.25" /><span class="post">/ lb finished</span></div>
+          </div>
+          <div class="fee-row">
+            <label>Sausage / patties <small>seasoning + casing</small></label>
+            <div class="input-money"><span>$</span><input id="feeSausage" type="number" step="0.10" min="0" placeholder="3.25" /><span class="post">/ lb finished</span></div>
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div>
+            <strong>Save your config</strong>
+            <small>Applies to new reservations. Existing cut sheets are locked in.</small>
+          </div>
+          <button type="button" class="btn btn--apple-pay" id="cfgSaveBtn">Save</button>
+        </div>
+        <p id="cfgSaveStatus" style="text-align: center; font-size: 12px; color: var(--ink-2); margin-top: 8px;"></p>
+      </form>
+    </main>
+
+    <aside>
+      <div class="aside-card">
+        <h4>Why this matters</h4>
+        <p>Customer cut sheets read this config. If you don't process pork, "Bacon" never appears. If you don't grind 90/10, no one can request it. Your prices become the prices buyers see — no surprises.</p>
+        <p style="margin-top: 12px;"><strong>Tip:</strong> Even if you're a small plant, fill this out completely. Buyers see your config when picking a processor — a complete listing converts better than a half-finished one.</p>
+      </div>
+      <div class="aside-card mt-4">
+        <h4>Need a hand?</h4>
+        <p>Email <a href="mailto:hello@proteinoutfitters.com" style="color: var(--brand); font-weight: 700;">hello@proteinoutfitters.com</a> or schedule a 15-min call and we'll set this up with you over screen-share.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="poFooterMount"></div>
+<script src="/po-shell.js"></script>
+
+<script>
+const STATUS = document.getElementById('cfgSaveStatus');
+let processorSlug = null;
+
+function setStatus(msg, kind = 'info') {
+  STATUS.textContent = msg;
+  STATUS.style.color = kind === 'error' ? '#c25250' : kind === 'ok' ? 'var(--brand)' : 'var(--ink-2)';
+}
+
+function setChecked(grid, values) {
+  if (!values || !Array.isArray(values)) return;
+  grid.querySelectorAll('input[type="checkbox"]').forEach(c => {
+    c.checked = values.includes(c.value);
+  });
+}
+function readChecked(grid) {
+  return Array.from(grid.querySelectorAll('input[type="checkbox"]:checked')).map(c => c.value);
+}
+
+async function loadConfig() {
+  setStatus('Loading…');
+  try {
+    const r = await fetch('/api/processors', { credentials: 'include' });
+    if (!r.ok) throw new Error('Could not load processors');
+    const data = await r.json();
+    // Find the processor owned by the current user
+    const me = await fetch('/api/config', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null);
+    const userId = me?.user?.id;
+    const mine = (data.processors || []).find(p => userId && p.owner_id === userId);
+    if (!mine) {
+      setStatus('No processor on your account yet — head to /processor to create one, then come back.', 'error');
+      return;
+    }
+    processorSlug = mine.slug;
+    document.getElementById('fldName').value = mine.name || '';
+    document.getElementById('fldCity').value = mine.city || '';
+    document.getElementById('fldState').value = mine.state || '';
+    document.getElementById('fldZip').value = mine.zip || '';
+    const inspRadio = document.querySelector(`input[name="insp"][value="${mine.inspection || 'usda'}"]`);
+    if (inspRadio) inspRadio.checked = true;
+    const cap = mine.capabilities || {};
+    setChecked(document.getElementById('speciesGrid'), cap.species || []);
+    setChecked(document.getElementById('beefCutsGrid'), cap.cutOptions?.beef);
+    setChecked(document.getElementById('smokingGrid'), cap.smoking || []);
+    setChecked(document.getElementById('grindingGrid'), cap.grinding || []);
+    const baseFees = mine.base_fees || {};
+    const perLb = mine.per_lb_fees || {};
+    const set = (id, v) => { if (v != null) document.getElementById(id).value = v; };
+    set('feeKill', baseFees.kill_fee);
+    set('feeCutLb', perLb.processing);
+    set('feeVac', perLb.vacuum_seal);
+    set('feeBone', perLb.boneless);
+    set('feeSmoke', perLb.smoking);
+    set('feeSausage', perLb.sausage);
+    setStatus(`Editing ${mine.name}.`, 'ok');
+  } catch (e) {
+    setStatus('Could not load: ' + e.message, 'error');
+  }
+}
+
+async function saveConfig() {
+  if (!processorSlug) { setStatus('No processor loaded.', 'error'); return; }
+  const btn = document.getElementById('cfgSaveBtn');
+  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Saving…';
+  setStatus('Saving…');
+
+  const num = id => { const v = parseFloat(document.getElementById(id).value); return Number.isFinite(v) ? v : null; };
+  const inspChecked = document.querySelector('input[name="insp"]:checked');
+
+  const payload = {
+    name: document.getElementById('fldName').value.trim() || null,
+    city: document.getElementById('fldCity').value.trim() || null,
+    state: (document.getElementById('fldState').value || '').toUpperCase().trim() || null,
+    zip: document.getElementById('fldZip').value.trim() || null,
+    inspection: inspChecked ? inspChecked.value : null,
+    capabilities: {
+      species: readChecked(document.getElementById('speciesGrid')),
+      cutOptions: { beef: readChecked(document.getElementById('beefCutsGrid')) },
+      smoking: readChecked(document.getElementById('smokingGrid')),
+      grinding: readChecked(document.getElementById('grindingGrid')),
+    },
+    base_fees: {
+      kill_fee: num('feeKill'),
+    },
+    per_lb_fees: {
+      processing: num('feeCutLb'),
+      vacuum_seal: num('feeVac'),
+      boneless: num('feeBone'),
+      smoking: num('feeSmoke'),
+      sausage: num('feeSausage'),
+    },
+  };
+  try {
+    const r = await fetch('/api/processors?slug=' + encodeURIComponent(processorSlug), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+    const out = await r.json();
+    if (!r.ok) throw new Error(out.error || 'Save failed');
+    setStatus('Saved. Cut sheets will use this config from now on.', 'ok');
+  } catch (e) {
+    setStatus('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
+  }
+}
+
+document.getElementById('cfgSaveBtn').addEventListener('click', saveConfig);
+loadConfig();
+</script>
+</body>
+</html>

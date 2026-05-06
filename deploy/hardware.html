@@ -532,6 +532,7 @@
     <button onclick="showPage('detail')">Detail</button>
     <button onclick="showPage('config')">Configure</button>
     <button onclick="showPage('quote')">Quote</button>
+    <button onclick="showPage('schedule')">Schedule call</button>
     <button onclick="showPage('confirm')">Confirmed</button>
   </div>
 </div>
@@ -964,7 +965,7 @@
     <h2 class="display-lg mt-4">Start with the call.</h2>
     <p>Thirty minutes. Your operation, your throughput, your USDA path. No sales pitch. If it fits, the consultation phase is the next stop. If it doesn't, you walk with a clear answer about what would.</p>
     <div class="row gap-3" style="justify-content: center; flex-wrap: wrap;">
-      <button class="btn btn--apple-pay btn--xl" onclick="showPage('quote')">Book the call</button>
+      <button class="btn btn--apple-pay btn--xl" onclick="showPage('schedule')">Book the call</button>
       <a class="btn btn--xl" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); text-decoration: none;" href="mailto:mychal@proteinoutfitters.com?subject=Processing%20Systems%20inquiry">Email Mychal directly</a>
     </div>
   </section>
@@ -1277,9 +1278,46 @@
         <div class="card mt-4" style="padding: var(--s-5); background: var(--accent-subtle);">
           <strong style="font-size: var(--text-sm); display: block;">Or skip the form</strong>
           <p class="body-sm mt-2">Book directly on Mychal's calendar. Same outcome, faster.</p>
-          <button class="btn btn--secondary btn--block btn--sm mt-4" onclick="showToast('Calendly inline opens')">Book a call →</button>
+          <button class="btn btn--secondary btn--block btn--sm mt-4" onclick="showPage('schedule')">Book a call →</button>
         </div>
       </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCHEDULE (Calendly inline) ============ -->
+<section id="page-schedule" class="hidden">
+  <div class="container py-12">
+    <button class="btn btn--ghost btn--sm mb-6" onclick="showPage('catalog')">← All hardware</button>
+
+    <div class="text-center mb-6">
+      <span class="eyebrow">Free 30-minute discovery call</span>
+      <h1 class="display-md mt-2">Pick a time on Mychal's calendar.</h1>
+      <p class="body" style="max-width: 60ch; margin: var(--s-3) auto 0;">No prep needed. We'll talk about your operation, your throughput, your USDA path, and whether one of these systems actually fits — or whether something else makes more sense for now.</p>
+    </div>
+
+    <!-- Calendly inline widget — swap the data-url below to your real Calendly link. -->
+    <div id="calendlyInline" class="calendly-inline-widget"
+         data-url="https://calendly.com/mychalstitts-stittsworthmeats/30min?hide_landing_page_details=1&hide_gdpr_banner=1"
+         style="min-width:320px;height:780px;background:var(--surface);border-radius:var(--r-4);box-shadow:var(--sh-1);"></div>
+    <link rel="stylesheet" href="https://assets.calendly.com/assets/external/widget.css">
+    <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
+
+    <div class="grid grid-cols-2 mt-8" style="gap: var(--s-5);">
+      <div class="card" style="padding: var(--s-5);">
+        <strong style="font-size: var(--text-md); display: block;">What we'll cover</strong>
+        <ul style="padding-left: var(--s-5); margin: var(--s-2) 0 0;">
+          <li style="font-size: var(--text-sm); padding: 4px 0;">Your operation today and where you want it in 12 months</li>
+          <li style="font-size: var(--text-sm); padding: 4px 0;">Throughput, species mix, site constraints</li>
+          <li style="font-size: var(--text-sm); padding: 4px 0;">USDA inspection roadmap and timeline</li>
+          <li style="font-size: var(--text-sm); padding: 4px 0;">Financing path (USDA FSA, ag-bank, grants) and ballpark numbers</li>
+          <li style="font-size: var(--text-sm); padding: 4px 0;">Whether the consultation phase is a fit, or not</li>
+        </ul>
+      </div>
+      <div class="card" style="padding: var(--s-5); background: var(--accent-subtle);">
+        <strong style="font-size: var(--text-md); display: block;">Can't find a time?</strong>
+        <p class="body-sm mt-2">If your time zone or schedule isn't in the slots above, email <a href="mailto:mychal@proteinoutfitters.com?subject=Hardware%20discovery%20call%20—%20alt%20schedule" style="color: var(--brand); font-weight: 700;">mychal@proteinoutfitters.com</a> and we'll find something that works.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1295,7 +1333,7 @@
       <div class="icon">📅</div>
       <h3 class="h2">Skip the wait — book the call now</h3>
       <p class="body-sm" style="max-width: 40ch; margin: var(--s-3) auto 0;">Pick a 30-minute slot on Mychal's calendar. No pressure, no commitment.</p>
-      <button class="btn btn--primary btn--lg mt-4" onclick="showToast('Calendly inline iframe loads here')">View available times →</button>
+      <button class="btn btn--primary btn--lg mt-4" onclick="showPage('schedule')">View available times →</button>
     </div>
 
     <div class="card text-left" style="padding: var(--s-6); max-width: 540px; margin: 0 auto;">
@@ -1317,11 +1355,12 @@
 
 <script>
 function showPage(p) {
-  ['catalog','detail','config','quote','confirm'].forEach(id => {
-    document.getElementById('page-'+id).classList.toggle('hidden', id !== p);
+  const map = ['catalog','detail','config','quote','schedule','confirm'];
+  map.forEach(id => {
+    const el = document.getElementById('page-'+id);
+    if (el) el.classList.toggle('hidden', id !== p);
   });
   document.querySelectorAll('.page-tabs button').forEach((b,i) => {
-    const map = ['catalog','detail','config','quote','confirm'];
     b.classList.toggle('active', map[i] === p);
   });
   window.scrollTo({ top: 0, behavior: 'smooth' });
