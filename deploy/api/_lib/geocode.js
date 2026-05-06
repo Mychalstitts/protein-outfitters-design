@@ -236,4 +236,21 @@ export async function backfillEntity(table) {
   return { table, scanned: rows.length, resolved, failed };
 }
 
+/**
+ * Pure synchronous geocoding — no network, no DB. Uses the bundled Midwest
+ * centroid table first, then state centroids. Returns null if neither hits.
+ *
+ * Used on the request path of /api/map-data so we never time out on Nominatim.
+ * The async geocode() runs in the backfill job and writes the cache for
+ * Nominatim-resolved rows.
+ */
+export function geocodeSync({ city, state }) {
+  if (!city && !state) return null;
+  const midwest = fromMidwest(city, state);
+  if (midwest) return { ...midwest, source: 'midwest_centroid' };
+  const stateCentroid = fromState(state);
+  if (stateCentroid) return { ...stateCentroid, source: 'state_centroid' };
+  return null;
+}
+
 export { MIDWEST_CENTROIDS, STATE_CENTROIDS };
