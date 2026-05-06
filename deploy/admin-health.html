@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Activation health · Protein Outfitters Admin</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+
+<style>
+  body { background: var(--bg, #fbf9f5); }
+  .h-shell { max-width: 1080px; margin: 0 auto; padding: clamp(20px, 3vw, 36px) clamp(16px, 3vw, 28px) 80px; }
+
+  /* Hero score */
+  .h-hero { background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); border-radius: 24px; padding: clamp(28px, 4vw, 44px); margin-bottom: 28px; position: relative; overflow: hidden; }
+  .h-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 60%; height: 200%; background: radial-gradient(circle, rgba(125,160,93,0.18) 0%, rgba(125,160,93,0) 60%); pointer-events: none; }
+  .h-hero h1 { font: 900 14px/1 'Inter'; letter-spacing: .14em; text-transform: uppercase; opacity: .6; margin: 0 0 16px; color: var(--ink-inverse); }
+  .h-hero .pct { font: 900 clamp(56px, 9vw, 96px)/1 'Inter'; letter-spacing: -0.03em; }
+  .h-hero .pct .num { color: #cfe9d3; }
+  .h-hero .pct .of { font-size: .4em; opacity: .55; font-weight: 700; }
+  .h-hero .lead { font: 500 15px/1.5 'Inter'; opacity: .8; max-width: 60ch; margin: 12px 0 0; }
+  .h-hero .lead.ready { color: #cfe9d3; }
+  .h-hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; position: relative; z-index: 1; }
+  .h-hero-actions button { padding: 11px 20px; border-radius: 999px; border: 0; font: 700 13px/1 'Inter'; cursor: pointer; }
+  .h-hero-actions button.primary { background: #fbf9f5; color: var(--ink, #061b0e); }
+  .h-hero-actions button.ghost { background: rgba(251,249,245,.12); color: #fbf9f5; }
+  .h-hero-actions button:hover { transform: translateY(-1px); }
+  .h-hero-actions button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  /* Section cards */
+  .h-card { background: #fff; border-radius: 18px; box-shadow: 0 4px 18px rgba(6,27,14,.05); padding: 22px 24px; margin-bottom: 18px; }
+  .h-card h2 { font: 800 17px/1.2 'Inter'; margin: 0 0 4px; display: flex; align-items: center; gap: 12px; }
+  .h-card h2 .badge { font: 800 10.5px/1 'Inter'; padding: 4px 10px; border-radius: 999px; letter-spacing: .04em; text-transform: uppercase; }
+  .h-card h2 .badge.ok   { background: rgba(125,160,93,.18); color: #2d4a18; }
+  .h-card h2 .badge.warn { background: #f3e6c4; color: #6b4f00; }
+  .h-card h2 .badge.fail { background: rgba(161,58,58,.16); color: #a13a3a; }
+  .h-card .sub { font: 500 12.5px/1.5 'Inter'; color: var(--ink-2, #5a6359); margin: 0 0 16px; }
+
+  .h-row { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-top: 1px solid rgba(6,27,14,.06); }
+  .h-row:first-of-type { border-top: 0; }
+  .h-row .dot { flex-shrink: 0; width: 10px; height: 10px; border-radius: 999px; margin-top: 6px; }
+  .h-row .dot.ok { background: #7da05d; }
+  .h-row .dot.warn { background: #d39c1f; }
+  .h-row .dot.fail { background: #a13a3a; }
+  .h-row .dot.gray { background: #9aa297; }
+  .h-row .body { flex: 1; min-width: 0; }
+  .h-row .key { font: 700 13px/1.3 'JetBrains Mono', ui-monospace, monospace; color: var(--ink, #061b0e); }
+  .h-row .meta { font: 500 12px/1.5 'Inter'; color: var(--ink-2, #5a6359); margin-top: 2px; }
+  .h-row .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 700 9.5px/1.5 'Inter'; letter-spacing: .04em; text-transform: uppercase; margin-left: 6px; }
+  .h-row .pill.req  { background: rgba(6,27,14,.08); color: var(--ink-2); }
+  .h-row .pill.opt  { background: rgba(6,27,14,.04); color: rgba(6,27,14,.5); }
+
+  .group-label { font: 800 10.5px/1 'Inter'; color: rgba(6,27,14,.5); letter-spacing: .12em; text-transform: uppercase; padding: 16px 0 6px; border-top: 1px solid rgba(6,27,14,.06); margin-top: 12px; }
+  .group-label:first-of-type { border-top: 0; padding-top: 4px; margin-top: 0; }
+
+  .codebox { background: #061b0e; color: #cfe9d3; font: 500 12px/1.55 'JetBrains Mono', monospace; padding: 12px 14px; border-radius: 10px; white-space: pre-wrap; word-break: break-all; margin: 8px 0 0; position: relative; }
+  .codebox button { position: absolute; top: 6px; right: 6px; background: rgba(251,249,245,.12); color: #fbf9f5; border: 0; padding: 4px 10px; border-radius: 6px; font: 700 10px/1 'Inter'; cursor: pointer; }
+  .codebox button:hover { background: rgba(251,249,245,.22); }
+
+  .h-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: 999px; background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); font: 700 13px/1 'Inter'; opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s; }
+  .h-toast.on { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+  .auth-required { padding: 80px 20px; text-align: center; }
+  .auth-required h2 { font: 900 22px/1.2 'Inter'; margin: 0 0 8px; }
+  .auth-required p { font: 500 14px/1.5 'Inter'; color: var(--ink-2, #5a6359); margin: 0 0 24px; }
+</style>
+</head>
+
+<body>
+
+<header class="glass-nav">
+  <div class="container">
+    <nav class="row row--between" style="padding: 14px 0;">
+      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; text-decoration: none; color: inherit;">Protein Outfitters</a>
+      <div class="po-nav-actions"><a href="/admin-overview" style="font-weight:700;font-size:13px;text-decoration:none;color:inherit;margin-right:14px;">Overview</a><a href="/admin-email" style="font-weight:700;font-size:13px;text-decoration:none;color:inherit;">Email QA</a></div>
+    </nav>
+  </div>
+</header>
+
+<div id="signedOut" class="auth-required" hidden>
+  <h2>Admin only</h2>
+  <p>Sign in as an admin to view activation health.</p>
+</div>
+
+<main id="signedIn" class="h-shell" hidden>
+  <div class="h-hero">
+    <h1>Activation health</h1>
+    <div class="pct"><span class="num" id="pct">…</span><span class="of" id="of">/ 100</span></div>
+    <p class="lead" id="lead">Checking systems…</p>
+    <div class="h-hero-actions">
+      <button class="primary" id="btnRefresh" type="button">Refresh</button>
+      <button class="ghost" id="btnRunMigrate" type="button">Run migration</button>
+      <button class="ghost" id="btnTickEmail" type="button">Run email-tick</button>
+    </div>
+  </div>
+
+  <div id="cards"></div>
+</main>
+
+<div class="h-toast" id="toast"></div>
+
+<script src="/po-api.js"></script>
+<script src="/po-shell.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  function toast(msg, ms = 2400) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('on'), ms);
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function dot(state) { return `<span class="dot ${state}"></span>`; }
+
+  function copyableBlock(text) {
+    return `<pre class="codebox">${escapeHtml(text)}<button onclick="navigator.clipboard.writeText(this.previousSibling.textContent || this.parentNode.textContent.replace(this.textContent,'')).then(()=>window.poToast&&window.poToast('Copied'))">Copy</button></pre>`;
+  }
+  window.poToast = toast;
+
+  function renderEnv(envList) {
+    // Group rows
+    const byGroup = {};
+    envList.forEach(e => { (byGroup[e.group] = byGroup[e.group] || []).push(e); });
+    const required = envList.filter(e => e.required && !e.set);
+    const status = required.length === 0 ? 'ok' : 'fail';
+    const badge = status === 'ok' ? `<span class="badge ok">All set</span>` : `<span class="badge fail">${required.length} required missing</span>`;
+
+    const groups = Object.entries(byGroup).map(([g, items]) => `
+      <div class="group-label">${escapeHtml(g)}</div>
+      ${items.map(e => `
+        <div class="h-row">
+          ${dot(e.set ? 'ok' : (e.required ? 'fail' : 'gray'))}
+          <div class="body">
+            <div class="key">${escapeHtml(e.key)}<span class="pill ${e.required ? 'req' : 'opt'}">${e.required ? 'required' : 'optional'}</span></div>
+            <div class="meta">${escapeHtml(e.purpose)}${e.set ? '' : ' — <strong>not set</strong>'}</div>
+          </div>
+        </div>
+      `).join('')}
+    `).join('');
+
+    return `
+      <section class="h-card">
+        <h2>Environment variables ${badge}</h2>
+        <p class="sub">Set in Vercel → Project → Settings → Environment Variables. Values are never returned by this API.</p>
+        ${groups}
+      </section>
+    `;
+  }
+
+  function renderSchema(tables) {
+    const missing = tables.filter(t => !t.exists);
+    const status = missing.length === 0 ? 'ok' : 'fail';
+    const badge = status === 'ok'
+      ? `<span class="badge ok">${tables.length}/${tables.length} tables</span>`
+      : `<span class="badge fail">${missing.length} missing</span>`;
+    return `
+      <section class="h-card">
+        <h2>Database schema ${badge}</h2>
+        <p class="sub">${missing.length === 0 ? 'Every expected table exists.' : `Run the migration below to create the missing ${missing.length} table${missing.length === 1 ? '' : 's'}.`}</p>
+        ${tables.map(t => `
+          <div class="h-row">
+            ${dot(t.exists ? (t.has_rows ? 'ok' : 'warn') : 'fail')}
+            <div class="body">
+              <div class="key">${escapeHtml(t.table)}</div>
+              <div class="meta">${t.exists ? (t.has_rows ? 'has rows' : 'empty') : 'missing — run migration'}</div>
+            </div>
+          </div>
+        `).join('')}
+        ${missing.length ? `
+          <div style="margin-top:16px;">
+            <strong style="font:700 12px Inter;color:var(--ink-2);">Run from terminal:</strong>
+            ${copyableBlock('curl -X POST "https://www.proteinoutfitters.com/api/migrate?secret=$MIGRATE_SECRET"')}
+          </div>
+        ` : ''}
+      </section>
+    `;
+  }
+
+  function renderStripe(s) {
+    const status = s.connected ? 'ok' : 'fail';
+    const badge = s.connected
+      ? `<span class="badge ok">${s.mode || 'connected'}</span>`
+      : `<span class="badge fail">disconnected</span>`;
+    if (!s.connected) {
+      return `
+        <section class="h-card">
+          <h2>Stripe ${badge}</h2>
+          <p class="sub">Stripe API can't authenticate: ${escapeHtml(s.reason || 'unknown error')}.</p>
+        </section>
+      `;
+    }
+    const missingEvents = s.webhook_events_missing || [];
+    return `
+      <section class="h-card">
+        <h2>Stripe ${badge}</h2>
+        <p class="sub">Account ${escapeHtml(s.account_id || '')} · ${s.country || ''} · charges ${s.charges_enabled ? 'enabled' : 'disabled'} · payouts ${s.payouts_enabled ? 'enabled' : 'disabled'}</p>
+
+        <div class="h-row">
+          ${dot('ok')}
+          <div class="body">
+            <div class="key">Balance</div>
+            <div class="meta">
+              Available: ${s.balance.available.map(b => '$' + b.amount.toFixed(2) + ' ' + b.currency.toUpperCase()).join(', ') || '—'} ·
+              Pending: ${s.balance.pending.map(b => '$' + b.amount.toFixed(2) + ' ' + b.currency.toUpperCase()).join(', ') || '—'}
+            </div>
+          </div>
+        </div>
+
+        <div class="h-row">
+          ${dot(s.webhook ? 'ok' : 'warn')}
+          <div class="body">
+            <div class="key">Webhook endpoint</div>
+            <div class="meta">${s.webhook ? `Listening at <code>${escapeHtml(s.webhook.url)}</code> · ${s.webhook.enabled_count} event${s.webhook.enabled_count === 1 ? '' : 's'} subscribed` : 'No /api/stripe-webhook endpoint detected — add it in the Stripe dashboard.'}</div>
+          </div>
+        </div>
+
+        ${missingEvents.length ? `
+          <div class="h-row">
+            ${dot('fail')}
+            <div class="body">
+              <div class="key">Missing webhook events (${missingEvents.length})</div>
+              <div class="meta">Add these in Stripe → Developers → Webhooks → your endpoint → Update events:</div>
+              ${copyableBlock(missingEvents.join('\n'))}
+            </div>
+          </div>
+        ` : `
+          <div class="h-row">
+            ${dot('ok')}
+            <div class="body">
+              <div class="key">All required events subscribed</div>
+              <div class="meta">${(s.webhook_events_required || []).length} events listening.</div>
+            </div>
+          </div>
+        `}
+      </section>
+    `;
+  }
+
+  function renderResend(r) {
+    const badge = r.connected ? `<span class="badge ok">connected</span>` : `<span class="badge fail">disconnected</span>`;
+    if (!r.connected) {
+      return `
+        <section class="h-card">
+          <h2>Resend (email) ${badge}</h2>
+          <p class="sub">${escapeHtml(r.reason || 'Email send is disabled. Lifecycle events still log to email_log but no real emails go out.')}</p>
+        </section>
+      `;
+    }
+    const verifiedDomains = (r.domains || []).filter(d => d.status === 'verified');
+    return `
+      <section class="h-card">
+        <h2>Resend (email) ${badge}</h2>
+        <p class="sub">${verifiedDomains.length} verified domain${verifiedDomains.length === 1 ? '' : 's'} · ${r.sends_last_24h ?? 0} send${r.sends_last_24h === 1 ? '' : 's'} in the last 24h.</p>
+        ${(r.domains || []).map(d => `
+          <div class="h-row">
+            ${dot(d.status === 'verified' ? 'ok' : 'warn')}
+            <div class="body">
+              <div class="key">${escapeHtml(d.name)}</div>
+              <div class="meta">Status: ${escapeHtml(d.status)} · Region: ${escapeHtml(d.region || '—')}</div>
+            </div>
+          </div>
+        `).join('') || '<div class="h-row"><div class="dot warn"></div><div class="body"><div class="key">No domains configured</div><div class="meta">Add and verify a sending domain in the Resend dashboard.</div></div></div>'}
+      </section>
+    `;
+  }
+
+  function renderCrons(crons) {
+    return `
+      <section class="h-card">
+        <h2>Scheduled tasks <span class="badge ok">${crons.length}</span></h2>
+        <p class="sub">Configured in <code>vercel.json</code>. Vercel Cron sends Authorization: Bearer $CRON_SECRET, so make sure that env var is set.</p>
+        ${crons.map(c => `
+          <div class="h-row">
+            ${dot('ok')}
+            <div class="body">
+              <div class="key">${escapeHtml(c.path)}</div>
+              <div class="meta"><code>${escapeHtml(c.schedule)}</code> · ${escapeHtml(c.purpose)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </section>
+    `;
+  }
+
+  async function load() {
+    document.getElementById('pct').textContent = '…';
+    document.getElementById('lead').textContent = 'Checking systems…';
+    document.getElementById('cards').innerHTML = '';
+    try {
+      const r = await fetch('/api/admin-health', { credentials: 'include' });
+      if (r.status === 401 || r.status === 403) {
+        document.getElementById('signedOut').hidden = false;
+        document.getElementById('signedIn').hidden = true;
+        return;
+      }
+      const data = await r.json();
+      const pct = data.score?.pct ?? 0;
+      const num = document.getElementById('pct');
+      const lead = document.getElementById('lead');
+      num.textContent = pct + '%';
+      if (pct === 100) {
+        lead.classList.add('ready');
+        lead.textContent = 'You\'re live. Every check passes — go take orders.';
+      } else {
+        lead.classList.remove('ready');
+        const blockers = [];
+        if (data.summary.required_env_missing.length) blockers.push(`${data.summary.required_env_missing.length} env var${data.summary.required_env_missing.length === 1 ? '' : 's'} missing`);
+        if (data.summary.tables_missing.length) blockers.push(`${data.summary.tables_missing.length} table${data.summary.tables_missing.length === 1 ? '' : 's'} not migrated`);
+        if (!data.summary.stripe_connected) blockers.push('Stripe not connected');
+        if (!data.summary.resend_connected) blockers.push('Resend not connected');
+        if (data.summary.stripe_webhook_events_missing?.length) blockers.push(`${data.summary.stripe_webhook_events_missing.length} Stripe webhook event${data.summary.stripe_webhook_events_missing.length === 1 ? '' : 's'} not subscribed`);
+        lead.textContent = blockers.length ? 'Blocking: ' + blockers.join(' · ') : 'Almost there.';
+      }
+
+      const cards = [
+        renderEnv(data.env || []),
+        renderSchema(data.schema || []),
+        renderStripe(data.stripe || {}),
+        renderResend(data.resend || {}),
+        renderCrons(data.crons_expected || []),
+      ].join('');
+      document.getElementById('cards').innerHTML = cards;
+    } catch (e) {
+      document.getElementById('lead').textContent = 'Couldn\'t reach health endpoint: ' + e.message;
+    }
+  }
+
+  async function checkAuth() {
+    try {
+      const r = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      if (!data.user || data.user.role !== 'admin') throw new Error();
+      document.getElementById('signedIn').hidden = false;
+      document.getElementById('signedOut').hidden = true;
+      load();
+    } catch {
+      document.getElementById('signedOut').hidden = false;
+      document.getElementById('signedIn').hidden = true;
+    }
+  }
+
+  document.getElementById('btnRefresh').addEventListener('click', load);
+
+  document.getElementById('btnRunMigrate').addEventListener('click', async () => {
+    const secret = prompt('MIGRATE_SECRET (will not be stored):');
+    if (!secret) return;
+    const btn = document.getElementById('btnRunMigrate');
+    btn.disabled = true; btn.textContent = 'Running…';
+    try {
+      const r = await fetch('/api/migrate?secret=' + encodeURIComponent(secret), { method: 'POST', credentials: 'include' });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok) toast('Migration ran: ' + (data.schemaStatements ?? '?') + ' schema statements');
+      else toast('Migration failed: ' + (data.error || r.status));
+      setTimeout(load, 800);
+    } catch (e) { toast('Network error'); }
+    finally { btn.disabled = false; btn.textContent = 'Run migration'; }
+  });
+
+  document.getElementById('btnTickEmail').addEventListener('click', async () => {
+    const secret = prompt('EMAIL_TICK_SECRET (will not be stored):');
+    if (!secret) return;
+    const btn = document.getElementById('btnTickEmail');
+    btn.disabled = true; btn.textContent = 'Running…';
+    try {
+      const r = await fetch('/api/email-tick?secret=' + encodeURIComponent(secret), { credentials: 'include' });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok) toast('Email tick fired ✓');
+      else toast('Email tick failed: ' + (data.error || r.status));
+    } catch (e) { toast('Network error'); }
+    finally { btn.disabled = false; btn.textContent = 'Run email-tick'; }
+  });
+
+  checkAuth();
+})();
+</script>
+
+</body>
+</html>
