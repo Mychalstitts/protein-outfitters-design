@@ -304,6 +304,28 @@
   setText('acStatSpend', totalSpend > 0 ? '$' + totalSpend.toLocaleString('en-US',{maximumFractionDigits:0}) : '$0');
   setText('acStatOrders', reservations.length);
 
+  // ─── Referral code preview (under the standing card) ───────
+  try {
+    const r = await fetch('/api/referrals', { credentials: 'include' });
+    if (r.ok) {
+      const data = await r.json();
+      const standingCard = document.querySelector('.ac-standing') || document.querySelector('.ac-greeting');
+      if (standingCard && data.code && !document.getElementById('acReferralBox')) {
+        const box = document.createElement('div');
+        box.id = 'acReferralBox';
+        box.style.cssText = 'margin-top:14px;padding:14px 18px;background:rgba(125,160,93,.10);border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;';
+        const count = data.redemptions?.length || 0;
+        box.innerHTML = `
+          <div>
+            <div style="font:700 13px/1.3 'Inter';">Your referral code</div>
+            <div style="font:600 12px/1.4 'Inter';opacity:.7;margin-top:2px;">${count} redemption${count === 1 ? '' : 's'} · share <code style="background:#fff;padding:2px 6px;border-radius:6px;font-family:'JetBrains Mono',monospace;">${data.code}</code></div>
+          </div>
+          <button onclick="navigator.clipboard.writeText('${data.url}').then(() => this.textContent = 'Copied ✓')" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';cursor:pointer;">Copy share link</button>`;
+        standingCard.appendChild(box);
+      }
+    }
+  } catch {}
+
   // Personalize sub-greeting based on next reservation
   const next = active.sort((a,b) => new Date(a.expected_finish_date||0) - new Date(b.expected_finish_date||0))[0];
   const sub = document.getElementById('acGreetingSub');

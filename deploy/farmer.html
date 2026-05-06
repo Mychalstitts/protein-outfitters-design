@@ -219,6 +219,15 @@
       </div>
     </section>
 
+    <!-- Drop-off bookings — populated when /api/bookings has rows for this farmer -->
+    <section class="fm-section" id="fmBookingsSection" style="display:none;">
+      <div class="fm-section-head">
+        <h2>Drop-off bookings</h2>
+        <a class="more" href="/booking-confirmation">Print confirmations →</a>
+      </div>
+      <div id="fmBookingsGrid" style="display:grid;gap:14px;grid-template-columns:1fr;"></div>
+    </section>
+
     <!-- This week (hidden until we have real Stripe-verified payouts) -->
     <section class="fm-section" id="fmWeekSection" style="display:none;">
       <div class="fm-section-head">
@@ -425,6 +434,81 @@
   }).join('');
 
   grid.innerHTML = cards + addLink.outerHTML;
+
+  // ─── Drop-off bookings + strike count ───────────────────────
+  // Aggregate bookings across every listing the user owns; render the upcoming
+  // ones with their 6-digit code; surface a strike warning if 2+ recent no-shows.
+  try {
+    const allBookings = [];
+    for (const l of allListings) {
+      try {
+        const r = await fetch('/api/bookings?listing_id=' + encodeURIComponent(l.id), { credentials: 'include' });
+        if (!r.ok) continue;
+        const data = await r.json();
+        (data.bookings || []).forEach(b => allBookings.push({ ...b, animal_label: `${l.number ? l.number + ' · ' : ''}${l.breed || l.species}` }));
+      } catch {}
+    }
+
+    const upcoming = allBookings
+      .filter(b => b.status === 'scheduled' && b.drop_off_date && new Date(b.drop_off_date) >= new Date(Date.now() - 86400000))
+      .sort((a, b) => new Date(a.drop_off_date) - new Date(b.drop_off_date));
+
+    const noShows12mo = allBookings.filter(b => {
+      if (b.status !== 'no-show') return false;
+      const d = new Date(b.drop_off_date || b.no_show_at || b.created_at);
+      return (Date.now() - d.getTime()) < 365 * 86400000;
+    }).length;
+
+    if (upcoming.length) {
+      const sec = document.getElementById('fmBookingsSection');
+      const grid2 = document.getElementById('fmBookingsGrid');
+      sec.style.display = '';
+      grid2.innerHTML = upcoming.map(b => {
+        const d = b.drop_off_date ? new Date(b.drop_off_date) : null;
+        const days = d ? Math.round((d - Date.now()) / 86400000) : null;
+        const code = (b.checkin_code || '').replace(/(\d{3})(\d{3})/, '$1 $2');
+        const dep = Number(b.deposit_amount || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        return `<a href="/booking-confirmation?booking=${b.id}" style="display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:16px 18px;background:#fff;border-radius:14px;border:1px solid rgba(6,27,14,.08);text-decoration:none;color:inherit;">
+          <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-weight:800;font-size:18px;letter-spacing:.12em;color:#061b0e;background:rgba(125,160,93,.10);padding:10px 14px;border-radius:10px;">${code || '— used —'}</div>
+          <div>
+            <div style="font:700 14px/1.3 'Inter';">${b.animal_label} → ${b.processor_name || 'processor'}</div>
+            <div style="font:500 12.5px/1.4 'Inter';opacity:.7;margin-top:3px;">Drop-off ${d ? d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : 'TBD'}${days != null ? ` · in ${days} day${days === 1 ? '' : 's'}` : ''} · Deposit ${dep} ${b.deposit_status === 'released' ? '✓' : 'on hold'}</div>
+          </div>
+          <span style="font:700 12px/1 'Inter';color:#7da05d;">View →</span>
+        </a>`;
+      }).join('');
+    }
+
+    // Strike warning — show as a banner in the today-section if 2+ no-shows in last 12mo
+    if (noShows12mo >= 2) {
+      const sub = document.getElementById('fmGreetSub');
+      if (sub) {
+        sub.innerHTML = `<span style="display:inline-block;background:#fff5e6;color:#a65f10;padding:4px 10px;border-radius:999px;font:700 12px/1.4 'Inter';margin-bottom:8px;">⚠ ${noShows12mo} no-show${noShows12mo === 1 ? '' : 's'} in last 12 mo${noShows12mo >= 3 ? ' — listings paused for review' : ' — one more triggers a review'}</span><br>` + sub.innerHTML;
+      }
+    }
+  } catch (e) { /* graceful — bookings just won't appear */ }
+
+  // ─── Referral code preview ──────────────────────────────────
+  // Display under the standing card.
+  try {
+    const r = await fetch('/api/referrals', { credentials: 'include' });
+    if (r.ok) {
+      const data = await r.json();
+      const standing = document.getElementById('fmStanding');
+      if (standing && data.code && !document.getElementById('fmReferralBox')) {
+        const box = document.createElement('div');
+        box.id = 'fmReferralBox';
+        box.style.cssText = 'margin-top:14px;padding:14px 18px;background:rgba(125,160,93,.10);border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;';
+        box.innerHTML = `
+          <div>
+            <div style="font:700 13px/1.3 'Inter';">Your referral code</div>
+            <div style="font:600 12px/1.4 'Inter';opacity:.7;margin-top:2px;">${data.redemptions?.length || 0} redemption${data.redemptions?.length === 1 ? '' : 's'} · share <code style="background:#fff;padding:2px 6px;border-radius:6px;font-family:'JetBrains Mono',monospace;">${data.code}</code></div>
+          </div>
+          <button onclick="navigator.clipboard.writeText('${data.url}').then(() => this.textContent = 'Copied ✓')" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';cursor:pointer;">Copy share link</button>`;
+        standing.appendChild(box);
+      }
+    }
+  } catch {}
 })();
 
 async function createFarmFlow() {

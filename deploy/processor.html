@@ -356,6 +356,49 @@
     document.getElementById('prStatCapacity').textContent = '—';
     document.getElementById('prStatRevenue').textContent = '—';
     if (sub) sub.textContent = `${plant.name} is connected. Once buyers pick you at checkout, drop-offs land here.`;
+
+    // ─── Real bookings queue ───────────────────────────────────
+    try {
+      const r = await fetch('/api/bookings?processor_slug=' + encodeURIComponent(plant.slug), { credentials: 'include' });
+      if (r.ok) {
+        const data = await r.json();
+        const bookings = data.bookings || [];
+        const today = new Date(); today.setHours(0,0,0,0);
+        const weekEnd = new Date(today.getTime() + 7 * 86400000);
+        const todays = bookings.filter(b => {
+          const d = new Date(b.drop_off_date); d.setHours(0,0,0,0);
+          return d.getTime() === today.getTime() && b.status === 'scheduled';
+        });
+        const upcoming = bookings.filter(b => {
+          const d = new Date(b.drop_off_date); d.setHours(0,0,0,0);
+          return d > today && d <= weekEnd && b.status === 'scheduled';
+        });
+        document.getElementById('prStatQueue').textContent = String(todays.length + upcoming.length);
+
+        const queueSection = document.getElementById('queue');
+        const queueList = queueSection ? queueSection.querySelector('.queue') : null;
+        if (queueList && (todays.length || upcoming.length)) {
+          queueSection.style.display = '';
+          const renderRow = (b) => {
+            const d = new Date(b.drop_off_date);
+            const days = Math.round((d - today.getTime()) / 86400000);
+            const animalLabel = `${b.animal_number ? b.animal_number + ' · ' : ''}${b.breed || b.species}`;
+            const status = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`;
+            return `<div class="queue-row">
+              <div class="queue-img" style="background: linear-gradient(135deg,#5a7268,#3a4a3c);"></div>
+              <div class="queue-meta">
+                <h4>${animalLabel} · ${b.farm_name}</h4>
+                <p>Drop-off scheduled · ${b.drop_off_window || 'no window set'} · deposit ${b.deposit_status === 'released' ? '✓ released' : 'on hold'}</p>
+              </div>
+              <div class="queue-when">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}<span class="sub">${status}</span></div>
+              <a href="/processor-checkin" class="queue-status scheduled" style="text-decoration:none;cursor:pointer;" title="Open the check-in page to scan their code">Check in →</a>
+            </div>`;
+          };
+          queueList.innerHTML = [...todays, ...upcoming].map(renderRow).join('');
+          if (sub) sub.textContent = `${plant.name}: ${todays.length} drop-off${todays.length === 1 ? '' : 's'} today, ${upcoming.length} this week.`;
+        }
+      }
+    } catch (e) { /* graceful — keep stat at 0 */ }
   }
 
 
