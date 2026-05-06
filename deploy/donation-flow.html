@@ -769,8 +769,9 @@
   </div>
 
   <div class="row gap-3 mt-8" style="justify-content: center;">
-    <button class="btn btn--primary" onclick="showToast('PDF download started')">Download PDF</button>
-    <button class="btn btn--secondary" onclick="showView('admin')">View admin queue</button>
+    <a class="btn btn--primary" id="taxLetterDownload" href="#" onclick="downloadTaxLetter(event)">Download tax letter PDF</a>
+    <a class="btn btn--secondary" id="deedDownload" href="#" onclick="downloadDeed(event)">Download Deed of Gift</a>
+    <button class="btn btn--ghost" onclick="showView('admin')">View admin queue</button>
   </div>
 </section>
 
@@ -1011,6 +1012,25 @@ function showToast(msg) {
   t.classList.add('is-visible');
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
+}
+
+// ─── Donation PDF helpers (tax letter + deed of gift) ───
+// In a real flow we'd carry the donation_id through the URL or load the latest
+// pledge for the signed-in donor. For the prototype, look it up from a query
+// param if present, else just let the API tell us why it can't deliver.
+function downloadTaxLetter(ev) {
+  ev?.preventDefault();
+  const params = new URLSearchParams(location.search);
+  const id = params.get('donation') || prompt('Enter your donation ID (from confirmation email):');
+  if (!id) return;
+  window.open(`/api/pdf/tax-letter?donation=${encodeURIComponent(id)}`, '_blank');
+}
+function downloadDeed(ev) {
+  ev?.preventDefault();
+  const params = new URLSearchParams(location.search);
+  const id = params.get('donation') || prompt('Enter your donation ID (from confirmation email):');
+  if (!id) return;
+  window.open(`/api/pdf/deed-of-gift?donation=${encodeURIComponent(id)}`, '_blank');
 }
 
 // ─── Institution apply form: POST /api/institutions ───
