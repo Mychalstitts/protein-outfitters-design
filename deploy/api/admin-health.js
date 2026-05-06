@@ -49,7 +49,7 @@ const ENV_SPEC = [
 const TABLES = [
   'users', 'auth_tokens', 'sessions',
   'farms', 'listings', 'reservations',
-  'processors', 'processor_configs', 'processor_subscriptions',
+  'processors', 'processor_subscriptions',
   'donations', 'donation_funds', 'institutions',
   'reviews', 'discovered_partners',
   'bookings', 'farmer_deposits', 'checkin_codes',

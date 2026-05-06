@@ -505,7 +505,53 @@ const SCHEMA_STATEMENTS = [
      updated_at           TIMESTAMPTZ DEFAULT NOW()
    )`,
   `CREATE INDEX IF NOT EXISTS proc_sub_processor_idx ON processor_subscriptions(processor_id)`,
-  `CREATE INDEX IF NOT EXISTS proc_sub_status_idx    ON processor_subscriptions(status)`
+  `CREATE INDEX IF NOT EXISTS proc_sub_status_idx    ON processor_subscriptions(status)`,
+
+  // Disputes — Stripe charge.dispute.* events land here. Originally
+  // bootstrapped on the first webhook event; pulled in so admin-health
+  // shows it as ready immediately.
+  `CREATE TABLE IF NOT EXISTS disputes (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stripe_dispute_id TEXT UNIQUE NOT NULL,
+    stripe_charge_id  TEXT,
+    stripe_payment_intent TEXT,
+    reservation_id  UUID REFERENCES reservations(id) ON DELETE SET NULL,
+    reason          TEXT,
+    status          TEXT,
+    amount          NUMERIC,
+    currency        TEXT,
+    evidence_due    TIMESTAMPTZ,
+    response_status TEXT,
+    raw             JSONB,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS disputes_status_idx ON disputes(status)`,
+  `CREATE INDEX IF NOT EXISTS disputes_pi_idx ON disputes(stripe_payment_intent)`,
+
+  // Email log — every lifecycle email send is recorded here for idempotency
+  // and auditing. Originally bootstrapped lazily by /api/_lib/email.js;
+  // pulled in here so admin-health doesn't flag it as missing pre-first-send.
+  `CREATE TABLE IF NOT EXISTS email_log (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id  TEXT NOT NULL,
+    to_email     TEXT NOT NULL,
+    subject      TEXT,
+    dedup_key    TEXT,
+    reservation_id UUID,
+    listing_id   UUID,
+    farm_id      UUID,
+    processor_id UUID,
+    institution_id UUID,
+    status       TEXT NOT NULL DEFAULT 'sent' CHECK (status IN ('sent','skipped','failed','queued')),
+    provider     TEXT NOT NULL DEFAULT 'resend',
+    provider_id  TEXT,
+    error        TEXT,
+    created_at   TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS email_log_template_idx ON email_log(template_id)`,
+  `CREATE INDEX IF NOT EXISTS email_log_dedup_idx    ON email_log(dedup_key)`,
+  `CREATE INDEX IF NOT EXISTS email_log_to_idx       ON email_log(to_email)`
 ];
 
 const SEED_SQL = [
