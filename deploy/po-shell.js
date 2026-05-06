@@ -132,6 +132,82 @@
     } catch (e) { /* localStorage may be blocked */ }
   })();
 
+  // ── Global mobile-fit + persistent home anchor ──────────────
+  // Two recurring UX problems we patch globally so we don't have to fix
+  // them per-page: (1) buttons overflowing the viewport on phones, and
+  // (2) pages that don't have a clickable wordmark in the nav, leaving
+  // the user stranded. Injects a CSS layer + a fallback floating anchor.
+  function injectGlobalShell() {
+    if (document.getElementById('po-shell-global')) return;
+    const s = document.createElement('style');
+    s.id = 'po-shell-global';
+    s.textContent = `
+      /* Persistent home anchor — fixed top-left pill, always visible */
+      .po-home-anchor {
+        position: fixed; top: 12px; left: 12px; z-index: 9999;
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 14px 8px 10px; border-radius: 999px;
+        background: rgba(6,27,14,.92); color: #fbf9f5;
+        text-decoration: none; font: 800 11.5px/1 'Inter', system-ui, sans-serif;
+        letter-spacing: .04em; text-transform: uppercase;
+        box-shadow: 0 6px 20px rgba(6,27,14,.25);
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        transition: transform .15s, opacity .15s;
+        max-width: calc(100vw - 24px);
+      }
+      .po-home-anchor:hover { transform: translateY(-1px); }
+      .po-home-anchor:active { transform: translateY(0); }
+      .po-home-anchor .po-ha-arrow { font-size: 14px; line-height: 1; opacity: .8; }
+      .po-home-anchor .po-ha-text { white-space: nowrap; }
+      @media (max-width: 480px) {
+        .po-home-anchor { font-size: 10.5px; padding: 7px 12px 7px 8px; }
+      }
+      /* Mobile button overflow fixes — apply broadly so any button on any
+         page wraps + scales rather than getting clipped. Override only when
+         a page explicitly needs single-line buttons. */
+      @media (max-width: 640px) {
+        button, .btn, a.btn, .ds-go-btn, .ds-view-btn, .tier-cta, .wallet-cta,
+        .res-cta, .layer-tab, .filter-tab, .notif-actions button {
+          max-width: 100%;
+          white-space: normal;
+          word-break: break-word;
+          line-height: 1.2;
+        }
+        /* Common button-row containers — make them wrap instead of clip */
+        .row, .actions, .btn-row, .map-top .stats, .filter-tabs,
+        .notif-actions, .map-side-foot, .po-foot-inner {
+          flex-wrap: wrap !important;
+          gap: 8px;
+        }
+        /* The reserve sheet's pay stack used to clip on phones */
+        .pay-stack { flex-direction: column; align-items: stretch; }
+        .pay-stack .btn-pay { width: 100%; }
+        /* Headers shouldn't horizontally scroll */
+        header.glass-nav nav, header .row, .map-top {
+          flex-wrap: wrap;
+        }
+      }
+    `;
+    document.head.appendChild(s);
+
+    // Inject the home anchor unless we're already on the homepage, or a page
+    // opts out via data-po-home="off".
+    const path = location.pathname.replace(/\/$/, '') || '/';
+    if (path === '/' || path === '/index' || path === '/index.html') return;
+    if (document.body.getAttribute('data-po-home') === 'off') return;
+    const a = document.createElement('a');
+    a.href = '/';
+    a.className = 'po-home-anchor';
+    a.setAttribute('aria-label', 'Protein Outfitters — home');
+    a.innerHTML = '<span class="po-ha-arrow">←</span><span class="po-ha-text">Protein Outfitters</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectGlobalShell);
+  } else {
+    injectGlobalShell();
+  }
+
   // Inject footer + sheet into body
   function inject() {
     const host = document.getElementById('po-shell-host');
