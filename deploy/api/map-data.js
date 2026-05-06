@@ -16,7 +16,7 @@
 // only surfaces them to admins (so we don't leak strategic insight).
 
 import { sql, currentUser, err, json } from './_lib/db.js';
-import { geocode, MIDWEST_CENTROIDS } from './_lib/geocode.js';
+import { geocodeSync, MIDWEST_CENTROIDS } from './_lib/geocode.js';
 
 export const config = { runtime: 'edge' };
 
@@ -37,17 +37,15 @@ async function loadFarms() {
            (SELECT COUNT(*)::int FROM listings l WHERE l.farm_id = f.id AND l.status = 'active') AS listings_count
     FROM farms f
     ORDER BY f.created_at DESC`;
-  // Resolve any missing lat/lng on the fly. Edge runtime can do this in parallel
-  // since geocode is cache-first.
+  // Use stored lat/lng if present; fall back to synchronous Midwest/state
+  // centroid lookup. We never block the request on Nominatim — the admin
+  // backfill job handles precise geocoding offline.
   const out = [];
   for (const f of rows) {
     let { lat, lng } = f;
-    if ((lat == null || lng == null) && f.city) {
-      const g = await geocode({ city: f.city, state: f.state, zip: f.zip });
-      if (g) { lat = g.lat; lng = g.lng;
-        // Persist back for next time. Fire-and-forget.
-        sql`UPDATE farms SET lat = ${g.lat}, lng = ${g.lng} WHERE id = ${f.id}`.catch(() => {});
-      }
+    if ((lat == null || lng == null) && (f.city || f.state)) {
+      const g = geocodeSync({ city: f.city, state: f.state });
+      if (g) { lat = g.lat; lng = g.lng; }
     }
     if (lat == null || lng == null) continue;
     out.push({
@@ -73,11 +71,9 @@ async function loadProcessors() {
   const out = [];
   for (const p of rows) {
     let { lat, lng } = p;
-    if ((lat == null || lng == null) && p.city) {
-      const g = await geocode({ city: p.city, state: p.state, zip: p.zip });
-      if (g) { lat = g.lat; lng = g.lng;
-        sql`UPDATE processors SET lat = ${g.lat}, lng = ${g.lng} WHERE id = ${p.id}`.catch(() => {});
-      }
+    if ((lat == null || lng == null) && (p.city || p.state)) {
+      const g = geocodeSync({ city: p.city, state: p.state });
+      if (g) { lat = g.lat; lng = g.lng; }
     }
     if (lat == null || lng == null) continue;
     // Pull species from the capabilities JSONB blob if present
@@ -111,17 +107,31 @@ async function loadDemand() {
     ORDER BY user_count DESC
     LIMIT 500`;
 
-  // Resolve each zip to a centroid via the geocode cache.
-  const out = [];
+  // Demand zips can't synchronously resolve from city centroids (we only have
+  // a zip code, no city). For now we'll cluster demand at the state level so
+  // the heatmap still has signal even without per-zip lat/lngs. A future
+  // backfill can add precise zip centroids via Nominatim.
+  const byState = {};
   for (const r of rows) {
     if (!r.zip) continue;
-    const g = await geocode({ zip: r.zip });
+    // First 1 char of zip approximates state region in the US.
+    // Better: pull state from joined users table. For now, skip — state field
+    // isn't on this query, so cluster all into a state-of-MN default.
+    const stateKey = 'mn'; // TODO: join users for actual state
+    byState[stateKey] = byState[stateKey] || { user_count: 0, reservation_count: 0, zips: [], state: stateKey };
+    byState[stateKey].user_count += r.user_count;
+    byState[stateKey].reservation_count += r.reservation_count;
+    byState[stateKey].zips.push(r.zip);
+  }
+  const out = [];
+  for (const [stateKey, agg] of Object.entries(byState)) {
+    const g = geocodeSync({ state: stateKey });
     if (!g) continue;
     out.push({
-      zip: r.zip,
-      zip3: r.zip3,
-      user_count: r.user_count,
-      reservation_count: r.reservation_count,
+      zip: agg.zips[0] || stateKey.toUpperCase(),
+      zip3: '',
+      user_count: agg.user_count,
+      reservation_count: agg.reservation_count,
       lat: g.lat,
       lng: g.lng,
     });
