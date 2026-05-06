@@ -10,6 +10,8 @@
   <meta property="og:description" content="Filter the marketplace by species, breed, certifications, location, and price. Smart natural-language search powered by AI." />
   <meta property="og:image" content="/img/hero-pasture.jpg" />
   <link rel="stylesheet" href="/po-shell.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
     :root{
       --rail-w: 320px;
@@ -186,7 +188,9 @@
           </select>
         </div>
         <div class="listing-grid" id="listingGrid"></div>
-        <div class="map-pane" id="mapPane"><div class="map-placeholder"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linejoin="round"/><circle cx="12" cy="10" r="3"/></svg><p><strong>Interactive map coming soon.</strong><br/>For now, every listing card shows distance and farm location. Toggle back to Grid view to browse.</p></div></div>
+        <div class="map-pane" id="mapPane">
+          <div id="discoverMap" style="width:100%;height:600px;border-radius:16px;"></div>
+        </div>
       </section>
     </section>
 
@@ -389,6 +393,57 @@
       banner.querySelector('button').style.display = 'none';
     });
 
+    // ── Discover map (Leaflet) — lazily initialized when the user clicks "Map" ──
+    let discoverMap = null;
+    let discoverMarkers = null;
+
+    async function initDiscoverMap() {
+      if (discoverMap) return; // already built
+      discoverMap = L.map('discoverMap', { zoomControl: true }).setView([45.5, -94], 5);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd', maxZoom: 19,
+      }).addTo(discoverMap);
+      discoverMarkers = L.layerGroup().addTo(discoverMap);
+      try {
+        const r = await fetch('/api/map-data', { credentials: 'include' });
+        const data = await r.json();
+        renderDiscoverMap(data.farms || []);
+      } catch (e) { /* leave map empty */ }
+    }
+
+    function renderDiscoverMap(farms) {
+      if (!discoverMarkers) return;
+      discoverMarkers.clearLayers();
+      const pinIcon = L.divIcon({
+        className: 'po-discover-pin',
+        html: '<div style="width:28px;height:28px;border-radius:999px 999px 999px 0;transform:rotate(-45deg);background:#7da05d;border:2px solid #fbf9f5;box-shadow:0 4px 10px rgba(6,27,14,.25);"></div>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -28],
+      });
+      const points = [];
+      farms.forEach(f => {
+        const m = L.marker([f.lat, f.lng], { icon: pinIcon });
+        m.bindPopup(`
+          <div style="font:500 13px/1.4 'Inter',sans-serif;">
+            <h4 style="font:800 14px/1.2 'Inter';margin:0 0 4px;">${(f.name||'').replace(/[<>]/g,'')}</h4>
+            <p style="margin:0 0 6px;color:#5a6359;">${(f.city||'')}${f.state ? ', '+f.state : ''}</p>
+            ${f.listings_count ? `<p style="margin:0 0 8px;"><strong>${f.listings_count}</strong> active listing${f.listings_count===1?'':'s'}</p>` : ''}
+            <a href="/farm/${(f.slug||'').replace(/[<>]/g,'')}" style="display:inline-block;padding:6px 12px;border-radius:999px;background:#061b0e;color:#fbf9f5;font:700 11.5px/1 'Inter';text-decoration:none;">Visit profile →</a>
+          </div>`);
+        discoverMarkers.addLayer(m);
+        points.push([f.lat, f.lng]);
+      });
+      if (points.length >= 2) {
+        discoverMap.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 9 });
+      } else if (points.length === 1) {
+        discoverMap.setView(points[0], 8);
+      }
+      // Fix size after the pane becomes visible
+      setTimeout(() => discoverMap && discoverMap.invalidateSize(), 100);
+    }
+
     document.querySelectorAll('.ds-view-btn').forEach(b => {
       b.addEventListener('click', () => {
         document.querySelectorAll('.ds-view-btn').forEach(x => x.classList.remove('active'));
@@ -396,6 +451,9 @@
         const view = b.dataset.view;
         document.getElementById('listingGrid').classList.toggle('hidden', view === 'map');
         document.getElementById('mapPane').classList.toggle('active', view === 'map');
+        if (view === 'map') {
+          initDiscoverMap().then(() => discoverMap && discoverMap.invalidateSize());
+        }
       });
     });
 
