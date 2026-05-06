@@ -28,8 +28,13 @@ export function err(status, message, extra = {}) {
 }
 
 // ─── Cookie helpers ────────────────────────────────────────
+// Handle both runtimes: Edge (Web Fetch req with headers.get) and
+// Node.js (IncomingMessage with headers as plain object).
 export function parseCookies(req) {
-  const cookie = req.headers.get('cookie') || '';
+  const headers = req.headers;
+  const cookie = (typeof headers?.get === 'function')
+    ? (headers.get('cookie') || '')
+    : (headers?.cookie || headers?.Cookie || '');
   return Object.fromEntries(
     cookie.split(';').filter(Boolean).map(c => {
       const [k, ...v] = c.trim().split('=');
