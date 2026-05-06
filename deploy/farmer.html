@@ -415,6 +415,18 @@
     }
   }
 
+  // Pre-fetch which listings already have bookings — used to show "Book a processor" CTA.
+  const listingHasBooking = {};
+  for (const l of allListings) {
+    try {
+      const r = await fetch('/api/bookings?listing_id=' + encodeURIComponent(l.id), { credentials: 'include' });
+      if (r.ok) {
+        const data = await r.json();
+        listingHasBooking[l.id] = (data.bookings || []).some(b => b.status !== 'cancelled' && b.status !== 'rejected');
+      }
+    } catch {}
+  }
+
   // Render
   const photoFor = sp => sp === 'hog' ? '/img/premium-pig.jpg' : sp === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg';
   const cards = allListings.map(l => {
@@ -422,6 +434,10 @@
     const reservedShares = ['whole','half','quarter'].reduce((s, k) => s + (l.shares?.[k]?.reserved || 0), 0);
     const fromPrice = l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || '—';
     const photo = (l.photos && l.photos[0]) || photoFor(l.species);
+    const needsBooking = !listingHasBooking[l.id];
+    const bookingCta = needsBooking
+      ? `<button onclick="event.stopPropagation();openBookingModal('${l.id}','${(l.number || '').replace(/'/g, "\\'")}','${(l.breed || l.species).replace(/'/g, "\\'")}','${l.expected_finish_date || ''}','${l.estimated_hanging_weight || ''}')" style="margin-top:8px;padding:6px 12px;background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;font:700 11px/1 'Inter';cursor:pointer;width:100%;">Book a processor →</button>`
+      : `<div style="margin-top:8px;padding:6px 12px;background:rgba(125,160,93,.10);color:#7da05d;border-radius:999px;font:700 11px/1.4 'Inter';text-align:center;">✓ Processor booked</div>`;
     return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
       <div class="product-photo" style="background-image: url('${photo}');"><span class="product-tag">Reserving · ${reservedShares}/${totShares || '?'}</span></div>
       <div class="product-meta">
@@ -429,6 +445,7 @@
         <h3 class="product-name">${l.number ? l.number + ' — ' : ''}${l.breed || l.species}</h3>
         <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
         <div class="product-foot"><span class="product-price">From <strong>$${typeof fromPrice === 'number' ? fromPrice.toFixed(2) + '/lb' : fromPrice}</strong></span><span class="product-cta">Manage →</span></div>
+        ${bookingCta}
       </div>
     </button>`;
   }).join('');
@@ -520,6 +537,108 @@ async function createFarmFlow() {
   } catch (e) { alert('Could not create farm: ' + e.message); }
 }
 window.createFarmFlow = createFarmFlow;
+
+// ─── Book-a-processor inline flow ─────────────────────────────
+let _bookingModalListing = null;
+async function openBookingModal(listingId, animalNumber, breed, expectedFinishDate, hw) {
+  _bookingModalListing = listingId;
+  const m = ensureBookingModal();
+  m.querySelector('[data-bm-title]').textContent = `Book a processor for ${animalNumber ? '#' + animalNumber + ' · ' : ''}${breed}`;
+  m.querySelector('[data-bm-date]').value = expectedFinishDate || '';
+  m.querySelector('[data-bm-hw]').textContent = hw ? `${hw} lb hanging weight (estimated)` : 'Hanging weight TBD';
+  // Load processors
+  const select = m.querySelector('[data-bm-processor]');
+  select.innerHTML = '<option value="">Loading processors…</option>';
+  try {
+    const r = await fetch('/api/processors', { credentials: 'include' });
+    const data = await r.json();
+    const procs = (data.processors || []).filter(p => p.name);
+    if (!procs.length) {
+      select.innerHTML = '<option value="">No processors in directory yet</option>';
+    } else {
+      select.innerHTML = '<option value="">Select a processor…</option>' + procs.map(p =>
+        `<option value="${p.id}">${p.name}${p.city ? ' · ' + p.city + ', ' + p.state : ''}${p.inspection ? ' · ' + p.inspection.toUpperCase() : ''}</option>`
+      ).join('');
+    }
+  } catch (e) {
+    select.innerHTML = '<option value="">Failed to load — refresh and retry</option>';
+  }
+  m.querySelector('[data-bm-status]').textContent = '';
+  m.style.display = 'flex';
+}
+function closeBookingModal() {
+  const m = document.getElementById('bookingModal');
+  if (m) m.style.display = 'none';
+}
+async function submitBooking() {
+  const m = document.getElementById('bookingModal');
+  const status = m.querySelector('[data-bm-status]');
+  const btn = m.querySelector('[data-bm-submit]');
+  const processor_id = m.querySelector('[data-bm-processor]').value;
+  const drop_off_date = m.querySelector('[data-bm-date]').value;
+  const drop_off_window = m.querySelector('[data-bm-window]').value || null;
+  if (!processor_id) { status.textContent = 'Pick a processor first.'; status.style.color = '#c25250'; return; }
+  if (!drop_off_date) { status.textContent = 'Pick a drop-off date.'; status.style.color = '#c25250'; return; }
+  btn.disabled = true; const old = btn.textContent; btn.textContent = 'Booking…';
+  try {
+    const r = await fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ listing_id: _bookingModalListing, processor_id, drop_off_date, drop_off_window }),
+    });
+    const out = await r.json();
+    if (!r.ok) {
+      status.textContent = out.error || 'Booking failed';
+      if (out.suggested_date) status.textContent += ` Try ${out.suggested_date}.`;
+      status.style.color = '#c25250';
+      return;
+    }
+    status.style.color = '#7da05d';
+    status.textContent = `Booked ✓  Code: ${out.code}. Loading confirmation…`;
+    setTimeout(() => { window.location = '/booking-confirmation?booking=' + out.booking.id; }, 800);
+  } catch (e) {
+    status.textContent = 'Network error: ' + e.message;
+    status.style.color = '#c25250';
+  } finally {
+    btn.disabled = false; btn.textContent = old;
+  }
+}
+function ensureBookingModal() {
+  let m = document.getElementById('bookingModal');
+  if (m) return m;
+  m = document.createElement('div');
+  m.id = 'bookingModal';
+  m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(6,27,14,0.6);z-index:1000;align-items:center;justify-content:center;padding:20px;';
+  m.innerHTML = `
+    <div style="background:#fbf9f5;max-width:480px;width:100%;border-radius:18px;padding:28px;">
+      <h3 data-bm-title style="margin:0 0 6px;font:800 19px/1.3 'Inter';">Book a processor</h3>
+      <p data-bm-hw style="margin:0 0 18px;font:500 13px/1.4 'Inter';color:rgba(6,27,14,.65);"></p>
+
+      <label style="display:block;font:700 13px/1.4 'Inter';margin-bottom:6px;">Processor</label>
+      <select data-bm-processor style="width:100%;padding:10px 12px;border:1px solid rgba(6,27,14,.15);border-radius:10px;font:500 14px/1.4 'Inter';margin-bottom:14px;background:#fff;"></select>
+
+      <label style="display:block;font:700 13px/1.4 'Inter';margin-bottom:6px;">Drop-off date</label>
+      <input type="date" data-bm-date style="width:100%;padding:10px 12px;border:1px solid rgba(6,27,14,.15);border-radius:10px;font:500 14px/1.4 'Inter';margin-bottom:14px;background:#fff;" />
+
+      <label style="display:block;font:700 13px/1.4 'Inter';margin-bottom:6px;">Drop-off window <span style="font-weight:500;opacity:.65;">(optional)</span></label>
+      <input type="text" data-bm-window placeholder="e.g. 7:00–9:00 AM" style="width:100%;padding:10px 12px;border:1px solid rgba(6,27,14,.15);border-radius:10px;font:500 14px/1.4 'Inter';margin-bottom:18px;background:#fff;" />
+
+      <p data-bm-status style="margin:0 0 14px;font:500 13px/1.4 'Inter';"></p>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="closeBookingModal()" style="flex:1;padding:12px;background:transparent;color:#061b0e;border:1px solid rgba(6,27,14,.2);border-radius:999px;font:700 13px/1 'Inter';cursor:pointer;">Cancel</button>
+        <button data-bm-submit onclick="submitBooking()" style="flex:1;padding:12px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;font:700 13px/1 'Inter';cursor:pointer;">Book + get code</button>
+      </div>
+      <p style="margin:14px 0 0;font:500 11px/1.4 'Inter';color:rgba(6,27,14,.55);text-align:center;">A refundable deposit ($100–$300) is held against this booking. Auto-refunds when the processor checks you in.</p>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) closeBookingModal(); });
+  return m;
+}
+window.openBookingModal = openBookingModal;
+window.closeBookingModal = closeBookingModal;
+window.submitBooking = submitBooking;
 </script>
 
 <script id="__poDateAutofix__">
