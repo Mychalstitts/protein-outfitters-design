@@ -10,7 +10,7 @@
 // Admin-only. Read-only — running migrations or rotating secrets happens
 // elsewhere. This is just the dashboard.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, rawQuery, currentUser, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -88,10 +88,11 @@ async function checkTable(name) {
       FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name = ${name}`;
     if (!rows[0]?.c) return { table: name, exists: false };
-    // If the table exists, get a row count for triage. Bounded to 1 so we
-    // don't accidentally scan a huge table — we just want exists vs empty.
-    const count = await sql.unsafe(`SELECT (SELECT COUNT(*) FROM "${name}" LIMIT 1) AS c`);
-    return { table: name, exists: true, has_rows: !!count[0]?.c };
+    // Get a quick row count for triage. We use rawQuery (pg pool) since
+    // table name has to be interpolated and Neon's tagged template won't
+    // bind identifiers. Whitelisted to known TABLES list above so it's safe.
+    const count = await rawQuery(`SELECT EXISTS (SELECT 1 FROM "${name}" LIMIT 1) AS has_rows`);
+    return { table: name, exists: true, has_rows: !!count[0]?.has_rows };
   } catch (e) {
     return { table: name, exists: false, error: e.message.slice(0, 80) };
   }
