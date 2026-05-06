@@ -38,17 +38,19 @@ export default async function handler(req) {
     ? null
     : statesParam.toUpperCase().split(',').map(s => s.trim()).filter(Boolean);
 
-  // Make sure contact columns exist on processors
+  // Make sure contact + geocoding columns exist on processors
   try {
     await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS phone TEXT`;
     await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS email TEXT`;
     await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS website TEXT`;
     await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS address TEXT`;
+    await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION`;
+    await sql`ALTER TABLE processors ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION`;
   } catch (e) { /* best-effort */ }
 
   const rows = states
     ? await sql`
-        SELECT id, name, address, city, state, zip, phone, email, website, raw_data, species, source
+        SELECT id, name, address, city, state, zip, lat, lng, phone, email, website, raw_data, species, source
         FROM discovered_partners
         WHERE source = ANY(${MPA_SOURCES})
           AND kind = 'processor'
@@ -58,7 +60,7 @@ export default async function handler(req) {
         LIMIT ${limit}
       `
     : await sql`
-        SELECT id, name, address, city, state, zip, phone, email, website, raw_data, species, source
+        SELECT id, name, address, city, state, zip, lat, lng, phone, email, website, raw_data, species, source
         FROM discovered_partners
         WHERE source = ANY(${MPA_SOURCES})
           AND kind = 'processor'
@@ -116,7 +118,7 @@ export default async function handler(req) {
 
       const result = await sql`
         INSERT INTO processors (
-          slug, name, city, state, zip,
+          slug, name, city, state, zip, lat, lng,
           phone, email, website, address, inspection,
           capabilities, base_fees, per_lb_fees, schedule, bio
         ) VALUES (
@@ -125,6 +127,8 @@ export default async function handler(req) {
           ${r.city || null},
           ${r.state || null},
           ${r.zip || null},
+          ${r.lat || null},
+          ${r.lng || null},
           ${r.phone || null},
           ${r.email || null},
           ${r.website || null},
@@ -140,6 +144,8 @@ export default async function handler(req) {
           city = COALESCE(EXCLUDED.city, processors.city),
           state = COALESCE(EXCLUDED.state, processors.state),
           zip = COALESCE(EXCLUDED.zip, processors.zip),
+          lat = COALESCE(EXCLUDED.lat, processors.lat),
+          lng = COALESCE(EXCLUDED.lng, processors.lng),
           phone = COALESCE(EXCLUDED.phone, processors.phone),
           email = COALESCE(EXCLUDED.email, processors.email),
           website = COALESCE(EXCLUDED.website, processors.website),

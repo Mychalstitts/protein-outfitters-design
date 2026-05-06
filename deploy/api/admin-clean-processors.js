@@ -18,7 +18,11 @@ import { sql, currentUser, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
 
-const BRAND_BLOCK = /\b(tyson|cargill|jbs|hormel|smithfield|jack\s*link|jack\s*links|land\s*o\s*lakes|perdue|pilgrim|conagra|sara\s*lee|kraft|nestle|maple\s*leaf|seaboard|national\s*beef|swift|oscar\s*mayer|butterball|foster\s*farms|bumble\s*bee|del\s*monte|kerry|kettle|kenosha\s*beef|kemps|cliffstar|m\.?g\.?\s*waldbaum|papetti|michael\s*foods|aramark|sysco|us\s*foods|gordon\s*food|reser|hatfield|johnsonville|farmland|premium\s*standard|excel|ibp|monfort|wampler|vlasic|leprino|rich\s*products|advance\s*pierre|nestl[ée]|chick.fil.a)\b/i;
+const BRAND_BLOCK = /\b(tyson|cargill|jbs|hormel|smithfield|jack\s*link|jack\s*links|land\s*o\s*lakes|perdue|pilgrim|conagra|sara\s*lee|kraft|nestle|maple\s*leaf|seaboard|national\s*beef|swift|oscar\s*mayer|butterball|foster\s*farms|bumble\s*bee|del\s*monte|kerry\s|kettle\s|kenosha\s*beef|kemps|cliffstar|m\.?g\.?\s*waldbaum|papetti|michael\s*foods|aramark|sysco|us\s*foods|gordon\s*food|reser|hatfield|johnsonville|farmland|premium\s*standard|excel|ibp|monfort|wampler|vlasic|leprino|rich\s*products|advance\s*pierre|nestl[ée]|chick.fil.a)\b/i;
+
+// Equipment vendors / spice houses / packaging companies that join MPAs as
+// vendor members. They're not processors and shouldn't appear on /discover.
+const VENDOR_BLOCK = /\b(ac\s*legg|legg\s*inc|treif|jarvis|koch\s*supplies|bunzl|reiser|marel|weber\s*inc|hollymatic|fpec|hobart|tipper\s*tie|multivac|formax|cremer|frey\s*meats?\s*equip|alkar|ross\s*industries|wenger|provisur|seydelmann|risco|nadia\s*international|equipment|machinery|spices?|seasonings?|ingredients?|casings?|packaging|supplies?\s*(inc|llc|corp)|automation|systems?\s*inc|technology|technologies|software|consulting|laboratories|laboratory|services\s+(?:inc|llc|corp))\b/i;
 
 const CORPORATE_BLOAT = /\b(foods?\s+(?:inc|llc|corp|company|international|global|worldwide)|industries\b|manufacturing\b|international\b|worldwide\b|corporation\b|enterprises\b|holdings?\b|group\b)\b/i;
 
@@ -44,6 +48,9 @@ export default async function handler(req) {
 
     // Hard block: known industrial brands
     if (BRAND_BLOCK.test(name)) { toDelete.push(r); continue; }
+
+    // Hard block: equipment/spice/packaging vendors (joined MPAs as vendor members)
+    if (VENDOR_BLOCK.test(name)) { toDelete.push(r); continue; }
 
     // Soft block: corporate-bloat words AND no small-shop signals
     if (CORPORATE_BLOAT.test(name) && !SMALL_SHOP_KEEP.test(name)) {
