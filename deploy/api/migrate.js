@@ -551,7 +551,27 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS email_log_template_idx ON email_log(template_id)`,
   `CREATE INDEX IF NOT EXISTS email_log_dedup_idx    ON email_log(dedup_key)`,
-  `CREATE INDEX IF NOT EXISTS email_log_to_idx       ON email_log(to_email)`
+  `CREATE INDEX IF NOT EXISTS email_log_to_idx       ON email_log(to_email)`,
+
+  // ──────────────────────────────────────────────────────────
+  // Geocoding — lat/lng on farms + processors + a shared cache.
+  // Resolved server-side via Nominatim (free, no API key) the first
+  // time we see a city/state/zip; cached in geocode_cache so we never
+  // re-fetch. Powers /map (farms, processors, demand, opportunity).
+  // ──────────────────────────────────────────────────────────
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION`,
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION`,
+
+  `CREATE TABLE IF NOT EXISTS geocode_cache (
+    query_key   TEXT PRIMARY KEY,         -- normalized lower-case "city, state, zip"
+    lat         DOUBLE PRECISION NOT NULL,
+    lng         DOUBLE PRECISION NOT NULL,
+    display     TEXT,
+    source      TEXT NOT NULL DEFAULT 'nominatim',
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+  )`
 ];
 
 const SEED_SQL = [
