@@ -148,6 +148,7 @@
       <div class="ov-stat" style="${c.disputes_open > 0 ? 'background: linear-gradient(135deg, #fff5e6, #ffe9c2);' : ''}"><p class="lab">Open disputes</p><div class="v">${c.disputes_open || 0}<small>${c.disputes_open ? fmt$(c.disputes_total_amount) : 'all clear'}</small></div></div>
       <div class="ov-stat"><p class="lab">Inst. pending review</p><div class="v">${c.institutions_pending || 0}<small>applications</small></div></div>
       <div class="ov-stat"><p class="lab">Inst. approved</p><div class="v">${c.institutions_approved || 0}<small>recipients</small></div></div>
+      <div class="ov-stat" style="${c.leads_hot > 0 ? 'background: linear-gradient(135deg, #ffe6dc, #ffc8a8);' : ''}"><p class="lab">Hot hardware leads</p><div class="v">${c.leads_hot || 0}<small>${c.leads_new ? c.leads_new + ' new total' : 'no new'}</small></div></div>
     </div>`;
 
   // Recent payments + recent reservations columns
@@ -215,6 +216,26 @@
       <div class="ov-card">
         <h2>Donation Depot — institution queue<small>${institutions.length || 0} latest</small></h2>
         ${institutionsHtml}
+      </div>
+    </div>`;
+
+  // ─── Hardware leads queue ───
+  const leads = data.recent_leads || [];
+  const tempColor = (t) => t === 'hot' ? '#c25250' : t === 'warm' ? '#d57f30' : '#5a6359';
+  const leadsHtml = leads.length ? leads.map(l => `
+    <div class="ov-row">
+      <div class="meta">
+        <h4>${l.full_name} <span class="pill" style="background: ${tempColor(l.temperature)}; color:#fbf9f5;">${l.temperature || 'cold'} · ${l.score || 0}</span></h4>
+        <p>${l.role || ''}${l.state ? ' · ' + l.state : ''}${l.timeline ? ' · timeline ' + l.timeline : ''}${l.bundle_interest ? ' · ' + l.bundle_interest : ''}<br>${l.email}${l.phone ? ' · ' + l.phone : ''}</p>
+      </div>
+      <div class="right"><a href="mailto:${l.email}" style="font-size:13px;">Email →</a></div>
+    </div>`).join('') : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No hardware leads yet.<br><span style="opacity:.7;font-size:12px;">Quote forms from /hardware land here, scored hot/warm/cold.</span></div>`;
+
+  html += `
+    <div class="ov-cols">
+      <div class="ov-card">
+        <h2>Hardware leads<small>last ${leads.length} · scored on intake</small></h2>
+        ${leadsHtml}
       </div>
     </div>`;
 

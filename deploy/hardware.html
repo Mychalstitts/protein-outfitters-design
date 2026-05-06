@@ -1196,13 +1196,13 @@
           <div class="config-summary-total"><span>Estimated total</span><span>$275,000</span></div>
         </div>
 
-        <form>
-          <div class="form-row"><label>Full name</label><input type="text" class="input" placeholder="Arthur Sterling" required /></div>
-          <div class="form-row"><label>Email</label><input type="email" class="input" placeholder="arthur@sterlingfarms.com" required /></div>
-          <div class="form-row"><label>Phone</label><input type="tel" class="input" placeholder="(218) 555-0142" required /></div>
+        <form id="hwQuoteForm" onsubmit="submitHardwareLead(event)">
+          <div class="form-row"><label>Full name</label><input name="full_name" type="text" class="input" placeholder="Arthur Sterling" required /></div>
+          <div class="form-row"><label>Email</label><input name="email" type="email" class="input" placeholder="arthur@sterlingfarms.com" required /></div>
+          <div class="form-row"><label>Phone</label><input name="phone" type="tel" class="input" placeholder="(218) 555-0142" /></div>
           <div class="form-row">
             <label>Role</label>
-            <select class="select">
+            <select name="role" class="select">
               <option>Farm owner</option>
               <option>Processor</option>
               <option>Locker operator</option>
@@ -1213,42 +1213,55 @@
           </div>
           <div class="form-row">
             <label>Operating state</label>
-            <select class="select">
-              <option>Minnesota</option>
-              <option>North Dakota</option>
-              <option>Wisconsin</option>
-              <option>Montana</option>
-              <option>Iowa</option>
-              <option>Other</option>
+            <select name="state" class="select">
+              <option value="MN">Minnesota</option>
+              <option value="ND">North Dakota</option>
+              <option value="WI">Wisconsin</option>
+              <option value="SD">South Dakota</option>
+              <option value="IA">Iowa</option>
+              <option value="MT">Montana</option>
+              <option value="MI">Michigan</option>
+              <option value="NE">Nebraska</option>
+              <option value="OTHER">Other</option>
             </select>
           </div>
           <div class="form-row">
             <label>Existing facility?</label>
             <div class="row gap-3">
-              <label class="row gap-2"><input type="radio" name="facility" /> <span style="font-size: var(--text-sm);">Yes — adding capacity</span></label>
-              <label class="row gap-2"><input type="radio" name="facility" /> <span style="font-size: var(--text-sm);">No — building new</span></label>
+              <label class="row gap-2"><input type="radio" name="existing_facility" value="yes" /> <span style="font-size: var(--text-sm);">Yes — adding capacity</span></label>
+              <label class="row gap-2"><input type="radio" name="existing_facility" value="no" /> <span style="font-size: var(--text-sm);">No — building new</span></label>
             </div>
           </div>
           <div class="form-row">
             <label>Timeline</label>
             <div class="row gap-2" style="flex-wrap: wrap;">
-              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> 0–3 months</label>
-              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> 3–6 months</label>
-              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> 6–12 months</label>
-              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> 12+ months</label>
-              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" style="display:none;" /> Just exploring</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" value="0-3m" style="display:none;" /> 0–3 months</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" value="3-6m" style="display:none;" /> 3–6 months</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" value="6-12m" style="display:none;" /> 6–12 months</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" value="12+m" style="display:none;" /> 12+ months</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="timeline" value="exploring" style="display:none;" /> Just exploring</label>
             </div>
           </div>
           <div class="form-row">
-            <label class="row gap-2"><input type="checkbox" /> <span style="font-size: var(--text-sm);">I'd like help with financing options (USDA FSA, equipment leasing)</span></label>
+            <label>Bundle of interest</label>
+            <div class="row gap-2" style="flex-wrap: wrap;">
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="bundle_interest" value="full" style="display:none;" /> Full pipeline (PS-1+)</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="bundle_interest" value="mhu" style="display:none;" /> Mobile Harvest Unit</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="bundle_interest" value="single" style="display:none;" /> Single module</label>
+              <label class="pill" style="cursor: pointer;"><input type="radio" name="bundle_interest" value="other" style="display:none;" /> Not sure yet</label>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="row gap-2"><input type="checkbox" name="financing_help" /> <span style="font-size: var(--text-sm);">I'd like help with financing options (USDA FSA, equipment leasing)</span></label>
           </div>
           <div class="form-row">
             <label>Anything else? <span class="hint">(optional)</span></label>
-            <textarea class="textarea" placeholder="Tell us about your operation — current throughput, why now, anything specific you want covered on the call."></textarea>
+            <textarea name="notes" class="textarea" placeholder="Tell us about your operation — current throughput, why now, anything specific you want covered on the call."></textarea>
           </div>
 
-          <button type="button" class="btn btn--primary btn--xl btn--block mt-6" onclick="showPage('confirm')">Submit &amp; schedule a call</button>
+          <button type="submit" class="btn btn--primary btn--xl btn--block mt-6" id="hwSubmitBtn">Submit &amp; schedule a call</button>
           <p class="text-faint text-center mt-3" style="font-size: 11px;">By submitting you agree to our privacy policy. We don't share your contact info with anyone.</p>
+          <p id="hwSubmitStatus" style="text-align: center; margin-top: 8px; font-size: 12px;"></p>
         </form>
       </div>
 
@@ -1389,6 +1402,55 @@ function recalcTotal() {
   });
   document.getElementById('config-total').textContent = '$' + total.toLocaleString();
 }
+
+// ─── Hardware quote-form submission → /api/hardware-lead ───
+async function submitHardwareLead(ev) {
+  ev.preventDefault();
+  const form = document.getElementById('hwQuoteForm');
+  const btn = document.getElementById('hwSubmitBtn');
+  const status = document.getElementById('hwSubmitStatus');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  status.textContent = '';
+  status.style.color = 'inherit';
+
+  const data = new FormData(form);
+  const payload = {
+    full_name: (data.get('full_name') || '').trim(),
+    email: (data.get('email') || '').trim(),
+    phone: (data.get('phone') || '').trim() || null,
+    role: data.get('role') || null,
+    state: data.get('state') || null,
+    existing_facility: data.get('existing_facility') || 'unknown',
+    timeline: data.get('timeline') || 'unknown',
+    bundle_interest: data.get('bundle_interest') || null,
+    financing_help: !!data.get('financing_help'),
+    notes: (data.get('notes') || '').trim() || null,
+  };
+
+  try {
+    const r = await fetch('/api/hardware-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const out = await r.json();
+    if (!r.ok) {
+      status.textContent = out.error || 'Submission failed';
+      status.style.color = '#c25250';
+      btn.disabled = false; btn.textContent = orig;
+      return;
+    }
+    showPage('confirm');
+    showToast(`Got it (${out.temperature || 'noted'} lead). Check your email for next steps.`);
+  } catch (e) {
+    status.textContent = 'Network error: ' + e.message;
+    status.style.color = '#c25250';
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+window.submitHardwareLead = submitHardwareLead;
 
 function showToast(msg) {
   const t = document.getElementById('toast');
