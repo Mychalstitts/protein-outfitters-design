@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Email QA · Protein Outfitters Admin</title>
+<meta name="description" content="Preview and test-send every lifecycle email." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+
+<style>
+  body { background: var(--bg, #fbf9f5); }
+  .em-shell { display: grid; grid-template-columns: 320px 1fr; gap: 24px; max-width: 1400px; margin: 0 auto; padding: clamp(20px, 3vw, 36px) clamp(16px, 3vw, 28px); align-items: start; }
+  @media (max-width: 920px) { .em-shell { grid-template-columns: 1fr; } }
+
+  .em-side { background: #fff; border-radius: 18px; box-shadow: 0 4px 18px rgba(6,27,14,.05); padding: 8px; max-height: calc(100vh - 80px); overflow-y: auto; position: sticky; top: 16px; }
+  .em-side h2 { font: 800 13px/1 'Inter'; padding: 14px 16px 10px; margin: 0; color: var(--ink-2, #5a6359); letter-spacing: .04em; text-transform: uppercase; }
+  .em-side .group { padding: 0 8px 12px; }
+  .em-side .group-label { font: 700 10.5px/1 'Inter'; color: rgba(6,27,14,.5); letter-spacing: .12em; text-transform: uppercase; padding: 8px 8px 6px; }
+  .em-side button.tpl { width: 100%; text-align: left; padding: 10px 12px; border-radius: 10px; background: transparent; border: 0; font: 600 12.5px/1.35 'Inter'; color: var(--ink, #061b0e); cursor: pointer; display: block; }
+  .em-side button.tpl:hover { background: rgba(6,27,14,.05); }
+  .em-side button.tpl.active { background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); }
+  .em-side button.tpl .tid { font: 700 11px/1 'Inter'; opacity: .6; display: block; margin-top: 3px; }
+
+  .em-main { background: #fff; border-radius: 18px; box-shadow: 0 4px 18px rgba(6,27,14,.05); overflow: hidden; }
+  .em-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 16px 20px; border-bottom: 1px solid rgba(6,27,14,.07); background: #faf8f3; }
+  .em-toolbar .id { font: 800 13px/1 'JetBrains Mono', ui-monospace, monospace; color: var(--ink, #061b0e); }
+  .em-toolbar .subject { font: 600 13px/1.3 'Inter'; color: var(--ink-2, #5a6359); flex: 1; min-width: 200px; }
+  .em-toolbar input { padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(6,27,14,.12); background: #fff; font: 500 12.5px/1 'Inter'; min-width: 220px; }
+  .em-toolbar button { padding: 9px 16px; border-radius: 10px; border: 0; background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); font: 700 12.5px/1 'Inter'; cursor: pointer; }
+  .em-toolbar button.ghost { background: rgba(6,27,14,.06); color: var(--ink, #061b0e); }
+  .em-toolbar button:hover { transform: translateY(-1px); }
+
+  .em-body { padding: 16px; min-height: 60vh; background: #f5f1e8; }
+  .em-frame { width: 100%; height: 70vh; border: 0; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(6,27,14,.06); }
+  .em-empty { display: grid; place-items: center; padding: 80px 20px; color: var(--ink-2, #5a6359); text-align: center; }
+  .em-empty h3 { font: 900 18px/1.2 'Inter'; color: var(--ink, #061b0e); margin: 0 0 6px; }
+
+  .em-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: 999px; background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); font: 700 13px/1 'Inter'; opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s; }
+  .em-toast.on { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+  .auth-required { padding: 80px 20px; text-align: center; }
+  .auth-required h2 { font: 900 22px/1.2 'Inter'; margin: 0 0 8px; }
+  .auth-required p { font: 500 14px/1.5 'Inter'; color: var(--ink-2, #5a6359); margin: 0 0 24px; }
+</style>
+</head>
+
+<body>
+
+<header class="glass-nav">
+  <div class="container">
+    <nav class="row row--between" style="padding: 14px 0;">
+      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; text-decoration: none; color: inherit;">Protein Outfitters</a>
+      <div class="po-nav-actions"><a href="/admin-overview" style="font-weight:700;font-size:13px;text-decoration:none;color:inherit;">Admin overview</a></div>
+    </nav>
+  </div>
+</header>
+
+<div id="signedOut" class="auth-required" hidden>
+  <h2>Admin only</h2>
+  <p>Sign in as an admin to QA email templates.</p>
+</div>
+
+<main id="signedIn" class="em-shell" hidden>
+  <aside class="em-side">
+    <h2>Lifecycle templates</h2>
+    <div id="tplList">
+      <div style="padding:14px 16px;font:500 12px/1.4 'Inter';color:var(--ink-2,#5a6359)">Loading…</div>
+    </div>
+  </aside>
+
+  <section class="em-main">
+    <div class="em-toolbar">
+      <span class="id" id="curId">—</span>
+      <span class="subject" id="curSubject">Pick a template on the left</span>
+      <input type="email" id="testRecipient" placeholder="test@example.com" />
+      <button class="ghost" id="btnRefresh" type="button">Refresh</button>
+      <button id="btnSend" type="button">Send test</button>
+    </div>
+    <div class="em-body">
+      <div class="em-empty" id="empty">
+        <div>
+          <h3>Pick a template</h3>
+          <p>Every lifecycle email — buyer (C-series), farmer (F), processor (P), donation (D), and Hardware — renders here with sample data.</p>
+        </div>
+      </div>
+      <iframe class="em-frame" id="frame" hidden></iframe>
+    </div>
+  </section>
+</main>
+
+<div class="em-toast" id="toast"></div>
+
+<script src="/po-api.js"></script>
+<script src="/po-shell.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // Group templates by series so the sidebar reads cleanly.
+  const SERIES = [
+    { key: 'C', label: 'Customer (buyer)' },
+    { key: 'F', label: 'Farmer / producer' },
+    { key: 'P', label: 'Processor' },
+    { key: 'D', label: 'Donation' },
+    { key: 'H', label: 'Hardware' },
+  ];
+
+  let currentId = null;
+
+  function toast(msg, ms = 2400) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('on'), ms);
+  }
+
+  function seriesFor(id) {
+    if (id.startsWith('C')) return 'C';
+    if (id.startsWith('F')) return 'F';
+    if (id.startsWith('P')) return 'P';
+    if (id.startsWith('D')) return 'D';
+    if (id.startsWith('Hardware')) return 'H';
+    return 'C';
+  }
+
+  async function checkAuth() {
+    try {
+      const r = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!r.ok) throw new Error('not authed');
+      const data = await r.json();
+      if (!data.user || data.user.role !== 'admin') throw new Error('not admin');
+      document.getElementById('signedIn').hidden = false;
+      document.getElementById('signedOut').hidden = true;
+      const ti = document.getElementById('testRecipient');
+      ti.value = data.user.email || '';
+      loadTemplates();
+    } catch {
+      document.getElementById('signedOut').hidden = false;
+      document.getElementById('signedIn').hidden = true;
+    }
+  }
+
+  async function loadTemplates() {
+    const list = document.getElementById('tplList');
+    try {
+      const r = await fetch('/api/admin-email-preview', { credentials: 'include' });
+      if (!r.ok) { list.innerHTML = '<div style="padding:14px 16px;color:#a13a3a;font:500 12px Inter;">Couldn\'t load.</div>'; return; }
+      const data = await r.json();
+      const grouped = {};
+      SERIES.forEach(s => { grouped[s.key] = []; });
+      (data.templates || []).forEach(t => { (grouped[seriesFor(t.id)] = grouped[seriesFor(t.id)] || []).push(t); });
+      list.innerHTML = SERIES.map(s => {
+        const items = grouped[s.key] || [];
+        if (!items.length) return '';
+        return `
+          <div class="group">
+            <div class="group-label">${s.label}</div>
+            ${items.sort((a,b) => a.id.localeCompare(b.id, undefined, { numeric: true })).map(t => `
+              <button class="tpl" data-id="${t.id}" type="button">
+                ${t.id.split('.').slice(1).join('.').replace(/_/g, ' ')}
+                <span class="tid">${t.id}</span>
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }).join('');
+      list.querySelectorAll('button.tpl').forEach(b => {
+        b.addEventListener('click', () => loadPreview(b.dataset.id));
+      });
+    } catch (e) {
+      list.innerHTML = '<div style="padding:14px 16px;color:#a13a3a;font:500 12px Inter;">Network error.</div>';
+    }
+  }
+
+  async function loadPreview(id) {
+    currentId = id;
+    document.querySelectorAll('button.tpl').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+    document.getElementById('curId').textContent = id;
+    document.getElementById('curSubject').textContent = 'Loading…';
+    try {
+      const r = await fetch('/api/admin-email-preview?id=' + encodeURIComponent(id) + '&format=json', { credentials: 'include' });
+      if (!r.ok) { toast('Couldn\'t render preview'); return; }
+      const data = await r.json();
+      document.getElementById('curSubject').textContent = data.subject || '(no subject)';
+      const frame = document.getElementById('frame');
+      const empty = document.getElementById('empty');
+      empty.hidden = true;
+      frame.hidden = false;
+      // srcdoc keeps the preview in its own document so its CSS can't bleed into the admin chrome
+      frame.srcdoc = data.html || '<p style="padding:24px">No body.</p>';
+    } catch (e) {
+      toast('Network error');
+    }
+  }
+
+  async function sendTest() {
+    if (!currentId) { toast('Pick a template first'); return; }
+    const to = (document.getElementById('testRecipient').value || '').trim();
+    if (!to || !/^[^@\s]+@[^@\s]+$/.test(to)) { toast('Valid email required'); return; }
+    const btn = document.getElementById('btnSend');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      const r = await fetch('/api/admin-email-preview?id=' + encodeURIComponent(currentId) + '&to=' + encodeURIComponent(to), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      const data = await r.json().catch(() => ({}));
+      if (data.sent) toast('Sent ✓ ' + (data.providerId ? 'id=' + data.providerId.slice(0, 8) : ''));
+      else if (data.skipped === 'no_api_key') toast('Logged (RESEND_API_KEY not set in env)');
+      else toast(data.error || 'Send returned: ' + JSON.stringify(data).slice(0, 120));
+    } catch (e) {
+      toast('Network error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Send test';
+    }
+  }
+
+  document.getElementById('btnSend').addEventListener('click', sendTest);
+  document.getElementById('btnRefresh').addEventListener('click', () => currentId && loadPreview(currentId));
+
+  checkAuth();
+})();
+</script>
+
+</body>
+</html>
