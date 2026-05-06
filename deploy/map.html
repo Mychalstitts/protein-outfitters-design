@@ -1,286 +1,442 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Farm map · Protein Outfitters</title>
-<meta name="description" content="See every farm with an animal reserving on Protein Outfitters, mapped to where they actually graze." />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<link rel="stylesheet" href="./theme.css" />
-<link rel="stylesheet" href="./po-shell.css" />
+<title>Map · Protein Outfitters</title>
+<meta name="description" content="Every farm, every processor, every market — mapped. The platform's atlas." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- Leaflet.heat for the demand heatmap -->
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<!-- Leaflet.markercluster -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+
 <style>
-  body { background: #fbf9f5; color: var(--ink); }
-  .map-shell { max-width: 1320px; margin: 0 auto; padding: 28px var(--shell-pad) 80px; }
-  .map-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom: 24px; }
-  .map-head h1 { font: 900 clamp(38px, 4.4vw, 60px)/1.02 var(--ff-sans); letter-spacing: -0.028em; margin: 0 0 8px; color: var(--ink); }
-  .map-head .eyebrow { font: 800 12px/1 var(--ff-sans); letter-spacing: .18em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px; }
-  .map-head p.lead { font: 500 16px/1.55 var(--ff-sans); color: var(--ink-2); margin: 0; max-width: 600px; }
+  body { margin: 0; background: #fbf9f5; color: var(--ink, #061b0e); font-family: 'Inter', system-ui, sans-serif; }
 
-  .map-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 22px; align-items: stretch; }
-  @media (max-width: 980px) { .map-grid { grid-template-columns: 1fr; } }
+  /* Layout */
+  .map-page { display: grid; grid-template-rows: auto 1fr; height: 100dvh; min-height: 720px; }
+  .map-frame { display: grid; grid-template-columns: 360px 1fr; height: 100%; overflow: hidden; }
+  @media (max-width: 920px) { .map-frame { grid-template-columns: 1fr; grid-template-rows: 1fr 320px; } }
 
-  .map-canvas-wrap { background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 12px 40px rgba(6,27,14,.10); position: relative; min-height: 540px; }
-  #poMap { width: 100%; height: 100%; min-height: 540px; }
+  /* Sidebar */
+  .map-side { background: #fff; border-right: 1px solid rgba(6,27,14,.08); display: flex; flex-direction: column; overflow: hidden; }
+  .map-side-head { padding: 18px 20px 14px; border-bottom: 1px solid rgba(6,27,14,.07); }
+  .map-side-head h1 { font: 900 22px/1.1 'Inter'; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .map-side-head p { font: 500 12.5px/1.5 'Inter'; color: var(--ink-2, #5a6359); margin: 0; }
+  .map-side-body { flex: 1; overflow-y: auto; padding: 8px; }
+  .map-side-foot { padding: 12px 16px; border-top: 1px solid rgba(6,27,14,.07); font: 500 11.5px/1.5 'Inter'; color: var(--ink-2, #5a6359); display: flex; gap: 10px; align-items: center; }
 
-  .map-loading, .map-error {
-    position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center;
-    background: linear-gradient(180deg,#0e2c19 0%, #1c2a22 100%);
-    color: #fbf9f5; font: 600 14px/1.5 var(--ff-sans);
-  }
-  .map-loading img, .map-error img { width: 56px; height: 56px; margin-bottom: 14px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
-  .map-error h3 { margin: 0 0 6px; font: 800 18px/1.3 var(--ff-sans); }
-  .map-error p { margin: 0; opacity: .82; max-width: 360px; }
+  /* Layer tabs */
+  .layer-tabs { display: flex; gap: 4px; padding: 12px 16px; background: rgba(6,27,14,.03); border-bottom: 1px solid rgba(6,27,14,.06); flex-wrap: wrap; }
+  .layer-tab { flex: 1; min-width: 70px; padding: 9px 8px; border-radius: 9px; background: transparent; border: 0; font: 700 11.5px/1.2 'Inter'; color: var(--ink-2, #5a6359); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: background .15s; }
+  .layer-tab:hover { background: rgba(6,27,14,.05); }
+  .layer-tab.active { background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); }
+  .layer-tab .count { font: 800 16px/1 'Inter'; }
+  .layer-tab .label { font-size: 10px; opacity: .85; letter-spacing: .04em; text-transform: uppercase; }
+  .layer-tab.locked { opacity: .35; cursor: not-allowed; }
+  .layer-tab.locked::after { content: '🔒'; font-size: 9px; margin-left: 4px; }
 
-  .farms-side { display: grid; gap: 12px; align-content: start; }
-  .farms-side h3 { margin: 0 0 4px; font: 800 14px/1.2 var(--ff-sans); letter-spacing: -0.01em; color: var(--ink-2); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; }
+  /* List items in side panel */
+  .list-item { display: flex; gap: 12px; padding: 11px 12px; border-radius: 10px; cursor: pointer; transition: background .15s; align-items: flex-start; }
+  .list-item:hover { background: rgba(6,27,14,.04); }
+  .list-item.active { background: rgba(125,160,93,.13); border: 1px solid rgba(125,160,93,.3); }
+  .list-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; font: 800 11.5px/1 'Inter'; color: #fbf9f5; }
+  .list-icon.farm { background: linear-gradient(135deg, #7da05d, #5a8540); }
+  .list-icon.processor { background: linear-gradient(135deg, #b48a5a, #8a6840); }
+  .list-icon.demand { background: linear-gradient(135deg, #d39c1f, #a17714); }
+  .list-icon.opportunity { background: linear-gradient(135deg, #c25250, #963d3b); }
+  .list-body { flex: 1; min-width: 0; }
+  .list-title { font: 700 13px/1.3 'Inter'; color: var(--ink, #061b0e); margin: 0 0 2px; }
+  .list-meta { font: 500 11.5px/1.4 'Inter'; color: var(--ink-2, #5a6359); margin: 0; }
+  .list-pill { display: inline-block; padding: 1px 7px; border-radius: 999px; font: 700 9.5px/1.5 'Inter'; letter-spacing: .04em; text-transform: uppercase; margin-right: 4px; }
+  .list-pill.green { background: rgba(125,160,93,.18); color: #2d4a18; }
+  .list-pill.red   { background: rgba(194,82,80,.16); color: #963d3b; }
+  .list-pill.orange { background: rgba(211,156,31,.18); color: #6b4f00; }
+  .list-empty { padding: 36px 16px; text-align: center; color: var(--ink-2, #5a6359); font: 500 13px/1.5 'Inter'; }
 
-  .farm-row { background: #fff; border-radius: 18px; padding: 16px 18px; display: grid; grid-template-columns: 52px 1fr auto; gap: 14px; align-items: center; cursor: pointer; transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease; border: 1.5px solid transparent; text-decoration: none; color: inherit; }
-  .farm-row:hover { box-shadow: 0 8px 24px rgba(6,27,14,.10); transform: translateY(-1px); }
-  .farm-row.active { border-color: var(--po-pasture, #7da05d); box-shadow: 0 0 0 2px rgba(125,160,93,.20); }
-  .farm-avatar { width: 52px; height: 52px; border-radius: 13px; background: linear-gradient(135deg, var(--po-pasture, #7da05d), var(--po-clay, #b48a5a)); color: #fbf9f5; display: grid; place-items: center; font: 900 15px/1 var(--ff-sans); letter-spacing: .04em; flex-shrink: 0; overflow: hidden; }
-  .farm-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .farm-meta h4 { margin: 0; font: 800 15px/1.2 var(--ff-sans); letter-spacing: -0.01em; color: var(--ink); }
-  .farm-meta p { margin: 3px 0 0; font: 500 12px/1.4 var(--ff-sans); color: var(--ink-2); }
-  .farm-stat { font: 800 13px/1 var(--ff-sans); color: var(--ink); text-align: right; white-space: nowrap; }
-  .farm-stat span { display:block; font: 600 10.5px/1.2 var(--ff-sans); color: var(--ink-2); margin-top: 4px; letter-spacing: .04em; text-transform: uppercase; }
+  /* Map canvas */
+  .map-canvas { position: relative; }
+  #leafletMap { width: 100%; height: 100%; background: #f5f1e8; }
 
-  .map-empty { background: #fff; border-radius: 18px; padding: 48px 24px; text-align: center; }
-  .map-empty img { width: 64px; height: 64px; border-radius: 14px; margin: 0 auto 14px; display: block; }
-  .map-empty h3 { font: 800 18px/1.3 var(--ff-sans); margin: 0 0 6px; }
-  .map-empty p { font: 500 14px/1.5 var(--ff-sans); color: var(--ink-2); margin: 0; max-width: 360px; margin-inline: auto; }
+  .map-loading { position: absolute; inset: 0; display: grid; place-items: center; background: #f5f1e8; z-index: 999; pointer-events: none; transition: opacity .2s; }
+  .map-loading.hide { opacity: 0; pointer-events: none; }
+  .map-loading .spinner { width: 36px; height: 36px; border: 3px solid rgba(6,27,14,.1); border-top-color: #7da05d; border-radius: 999px; animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Custom map InfoWindow content */
-  .iw-card { font: 500 13px/1.4 var(--ff-sans); color: var(--ink); padding: 4px 4px 6px; min-width: 200px; }
-  .iw-card h4 { margin: 0 0 4px; font: 800 15px/1.2 var(--ff-sans); }
-  .iw-card .meta { color: var(--ink-2); font-size: 12px; margin: 0 0 8px; }
-  .iw-card a.cta { display: inline-block; background: #061b0e; color: #fbf9f5; text-decoration: none; padding: 7px 12px; border-radius: 999px; font: 700 12px/1 var(--ff-sans); }
+  /* Top header */
+  .map-top { background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); padding: 12px 22px; display: flex; gap: 18px; align-items: center; }
+  .map-top a { color: var(--ink-inverse, #fbf9f5); text-decoration: none; font: 800 14px/1 'Inter'; letter-spacing: -0.01em; }
+  .map-top .stats { margin-left: auto; display: flex; gap: 18px; font: 600 12px/1 'Inter'; color: rgba(251,249,245,.75); }
+  .map-top .stats strong { color: #cfe9d3; font-weight: 800; margin-right: 4px; }
+
+  /* Custom Leaflet marker styles */
+  .pin { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 999px 999px 999px 0; transform: rotate(-45deg); border: 2px solid #fbf9f5; box-shadow: 0 4px 10px rgba(6,27,14,.25); }
+  .pin > * { transform: rotate(45deg); color: #fbf9f5; font: 900 11px/1 'Inter'; }
+  .pin.farm { background: #7da05d; }
+  .pin.processor { background: #b48a5a; }
+  .pin.opportunity { background: #c25250; }
+
+  /* Popup */
+  .leaflet-popup-content-wrapper { border-radius: 14px; box-shadow: 0 12px 30px rgba(6,27,14,.18); padding: 0; }
+  .leaflet-popup-content { margin: 14px 16px; font: 500 13px/1.45 'Inter'; }
+  .leaflet-popup-content h4 { font: 800 14px/1.2 'Inter'; margin: 0 0 6px; color: var(--ink, #061b0e); }
+  .leaflet-popup-content p { margin: 0 0 4px; color: var(--ink-2, #5a6359); }
+  .leaflet-popup-content .cta { display: inline-block; margin-top: 8px; padding: 6px 12px; border-radius: 999px; background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); font: 700 11.5px/1 'Inter'; text-decoration: none; }
+
+  /* Heatmap legend */
+  .map-legend { position: absolute; bottom: 18px; right: 18px; background: rgba(255,255,255,.95); padding: 10px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(6,27,14,.12); font: 600 11.5px/1.4 'Inter'; z-index: 500; max-width: 240px; }
+  .map-legend h5 { margin: 0 0 6px; font: 800 11px/1 'Inter'; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2, #5a6359); }
+  .map-legend .scale { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .map-legend .scale-bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #cfe9d3, #d39c1f, #c25250); }
+  .map-legend .scale-end { font: 600 10px/1 'Inter'; color: var(--ink-2, #5a6359); }
 </style>
 </head>
+
 <body>
 
-<div class="po-nav-wrap">
-  <nav class="po-nav">
-    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
-    <div class="po-nav-links">
-      <a href="/discover">Reserve</a>
-      <a href="/#how">How it works</a>
-      <a href="/producers">Producers</a>
-      <a href="/hardware">Hardware</a>
+<div class="map-page">
+  <header class="map-top">
+    <a href="/">PROTEIN OUTFITTERS</a>
+    <span style="opacity:.5;">·</span>
+    <span style="font-weight:600;">Atlas</span>
+    <div class="stats" id="topStats"></div>
+  </header>
+
+  <div class="map-frame">
+    <aside class="map-side">
+      <div class="map-side-head">
+        <h1 id="layerTitle">Loading…</h1>
+        <p id="layerLead">Mapping every farm, processor, and market across the upper Midwest.</p>
+      </div>
+
+      <div class="layer-tabs" id="layerTabs">
+        <button class="layer-tab active" data-layer="farms" type="button">
+          <span class="count" id="cFarms">—</span><span class="label">Farms</span>
+        </button>
+        <button class="layer-tab" data-layer="processors" type="button">
+          <span class="count" id="cProc">—</span><span class="label">Processors</span>
+        </button>
+        <button class="layer-tab locked" data-layer="demand" type="button">
+          <span class="count" id="cDemand">—</span><span class="label">Demand</span>
+        </button>
+        <button class="layer-tab locked" data-layer="opportunity" type="button">
+          <span class="count" id="cOpp">—</span><span class="label">Hardware</span>
+        </button>
+      </div>
+
+      <div class="map-side-body" id="sideList">
+        <div class="list-empty">Loading…</div>
+      </div>
+
+      <div class="map-side-foot">
+        <span id="footStat">—</span>
+        <span style="margin-left:auto;"><a href="/discover" style="color:inherit;text-decoration:none;font-weight:700;">Browse listings →</a></span>
+      </div>
+    </aside>
+
+    <div class="map-canvas">
+      <div id="leafletMap"></div>
+      <div class="map-loading" id="mapLoading"><div class="spinner"></div></div>
+      <div class="map-legend" id="mapLegend" style="display:none;">
+        <h5>Demand intensity</h5>
+        <div>Buyer signups by ZIP, last 90 days</div>
+        <div class="scale"><span class="scale-end">low</span><div class="scale-bar"></div><span class="scale-end">high</span></div>
+      </div>
     </div>
-    <div class="po-nav-actions">
-      <a href="/account" class="signin">Sign in</a>
-      <button class="reserve" data-open-sheet>Reserve</button>
-    </div>
-  </nav>
+  </div>
 </div>
 
-<main class="map-shell">
-  <div class="map-head">
-    <div>
-      <p class="eyebrow">Where the animals graze</p>
-      <h1>Farm map.</h1>
-      <p class="lead">Every farm with an animal reserving right now, dropped onto the map. Tap a pin to see what's available — drive out and meet the rancher if you want.</p>
-    </div>
-  </div>
-
-  <div class="map-grid">
-    <div class="map-canvas-wrap">
-      <div id="poMap"></div>
-      <div class="map-loading" id="mapLoading">
-        <div>
-          <img src="/brand/logo-monogram.svg" alt="" />
-          <div>Loading map…</div>
-        </div>
-      </div>
-    </div>
-    <aside class="farms-side" id="farmsList">
-      <h3>Farms reserving now</h3>
-    </aside>
-  </div>
-</main>
-
-<script src="./po-shell.js"></script>
 <script>
-(async function () {
-  const sideList = document.getElementById('farmsList');
-  const mapEl = document.getElementById('poMap');
-  const loadingEl = document.getElementById('mapLoading');
+(function () {
+  'use strict';
 
-  // ── 1. Pull farms + Maps API key in parallel ──────────────────
-  const [farmsResp, configResp] = await Promise.all([
-    fetch('/api/farms').then(r => r.json()).catch(() => ({ farms: [] })),
-    fetch('/api/config').then(r => r.json()).catch(() => ({ mapsKey: '' }))
-  ]);
+  // ── Map init ─────────────────────────────────────────────────
+  const map = L.map('leafletMap', {
+    zoomControl: true,
+    attributionControl: true,
+  }).setView([45.5, -94], 5);
 
-  const farms = (farmsResp.farms || []).filter(f => f.status !== 'archived');
-  const mapsKey = configResp.mapsKey || '';
+  // Style: muted earth-tone tiles to match the brand
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19,
+  }).addTo(map);
 
-  if (!farms.length) {
-    loadingEl.remove();
-    mapEl.outerHTML = '<div class="map-error" style="position:relative;background:linear-gradient(180deg,#fbf9f5,#f0e6d2);color:var(--ink);"><div><img src="/brand/logo-monogram.svg" alt=""/><h3>No farms reserving right now</h3><p>Check back soon — new producers are joining every week.</p></div></div>';
-    sideList.innerHTML += '<div class="map-empty"><p>Browse all listings to see what\'s available across the marketplace.</p><a href="/discover" style="display:inline-block;margin-top:12px;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:11px 22px;font:700 13px/1 \'Inter\';">Browse listings →</a></div>';
-    return;
+  // Custom HTML pin
+  function pinIcon(kind, label = '') {
+    return L.divIcon({
+      className: 'po-pin-wrapper',
+      html: `<div class="pin ${kind}"><span>${label || ''}</span></div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -28],
+    });
   }
 
-  // ── 2. Render side list immediately (works even if Maps fails) ──
-  sideList.innerHTML += farms.map(f => {
-    const initials = (f.name || '?').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-    const avatar = f.avatar_url ? `<img src="${f.avatar_url}" alt="" onerror="this.outerHTML='${initials}'" />` : initials;
-    const certs = (f.certs || []).slice(0, 2).map(c => c.toUpperCase()).join(' · ');
-    return `<a class="farm-row" data-slug="${f.slug}" href="/farm/${f.slug}" data-row>
-      <div class="farm-avatar">${avatar}</div>
-      <div class="farm-meta">
-        <h4>${f.name}</h4>
-        <p>${[f.city, f.state].filter(Boolean).join(', ') || '—'}${certs ? ' · ' + certs : ''}</p>
-      </div>
-      <div class="farm-stat">${f.listing_count || '—'}<span>animals</span></div>
-    </a>`;
-  }).join('');
+  // ── Layer state ──────────────────────────────────────────────
+  const layers = {
+    farms: L.markerClusterGroup({ disableClusteringAtZoom: 9 }),
+    processors: L.markerClusterGroup({ disableClusteringAtZoom: 9 }),
+    demand: L.layerGroup(),
+    opportunity: L.layerGroup(),
+  };
+  let heatLayer = null;
+  let currentLayer = 'farms';
+  let DATA = { farms: [], processors: [], demand: [], opportunity: [], is_admin: false };
 
-  // ── 3. If no Maps key, show a graceful explanation in the canvas ──
-  if (!mapsKey) {
-    loadingEl.outerHTML = `
-      <div class="map-error" style="background:linear-gradient(180deg,#0e2c19 0%, #1c2a22 100%);">
-        <div>
-          <img src="/brand/logo-monogram.svg" alt="" />
-          <h3>Map setup needed</h3>
-          <p>Add <code style="background:rgba(255,255,255,.10);padding:1px 6px;border-radius:4px;font-size:.92em;">GOOGLE_MAPS_KEY</code> to Vercel env vars to enable the live Google Map. Farms below still link through to profiles.</p>
+  // ── Layer title metadata ─────────────────────────────────────
+  const LAYER_META = {
+    farms: {
+      title: 'Farms',
+      lead: 'Every farm with a profile on Protein Outfitters. Click a pin to see who they are and what they\'re raising.',
+    },
+    processors: {
+      title: 'Processors',
+      lead: 'USDA / state-inspected processors and lockers. Buyers rely on these for cut and wrap; farmers schedule drop-offs here.',
+    },
+    demand: {
+      title: 'Customer demand',
+      lead: 'Where buyer signups concentrate. Heatmap intensity shows real demand for whole-animal protein — recruit farms here.',
+    },
+    opportunity: {
+      title: 'Hardware sales targets',
+      lead: 'Zips with active demand but no processor within 60 miles. Each red pin is a place where a new MHU pays back fast — book demos here.',
+    },
+  };
+
+  // ── Render side list ─────────────────────────────────────────
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  function initials(s) {
+    return String(s || '?').split(/[\s.&-]+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join('');
+  }
+
+  function renderSideList() {
+    const el = document.getElementById('sideList');
+    const meta = LAYER_META[currentLayer];
+    document.getElementById('layerTitle').textContent = meta.title;
+    document.getElementById('layerLead').textContent = meta.lead;
+
+    let items = [];
+    if (currentLayer === 'farms') {
+      items = DATA.farms.map(f => ({
+        kind: 'farm',
+        title: f.name,
+        meta: `${f.city || ''}${f.state ? ', ' + f.state : ''}${f.listings_count ? ' · ' + f.listings_count + ' listing' + (f.listings_count === 1 ? '' : 's') : ''}`,
+        pills: (f.identity || []).slice(0, 2).map(t => ({ text: t.replace(/-/g, ' '), color: 'green' })),
+        lat: f.lat, lng: f.lng, link: '/farm/' + f.slug,
+      }));
+    } else if (currentLayer === 'processors') {
+      items = DATA.processors.map(p => ({
+        kind: 'processor',
+        title: p.name,
+        meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.capacity_per_week ? ' · ' + p.capacity_per_week + '/wk capacity' : ''}`,
+        pills: (p.species || []).slice(0, 3).map(t => ({ text: t, color: 'orange' })),
+        lat: p.lat, lng: p.lng, link: null,
+      }));
+    } else if (currentLayer === 'demand') {
+      items = DATA.demand.slice(0, 60).map(d => ({
+        kind: 'demand',
+        title: 'ZIP ' + d.zip,
+        meta: `${d.user_count} buyer${d.user_count === 1 ? '' : 's'} · ${d.reservation_count} reservation${d.reservation_count === 1 ? '' : 's'} (90d)`,
+        pills: [],
+        lat: d.lat, lng: d.lng, link: null,
+      }));
+    } else if (currentLayer === 'opportunity') {
+      items = DATA.opportunity.filter(o => o.hardware_target).slice(0, 60).map(o => ({
+        kind: 'opportunity',
+        title: 'ZIP ' + o.zip + ' · ' + o.user_count + ' buyer' + (o.user_count === 1 ? '' : 's'),
+        meta: o.nearest_processor_miles == null ? 'No processor in our network' : `Nearest processor: ${o.nearest_processor_miles} mi away`,
+        pills: [{ text: 'hardware target', color: 'red' }],
+        lat: o.lat, lng: o.lng, link: null,
+      }));
+    }
+
+    if (!items.length) {
+      el.innerHTML = `<div class="list-empty">No ${meta.title.toLowerCase()} on the map yet.</div>`;
+      return;
+    }
+
+    el.innerHTML = items.map((it, i) => `
+      <div class="list-item" data-idx="${i}" data-lat="${it.lat}" data-lng="${it.lng}">
+        <span class="list-icon ${it.kind}">${escapeHtml(initials(it.title))}</span>
+        <div class="list-body">
+          <p class="list-title">${escapeHtml(it.title)}</p>
+          <p class="list-meta">${escapeHtml(it.meta)}</p>
+          ${it.pills.map(p => `<span class="list-pill ${p.color}">${escapeHtml(p.text)}</span>`).join('')}
         </div>
-      </div>`;
-    return;
-  }
+      </div>
+    `).join('');
 
-  // ── 4. Inject Google Maps JS asynchronously ────────────────────
-  await new Promise((resolve, reject) => {
-    if (window.google?.maps) return resolve();
-    const s = document.createElement('script');
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(mapsKey)}&libraries=places&v=weekly&loading=async`;
-    s.async = true;
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  }).catch(() => {
-    loadingEl.innerHTML = `<div><img src="/brand/logo-monogram.svg" alt=""/><h3>Map couldn't load</h3><p>Check that the Maps JavaScript API is enabled on your Google Cloud project.</p></div>`;
-  });
-
-  if (!window.google?.maps) return;
-
-  // ── 5. Initialize the map ──────────────────────────────────────
-  loadingEl.remove();
-  // Center on Bemidji, MN — heart of upper Midwest where most farms sit
-  const map = new google.maps.Map(mapEl, {
-    center: { lat: 47.4736, lng: -94.8803 },
-    zoom: 6,
-    mapId: 'DEMO_MAP_ID', // optional: use a styled mapId; falls back to default styles
-    gestureHandling: 'cooperative',
-    streetViewControl: false,
-    mapTypeControl: false,
-    fullscreenControl: true,
-    styles: [
-      { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-      { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-      { featureType: 'road', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-      { featureType: 'water', stylers: [{ color: '#cfe5e8' }] },
-      { featureType: 'landscape.natural', stylers: [{ color: '#f3eedc' }] },
-      { featureType: 'landscape.man_made', stylers: [{ color: '#fbf9f5' }] },
-      { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#3a4a3f' }] }
-    ]
-  });
-
-  const geocoder = new google.maps.Geocoder();
-  const bounds = new google.maps.LatLngBounds();
-  const markers = new Map();
-  const infoWindow = new google.maps.InfoWindow();
-
-  function pinIcon(active = false) {
-    const fill = active ? '#7da05d' : '#dca54a';
-    const stroke = '#1c2a22';
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="56" viewBox="0 0 44 56">
-      <path d="M22 1c11.6 0 21 9.4 21 21 0 14.5-21 33-21 33S1 36.5 1 22C1 10.4 10.4 1 22 1z" fill="${fill}" stroke="${stroke}" stroke-width="2.5" stroke-linejoin="round"/>
-      <circle cx="22" cy="20" r="7" fill="${stroke}"/>
-      <text x="22" y="24" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="900" font-size="10" fill="#fbf9f5">PO</text>
-    </svg>`;
-    return {
-      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-      scaledSize: new google.maps.Size(44, 56),
-      anchor: new google.maps.Point(22, 56)
-    };
-  }
-
-  function geocodeOne(f) {
-    if (f.lat && f.lng) return Promise.resolve({ lat: f.lat, lng: f.lng });
-    const q = [f.address, f.city, f.state, f.zip].filter(Boolean).join(', ');
-    if (!q) return Promise.resolve(null);
-    return new Promise((res) => {
-      geocoder.geocode({ address: q }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-          const loc = results[0].geometry.location;
-          res({ lat: loc.lat(), lng: loc.lng() });
-        } else res(null);
+    el.querySelectorAll('.list-item').forEach(node => {
+      node.addEventListener('click', () => {
+        const lat = parseFloat(node.getAttribute('data-lat'));
+        const lng = parseFloat(node.getAttribute('data-lng'));
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          map.setView([lat, lng], 11, { animate: true });
+        }
       });
     });
+
+    document.getElementById('footStat').textContent = `${items.length} ${meta.title.toLowerCase()} shown`;
   }
 
-  // Geocode + place markers
-  for (const f of farms) {
-    const pos = await geocodeOne(f);
-    if (!pos) continue;
-    const marker = new google.maps.Marker({
-      map, position: pos, title: f.name, icon: pinIcon(false), optimized: true
+  // ── Build map layers ─────────────────────────────────────────
+  function buildFarmsLayer() {
+    layers.farms.clearLayers();
+    DATA.farms.forEach(f => {
+      const m = L.marker([f.lat, f.lng], { icon: pinIcon('farm') });
+      m.bindPopup(`
+        <h4>${escapeHtml(f.name)}</h4>
+        <p>${escapeHtml(f.city || '')}${f.state ? ', ' + f.state : ''}</p>
+        ${f.listings_count ? `<p><strong>${f.listings_count}</strong> active listing${f.listings_count === 1 ? '' : 's'}</p>` : '<p style="opacity:.6">No active listings</p>'}
+        <a class="cta" href="/farm/${escapeHtml(f.slug)}">Visit profile →</a>
+      `);
+      layers.farms.addLayer(m);
     });
-    markers.set(f.slug, marker);
-    bounds.extend(pos);
-    marker.addListener('click', () => selectFarm(f.slug));
   }
 
-  // Fit to all farms with padding (or fall back to default zoom if 0–1 farms)
-  if (markers.size >= 2) {
-    map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
-  } else if (markers.size === 1) {
-    map.setCenter([...markers.values()][0].getPosition());
-    map.setZoom(8);
+  function buildProcessorsLayer() {
+    layers.processors.clearLayers();
+    DATA.processors.forEach(p => {
+      const m = L.marker([p.lat, p.lng], { icon: pinIcon('processor') });
+      m.bindPopup(`
+        <h4>${escapeHtml(p.name)}</h4>
+        <p>${escapeHtml(p.city || '')}${p.state ? ', ' + p.state : ''}</p>
+        ${p.capacity_per_week ? `<p>Capacity: <strong>${p.capacity_per_week}</strong>/wk</p>` : ''}
+        ${p.species?.length ? `<p>Species: ${escapeHtml(p.species.join(', '))}</p>` : ''}
+      `);
+      layers.processors.addLayer(m);
+    });
   }
 
-  // Wire side-list rows to map
-  document.querySelectorAll('[data-row]').forEach(row => {
-    row.addEventListener('mouseenter', (e) => {
-      // hover preview; stop nav default
-      const slug = row.dataset.slug;
-      const m = markers.get(slug);
-      if (m) m.setIcon(pinIcon(true));
+  function buildDemandLayer() {
+    layers.demand.clearLayers();
+    if (heatLayer) {
+      map.removeLayer(heatLayer);
+      heatLayer = null;
+    }
+    if (!DATA.demand.length) return;
+    const points = DATA.demand.map(d => [d.lat, d.lng, Math.min(1, d.user_count / 10)]);
+    heatLayer = L.heatLayer(points, {
+      radius: 35, blur: 25, maxZoom: 11,
+      gradient: { 0.0: '#cfe9d3', 0.4: '#d39c1f', 0.7: '#c25250', 1.0: '#7d2c2a' },
     });
-    row.addEventListener('mouseleave', () => {
-      markers.forEach((m, slug) => {
-        if (!row.classList.contains('active')) m.setIcon(pinIcon(false));
-      });
-    });
-    row.addEventListener('click', (e) => {
-      // Allow CMD/CTRL-click to navigate to farm page
-      if (e.metaKey || e.ctrlKey || e.button === 1) return;
-      e.preventDefault();
-      selectFarm(row.dataset.slug);
-    });
-  });
+  }
 
-  function selectFarm(slug) {
-    const f = farms.find(x => x.slug === slug);
-    const m = markers.get(slug);
-    document.querySelectorAll('.farm-row').forEach(r => r.classList.toggle('active', r.dataset.slug === slug));
-    markers.forEach((mk, s) => mk.setIcon(pinIcon(s === slug)));
-    if (m && f) {
-      map.panTo(m.getPosition());
-      if (map.getZoom() < 8) map.setZoom(9);
-      const certs = (f.certs || []).map(c => c.toUpperCase()).join(' · ');
-      infoWindow.setContent(`
-        <div class="iw-card">
-          <h4>${f.name}</h4>
-          <p class="meta">${[f.city, f.state].filter(Boolean).join(', ')}${certs ? ' · ' + certs : ''}</p>
-          <a class="cta" href="/farm/${f.slug}">View profile →</a>
-        </div>`);
-      infoWindow.open({ map, anchor: m });
+  function buildOpportunityLayer() {
+    layers.opportunity.clearLayers();
+    DATA.opportunity.filter(o => o.hardware_target).forEach(o => {
+      const m = L.marker([o.lat, o.lng], { icon: pinIcon('opportunity') });
+      m.bindPopup(`
+        <h4>ZIP ${escapeHtml(o.zip)}</h4>
+        <p><strong>${o.user_count}</strong> buyer${o.user_count === 1 ? '' : 's'} · ${o.reservation_count} reservation${o.reservation_count === 1 ? '' : 's'} (90d)</p>
+        <p>${o.nearest_processor_miles == null ? 'No processor in network' : 'Nearest processor: <strong>' + o.nearest_processor_miles + ' mi</strong>'}</p>
+        <a class="cta" href="/hardware?utm_source=map&utm_medium=opportunity&utm_zip=${escapeHtml(o.zip)}">Recruit this area →</a>
+      `);
+      layers.opportunity.addLayer(m);
+    });
+  }
+
+  function showLayer(name) {
+    currentLayer = name;
+    Object.values(layers).forEach(l => map.removeLayer(l));
+    if (heatLayer) map.removeLayer(heatLayer);
+
+    document.querySelectorAll('.layer-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.layer === name);
+    });
+
+    if (name === 'farms') {
+      map.addLayer(layers.farms);
+      document.getElementById('mapLegend').style.display = 'none';
+      if (DATA.farms.length) {
+        const bounds = L.latLngBounds(DATA.farms.map(f => [f.lat, f.lng]));
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+      }
+    } else if (name === 'processors') {
+      map.addLayer(layers.processors);
+      document.getElementById('mapLegend').style.display = 'none';
+      if (DATA.processors.length) {
+        const bounds = L.latLngBounds(DATA.processors.map(p => [p.lat, p.lng]));
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+      }
+    } else if (name === 'demand') {
+      if (heatLayer) heatLayer.addTo(map);
+      document.getElementById('mapLegend').style.display = 'block';
+    } else if (name === 'opportunity') {
+      map.addLayer(layers.opportunity);
+      map.addLayer(layers.processors);  // show processors as context
+      document.getElementById('mapLegend').style.display = 'none';
+    }
+    renderSideList();
+  }
+
+  // ── Load data ────────────────────────────────────────────────
+  async function load() {
+    try {
+      const r = await fetch('/api/map-data', { credentials: 'include' });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'failed');
+      DATA = data;
+
+      // Stats banner
+      document.getElementById('topStats').innerHTML = `
+        <span><strong>${data.counts.farms}</strong>farms</span>
+        <span><strong>${data.counts.processors}</strong>processors</span>
+        ${data.is_admin ? `<span><strong>${data.counts.demand_zips}</strong>demand zips</span><span style="color:#f6c5c4;"><strong>${data.counts.opportunity_targets}</strong>hardware targets</span>` : ''}
+      `;
+      // Counters
+      document.getElementById('cFarms').textContent = data.counts.farms;
+      document.getElementById('cProc').textContent = data.counts.processors;
+      document.getElementById('cDemand').textContent = data.is_admin ? data.counts.demand_zips : '🔒';
+      document.getElementById('cOpp').textContent = data.is_admin ? data.counts.opportunity_targets : '🔒';
+
+      // Unlock admin tabs
+      if (data.is_admin) {
+        document.querySelectorAll('.layer-tab.locked').forEach(t => t.classList.remove('locked'));
+      }
+
+      buildFarmsLayer();
+      buildProcessorsLayer();
+      if (data.is_admin) {
+        buildDemandLayer();
+        buildOpportunityLayer();
+      }
+      showLayer('farms');
+      document.getElementById('mapLoading').classList.add('hide');
+    } catch (e) {
+      document.getElementById('mapLoading').innerHTML = `<div style="text-align:center;color:#a13a3a;font:600 13px Inter;padding:20px;">Couldn't load map.<br><span style="color:rgba(6,27,14,.5);">${escapeHtml(e.message || '')}</span></div>`;
     }
   }
+
+  document.querySelectorAll('.layer-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      if (t.classList.contains('locked')) return;
+      showLayer(t.dataset.layer);
+    });
+  });
+
+  load();
 })();
 </script>
+
 </body>
 </html>
