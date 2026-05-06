@@ -8,6 +8,12 @@
   "redirects": [
     { "source": "/produced", "destination": "/producers", "permanent": true }
   ],
+  "crons": [
+    {
+      "path": "/api/email-tick",
+      "schedule": "0 14 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
