@@ -315,6 +315,61 @@ export default async function handler(req) {
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
         const sub = event.data.object;
+
+        // ──── Map Insights tier (Pro / Hardware) ────────────────
+        // /api/map-subscribe stamps metadata.tier ∈ {pro,hardware} + user_id.
+        // We mirror state into the users table so /api/map-data can gate layers.
+        const mapTier = sub.metadata?.tier;
+        const mapUserId = sub.metadata?.user_id;
+        if (mapUserId && (mapTier === 'pro' || mapTier === 'hardware')) {
+          // Ensure schema exists (idempotent — first writer wins)
+          try {
+            await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS map_tier TEXT DEFAULT 'free'`;
+            await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS map_tier_period_end TIMESTAMPTZ`;
+            await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS map_stripe_customer_id TEXT`;
+            await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS map_stripe_subscription_id TEXT`;
+          } catch (e) { /* best-effort */ }
+
+          const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+          const isCanceled = event.type === 'customer.subscription.deleted'
+            || sub.status === 'canceled'
+            || sub.status === 'incomplete_expired';
+          const newTier = isCanceled ? 'free' : mapTier;
+
+          await sql`
+            UPDATE users
+            SET map_tier = ${newTier},
+                map_tier_period_end = ${periodEnd},
+                map_stripe_subscription_id = ${sub.id},
+                map_stripe_customer_id = ${typeof sub.customer === 'string' ? sub.customer : sub.customer?.id || null}
+            WHERE id = ${mapUserId}`;
+
+          // Drop a notification so the user sees their tier change in /notifications
+          try {
+            const u = await sql`SELECT email FROM users WHERE id = ${mapUserId}`;
+            if (u[0]?.email) {
+              await sql`
+                INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
+                VALUES (
+                  ${String(u[0].email).toLowerCase()},
+                  ${'map.tier.' + (isCanceled ? 'canceled' : 'active')},
+                  ${isCanceled ? 'Map Insights canceled' : 'Map Insights active — ' + newTier},
+                  ${isCanceled
+                    ? 'Your subscription was canceled. You\'re back on the free tier.'
+                    : 'Your ' + newTier + ' tier is active. Open /map to see the new layers.'},
+                  '/map',
+                  ${isCanceled ? 'alert' : 'check'},
+                  ${'notif::map_tier::' + sub.id + '::' + event.type}
+                )
+                ON CONFLICT (dedup_key) DO NOTHING`;
+            }
+          } catch (e) { console.error('map-tier notif failed:', e.message); }
+
+          console.log(`Map tier ${event.type}: user=${mapUserId} → ${newTier} (sub=${sub.id})`);
+          break; // don't fall through to processor SaaS branch
+        }
+
+        // ──── Processor SaaS subscriptions ──────────────────────
         // Only act on processor SaaS subscriptions (we tag these in metadata at create)
         if (sub.metadata?.kind !== 'processor_saas') break;
         const processorId = sub.metadata?.processor_id;
@@ -361,6 +416,42 @@ export default async function handler(req) {
         // the subscription event already carries that.
         const invoice = event.data.object;
         if (!invoice.subscription) break;
+
+        // Map Insights renewal — bump period_end on the user, drop a renewal note.
+        // (Looks up by stripe_subscription_id; only fires if a user owns this sub.)
+        try {
+          const mapUser = await sql`
+            SELECT id, email, map_tier
+            FROM users
+            WHERE map_stripe_subscription_id = ${invoice.subscription}
+            LIMIT 1`;
+          if (mapUser[0]) {
+            // Try to grab the new period_end from the invoice's lines (or skip)
+            const newEnd = invoice.lines?.data?.[0]?.period?.end
+              ? new Date(invoice.lines.data[0].period.end * 1000).toISOString()
+              : null;
+            if (newEnd) {
+              await sql`UPDATE users SET map_tier_period_end = ${newEnd} WHERE id = ${mapUser[0].id}`;
+            }
+            if (mapUser[0].email) {
+              await sql`
+                INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
+                VALUES (
+                  ${String(mapUser[0].email).toLowerCase()},
+                  'map.tier.renewed',
+                  ${'Map Insights renewed — ' + (mapUser[0].map_tier || 'pro')},
+                  'Your subscription renewed for the next billing cycle.',
+                  '/map',
+                  'receipt',
+                  ${'notif::map_renew::' + invoice.id}
+                )
+                ON CONFLICT (dedup_key) DO NOTHING`;
+            }
+            console.log(`Map tier invoice.paid: user=${mapUser[0].id} period_end=${newEnd}`);
+            // Don't break here — also fall through in case it's a multi-product invoice
+          }
+        } catch (e) { console.error('map invoice.paid failed:', e.message); }
+
         await sql`
           UPDATE processor_subscriptions
           SET status = 'active', updated_at = NOW()
