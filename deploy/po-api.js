@@ -49,7 +49,16 @@
       jsonFetch(`/api/reviews?subject_type=${encodeURIComponent(subject_type)}&subject_id=${encodeURIComponent(subject_id)}`),
     submitReview: (data) => jsonFetch('/api/reviews', { method: 'POST', body: data }),
 
-    donate: (data) => jsonFetch('/api/donations', { method: 'POST', body: data })
+    donate: (data) => jsonFetch('/api/donations', { method: 'POST', body: data }),
+
+    // ─ Notifications (in-app inbox) ─
+    notifications: (opts = {}) => {
+      const q = new URLSearchParams(opts).toString();
+      return jsonFetch('/api/notifications' + (q ? '?' + q : ''));
+    },
+    notificationsUnreadCount: () => jsonFetch('/api/notifications?count=1'),
+    markNotificationRead: (id) => jsonFetch('/api/notifications?id=' + encodeURIComponent(id), { method: 'PATCH' }),
+    markAllNotificationsRead: () => jsonFetch('/api/notifications?all=1', { method: 'PATCH' })
   };
 
   window.PO_API = api;

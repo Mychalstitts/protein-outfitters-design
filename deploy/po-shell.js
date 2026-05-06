@@ -508,6 +508,32 @@
         .po-user-menu a, .po-user-menu button{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:8px;background:transparent;border:0;color:var(--ink, #061b0e);text-decoration:none;font:600 12.5px/1.2 'Inter';cursor:pointer}
         .po-user-menu a:hover, .po-user-menu button:hover{background:rgba(6,27,14,.05)}
         .po-user-menu .signout{color:#a13a3a;border-top:1px solid rgba(6,27,14,.06);margin-top:4px;padding-top:10px}
+
+        /* Notifications bell */
+        .po-bell{position:relative;width:38px;height:38px;border-radius:999px;background:rgba(6,27,14,.06);border:0;color:var(--ink,#061b0e);display:inline-grid;place-items:center;cursor:pointer;transition:all .2s cubic-bezier(.2,.9,.3,1.4)}
+        .po-bell:hover{background:rgba(6,27,14,.1);transform:translateY(-1px)}
+        .po-bell svg{width:18px;height:18px}
+        .po-bell-badge{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#a13a3a;color:#fff;font:800 10px/18px 'Inter',system-ui,sans-serif;text-align:center;display:none}
+        .po-bell-badge.has{display:block}
+        .po-notif-pop{position:absolute;top:calc(100% + 8px);right:0;width:360px;max-height:480px;overflow:hidden;background:#fff;border-radius:14px;box-shadow:0 18px 48px rgba(6,27,14,.18);display:none;z-index:200;flex-direction:column}
+        .po-notif-pop.open{display:flex}
+        .po-notif-head{padding:14px 16px;border-bottom:1px solid rgba(6,27,14,.07);display:flex;align-items:center;justify-content:space-between}
+        .po-notif-head h4{margin:0;font:800 14px/1 'Inter';color:var(--ink,#061b0e)}
+        .po-notif-head button{background:transparent;border:0;color:#5a6359;font:600 11.5px/1 'Inter';cursor:pointer}
+        .po-notif-head button:hover{color:var(--ink,#061b0e);text-decoration:underline}
+        .po-notif-list{flex:1;overflow-y:auto;padding:4px}
+        .po-notif-item{display:flex;gap:11px;padding:11px 13px;border-radius:10px;text-decoration:none;color:inherit;cursor:pointer;border:0;background:transparent;width:100%;text-align:left}
+        .po-notif-item:hover{background:rgba(6,27,14,.04)}
+        .po-notif-item.unread{background:rgba(125,160,93,.07)}
+        .po-notif-item.unread:hover{background:rgba(125,160,93,.13)}
+        .po-notif-icon{flex-shrink:0;width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,#7da05d,#b48a5a);color:#fbf9f5;display:grid;place-items:center;font:600 16px/1 'Material Symbols Outlined','Material Icons';font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 24}
+        .po-notif-body{flex:1;min-width:0}
+        .po-notif-title{font:700 12.5px/1.35 'Inter';color:var(--ink,#061b0e);margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .po-notif-meta{font:500 10.5px/1.3 'Inter';color:rgba(6,27,14,.55)}
+        .po-notif-empty{padding:30px 20px;text-align:center;color:rgba(6,27,14,.55);font:500 12.5px/1.5 'Inter'}
+        .po-notif-foot{padding:8px;border-top:1px solid rgba(6,27,14,.07);text-align:center}
+        .po-notif-foot a{color:var(--ink,#061b0e);font:700 12px/1 'Inter';text-decoration:none;padding:8px 12px;border-radius:8px;display:inline-block}
+        .po-notif-foot a:hover{background:rgba(6,27,14,.05)}
       `;
       document.head.appendChild(s);
     }
@@ -527,7 +553,28 @@
     const wrap = document.createElement('div');
     wrap.style.position = 'relative';
     wrap.style.display = 'inline-flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.gap = '8px';
     wrap.innerHTML = `
+      <div style="position:relative;display:inline-flex">
+        <button class="po-bell" id="poBell" type="button" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+          <span class="po-bell-badge" id="poBellBadge">0</span>
+        </button>
+        <div class="po-notif-pop" id="poNotifPop">
+          <div class="po-notif-head">
+            <h4>Notifications</h4>
+            <button id="poNotifMarkAll" type="button">Mark all read</button>
+          </div>
+          <div class="po-notif-list" id="poNotifList">
+            <div class="po-notif-empty">Loading…</div>
+          </div>
+          <div class="po-notif-foot"><a href="/notifications">View all →</a></div>
+        </div>
+      </div>
       <button class="po-user-chip" id="poUserChip" type="button">
         <span class="po-user-chip-avatar">${initials || '?'}</span>
         <span>${escapeHtml(display)}</span>
@@ -540,6 +587,7 @@
           <span class="pum-role">${user.role || 'buyer'}</span>
         </div>
         <a href="/account">My account</a>
+        <a href="/notifications">Notifications</a>
         <a href="/finance">Finance</a>
         ${user.role === 'producer' || user.role === 'admin' ? '<a href="/farmer">Producer dashboard</a>' : ''}
         ${user.role === 'processor' || user.role === 'admin' ? '<a href="/processor">Processor portal</a>' : ''}
@@ -557,6 +605,82 @@
       try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
       location.href = '/';
     });
+
+    // ─── Notifications wiring ───────────────────────────────────
+    const bell = document.getElementById('poBell');
+    const pop = document.getElementById('poNotifPop');
+    const list = document.getElementById('poNotifList');
+    const badge = document.getElementById('poBellBadge');
+
+    function timeAgo(iso) {
+      if (!iso) return '';
+      const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (s < 60) return 'just now';
+      if (s < 3600) return Math.floor(s / 60) + 'm';
+      if (s < 86400) return Math.floor(s / 3600) + 'h';
+      if (s < 604800) return Math.floor(s / 86400) + 'd';
+      return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    async function refreshUnread() {
+      try {
+        const r = await fetch('/api/notifications?count=1', { credentials: 'include' });
+        if (!r.ok) return;
+        const data = await r.json();
+        const n = data.unread || 0;
+        badge.textContent = n > 99 ? '99+' : String(n);
+        badge.classList.toggle('has', n > 0);
+      } catch {}
+    }
+
+    async function loadNotifications() {
+      try {
+        const r = await fetch('/api/notifications', { credentials: 'include' });
+        if (!r.ok) { list.innerHTML = '<div class="po-notif-empty">Couldn\'t load.</div>'; return; }
+        const data = await r.json();
+        const items = data.notifications || [];
+        if (!items.length) {
+          list.innerHTML = '<div class="po-notif-empty">No notifications yet.<br>Reservations, payouts, and updates land here.</div>';
+          return;
+        }
+        list.innerHTML = items.map(n => `
+          <a class="po-notif-item ${n.read_at ? '' : 'unread'}" href="${escapeHtml(n.link_url || '/account')}" data-id="${escapeHtml(n.id)}">
+            <span class="po-notif-icon">${escapeHtml(n.icon || 'notifications')}</span>
+            <span class="po-notif-body">
+              <span class="po-notif-title">${escapeHtml(n.title || '')}</span>
+              <span class="po-notif-meta">${timeAgo(n.created_at)}${n.read_at ? '' : ' · new'}</span>
+            </span>
+          </a>
+        `).join('');
+        // mark each one read on click (don't await — let navigation proceed)
+        list.querySelectorAll('.po-notif-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const id = el.getAttribute('data-id');
+            fetch('/api/notifications?id=' + encodeURIComponent(id), { method: 'PATCH', credentials: 'include' }).catch(() => {});
+          });
+        });
+      } catch {
+        list.innerHTML = '<div class="po-notif-empty">Couldn\'t load.</div>';
+      }
+    }
+
+    bell.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = pop.classList.toggle('open');
+      menu.classList.remove('open');
+      if (isOpen) loadNotifications();
+    });
+    document.addEventListener('click', () => pop.classList.remove('open'));
+    document.getElementById('poNotifMarkAll').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try { await fetch('/api/notifications?all=1', { method: 'PATCH', credentials: 'include' }); } catch {}
+      await refreshUnread();
+      loadNotifications();
+    });
+
+    refreshUnread();
+    // Light polling so the badge doesn't go stale on long sessions
+    setInterval(refreshUnread, 60000);
   }
 
   function escapeHtml(s) {

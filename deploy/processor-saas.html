@@ -197,7 +197,7 @@
           <li>1 staff seat</li>
           <li>Email support</li>
         </ul>
-        <button class="btn btn--secondary btn--block tier-cta" onclick="showToast('Free tier · no credit card needed')">Get started free</button>
+        <button class="btn btn--secondary btn--block tier-cta" data-tier="free">Get started free</button>
       </div>
 
       <!-- Standard (popular) -->
@@ -220,7 +220,7 @@
           <li>Custom branding on emails</li>
           <li>Dropoff deposit hold + auto-release</li>
         </ul>
-        <button class="btn btn--apple-pay btn--block btn--lg tier-cta" onclick="showToast('Stripe Checkout · 14-day free trial')">Start 14-day trial</button>
+        <button class="btn btn--apple-pay btn--block btn--lg tier-cta" data-tier="standard">Start 14-day trial</button>
       </div>
 
       <!-- Premium -->
@@ -242,7 +242,7 @@
           <li>Dedicated CSM (customer success manager)</li>
           <li>Early access to new features</li>
         </ul>
-        <button class="btn btn--secondary btn--block tier-cta" onclick="showToast('Stripe Checkout · 14-day free trial')">Start 14-day trial</button>
+        <button class="btn btn--secondary btn--block tier-cta" data-tier="premium">Start 14-day trial</button>
       </div>
     </div>
 
@@ -498,6 +498,65 @@ function showToast(msg) {
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
 }
+
+// ─── Subscribe via Stripe Checkout (or free-tier write) ────────────
+async function subscribeToTier(tier, btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = tier === 'free' ? 'Saving…' : 'Opening Stripe…';
+  try {
+    const r = await fetch('/api/processor-subscription', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tier, cadence })
+    });
+    if (r.status === 401) {
+      showToast('Sign in as your processor account first');
+      if (window.PO_API && window.PO_API.openAuth) window.PO_API.openAuth('Sign in as your processor account', 'processor');
+      return;
+    }
+    if (r.status === 403) {
+      showToast('You need a processor profile to subscribe');
+      return;
+    }
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      showToast(data.error || 'Couldn\'t start checkout');
+      return;
+    }
+    if (tier === 'free') {
+      showToast('Free tier active.');
+      setTimeout(() => location.href = '/processor', 800);
+      return;
+    }
+    if (data.checkout_url) {
+      // Forward to Stripe Checkout
+      window.location.href = data.checkout_url;
+      return;
+    }
+    showToast('Checkout response missing URL.');
+  } catch (e) {
+    showToast('Network error — try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+// Wire CTA buttons
+document.querySelectorAll('.tier-cta[data-tier]').forEach(btn => {
+  btn.addEventListener('click', () => subscribeToTier(btn.dataset.tier, btn));
+});
+
+// If we came back from Stripe Checkout success, flash a toast
+if (new URLSearchParams(location.search).get('subscribed') === '1') {
+  setTimeout(() => showToast('Subscription active! Setting up your account…'), 200);
+}
+if (new URLSearchParams(location.search).get('canceled') === '1') {
+  setTimeout(() => showToast('Checkout canceled — no charge.'), 200);
+}
 </script>
+<script src="/po-api.js"></script>
 </body>
 </html>
