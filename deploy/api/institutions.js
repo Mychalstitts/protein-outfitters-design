@@ -169,7 +169,26 @@ export default async function handler(req) {
     params.push(id);
     const rows = await rawQuery(`UPDATE institutions SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`, params);
     if (!rows[0]) return err(404, 'Institution not found');
-    return json({ institution: rows[0] });
+    const updated = rows[0];
+
+    // D2 institution-approval email (sends only on transition to 'approved').
+    if (body.status === 'approved' && updated.contact_email) {
+      try {
+        const { sendLifecycleEmail } = await import('./_lib/email.js');
+        await sendLifecycleEmail('D2.institution_approved', {
+          to: updated.contact_email,
+          institution_id: updated.id,
+          contact_name: updated.contact_name,
+          legal_name: updated.legal_name,
+          type: updated.type,
+          people_per_week: updated.people_per_week,
+          storage: updated.storage,
+          dedupKey: `D2::${updated.id}::approved`,
+        });
+      } catch (e) { console.error('D2 send failed:', e); }
+    }
+
+    return json({ institution: updated });
   }
 
   return err(405, 'Method not allowed');

@@ -12,7 +12,7 @@
 // to verify the signature, so we cannot run on edge runtime.
 import Stripe from 'stripe';
 import { sql } from './_lib/db.js';
-import { Resend } from 'resend';
+import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs', api: { bodyParser: false } };
 
@@ -107,31 +107,42 @@ export default async function handler(req) {
           console.error('Connect transfer error (non-fatal):', transferErr.message);
         }
 
-        // Best-effort confirmation email
-        if (process.env.RESEND_API_KEY) {
-          try {
-            const resend = new Resend(process.env.RESEND_API_KEY);
-            const buyerEmail = session.customer_details?.email || session.customer_email;
-            if (buyerEmail) {
-              const farmName = session.metadata?.farm_name || 'your farm';
-              const animal = session.metadata?.animal_number || 'your reservation';
-              const total = (session.amount_total / 100).toLocaleString('en-US', { style: 'currency', currency: 'usd' });
-              await resend.emails.send({
-                from: process.env.RESEND_FROM || 'Protein Outfitters <hello@proteinoutfitters.com>',
-                to: buyerEmail,
-                subject: `Reservation confirmed — ${animal} from ${farmName}`,
-                html: `
-                  <div style="font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#061b0e;">
-                    <h1 style="font-size:22px;margin:0 0 14px;">Your reservation is locked in.</h1>
-                    <p>Thanks for reserving <strong>${animal}</strong> from <strong>${farmName}</strong>.</p>
-                    <p>You paid <strong>${total}</strong> today (deposit + processing + insurance). The remaining balance is settled at pickup based on actual hanging weight.</p>
-                    <p>Next: we'll email your cut sheet within 24 hours so you can dial in exactly how you want every cut.</p>
-                    <p style="margin-top:24px;"><a href="https://www.proteinoutfitters.com/account" style="background:#061b0e;color:#fbf9f5;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;">View your reservation →</a></p>
-                  </div>`
-              });
-            }
-          } catch (emailErr) { console.error('Email send failed:', emailErr); }
-        }
+        // C1 reservation confirmation via the lifecycle email module.
+        try {
+          const buyerEmail = session.customer_details?.email || session.customer_email;
+          if (buyerEmail) {
+            // Pull richer data for the template
+            const r = await sql`
+              SELECT r.share_size, r.deposit_amount, r.buyer_name,
+                     l.number as animal_number, l.breed, l.species, l.expected_finish_date,
+                     f.name as farm_name, f.city as farm_city, f.state as farm_state,
+                     p.name as processor_name
+              FROM reservations r
+              JOIN listings l ON l.id = r.listing_id
+              JOIN farms f ON f.id = l.farm_id
+              LEFT JOIN processors p ON p.id = r.processor_id
+              WHERE r.id = ${reservationId} LIMIT 1`;
+            const row = r[0] || {};
+            const fractionPretty = row.share_size === 'whole' ? 'Whole animal'
+              : row.share_size === 'half' ? 'Half share'
+              : row.share_size === 'quarter' ? 'Quarter share'
+              : row.share_size === 'eighth' ? 'Eighth share' : 'Share';
+            const animalLabel = `${row.animal_number ? row.animal_number + ' · ' : ''}${row.breed || row.species || 'animal'}`;
+            await sendLifecycleEmail('C1.reservation_confirmed', {
+              to: buyerEmail,
+              reservation_id: reservationId,
+              buyer_name: row.buyer_name,
+              fraction_pretty: fractionPretty,
+              animal_label: animalLabel,
+              farm_name: row.farm_name,
+              farm_city: row.farm_city,
+              farm_state: row.farm_state,
+              processor_name: row.processor_name,
+              drop_off_date: row.expected_finish_date,
+              deposit_amount: row.deposit_amount,
+            });
+          }
+        } catch (emailErr) { console.error('C1 email failed:', emailErr); }
         break;
       }
 
@@ -152,10 +163,36 @@ export default async function handler(req) {
         const charge = event.data.object;
         const piId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id;
         if (!piId) break;
-        await sql`
+        const updated = await sql`
           UPDATE reservations
           SET status = 'refunded', updated_at = NOW()
-          WHERE stripe_payment_intent = ${piId}`;
+          WHERE stripe_payment_intent = ${piId}
+          RETURNING id, buyer_email, buyer_name, deposit_amount, total_estimate, listing_id`;
+        // C8/C9/C10 — cancellation/refund email. Stage inferred from refund proportion vs. total.
+        try {
+          const row = updated[0];
+          if (row && row.buyer_email) {
+            const refundedAmount = (charge.amount_refunded || 0) / 100;
+            const total = Number(row.total_estimate) || 0;
+            const stage = refundedAmount >= total - 0.01 ? 'free' : refundedAmount > 0 ? 'partial' : 'final';
+            const lr = await sql`
+              SELECT l.number, l.breed, l.species
+              FROM listings l WHERE l.id = ${row.listing_id} LIMIT 1`;
+            const animalLabel = lr[0]
+              ? `${lr[0].number ? lr[0].number + ' · ' : ''}${lr[0].breed || lr[0].species || 'animal'}`
+              : 'your share';
+            await sendLifecycleEmail('C8_C9_C10.cancel_confirmation', {
+              to: row.buyer_email,
+              reservation_id: row.id,
+              buyer_name: row.buyer_name,
+              animal_label: animalLabel,
+              cancel_stage: stage,
+              refund_amount: refundedAmount,
+              deposit_amount: row.deposit_amount,
+              dedupKey: `C8_C9_C10::${row.id}::${charge.id}`,
+            });
+          }
+        } catch (emailErr) { console.error('Cancel email failed:', emailErr); }
         break;
       }
 
