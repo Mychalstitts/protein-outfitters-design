@@ -412,7 +412,51 @@ const SCHEMA_STATEMENTS = [
    )`,
   `CREATE INDEX IF NOT EXISTS hardware_leads_status_idx ON hardware_leads(status)`,
   `CREATE INDEX IF NOT EXISTS hardware_leads_temp_idx   ON hardware_leads(temperature)`,
-  `CREATE INDEX IF NOT EXISTS hardware_leads_email_idx  ON hardware_leads(email)`
+  `CREATE INDEX IF NOT EXISTS hardware_leads_email_idx  ON hardware_leads(email)`,
+
+  // ──────────────────────────────────────────────────────────
+  // notifications: in-app inbox. One row per delivered lifecycle
+  // event. The bell icon in po-shell reads unread count from here.
+  // Email send is best-effort and orthogonal — the notifications
+  // table is the canonical record of "the user was told."
+  // ──────────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS notifications (
+     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_email  TEXT NOT NULL,
+     kind        TEXT NOT NULL,
+     title       TEXT NOT NULL,
+     body        TEXT,
+     link_url    TEXT,
+     icon        TEXT,
+     dedup_key   TEXT UNIQUE,
+     read_at     TIMESTAMPTZ,
+     created_at  TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS notifications_email_idx   ON notifications(user_email)`,
+  `CREATE INDEX IF NOT EXISTS notifications_unread_idx  ON notifications(user_email) WHERE read_at IS NULL`,
+  `CREATE INDEX IF NOT EXISTS notifications_created_idx ON notifications(created_at DESC)`,
+
+  // ──────────────────────────────────────────────────────────
+  // processor_subscriptions: SaaS tier per processor. Stripe
+  // Subscription is the source of truth; we mirror status here so
+  // the dashboard can gate features without a Stripe round-trip.
+  // ──────────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS processor_subscriptions (
+     id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     processor_id         UUID REFERENCES processors(id) ON DELETE CASCADE,
+     tier                 TEXT NOT NULL CHECK (tier IN ('free','standard','premium')),
+     cadence              TEXT CHECK (cadence IN ('monthly','annual')),
+     stripe_customer_id   TEXT,
+     stripe_subscription_id TEXT UNIQUE,
+     stripe_price_id      TEXT,
+     status               TEXT NOT NULL DEFAULT 'incomplete' CHECK (status IN ('incomplete','trialing','active','past_due','canceled','unpaid')),
+     current_period_end   TIMESTAMPTZ,
+     cancel_at_period_end BOOLEAN DEFAULT FALSE,
+     created_at           TIMESTAMPTZ DEFAULT NOW(),
+     updated_at           TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS proc_sub_processor_idx ON processor_subscriptions(processor_id)`,
+  `CREATE INDEX IF NOT EXISTS proc_sub_status_idx    ON processor_subscriptions(status)`
 ];
 
 const SEED_SQL = [

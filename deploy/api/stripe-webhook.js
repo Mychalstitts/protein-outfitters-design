@@ -36,6 +36,23 @@ export default async function handler(req) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
+
+        // ── Donation Depot fund-contribution branch ──
+        // Marked via session.metadata.kind === 'donation_to_fund'.
+        if (session.metadata?.kind === 'donation_to_fund') {
+          const fundId = session.metadata?.donation_fund_id;
+          if (fundId) {
+            await sql`
+              UPDATE donation_funds
+              SET status = 'received',
+                  received_at = NOW(),
+                  stripe_payment_intent = ${typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id || null},
+                  updated_at = NOW()
+              WHERE id = ${fundId}`;
+          }
+          break;
+        }
+
         const reservationId = session.metadata?.reservation_id;
         if (!reservationId) break;
         const piId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
@@ -73,7 +90,7 @@ export default async function handler(req) {
             const platformRetainCents = totalCents - processorCents - farmerCents;
 
             if (farmAcct && farmerCents > 0) {
-              await stripe.transfers.create({
+              const transfer = await stripe.transfers.create({
                 amount: farmerCents,
                 currency: 'usd',
                 destination: farmAcct,
@@ -81,6 +98,30 @@ export default async function handler(req) {
                 description: `Farmer share — reservation ${reservationId}`,
                 metadata: { reservation_id: reservationId, role: 'farmer' },
               });
+              // F7 farmer payout email — needs farmer's email + name.
+              try {
+                const fm = await sql`
+                  SELECT u.email, u.name, l.number, l.breed, l.species, l.estimated_hanging_weight, l.price_per_lb
+                  FROM reservations r
+                  JOIN listings l ON l.id = r.listing_id
+                  JOIN farms f ON f.id = l.farm_id
+                  JOIN users u ON u.id = f.owner_id
+                  WHERE r.id = ${reservationId} LIMIT 1`;
+                if (fm[0]?.email) {
+                  await sendLifecycleEmail('F7.payout_disbursed', {
+                    to: fm[0].email,
+                    farmer_name: fm[0].name,
+                    payout_amount: farmerCents / 100,
+                    animal_label: `${fm[0].number ? fm[0].number + ' · ' : ''}${fm[0].breed || fm[0].species || 'animal'}`,
+                    final_hw_lbs: fm[0].estimated_hanging_weight,
+                    farmer_per_lb: fm[0].price_per_lb,
+                    gross_amount: farmerCents / 100,
+                    fees_amount: 0,
+                    payout_id: transfer.id,
+                    dedupKey: `F7::${transfer.id}`,
+                  });
+                }
+              } catch (e) { console.error('F7 send failed:', e.message); }
             }
             if (procAcct && processorCents > 0) {
               await stripe.transfers.create({
@@ -262,6 +303,99 @@ export default async function handler(req) {
         }
 
         console.log(`Dispute ${event.type}: ${dispute.id} reason=${dispute.reason} status=${dispute.status} amount=${amount}`);
+        break;
+      }
+
+      // ──────────────────────────────────────────────────────────
+      // Processor SaaS subscriptions — mirror Stripe state into our
+      // processor_subscriptions table so the dashboard can gate features.
+      // Source of truth is Stripe; we just keep an indexed mirror.
+      // ──────────────────────────────────────────────────────────
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted': {
+        const sub = event.data.object;
+        // Only act on processor SaaS subscriptions (we tag these in metadata at create)
+        if (sub.metadata?.kind !== 'processor_saas') break;
+        const processorId = sub.metadata?.processor_id;
+        if (!processorId) break;
+
+        const tier = sub.metadata?.tier || null;
+        const cadence = sub.metadata?.cadence || null;
+        const priceId = sub.items?.data?.[0]?.price?.id || null;
+        const status  = event.type === 'customer.subscription.deleted' ? 'canceled' : (sub.status || 'incomplete');
+        const currentEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+        const cancelAtEnd = !!sub.cancel_at_period_end;
+
+        await sql`
+          INSERT INTO processor_subscriptions (
+            processor_id, tier, cadence, stripe_customer_id, stripe_subscription_id,
+            stripe_price_id, status, current_period_end, cancel_at_period_end
+          ) VALUES (
+            ${processorId},
+            ${tier || 'standard'},
+            ${cadence},
+            ${typeof sub.customer === 'string' ? sub.customer : sub.customer?.id || null},
+            ${sub.id},
+            ${priceId},
+            ${status},
+            ${currentEnd},
+            ${cancelAtEnd}
+          )
+          ON CONFLICT (stripe_subscription_id) DO UPDATE SET
+            tier = COALESCE(EXCLUDED.tier, processor_subscriptions.tier),
+            cadence = COALESCE(EXCLUDED.cadence, processor_subscriptions.cadence),
+            stripe_price_id = COALESCE(EXCLUDED.stripe_price_id, processor_subscriptions.stripe_price_id),
+            status = EXCLUDED.status,
+            current_period_end = EXCLUDED.current_period_end,
+            cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+            updated_at = NOW()
+        `;
+        console.log(`Processor sub ${event.type}: ${sub.id} status=${status} tier=${tier}`);
+        break;
+      }
+
+      case 'invoice.paid': {
+        // For SaaS invoices, advance the period end + drop a notification
+        // to the processor owner. We don't trust the line items for tier;
+        // the subscription event already carries that.
+        const invoice = event.data.object;
+        if (!invoice.subscription) break;
+        await sql`
+          UPDATE processor_subscriptions
+          SET status = 'active', updated_at = NOW()
+          WHERE stripe_subscription_id = ${invoice.subscription}`;
+        // Notify the processor owner via email/notification — best effort
+        try {
+          const subRow = await sql`
+            SELECT ps.processor_id, ps.tier, p.contact_email, p.name AS processor_name, p.owner_id
+            FROM processor_subscriptions ps
+            JOIN processors p ON p.id = ps.processor_id
+            WHERE ps.stripe_subscription_id = ${invoice.subscription}
+            LIMIT 1`;
+          if (subRow[0]) {
+            const ownerEmailRows = subRow[0].owner_id
+              ? await sql`SELECT email FROM users WHERE id = ${subRow[0].owner_id}`
+              : [];
+            const to = ownerEmailRows[0]?.email || subRow[0].contact_email;
+            if (to) {
+              // Direct insert — there is no email template for this yet, the
+              // notification is the user-facing artifact.
+              await sql`
+                INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
+                VALUES (
+                  ${String(to).toLowerCase()},
+                  'invoice.paid',
+                  ${'Invoice paid — ' + subRow[0].processor_name},
+                  ${'Your ' + (subRow[0].tier || 'subscription') + ' tier is active for the next billing cycle.'},
+                  '/processor-saas',
+                  'receipt',
+                  ${'notif::invoice_paid::' + invoice.id}
+                )
+                ON CONFLICT (dedup_key) DO NOTHING`;
+            }
+          }
+        } catch (e) { console.error('invoice.paid notif failed:', e.message); }
         break;
       }
     }
