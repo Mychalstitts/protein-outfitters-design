@@ -247,7 +247,7 @@
       items = DATA.processors.map(p => ({
         kind: 'processor',
         title: p.name,
-        meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.capacity_per_week ? ' · ' + p.capacity_per_week + '/wk capacity' : ''}`,
+        meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.inspection ? ' · ' + p.inspection.toUpperCase() + ' inspected' : ''}`,
         pills: (p.species || []).slice(0, 3).map(t => ({ text: t, color: 'orange' })),
         lat: p.lat, lng: p.lng, link: null,
       }));
@@ -320,7 +320,7 @@
       m.bindPopup(`
         <h4>${escapeHtml(p.name)}</h4>
         <p>${escapeHtml(p.city || '')}${p.state ? ', ' + p.state : ''}</p>
-        ${p.capacity_per_week ? `<p>Capacity: <strong>${p.capacity_per_week}</strong>/wk</p>` : ''}
+        ${p.inspection ? `<p>Inspection: <strong>${escapeHtml(p.inspection.toUpperCase())}</strong></p>` : ''}
         ${p.species?.length ? `<p>Species: ${escapeHtml(p.species.join(', '))}</p>` : ''}
       `);
       layers.processors.addLayer(m);
