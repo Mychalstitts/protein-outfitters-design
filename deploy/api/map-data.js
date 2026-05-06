@@ -145,14 +145,12 @@ async function loadDemand() {
 // is the recruiting funnel.
 async function loadProspects() {
   const rows = await sql`
-    SELECT id, kind, name, address, city, state, zip, lat, lng,
-           phone, email, website, species, source, invite_status,
-           invited_at, signed_up_at, notes
+    SELECT id, kind, name, city, state, zip, lat, lng,
+           phone, email, website, source, invite_status
     FROM discovered_partners
     WHERE invite_status NOT IN ('dnc', 'signed_up', 'declined')
     ORDER BY
-      CASE invite_status WHEN 'new' THEN 0 WHEN 'queued' THEN 1 WHEN 'sent' THEN 2 WHEN 'clicked' THEN 3 ELSE 4 END,
-      created_at DESC
+      CASE invite_status WHEN 'new' THEN 0 WHEN 'queued' THEN 1 WHEN 'sent' THEN 2 WHEN 'clicked' THEN 3 ELSE 4 END
     LIMIT 1000`;
   const out = [];
   for (const r of rows) {
@@ -169,10 +167,8 @@ async function loadProspects() {
       city: r.city, state: r.state, zip: r.zip,
       lat, lng,
       phone: r.phone, email: r.email, website: r.website,
-      species: r.species || [],
       source: r.source,
       invite_status: r.invite_status,
-      invited_at: r.invited_at,
     });
   }
   return out;
