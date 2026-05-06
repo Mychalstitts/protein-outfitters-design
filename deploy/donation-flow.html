@@ -984,10 +984,16 @@
   </div>
 
   <!-- Donate to the fund CTA -->
-  <div class="card mt-8" style="padding: var(--s-8); text-align: center; background: var(--brand-grad); color: var(--ink-inverse);">
+  <div class="card mt-8" id="fundCtaCard" style="padding: var(--s-8); text-align: center; background: var(--brand-grad); color: var(--ink-inverse);">
     <h3 class="display-md" style="color: white;">Help fund a kill fee</h3>
     <p style="opacity: 0.85; max-width: 50ch; margin: var(--s-3) auto var(--s-6);">$95 covers a USDA kill fee. $770 covers full processing of a beef quarter. Every dollar moves real protein to a real local table.</p>
-    <button class="btn btn--apple-pay btn--lg" onclick="showToast('Apple Pay donation modal opens')">Donate $95</button>
+    <p id="fundLiveStats" style="opacity: 0.9; max-width: 50ch; margin: 0 auto var(--s-5); font-size: var(--text-sm);"></p>
+    <div class="row gap-3" style="justify-content: center; flex-wrap: wrap;">
+      <button class="btn btn--secondary btn--lg" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.4);" onclick="donateToFund(25)">$25</button>
+      <button class="btn btn--secondary btn--lg" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.4);" onclick="donateToFund(95)">$95 · 1 kill fee</button>
+      <button class="btn btn--apple-pay btn--lg" onclick="donateToFund(770)">$770 · whole quarter</button>
+      <button class="btn btn--secondary btn--lg" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.4);" onclick="customDonateAmount()">Custom amount</button>
+    </div>
   </div>
 </section>
 
@@ -1013,6 +1019,53 @@ function showToast(msg) {
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
 }
+
+// ─── Donation-to-fund Stripe checkout helpers ───
+async function donateToFund(amount) {
+  const donor_email = prompt('Email for your tax acknowledgment letter (optional — anonymous OK):') || '';
+  const donor_name = donor_email ? prompt('Name to address the letter to (optional):') || '' : '';
+  try {
+    const r = await fetch('/api/donate-to-fund', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, donor_email: donor_email || null, donor_name: donor_name || null }),
+    });
+    const data = await r.json();
+    if (!r.ok || !data.url) {
+      alert('Could not open donation: ' + (data.error || 'unknown'));
+      return;
+    }
+    window.location = data.url;
+  } catch (e) { alert('Network error: ' + e.message); }
+}
+function customDonateAmount() {
+  const v = prompt('How much would you like to donate? (USD, $5–$50,000)', '50');
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 5 || n > 50000) { if (v != null) alert('Pick an amount between $5 and $50,000.'); return; }
+  donateToFund(n);
+}
+window.donateToFund = donateToFund;
+window.customDonateAmount = customDonateAmount;
+
+// Live balance — replaces the placeholder "$28k Program fund balance" with real data.
+(async function loadFundStats() {
+  try {
+    const r = await fetch('/api/donation-funds?summary=public');
+    if (!r.ok) return;
+    const data = await r.json();
+    const live = document.getElementById('fundLiveStats');
+    if (live && (data.funded_amount_total > 0 || data.fees_paid_count > 0)) {
+      const fmt$ = n => '$' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+      live.innerHTML = `<strong>${fmt$(data.balance)}</strong> in the fund · <strong>${data.contributors_count || 0}</strong> contributor${data.contributors_count === 1 ? '' : 's'} · <strong>${data.fees_paid_count || 0}</strong> kill fee${data.fees_paid_count === 1 ? '' : 's'} paid (${fmt$(data.fees_paid_total)} total)`;
+    }
+    // Also patch the admin-view "Program fund balance" tile if present
+    const adminBalanceTile = document.querySelector('#view-admin .impact-card:nth-child(4) .num');
+    if (adminBalanceTile && Number.isFinite(data.balance)) {
+      const k = Math.round(data.balance / 1000);
+      adminBalanceTile.textContent = data.balance >= 1000 ? `$${k}k` : `$${Math.round(data.balance)}`;
+    }
+  } catch {}
+})();
 
 // ─── Donation PDF helpers (tax letter + deed of gift) ───
 // In a real flow we'd carry the donation_id through the URL or load the latest
