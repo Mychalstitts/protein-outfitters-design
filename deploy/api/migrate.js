@@ -231,7 +231,29 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS invites_email_idx ON invites(email)`,
   `CREATE INDEX IF NOT EXISTS invites_inviter_idx ON invites(inviter_user_id)`,
-  `CREATE INDEX IF NOT EXISTS invites_status_idx ON invites(status)`
+  `CREATE INDEX IF NOT EXISTS invites_status_idx ON invites(status)`,
+
+  // ──────────────────────────────────────────────────────────
+  // Stripe Connect — split-routing groundwork.
+  // Each farm + processor + institution can connect their own
+  // Stripe account (via Stripe Connect Express). Once connected,
+  // /api/checkout uses transfer_group + Transfer to pay them
+  // their share of each reservation. `stripe_connect_status`
+  // tracks onboarding ('pending' | 'restricted' | 'active' | 'disabled').
+  // ──────────────────────────────────────────────────────────
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS stripe_account_id TEXT`,
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS stripe_connect_status TEXT DEFAULT 'pending'`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS stripe_account_id TEXT`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS stripe_connect_status TEXT DEFAULT 'pending'`,
+  `ALTER TABLE institutions ADD COLUMN IF NOT EXISTS stripe_account_id TEXT`,
+
+  // Reservation-level Stripe linkage for Connect transfers.
+  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS stripe_transfer_group TEXT`,
+  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS application_fee_amount NUMERIC`,
+
+  `CREATE INDEX IF NOT EXISTS farms_stripe_idx     ON farms(stripe_account_id)`,
+  `CREATE INDEX IF NOT EXISTS processors_stripe_idx ON processors(stripe_account_id)`,
+  `CREATE INDEX IF NOT EXISTS reservations_transfer_idx ON reservations(stripe_transfer_group)`
 ];
 
 const SEED_SQL = [

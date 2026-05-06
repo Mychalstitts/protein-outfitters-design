@@ -46,6 +46,67 @@ export default async function handler(req) {
               updated_at = NOW()
           WHERE id = ${reservationId}`;
 
+        // ── Stripe Connect split routing (only fires when accounts exist) ──
+        // Pulls farmer + processor connected accounts from reservation metadata,
+        // calculates each party's share of the post-fee total, and issues
+        // Stripe Transfers against the reservation's transfer_group.
+        // No-ops cleanly if nobody's onboarded yet.
+        try {
+          const farmAcct = session.metadata?.farm_stripe_account_id;
+          const procAcct = session.metadata?.processor_stripe_account_id;
+          const transferGroup = `po_${session.metadata?.listing_id || ''}_${session.id}`;
+
+          // Look up the reservation's actual transfer_group + amounts from DB
+          const rrow = await sql`
+            SELECT stripe_transfer_group, deposit_amount, total_estimate
+            FROM reservations WHERE id = ${reservationId} LIMIT 1`;
+          const tg = rrow[0]?.stripe_transfer_group;
+
+          if (tg && (farmAcct || procAcct)) {
+            // Split policy (placeholder until policy decision is locked):
+            //   Farmer = deposit (already represents % of meat value)
+            //   Processor = ~$225 from the processing line item (per current line item)
+            //   Platform = retained (no transfer)
+            const totalCents = session.amount_total || 0;
+            const processorCents = 22500; // from the processing line item
+            const farmerCents = Math.max(0, Math.round((rrow[0].deposit_amount || 0) * 100));
+            const platformRetainCents = totalCents - processorCents - farmerCents;
+
+            if (farmAcct && farmerCents > 0) {
+              await stripe.transfers.create({
+                amount: farmerCents,
+                currency: 'usd',
+                destination: farmAcct,
+                transfer_group: tg,
+                description: `Farmer share — reservation ${reservationId}`,
+                metadata: { reservation_id: reservationId, role: 'farmer' },
+              });
+            }
+            if (procAcct && processorCents > 0) {
+              await stripe.transfers.create({
+                amount: processorCents,
+                currency: 'usd',
+                destination: procAcct,
+                transfer_group: tg,
+                description: `Processor share — reservation ${reservationId}`,
+                metadata: { reservation_id: reservationId, role: 'processor' },
+              });
+            }
+
+            // Persist the application_fee_amount so admin can see what we retained.
+            if (platformRetainCents > 0) {
+              await sql`UPDATE reservations
+                        SET application_fee_amount = ${platformRetainCents / 100}
+                        WHERE id = ${reservationId}`;
+            }
+            console.log(`Connect transfers issued for ${reservationId}: farmer=${!!farmAcct} processor=${!!procAcct} platformRetain=${platformRetainCents}`);
+          } else {
+            console.log(`Skipping Connect transfers — no connected accounts on file (farm=${!!farmAcct}, proc=${!!procAcct}). Funds settle to platform balance.`);
+          }
+        } catch (transferErr) {
+          console.error('Connect transfer error (non-fatal):', transferErr.message);
+        }
+
         // Best-effort confirmation email
         if (process.env.RESEND_API_KEY) {
           try {
@@ -71,6 +132,19 @@ export default async function handler(req) {
             }
           } catch (emailErr) { console.error('Email send failed:', emailErr); }
         }
+        break;
+      }
+
+      case 'account.updated': {
+        // Stripe Connect account onboarding/verification state changed.
+        // Update farms/processors status from the live Stripe data.
+        const acct = event.data.object;
+        const status = acct.charges_enabled && acct.payouts_enabled ? 'active'
+          : acct.requirements?.currently_due?.length ? 'restricted'
+          : acct.requirements?.disabled_reason ? 'disabled'
+          : 'pending';
+        await sql`UPDATE farms SET stripe_connect_status = ${status} WHERE stripe_account_id = ${acct.id}`;
+        await sql`UPDATE processors SET stripe_connect_status = ${status} WHERE stripe_account_id = ${acct.id}`;
         break;
       }
 

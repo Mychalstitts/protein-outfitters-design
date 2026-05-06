@@ -49,14 +49,24 @@ export default async function handler(req) {
     return err(400, 'listing_id, share_size, buyer_email all required');
   }
 
-  // Fetch listing + farm so we have rates and metadata
+  // Fetch listing + farm so we have rates and metadata + Stripe Connect account ids
   const lrows = await sql`
-    SELECT l.*, f.name as farm_name, f.slug as farm_slug, f.city as farm_city, f.state as farm_state
+    SELECT l.*,
+           f.name as farm_name, f.slug as farm_slug, f.city as farm_city, f.state as farm_state,
+           f.stripe_account_id as farm_stripe_account_id,
+           f.id as farm_id_full
     FROM listings l JOIN farms f ON f.id = l.farm_id
     WHERE l.id = ${listing_id} LIMIT 1`;
   if (!lrows[0]) return err(404, 'Listing not found');
   const listing = lrows[0];
   if (listing.status !== 'active') return err(409, 'Listing is no longer available');
+
+  // Look up processor's Connect account if a processor was selected.
+  let processorStripeAccount = null;
+  if (processor_id) {
+    const prows = await sql`SELECT stripe_account_id FROM processors WHERE id = ${processor_id} LIMIT 1`;
+    processorStripeAccount = prows[0]?.stripe_account_id || null;
+  }
 
   const shares = listing.shares || {};
   const share = shares[share_size];
@@ -77,13 +87,21 @@ export default async function handler(req) {
   const user = await currentUser(req);
   const buyerId = user?.id || null;
   const totalEstimate = (depositCents + 22500 + 1800) / 100; // deposit + processing + insurance
+
+  // Stripe transfer_group anchors all subsequent Connect transfers
+  // (farmer payout, processor payout, platform fee retention) to this reservation.
+  // Format: "po_<reservation_id>" — set before INSERT so it lands in the row.
+  const transferGroup = `po_${listing_id}_${Date.now().toString(36)}`;
+
   const rrows = await sql`
     INSERT INTO reservations (
       listing_id, buyer_id, buyer_email, buyer_name, buyer_phone,
-      share_size, processor_id, status, total_estimate, deposit_amount
+      share_size, processor_id, status, total_estimate, deposit_amount,
+      stripe_transfer_group
     ) VALUES (
       ${listing_id}, ${buyerId}, ${buyer_email}, ${buyer_name || null}, ${buyer_phone || null},
-      ${share_size}, ${processor_id || null}, 'pending', ${totalEstimate}, ${depositCents / 100}
+      ${share_size}, ${processor_id || null}, 'pending', ${totalEstimate}, ${depositCents / 100},
+      ${transferGroup}
     )
     RETURNING id`;
   const reservationId = rrows[0].id;
@@ -126,8 +144,14 @@ export default async function handler(req) {
         reservation_id: reservationId,
         listing_id,
         share_size,
+        farm_stripe_account_id: listing.farm_stripe_account_id || '',
+        processor_stripe_account_id: processorStripeAccount || '',
       },
       statement_descriptor_suffix: 'PO RESERVE',
+      // transfer_group lets us issue Stripe Transfers from the platform balance
+      // to the farmer's and processor's connected accounts after payment settles.
+      // Webhook-driven payout logic should: total amount → farmer share + processor share + platform retain.
+      transfer_group: transferGroup,
     },
     success_url: `${origin}/confirmed?session_id={CHECKOUT_SESSION_ID}&reservation=${reservationId}`,
     cancel_url: `${origin}/listing?id=${listing_id}&cancelled=1`,
