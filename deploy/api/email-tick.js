@@ -80,7 +80,9 @@ const animalLabelOf = (r) => `${r.animal_number ? r.animal_number + ' · ' : ''}
 const fractionPretty = (s) => ({whole:'Whole animal', half:'Half share', quarter:'Quarter share', eighth:'Eighth share'}[s] || 'Share');
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  // Vercel Node runtime delivers req.url as a relative path; URL() needs a base.
+  // The host doesn't matter for query-string parsing.
+  const url = new URL(req.url, 'https://www.proteinoutfitters.com');
 
   // Two auth paths:
   // 1. Vercel Cron — sets `Authorization: Bearer ${CRON_SECRET}` automatically.

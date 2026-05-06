@@ -14,14 +14,9 @@ import { sql, currentUser, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' }; // Stripe SDK needs Node runtime
 
-async function ensureTierColumn() {
-  try {
-    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS map_tier TEXT DEFAULT 'free'`;
-    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS map_tier_period_end TIMESTAMPTZ`;
-    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS map_stripe_customer_id TEXT`;
-    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS map_stripe_subscription_id TEXT`;
-  } catch (e) { /* best-effort */ }
-}
+// Schema columns are bootstrapped by the stripe-webhook handler the first time a
+// subscription event fires, so we don't ALTER TABLE on every request — that
+// adds 4 round trips per call and was causing 504 timeouts on cold starts.
 
 const PRICE = {
   pro:      process.env.STRIPE_PRICE_MAP_PRO_MONTHLY      || '',
@@ -34,18 +29,19 @@ const TIER_DISPLAY = {
 };
 
 export default async function handler(req) {
-  await ensureTierColumn();
-
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
 
   if (req.method === 'GET') {
-    const rows = await sql`SELECT map_tier, map_tier_period_end FROM users WHERE id = ${user.id}`;
-    return json({
-      tier: rows[0]?.map_tier || 'free',
-      period_end: rows[0]?.map_tier_period_end || null,
-      pricing: TIER_DISPLAY,
-    });
+    // Tolerate missing column on a fresh DB — return free if the column doesn't
+    // exist yet (the webhook will create it on first subscription event).
+    let tier = 'free', periodEnd = null;
+    try {
+      const rows = await sql`SELECT map_tier, map_tier_period_end FROM users WHERE id = ${user.id}`;
+      tier = rows[0]?.map_tier || 'free';
+      periodEnd = rows[0]?.map_tier_period_end || null;
+    } catch (e) { /* column missing → treat as free */ }
+    return json({ tier, period_end: periodEnd, pricing: TIER_DISPLAY });
   }
 
   if (req.method === 'POST') {
@@ -62,16 +58,25 @@ export default async function handler(req) {
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-    // Re-use existing customer if we have one
-    const userRow = (await sql`SELECT map_stripe_customer_id, email FROM users WHERE id = ${user.id}`)[0];
-    let customerId = userRow?.map_stripe_customer_id || null;
+    // Re-use existing customer if we have one. If the column doesn't exist yet
+    // (fresh DB) we just always create a new Stripe customer; the webhook
+    // handler creates the column the first time a subscription event fires.
+    let customerId = null, userEmail = user.email || null;
+    try {
+      const userRow = (await sql`SELECT map_stripe_customer_id, email FROM users WHERE id = ${user.id}`)[0];
+      customerId = userRow?.map_stripe_customer_id || null;
+      userEmail = userRow?.email || userEmail;
+    } catch (e) { /* column missing — fall through to create a new customer */ }
+
     if (!customerId) {
       const c = await stripe.customers.create({
-        email: userRow?.email || user.email || undefined,
+        email: userEmail || undefined,
         metadata: { user_id: user.id, map_tier_purchase: tier },
       });
       customerId = c.id;
-      await sql`UPDATE users SET map_stripe_customer_id = ${customerId} WHERE id = ${user.id}`;
+      try {
+        await sql`UPDATE users SET map_stripe_customer_id = ${customerId} WHERE id = ${user.id}`;
+      } catch (e) { /* column missing — webhook will create it later */ }
     }
 
     const origin = (req.headers.get('origin') || 'https://www.proteinoutfitters.com').replace(/\/$/, '');
