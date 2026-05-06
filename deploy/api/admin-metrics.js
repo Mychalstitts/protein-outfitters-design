@@ -34,6 +34,8 @@ export default async function handler(req) {
   setC('users'); setC('processors');
   setC('pending_deposits_count'); setC('pending_deposits_sum');
   setC('paid_deposits_count'); setC('paid_deposits_sum');
+  setC('institutions_pending'); setC('institutions_approved');
+  setC('disputes_open'); setC('disputes_total_amount');
 
   const queries = [
     ['farms',                   () => sql`SELECT COUNT(*)::int AS c FROM farms`],
@@ -61,6 +63,44 @@ export default async function handler(req) {
     counts.paid_deposits_count = paidDep.data[0].c;
     counts.paid_deposits_sum   = paidDep.data[0].s;
   } else if (!paidDep.ok) errors.push(paidDep.error);
+
+  // ── Institutions (pending review + approved) ──────────────────
+  const instPending = await safeQuery('institutions_pending',
+    () => sql`SELECT COUNT(*)::int AS c FROM institutions WHERE status = 'pending'`);
+  if (instPending.ok && instPending.data?.[0]) counts.institutions_pending = instPending.data[0].c;
+  // Don't push errors for missing institutions table — schema bootstraps lazily.
+
+  const instApproved = await safeQuery('institutions_approved',
+    () => sql`SELECT COUNT(*)::int AS c FROM institutions WHERE status = 'approved'`);
+  if (instApproved.ok && instApproved.data?.[0]) counts.institutions_approved = instApproved.data[0].c;
+
+  // ── Disputes (open ones — those that need attention) ──────────
+  const disputesOpen = await safeQuery('disputes_open',
+    () => sql`SELECT COUNT(*)::int AS c, COALESCE(SUM(amount),0)::float AS s
+              FROM disputes WHERE status IN ('warning_needs_response','warning_under_review','needs_response','under_review')`);
+  if (disputesOpen.ok && disputesOpen.data?.[0]) {
+    counts.disputes_open = disputesOpen.data[0].c;
+    counts.disputes_total_amount = disputesOpen.data[0].s;
+  }
+
+  // Recent disputes (last 10) — for the admin tile
+  let recentDisputes = [];
+  const rd = await safeQuery('recent_disputes', () => sql`
+    SELECT d.id, d.stripe_dispute_id, d.reason, d.status, d.amount, d.evidence_due, d.created_at,
+           r.share_size, r.buyer_email, l.number AS animal_number, f.name AS farm_name
+    FROM disputes d
+    LEFT JOIN reservations r ON r.id = d.reservation_id
+    LEFT JOIN listings l ON l.id = r.listing_id
+    LEFT JOIN farms f ON f.id = l.farm_id
+    ORDER BY d.created_at DESC LIMIT 10`);
+  if (rd.ok) recentDisputes = rd.data;
+
+  // Recent institution applications (last 10) — admin tile
+  let recentInstitutions = [];
+  const ri = await safeQuery('recent_institutions', () => sql`
+    SELECT id, type, legal_name, state, contact_email, status, people_per_week, created_at
+    FROM institutions ORDER BY created_at DESC LIMIT 10`);
+  if (ri.ok) recentInstitutions = ri.data;
 
   // ── Recent reservations (last 10) ─────────────────────────────
   let recentReservations = [];
@@ -108,6 +148,8 @@ export default async function handler(req) {
     balance,
     recent_payments: recentPayments,
     recent_reservations: recentReservations,
+    recent_disputes: recentDisputes,
+    recent_institutions: recentInstitutions,
     stripe_error: stripeError,
     errors
   });

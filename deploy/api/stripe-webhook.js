@@ -85,9 +85,72 @@ export default async function handler(req) {
         break;
       }
 
-      case 'charge.dispute.created': {
-        // Future: insert into disputes table when we add it
-        console.log('Dispute opened:', event.data.object.id);
+      case 'charge.dispute.created':
+      case 'charge.dispute.updated':
+      case 'charge.dispute.closed':
+      case 'charge.dispute.funds_withdrawn':
+      case 'charge.dispute.funds_reinstated': {
+        const dispute = event.data.object;
+        const piId = typeof dispute.payment_intent === 'string' ? dispute.payment_intent : dispute.payment_intent?.id;
+        const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id;
+        const amount = dispute.amount ? dispute.amount / 100 : null;
+
+        // Bootstrap the disputes table on first hit (idempotent).
+        await sql`
+          CREATE TABLE IF NOT EXISTS disputes (
+            id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            stripe_dispute_id TEXT UNIQUE NOT NULL,
+            stripe_charge_id  TEXT,
+            stripe_payment_intent TEXT,
+            reservation_id  UUID REFERENCES reservations(id) ON DELETE SET NULL,
+            reason          TEXT,
+            status          TEXT,
+            amount          NUMERIC,
+            currency        TEXT,
+            evidence_due    TIMESTAMPTZ,
+            response_status TEXT,
+            raw             JSONB,
+            created_at      TIMESTAMPTZ DEFAULT NOW(),
+            updated_at      TIMESTAMPTZ DEFAULT NOW()
+          )
+        `;
+        await sql`CREATE INDEX IF NOT EXISTS disputes_status_idx ON disputes(status)`;
+        await sql`CREATE INDEX IF NOT EXISTS disputes_pi_idx ON disputes(stripe_payment_intent)`;
+
+        // Try to find the matching reservation by payment_intent.
+        let reservationId = null;
+        if (piId) {
+          const rs = await sql`SELECT id FROM reservations WHERE stripe_payment_intent = ${piId} LIMIT 1`;
+          reservationId = rs[0]?.id || null;
+        }
+
+        const evidenceDue = dispute.evidence_details?.due_by
+          ? new Date(dispute.evidence_details.due_by * 1000).toISOString()
+          : null;
+
+        // Upsert by stripe_dispute_id so updates flow through cleanly.
+        await sql`
+          INSERT INTO disputes (
+            stripe_dispute_id, stripe_charge_id, stripe_payment_intent, reservation_id,
+            reason, status, amount, currency, evidence_due, raw
+          ) VALUES (
+            ${dispute.id}, ${chargeId || null}, ${piId || null}, ${reservationId},
+            ${dispute.reason || null}, ${dispute.status || null}, ${amount},
+            ${dispute.currency || 'usd'}, ${evidenceDue}, ${JSON.stringify(dispute)}
+          )
+          ON CONFLICT (stripe_dispute_id) DO UPDATE SET
+            status = EXCLUDED.status,
+            evidence_due = EXCLUDED.evidence_due,
+            raw = EXCLUDED.raw,
+            updated_at = NOW()
+        `;
+
+        // Auto-flag the reservation so admins see it in /admin-overview.
+        if (reservationId) {
+          await sql`UPDATE reservations SET updated_at = NOW() WHERE id = ${reservationId}`;
+        }
+
+        console.log(`Dispute ${event.type}: ${dispute.id} reason=${dispute.reason} status=${dispute.status} amount=${amount}`);
         break;
       }
     }
