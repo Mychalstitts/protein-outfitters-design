@@ -251,78 +251,79 @@ body { background: var(--bg); overflow-x: hidden; }
   margin: clamp(20px, 2vw, 28px) 0 0;
 }
 
-/* ---------- Reserve grid (Apple Card style) ---------- */
+/* ---------- Reserve grid (slimmer, more cards visible per row) ---------- */
 .reserve-grid {
-  margin-top: clamp(40px, 5vw, 72px);
+  margin-top: clamp(36px, 4vw, 60px);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: clamp(20px, 2vw, 32px);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: clamp(16px, 1.6vw, 24px);
 }
 .product {
   background: #fff;
-  border-radius: 28px;
+  border-radius: 20px;
   overflow: hidden;
   display: flex; flex-direction: column;
-  transition: transform .35s cubic-bezier(.2,.9,.3,1.2), box-shadow .35s;
+  transition: transform .3s cubic-bezier(.2,.9,.3,1.2), box-shadow .3s;
   cursor: pointer;
   border: 0;
   text-align: left;
   font: inherit; color: inherit;
   padding: 0;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.035);
 }
 .product:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 36px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.04);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.09), 0 2px 4px rgba(0,0,0,0.04);
 }
 .product-photo {
-  aspect-ratio: 4/3;
+  aspect-ratio: 5/4;
   background-color: #1a0d08;
   background-size: cover; background-position: center;
   position: relative;
 }
 .product-tag {
-  position: absolute; top: 14px; left: 14px;
+  position: absolute; top: 10px; left: 10px;
   background: rgba(251, 249, 245, 0.92);
   backdrop-filter: blur(8px);
   color: var(--brand);
-  font-size: 10px; font-weight: 800;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  padding: 6px 10px;
+  font-size: 9.5px; font-weight: 800;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  padding: 5px 9px;
   border-radius: 999px;
 }
 .product-meta {
-  padding: 24px 24px 28px;
-  display: flex; flex-direction: column; gap: 6px;
+  padding: 16px 18px 18px;
+  display: flex; flex-direction: column; gap: 4px;
 }
 .product-eyebrow {
-  font-size: 11px; font-weight: 700;
-  letter-spacing: 0.16em; text-transform: uppercase;
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--ink-2);
 }
 .product-name {
-  font-size: 22px; font-weight: 800;
-  letter-spacing: -0.022em;
-  margin: 4px 0 0;
+  font-size: 17px; font-weight: 800;
+  letter-spacing: -0.018em;
+  margin: 2px 0 0;
+  line-height: 1.25;
 }
 .product-detail {
-  font-size: 14px; color: var(--ink-2);
-  line-height: 1.5;
+  font-size: 12.5px; color: var(--ink-2);
+  line-height: 1.45;
   margin: 0;
 }
 .product-foot {
   display: flex; justify-content: space-between; align-items: baseline;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 .product-price {
-  font-size: 14px; color: var(--ink-2);
+  font-size: 12px; color: var(--ink-2);
 }
 .product-price strong {
-  font-size: 18px; color: var(--ink);
+  font-size: 15px; color: var(--ink);
   font-weight: 800; letter-spacing: -0.01em;
 }
 .product-cta {
-  font-size: 14px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   color: var(--brand);
 }
 

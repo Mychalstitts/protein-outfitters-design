@@ -298,6 +298,14 @@
         } catch {}
 
         if (!email) {
+          // Customer-by-default: trigger the proper signin modal with role='buyer'
+          // instead of a plain prompt, so the magic-link / Apple-Pay flow runs.
+          if (window.PO_API && typeof window.PO_API.openAuth === 'function') {
+            nextBtn.disabled = false; nextBtn.textContent = origText;
+            window.PO_API.openAuth('Sign in to reserve your share', 'buyer');
+            return;
+          }
+          // Fallback only if the API helper isn't loaded.
           email = prompt('Enter your email so we can confirm your reservation:');
           if (!email || !email.includes('@')) {
             nextBtn.disabled = false; nextBtn.textContent = origText;
