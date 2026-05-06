@@ -89,6 +89,11 @@
   .pin.farm { background: #7da05d; }
   .pin.processor { background: #b48a5a; }
   .pin.opportunity { background: #c25250; }
+  .pin.prospect { background: #6b7c93; }
+  .pin.prospect.contacted { background: #4a8baf; }
+  .list-icon.prospect { background: linear-gradient(135deg, #6b7c93, #4a5868); }
+  .list-pill.gray { background: rgba(107,124,147,.18); color: #4a5868; }
+  .list-pill.blue { background: rgba(74,139,175,.18); color: #2a5d7a; }
 
   /* Popup */
   .leaflet-popup-content-wrapper { border-radius: 14px; box-shadow: 0 12px 30px rgba(6,27,14,.18); padding: 0; }
@@ -135,6 +140,9 @@
         </button>
         <button class="layer-tab locked" data-layer="opportunity" type="button">
           <span class="count" id="cOpp">—</span><span class="label">Hardware</span>
+        </button>
+        <button class="layer-tab locked" data-layer="prospects" type="button">
+          <span class="count" id="cProspects">—</span><span class="label">Prospects</span>
         </button>
       </div>
 
@@ -194,6 +202,7 @@
     processors: L.markerClusterGroup({ disableClusteringAtZoom: 9 }),
     demand: L.layerGroup(),
     opportunity: L.layerGroup(),
+    prospects: L.markerClusterGroup({ disableClusteringAtZoom: 9 }),
   };
   let heatLayer = null;
   let currentLayer = 'farms';
@@ -216,6 +225,10 @@
     opportunity: {
       title: 'Hardware sales targets',
       lead: 'Zips with active demand but no processor within 60 miles. Each red pin is a place where a new MHU pays back fast — book demos here.',
+    },
+    prospects: {
+      title: 'Recruiting prospects',
+      lead: 'Farms and processors found in USDA FSIS / AAMP / Eat Wild data who haven\'t signed up yet. Click a pin to send a recruiting email or mark contacted.',
     },
   };
 
@@ -266,6 +279,16 @@
         meta: o.nearest_processor_miles == null ? 'No processor in our network' : `Nearest processor: ${o.nearest_processor_miles} mi away`,
         pills: [{ text: 'hardware target', color: 'red' }],
         lat: o.lat, lng: o.lng, link: null,
+      }));
+    } else if (currentLayer === 'prospects') {
+      items = (DATA.prospects || []).slice(0, 100).map(p => ({
+        kind: 'prospect',
+        title: p.name,
+        meta: `${p.kind === 'farm' ? '🌾' : '🔪'} ${p.city || ''}${p.state ? ', ' + p.state : ''} · source: ${p.source}`,
+        pills: [
+          { text: p.invite_status, color: p.invite_status === 'sent' ? 'blue' : (p.invite_status === 'clicked' ? 'green' : 'gray') }
+        ],
+        lat: p.lat, lng: p.lng, link: null, prospect_id: p.id,
       }));
     }
 
@@ -355,6 +378,46 @@
     });
   }
 
+  function buildProspectsLayer() {
+    layers.prospects.clearLayers();
+    (DATA.prospects || []).forEach(p => {
+      const isContacted = ['sent', 'clicked', 'queued'].includes(p.invite_status);
+      const m = L.marker([p.lat, p.lng], { icon: pinIcon('prospect' + (isContacted ? ' contacted' : '')) });
+      const channel = p.email ? `email: <code>${escapeHtml(p.email)}</code>` : (p.phone ? `phone: ${escapeHtml(p.phone)}` : 'no contact info');
+      m.bindPopup(`
+        <h4>${escapeHtml(p.name)}</h4>
+        <p>${escapeHtml(p.kind === 'farm' ? '🌾 Farm' : '🔪 Processor')} · ${escapeHtml(p.city || '')}${p.state ? ', ' + p.state : ''}</p>
+        <p>Source: <strong>${escapeHtml(p.source)}</strong> · status: <strong>${escapeHtml(p.invite_status)}</strong></p>
+        <p>${channel}</p>
+        ${p.website ? `<p><a href="${escapeHtml(p.website)}" target="_blank" rel="noopener">${escapeHtml(p.website)}</a></p>` : ''}
+        <button class="cta" onclick="window.poInviteProspect('${escapeHtml(p.id)}', this)">${isContacted ? 'Re-send invite →' : 'Send recruiting email →'}</button>
+      `);
+      layers.prospects.addLayer(m);
+    });
+  }
+
+  // Exposed globally so the popup buttons can call it
+  window.poInviteProspect = async function (id, btn) {
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      const r = await fetch('/api/admin-prospect?id=' + encodeURIComponent(id) + '&action=invite', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await r.json();
+      if (r.ok) {
+        btn.textContent = '✓ ' + (data.email_sent ? 'Email sent' : 'Marked invited');
+        setTimeout(() => map.closePopup(), 1500);
+        // Optimistically refresh the data
+        setTimeout(load, 1800);
+      } else {
+        btn.disabled = false; btn.textContent = 'Failed: ' + (data.error || r.status);
+      }
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Network error';
+    }
+  };
+
   function showLayer(name) {
     currentLayer = name;
     Object.values(layers).forEach(l => map.removeLayer(l));
@@ -385,6 +448,13 @@
       map.addLayer(layers.opportunity);
       map.addLayer(layers.processors);  // show processors as context
       document.getElementById('mapLegend').style.display = 'none';
+    } else if (name === 'prospects') {
+      map.addLayer(layers.prospects);
+      document.getElementById('mapLegend').style.display = 'none';
+      if (DATA.prospects?.length) {
+        const bounds = L.latLngBounds(DATA.prospects.map(p => [p.lat, p.lng]));
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 7 });
+      }
     }
     renderSideList();
   }
@@ -401,13 +471,15 @@
       document.getElementById('topStats').innerHTML = `
         <span><strong>${data.counts.farms}</strong>farms</span>
         <span><strong>${data.counts.processors}</strong>processors</span>
-        ${data.is_admin ? `<span><strong>${data.counts.demand_zips}</strong>demand zips</span><span style="color:#f6c5c4;"><strong>${data.counts.opportunity_targets}</strong>hardware targets</span>` : ''}
+        ${data.is_admin ? `<span><strong>${data.counts.demand_zips}</strong>demand zips</span><span style="color:#f6c5c4;"><strong>${data.counts.opportunity_targets}</strong>hardware targets</span><span style="color:#cfe9d3;"><strong>${data.counts.prospects_new || 0}</strong>new prospects</span>` : ''}
       `;
       // Counters
       document.getElementById('cFarms').textContent = data.counts.farms;
       document.getElementById('cProc').textContent = data.counts.processors;
       document.getElementById('cDemand').textContent = data.is_admin ? data.counts.demand_zips : '🔒';
       document.getElementById('cOpp').textContent = data.is_admin ? data.counts.opportunity_targets : '🔒';
+      const cProspectsEl = document.getElementById('cProspects');
+      if (cProspectsEl) cProspectsEl.textContent = data.is_admin ? (data.prospects?.length ?? 0) : '🔒';
 
       // Unlock admin tabs
       if (data.is_admin) {
@@ -419,6 +491,7 @@
       if (data.is_admin) {
         buildDemandLayer();
         buildOpportunityLayer();
+        buildProspectsLayer();
       }
       showLayer('farms');
       document.getElementById('mapLoading').classList.add('hide');
