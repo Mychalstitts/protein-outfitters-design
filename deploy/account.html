@@ -353,21 +353,77 @@
   const labelShare = s => s === 'whole' ? 'Whole' : s === 'half' ? 'Half' : s === 'quarter' ? 'Quarter' : 'Eighth';
   const labelStatus = s => ({pending:'Pending', 'deposit-paid':'Deposit paid', paid:'Paid', processing:'In processing', ready:'Ready for pickup', 'picked-up':'Picked up', cancelled:'Cancelled', refunded:'Refunded'}[s] || s);
 
-  list.innerHTML = reservations.map(r => `
+  list.innerHTML = reservations.map(r => {
+    // Per-status action affordances on the right side of the row.
+    let actions = '';
+    if (r.status === 'ready') {
+      actions = `<button onclick="markPickedUp('${r.id}')" style="background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';cursor:pointer;">Mark picked up</button>
+                 <a class="res-cta" href="/cut-sheet?id=${r.id}">Cut sheet →</a>`;
+    } else if (r.status === 'picked-up') {
+      const days = r.updated_at ? Math.floor((Date.now() - new Date(r.updated_at).getTime()) / 86400000) : 99;
+      const inWindow = days <= 7;
+      actions = `${inWindow ? `<button onclick="openComplaint('${r.id}')" style="background:transparent;color:#c25250;border:1px solid rgba(194,82,80,.3);border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';cursor:pointer;">Flag a quality issue</button>` : ''}
+                 <a class="res-cta" href="/cut-sheet?id=${r.id}">View cut sheet</a>`;
+    } else {
+      actions = `<a class="res-cta" href="/cut-sheet?id=${r.id}">Cut sheet →</a>
+                 <a href="/api/ics?reservation=${r.id}" style="font:700 11px/1 'Inter';color:var(--ink);opacity:.65;text-decoration:none">📅 Calendar</a>`;
+    }
+    return `
     <div class="res-row">
       <div class="res-img" style="background-image:url('${(r.photos && r.photos[0]) || photoFor(r.species)}');"></div>
       <div class="res-meta">
         <h4>${labelShare(r.share_size)} share · ${r.number || ''} · ${r.breed || r.species}</h4>
-        <p>${r.farm_name} · ${r.farm_city}, ${r.farm_state} · ready ${r.expected_finish_date ? new Date(r.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
+        <p>${r.farm_name} · ${r.farm_city}, ${r.farm_state} · ${r.status === 'ready' ? '✓ ready now' : 'ready ' + (r.expected_finish_date ? new Date(r.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD')}</p>
       </div>
       <div class="res-stat">${r.total_estimate ? '$' + Number(r.total_estimate).toFixed(0) : '—'}<span class="sub">${labelStatus(r.status)}</span></div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-        <a class="res-cta" href="/cut-sheet?id=${r.id}">Cut sheet →</a>
-        <a href="/api/ics?reservation=${r.id}" style="font:700 11px/1 'Inter';color:var(--ink);opacity:.65;text-decoration:none">📅 Calendar</a>
+        ${actions}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 })();
+
+// ─── Mark picked-up + complaint actions ───────────────────────
+window.markPickedUp = async function (reservationId) {
+  if (!confirm('Confirm you\'ve picked up your meat? This starts the 7-day quality-flag window.')) return;
+  try {
+    const r = await fetch('/api/reservations?id=' + reservationId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status: 'picked-up' }),
+    });
+    if (!r.ok) {
+      const out = await r.json();
+      alert('Could not update: ' + (out.error || r.status));
+      return;
+    }
+    location.reload();
+  } catch (e) { alert('Network error: ' + e.message); }
+};
+
+window.openComplaint = function (reservationId) {
+  const message = prompt('Briefly describe the issue (we\'ll follow up within 2 business days):');
+  if (!message || message.trim().length < 10) {
+    if (message != null) alert('Please give us a few sentences so we can investigate.');
+    return;
+  }
+  fetch('/api/complaint', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ reservation_id: reservationId, message: message.trim() }),
+  })
+    .then(r => r.json())
+    .then(out => {
+      if (out.complaint_id) {
+        alert('Got it — case ' + out.complaint_id.slice(0, 8).toUpperCase() + '. We just emailed your acknowledgment.');
+      } else {
+        alert('Issue: ' + (out.error || 'unknown'));
+      }
+    })
+    .catch(e => alert('Network error: ' + e.message));
+};
 </script>
 </body>
 </html>

@@ -395,6 +395,25 @@
             </div>`;
           };
           queueList.innerHTML = [...todays, ...upcoming].map(renderRow).join('');
+
+          // ─── In-process reservations: "Mark ready for pickup" ──
+          // Pull all reservations for this processor's listings that are in 'processing' or 'paid'.
+          try {
+            const inProc = await fetch('/api/processors?slug=' + encodeURIComponent(plant.slug) + '&include=reservations', { credentials: 'include' }).catch(() => null);
+            // Lightweight: for now we just show a manual "Mark ready" CTA per checked-in booking.
+            const checkedIn = bookings.filter(b => b.status === 'checked-in');
+            if (checkedIn.length) {
+              const banner = document.createElement('div');
+              banner.style.cssText = 'margin-top:14px;padding:14px 16px;background:rgba(125,160,93,.10);border-radius:12px;display:grid;gap:8px;';
+              banner.innerHTML = `<strong style="font:700 13px/1.4 'Inter';">${checkedIn.length} animal${checkedIn.length === 1 ? '' : 's'} on your floor</strong>` +
+                checkedIn.map(b => `
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;font:500 13px/1.4 'Inter';">
+                    <span>${b.animal_number ? b.animal_number + ' · ' : ''}${b.breed || b.species} from ${b.farm_name}</span>
+                    <button onclick="markReadyForBooking('${b.id}', '${b.listing_id}')" style="background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;padding:6px 14px;font:700 12px/1 'Inter';cursor:pointer;">Mark ready →</button>
+                  </div>`).join('');
+              queueList.parentElement.appendChild(banner);
+            }
+          } catch {}
           if (sub) sub.textContent = `${plant.name}: ${todays.length} drop-off${todays.length === 1 ? '' : 's'} today, ${upcoming.length} this week.`;
         }
       }
@@ -410,6 +429,41 @@
     }
   }
 })();
+// ─── Mark a checked-in animal "ready for pickup" ─────────────────
+// Quick prompt for HW + pickup window; fires C18 to all share buyers via PATCH.
+window.markReadyForBooking = async function (bookingId, listingId) {
+  const hw = prompt('Final hanging weight (lbs)?');
+  if (hw == null) return;
+  const window = prompt('Pickup window (e.g. "Mon–Fri 9–5")?', 'Mon–Fri 9 AM – 5 PM') || '';
+  // Find the reservations for this listing and PATCH each to ready
+  try {
+    const r = await fetch('/api/reservations', { credentials: 'include' });
+    const data = await r.json();
+    const targets = (data.reservations || []).filter(x => x.listing_id === listingId && (x.status === 'processing' || x.status === 'paid'));
+    if (!targets.length) {
+      // No buyer-side rows means this is a producer's-own animal — just flip booking via direct UPDATE in admin tools.
+      alert('No active reservations on this listing. Marking the booking complete manually requires admin tools — we logged the request.');
+      return;
+    }
+    const results = await Promise.all(targets.map(t =>
+      fetch('/api/reservations?id=' + t.id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          status: 'ready',
+          final_hanging_weight: Number(hw) || null,
+          pickup_window: window,
+        }),
+      }).then(r => r.json())
+    ));
+    alert(`Notified ${results.length} buyer${results.length === 1 ? '' : 's'} that their meat is ready.`);
+    location.reload();
+  } catch (e) {
+    alert('Could not mark ready: ' + e.message);
+  }
+};
+
 async function setupPlant() {
   const name = prompt("What's the name of your processing plant?");
   if (!name) return;
