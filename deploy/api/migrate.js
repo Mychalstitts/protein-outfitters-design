@@ -245,7 +245,56 @@ const SCHEMA_STATEMENTS = [
   `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS stripe_connect_status TEXT DEFAULT 'pending'`,
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS stripe_account_id TEXT`,
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS stripe_connect_status TEXT DEFAULT 'pending'`,
+
+  // Institutions (Donation Depot recipients). Originally bootstrapped on
+  // first /api/institutions call; pulled in here so /admin-health doesn't
+  // flag it as missing.
+  `CREATE TABLE IF NOT EXISTS institutions (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    type            TEXT NOT NULL CHECK (type IN ('school','government','foodbank','tribal','veterans','other')),
+    legal_name      TEXT NOT NULL,
+    ein             TEXT,
+    state           TEXT,
+    address         TEXT,
+    contact_name    TEXT,
+    contact_title   TEXT,
+    contact_email   TEXT NOT NULL,
+    contact_phone   TEXT,
+    people_per_week INT,
+    storage         TEXT CHECK (storage IN ('freezer','reach-in','cooler','distribution')),
+    species         JSONB DEFAULT '[]'::jsonb,
+    pickup          TEXT CHECK (pickup IN ('self','delivery','depot')),
+    determination_doc_url TEXT,
+    notes           TEXT,
+    status          TEXT NOT NULL DEFAULT 'pending'
+                    CHECK (status IN ('pending','approved','rejected','suspended')),
+    verified_at     TIMESTAMPTZ,
+    lbs_received_ytd NUMERIC DEFAULT 0,
+    submitted_by    UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS institutions_status_idx ON institutions(status)`,
+  `CREATE INDEX IF NOT EXISTS institutions_state_idx ON institutions(state)`,
   `ALTER TABLE institutions ADD COLUMN IF NOT EXISTS stripe_account_id TEXT`,
+
+  // Complaints — buyer quality flags, bootstrapped lazily by /api/complaint.
+  `CREATE TABLE IF NOT EXISTS complaints (
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reservation_id UUID REFERENCES reservations(id) ON DELETE CASCADE,
+    buyer_email    TEXT,
+    buyer_name     TEXT,
+    summary        TEXT NOT NULL,
+    detail         TEXT,
+    photos         JSONB DEFAULT '[]'::jsonb,
+    status         TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','reviewing','resolved','dismissed')),
+    resolution     TEXT,
+    refund_cents   INT,
+    created_at     TIMESTAMPTZ DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS complaints_status_idx ON complaints(status)`,
+  `CREATE INDEX IF NOT EXISTS complaints_reservation_idx ON complaints(reservation_id)`,
 
   // Reservation-level Stripe linkage for Connect transfers.
   `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS stripe_transfer_group TEXT`,
@@ -513,12 +562,19 @@ export default async function handler(req) {
   }
 
   const ranSchema = [];
+  const failedSchema = [];
   for (const stmt of SCHEMA_STATEMENTS) {
     try {
       await rawQuery(stmt);
       ranSchema.push(stmt.slice(0, 80).replace(/\s+/g, ' '));
     } catch (e) {
-      return err(500, `Schema migration failed at: ${stmt.slice(0, 80)}`, { detail: String(e).slice(0, 300) });
+      // Don't abort — log and continue. Individual failures (e.g. ALTER on a
+      // table that doesn't exist yet because it bootstraps elsewhere) shouldn't
+      // block the rest of the schema from migrating.
+      failedSchema.push({
+        stmt: stmt.slice(0, 120).replace(/\s+/g, ' '),
+        error: String(e.message || e).slice(0, 200),
+      });
     }
   }
 
@@ -534,5 +590,13 @@ export default async function handler(req) {
     }
   }
 
-  return json({ ok: true, schemaStatements: ranSchema.length, seedStatements: ranSeed.length, schema: ranSchema, seed: ranSeed });
+  return json({
+    ok: failedSchema.length === 0,
+    schemaStatements: ranSchema.length,
+    schemaFailed: failedSchema.length,
+    seedStatements: ranSeed.length,
+    schema: ranSchema,
+    failed: failedSchema,
+    seed: ranSeed,
+  });
 }
