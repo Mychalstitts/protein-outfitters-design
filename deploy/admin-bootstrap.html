@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Bootstrap admin · Protein Outfitters</title>
+<meta name="robots" content="noindex" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+
+<style>
+  body { background: #061b0e; color: #fbf9f5; font: 500 15px/1.5 'Inter', system-ui, sans-serif; min-height: 100vh; margin: 0; }
+  .bs-shell { max-width: 480px; margin: 0 auto; padding: clamp(40px, 8vw, 96px) 24px 80px; }
+  .bs-mark { font: 900 13px/1 'Inter'; letter-spacing: .14em; text-transform: uppercase; opacity: .55; margin-bottom: 14px; }
+  h1 { font: 900 clamp(32px, 5vw, 44px)/1.05 'Inter'; letter-spacing: -0.025em; margin: 0 0 14px; }
+  .lead { font: 500 15px/1.55 'Inter'; opacity: .75; margin: 0 0 32px; }
+  form { display: flex; flex-direction: column; gap: 14px; }
+  label { font: 700 11.5px/1 'Inter'; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+  input, select { background: rgba(251,249,245,.06); border: 1px solid rgba(251,249,245,.16); color: #fbf9f5; padding: 13px 16px; border-radius: 12px; font: 500 14px/1.3 'Inter', system-ui, sans-serif; outline: 0; transition: border-color .15s; }
+  input:focus, select:focus { border-color: #cfe9d3; }
+  input::placeholder { color: rgba(251,249,245,.35); }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .help { font: 500 12px/1.5 'Inter'; opacity: .55; margin-top: 2px; }
+  button { background: #cfe9d3; color: #061b0e; border: 0; padding: 14px 22px; border-radius: 999px; font: 800 14px/1 'Inter'; cursor: pointer; margin-top: 8px; transition: transform .15s, opacity .15s; }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .result { margin-top: 18px; padding: 14px 16px; border-radius: 12px; font: 500 13px/1.5 'Inter'; }
+  .result.ok { background: rgba(125,160,93,.18); color: #cfe9d3; border: 1px solid rgba(207,233,211,.2); }
+  .result.fail { background: rgba(194,82,80,.16); color: #f6c5c4; border: 1px solid rgba(246,197,196,.2); }
+  .result code { font: 600 12px/1.3 'JetBrains Mono', monospace; background: rgba(251,249,245,.08); padding: 1px 6px; border-radius: 4px; }
+  .links { margin-top: 36px; display: flex; flex-direction: column; gap: 8px; padding-top: 24px; border-top: 1px solid rgba(251,249,245,.1); }
+  .links a { color: #cfe9d3; text-decoration: none; font: 600 13px/1.4 'Inter'; }
+  .links a:hover { text-decoration: underline; }
+  .links .mute { color: rgba(251,249,245,.45); font-size: 11.5px; }
+</style>
+</head>
+<body>
+
+<div class="bs-shell">
+  <div class="bs-mark">Protein Outfitters · Bootstrap</div>
+  <h1>Bootstrap an admin</h1>
+  <p class="lead">One-time setup. Promote a user to an admin role so they can reach <code style="color:#cfe9d3;font:600 13px/1 'JetBrains Mono'">/admin-overview</code>, <code style="color:#cfe9d3;font:600 13px/1 'JetBrains Mono'">/admin-health</code>, and the email QA tool. Requires the <code style="color:#cfe9d3;font:600 13px/1 'JetBrains Mono'">MIGRATE_SECRET</code> Vercel env var.</p>
+
+  <form id="form">
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="mychal@proteinoutfitters.com" required autocomplete="off" />
+      <p class="help">If this email isn't in the users table yet, the row gets pre-created. The role attaches when they sign in via magic link.</p>
+    </div>
+    <div class="field">
+      <label for="role">Role</label>
+      <select id="role">
+        <option value="admin" selected>admin</option>
+        <option value="producer">producer</option>
+        <option value="processor">processor</option>
+        <option value="buyer">buyer</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="secret">MIGRATE_SECRET</label>
+      <input id="secret" type="password" placeholder="The secret you used to run /api/migrate" required autocomplete="off" />
+      <p class="help">Same env var that gates schema migrations. Never stored — only sent to the API.</p>
+    </div>
+    <button type="submit" id="submit">Promote</button>
+  </form>
+
+  <div class="result" id="result" hidden></div>
+
+  <div class="links">
+    <a href="/admin-health">→ Activation health</a>
+    <a href="/admin-overview">→ Admin overview</a>
+    <a href="/admin-email">→ Email QA</a>
+    <span class="mute">After promoting, sign in with that email at <a href="/account" style="color:#cfe9d3;font-weight:700;">/account</a> if you haven't already.</span>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const form = document.getElementById('form');
+  const result = document.getElementById('result');
+  const btn = document.getElementById('submit');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email  = document.getElementById('email').value.trim();
+    const role   = document.getElementById('role').value;
+    const secret = document.getElementById('secret').value;
+
+    btn.disabled = true; btn.textContent = 'Promoting…';
+    result.hidden = false;
+    result.className = 'result';
+    result.textContent = 'Working…';
+
+    try {
+      const r = await fetch('/api/admin-bootstrap?secret=' + encodeURIComponent(secret), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok) {
+        result.className = 'result ok';
+        result.innerHTML = `<strong>${data.message || 'Done.'}</strong><br>Next: <a href="/admin-health" style="color:#cfe9d3;font-weight:700;">open /admin-health →</a>`;
+      } else {
+        result.className = 'result fail';
+        result.textContent = (data.error || `HTTP ${r.status}`) + (data.details ? ' — ' + data.details : '');
+      }
+    } catch (err) {
+      result.className = 'result fail';
+      result.textContent = 'Network error: ' + err.message;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Promote';
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
