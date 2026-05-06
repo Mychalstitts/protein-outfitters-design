@@ -253,7 +253,58 @@ const SCHEMA_STATEMENTS = [
 
   `CREATE INDEX IF NOT EXISTS farms_stripe_idx     ON farms(stripe_account_id)`,
   `CREATE INDEX IF NOT EXISTS processors_stripe_idx ON processors(stripe_account_id)`,
-  `CREATE INDEX IF NOT EXISTS reservations_transfer_idx ON reservations(stripe_transfer_group)`
+  `CREATE INDEX IF NOT EXISTS reservations_transfer_idx ON reservations(stripe_transfer_group)`,
+
+  // ──────────────────────────────────────────────────────────
+  // Dropoff deposit + processor-only QR check-in.
+  // bookings        : explicit booking row per farmer×processor×date
+  // farmer_deposits : deposit hold per booking, flips on check-in or no-show
+  // checkin_codes   : single-use 6-digit codes the processor enters at scan time
+  // ──────────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS bookings (
+     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     listing_id      UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+     farm_id         UUID NOT NULL REFERENCES farms(id) ON DELETE CASCADE,
+     processor_id    UUID NOT NULL REFERENCES processors(id) ON DELETE RESTRICT,
+     drop_off_date   DATE NOT NULL,
+     drop_off_window TEXT,
+     status          TEXT NOT NULL DEFAULT 'scheduled'
+                     CHECK (status IN ('scheduled','checked-in','no-show','cancelled','rejected')),
+     checked_in_at   TIMESTAMPTZ,
+     checked_in_by   UUID REFERENCES users(id),
+     no_show_at      TIMESTAMPTZ,
+     notes           TEXT,
+     created_at      TIMESTAMPTZ DEFAULT NOW(),
+     updated_at      TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS bookings_listing_idx   ON bookings(listing_id)`,
+  `CREATE INDEX IF NOT EXISTS bookings_processor_idx ON bookings(processor_id)`,
+  `CREATE INDEX IF NOT EXISTS bookings_dropoff_idx   ON bookings(drop_off_date)`,
+  `CREATE INDEX IF NOT EXISTS bookings_status_idx    ON bookings(status)`,
+
+  `CREATE TABLE IF NOT EXISTS farmer_deposits (
+     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     booking_id      UUID UNIQUE NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+     farm_id         UUID NOT NULL REFERENCES farms(id) ON DELETE CASCADE,
+     amount          NUMERIC(10,2) NOT NULL,
+     stripe_payment_intent TEXT,
+     status          TEXT NOT NULL DEFAULT 'held'
+                     CHECK (status IN ('held','released','forfeit','refunded')),
+     released_at     TIMESTAMPTZ,
+     forfeit_at      TIMESTAMPTZ,
+     created_at      TIMESTAMPTZ DEFAULT NOW(),
+     updated_at      TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS farmer_deposits_status_idx ON farmer_deposits(status)`,
+
+  `CREATE TABLE IF NOT EXISTS checkin_codes (
+     code            TEXT PRIMARY KEY,
+     booking_id      UUID UNIQUE NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+     consumed_at     TIMESTAMPTZ,
+     consumed_by     UUID REFERENCES users(id),
+     created_at      TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS checkin_codes_booking_idx ON checkin_codes(booking_id)`
 ];
 
 const SEED_SQL = [

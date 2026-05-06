@@ -93,7 +93,7 @@ export default async function handler(req) {
     return err(401, 'Unauthorized — Vercel cron uses CRON_SECRET; manual calls use ?secret=$EMAIL_TICK_SECRET');
   }
 
-  const results = { c2: 0, c4: 0, f4: 0, p3: 0, errors: [] };
+  const results = { c2: 0, c4: 0, f4: 0, p3: 0, f11_noshow: 0, errors: [] };
 
   // ─── C2: cutsheet reminder T-14 ─────────────────────────────────
   try {
@@ -168,6 +168,48 @@ export default async function handler(req) {
       if (out.sent) results.p3++;
     }
   } catch (e) { results.errors.push(`P3: ${e.message}`); }
+
+  // ─── F11: farmer no-show — sweep bookings with drop-off in the past + still scheduled ──
+  // Forfeits the deposit, flips the booking, and emails the farmer.
+  try {
+    const stale = await sql`
+      SELECT b.id AS booking_id, b.farm_id, b.listing_id, b.processor_id, b.drop_off_date,
+             l.number AS animal_number, l.breed, l.species,
+             f.name AS farm_name, fu.email AS farmer_email, fu.name AS farmer_name,
+             p.name AS processor_name,
+             d.amount AS deposit_amount, d.status AS deposit_status
+      FROM bookings b
+      JOIN listings l   ON l.id = b.listing_id
+      JOIN farms f      ON f.id = b.farm_id
+      JOIN users fu     ON fu.id = f.owner_id
+      JOIN processors p ON p.id = b.processor_id
+      LEFT JOIN farmer_deposits d ON d.booking_id = b.id
+      WHERE b.status = 'scheduled'
+        AND b.drop_off_date < CURRENT_DATE
+        AND b.drop_off_date >= (CURRENT_DATE - INTERVAL '14 days')`;
+    for (const r of stale) {
+      // Mark booking + deposit
+      await sql`UPDATE bookings SET status = 'no-show', no_show_at = NOW(), updated_at = NOW() WHERE id = ${r.booking_id}`;
+      if (r.deposit_status === 'held') {
+        await sql`UPDATE farmer_deposits SET status = 'forfeit', forfeit_at = NOW(), updated_at = NOW() WHERE booking_id = ${r.booking_id}`;
+      }
+      // Best-effort email — F11 isn't a registered template yet, but we still log the event.
+      // When F11 lands in TEMPLATES it'll auto-pick up.
+      try {
+        const out = await sendLifecycleEmail('F11.no_show_flag', {
+          to: r.farmer_email,
+          farm_id: r.farm_id,
+          farmer_name: r.farmer_name,
+          animal_label: `${r.animal_number ? r.animal_number + ' · ' : ''}${r.breed || r.species || 'animal'}`,
+          drop_off_date: r.drop_off_date,
+          processor_name: r.processor_name,
+          deposit_amount: r.deposit_amount,
+          dedupKey: `F11::${r.booking_id}`,
+        });
+        if (out.sent) results.f11_noshow++;
+      } catch (e) { /* template not registered yet — fine */ }
+    }
+  } catch (e) { results.errors.push(`F11: ${e.message}`); }
 
   return json({
     ok: true,
