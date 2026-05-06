@@ -340,7 +340,79 @@ const SCHEMA_STATEMENTS = [
      created_at      TIMESTAMPTZ DEFAULT NOW()
    )`,
   `CREATE INDEX IF NOT EXISTS referral_redemptions_code_idx ON referral_redemptions(code)`,
-  `CREATE INDEX IF NOT EXISTS referral_redemptions_user_idx ON referral_redemptions(redeemed_by)`
+  `CREATE INDEX IF NOT EXISTS referral_redemptions_user_idx ON referral_redemptions(redeemed_by)`,
+
+  // ──────────────────────────────────────────────────────────
+  // Donation funding ledger.
+  // donation_funds        : incoming money — grants, corporate sponsors, individual gifts.
+  // donation_disbursements: outgoing money — kill fees + processing fees paid to processors
+  //                          when a donated fraction is processed.
+  // The legal-entity decision (Producer Partnership pass-through vs MN sister 501(c)(3))
+  // doesn't change this schema — it just changes which bank account the money sits in.
+  // ──────────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS donation_funds (
+     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     source_type      TEXT NOT NULL CHECK (source_type IN ('grant','corporate','individual','platform','match')),
+     source_name      TEXT,
+     contact_email    TEXT,
+     amount           NUMERIC(10,2) NOT NULL,
+     currency         TEXT DEFAULT 'usd',
+     designation      TEXT,
+     status           TEXT NOT NULL DEFAULT 'pledged'
+                      CHECK (status IN ('pledged','received','disbursed','refunded','cancelled')),
+     stripe_payment_intent TEXT,
+     received_at      TIMESTAMPTZ,
+     received_by      UUID REFERENCES users(id) ON DELETE SET NULL,
+     notes            TEXT,
+     created_at       TIMESTAMPTZ DEFAULT NOW(),
+     updated_at       TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS donation_funds_source_idx ON donation_funds(source_type)`,
+  `CREATE INDEX IF NOT EXISTS donation_funds_status_idx ON donation_funds(status)`,
+
+  `CREATE TABLE IF NOT EXISTS donation_disbursements (
+     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     donation_id      UUID NOT NULL REFERENCES donations(id) ON DELETE RESTRICT,
+     processor_id     UUID REFERENCES processors(id) ON DELETE SET NULL,
+     amount           NUMERIC(10,2) NOT NULL,
+     category         TEXT NOT NULL CHECK (category IN ('kill_fee','processing','transport','other')),
+     stripe_transfer_id TEXT,
+     status           TEXT NOT NULL DEFAULT 'pending'
+                      CHECK (status IN ('pending','sent','reversed','failed')),
+     notes            TEXT,
+     created_at       TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS donation_disbursements_donation_idx ON donation_disbursements(donation_id)`,
+  `CREATE INDEX IF NOT EXISTS donation_disbursements_status_idx ON donation_disbursements(status)`,
+
+  // ──────────────────────────────────────────────────────────
+  // Hardware leads — quote-form submissions from /hardware.
+  // Scored automatically on insert; webhook to CRM (HubSpot/Pipedrive/etc.)
+  // is fire-and-forget if HARDWARE_CRM_WEBHOOK_URL env var is set.
+  // ──────────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS hardware_leads (
+     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     full_name       TEXT NOT NULL,
+     email           TEXT NOT NULL,
+     phone           TEXT,
+     role            TEXT,
+     state           TEXT,
+     existing_facility TEXT CHECK (existing_facility IN ('yes','no','unknown')),
+     timeline        TEXT CHECK (timeline IN ('0-3m','3-6m','6-12m','12+m','exploring','unknown')),
+     financing_help  BOOLEAN DEFAULT FALSE,
+     bundle_interest TEXT,
+     notes           TEXT,
+     score           INT NOT NULL DEFAULT 0,
+     temperature     TEXT NOT NULL DEFAULT 'cold' CHECK (temperature IN ('hot','warm','cold')),
+     status          TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','qualified','disqualified','closed_won','closed_lost')),
+     crm_synced_at   TIMESTAMPTZ,
+     crm_external_id TEXT,
+     created_at      TIMESTAMPTZ DEFAULT NOW(),
+     updated_at      TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS hardware_leads_status_idx ON hardware_leads(status)`,
+  `CREATE INDEX IF NOT EXISTS hardware_leads_temp_idx   ON hardware_leads(temperature)`,
+  `CREATE INDEX IF NOT EXISTS hardware_leads_email_idx  ON hardware_leads(email)`
 ];
 
 const SEED_SQL = [

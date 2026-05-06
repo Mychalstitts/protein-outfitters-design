@@ -36,6 +36,7 @@ export default async function handler(req) {
   setC('paid_deposits_count'); setC('paid_deposits_sum');
   setC('institutions_pending'); setC('institutions_approved');
   setC('disputes_open'); setC('disputes_total_amount');
+  setC('leads_new'); setC('leads_hot');
 
   const queries = [
     ['farms',                   () => sql`SELECT COUNT(*)::int AS c FROM farms`],
@@ -102,6 +103,24 @@ export default async function handler(req) {
     FROM institutions ORDER BY created_at DESC LIMIT 10`);
   if (ri.ok) recentInstitutions = ri.data;
 
+  // Hardware leads (counts + recent)
+  const leadsNew = await safeQuery('leads_new',
+    () => sql`SELECT COUNT(*)::int AS c FROM hardware_leads WHERE status = 'new'`);
+  if (leadsNew.ok && leadsNew.data?.[0]) counts.leads_new = leadsNew.data[0].c;
+
+  const leadsHot = await safeQuery('leads_hot',
+    () => sql`SELECT COUNT(*)::int AS c FROM hardware_leads WHERE temperature = 'hot' AND status NOT IN ('disqualified','closed_lost')`);
+  if (leadsHot.ok && leadsHot.data?.[0]) counts.leads_hot = leadsHot.data[0].c;
+
+  let recentLeads = [];
+  const rl = await safeQuery('recent_leads', () => sql`
+    SELECT id, full_name, email, phone, role, state, timeline, bundle_interest,
+           score, temperature, status, created_at
+    FROM hardware_leads
+    ORDER BY (temperature = 'hot') DESC, created_at DESC
+    LIMIT 10`);
+  if (rl.ok) recentLeads = rl.data;
+
   // ── Recent reservations (last 10) ─────────────────────────────
   let recentReservations = [];
   const rr = await safeQuery('recent_reservations', () => sql`
@@ -150,6 +169,7 @@ export default async function handler(req) {
     recent_reservations: recentReservations,
     recent_disputes: recentDisputes,
     recent_institutions: recentInstitutions,
+    recent_leads: recentLeads,
     stripe_error: stripeError,
     errors
   });
