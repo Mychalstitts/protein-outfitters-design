@@ -14,7 +14,7 @@
 
 import { err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
 const REQUIRED_EVENTS = [
   'account.updated',
