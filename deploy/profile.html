@@ -167,11 +167,11 @@ nav a:hover { opacity: 0.7; }
 <!-- TopAppBar: Predicted Component Structure -->
 <header class="fixed top-0 w-full z-50 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 backdrop-blur-xl shadow-[0_40px_60px_-10px_rgba(27,28,26,0.04)]">
 <div class="flex justify-between items-center px-8 h-20 w-full">
-<button class="active:scale-95 transition-transform duration-200 hover:opacity-70">
+<button class="active:scale-95 transition-transform duration-200 hover:opacity-70" onclick="history.length > 1 ? history.back() : (window.location='/account')" aria-label="Back">
 <span class="material-symbols-outlined text-[#061b0e] dark:text-[#fbf9f5]">arrow_back</span>
 </button>
 <h1 class="font-['Inter'] font-bold tracking-tight uppercase text-lg text-[#061b0e] dark:text-white">Profile</h1>
-<a class="active:scale-95 transition-transform duration-200 hover:opacity-70 flex items-center" href="/discover">
+<a class="active:scale-95 transition-transform duration-200 hover:opacity-70 flex items-center" href="/settings" aria-label="Settings">
 <span class="material-symbols-outlined text-[#061b0e] dark:text-[#fbf9f5]">settings</span>
 </a>
 </div>
@@ -194,9 +194,9 @@ nav a:hover { opacity: 0.7; }
 <h2 class="text-5xl md:text-6xl font-black tracking-tighter text-primary leading-none">Marcus Sterling</h2>
 <p class="text-on-surface-variant font-medium tracking-wide">marcus.sterling@curator.com</p>
 </div>
-<button class="px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface text-sm font-bold tracking-tight hover:bg-surface-container-highest transition-colors active-spring">
+<a href="/credentials" class="px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface text-sm font-bold tracking-tight hover:bg-surface-container-highest transition-colors active-spring" style="text-decoration:none;display:inline-block;">
                     Edit Profile
-                </button>
+                </a>
 </div>
 </section>
 <!-- Role Selection -->
@@ -221,7 +221,7 @@ nav a:hover { opacity: 0.7; }
 </div>
 </a>
 <!-- Farmer Role (Inactive) -->
-<a class="p-8 rounded-3xl bg-surface-container-low text-on-surface shadow-sm active-spring cursor-pointer hover:bg-surface-container-high transition-all" href="/discover">
+<a class="p-8 rounded-3xl bg-surface-container-low text-on-surface shadow-sm active-spring cursor-pointer hover:bg-surface-container-high transition-all" href="/farmer">
 <div class="flex flex-col h-full justify-between gap-12">
 <div class="flex justify-between items-start">
 <span class="material-symbols-outlined text-4xl text-on-surface-variant">agriculture</span>
@@ -232,7 +232,7 @@ nav a:hover { opacity: 0.7; }
 </div>
 </div>
 </a>
-<a class="p-8 rounded-3xl bg-surface-container-low text-on-surface shadow-sm active-spring cursor-pointer hover:bg-surface-container-high transition-all" href="/discover">
+<a class="p-8 rounded-3xl bg-surface-container-low text-on-surface shadow-sm active-spring cursor-pointer hover:bg-surface-container-high transition-all" href="/processor">
 <div class="flex flex-col h-full justify-between gap-12">
 <div class="flex justify-between items-start">
 <span class="material-symbols-outlined text-4xl text-on-surface-variant">hub</span>
@@ -246,7 +246,7 @@ nav a:hover { opacity: 0.7; }
 </section>
 <!-- Settings Grid -->
 <section class="ios-spring-reveal space-y-6" style="animation-delay: 0.2s;">
-<a class="p-6 rounded-3xl bg-surface-container-low flex items-center justify-between group cursor-pointer hover:bg-surface-container-high transition-all active-spring md:col-span-2" href="/discover">
+<a class="p-6 rounded-3xl bg-surface-container-low flex items-center justify-between group cursor-pointer hover:bg-surface-container-high transition-all active-spring md:col-span-2" href="/account">
 <div class="flex items-center gap-5">
 <div class="w-12 h-12 rounded-2xl bg-surface-container-lowest flex items-center justify-center">
 <span class="material-symbols-outlined text-primary">receipt_long</span>
@@ -273,10 +273,10 @@ nav a:hover { opacity: 0.7; }
 </section>
 <!-- Branding & Build -->
 <div class="flex justify-center pt-4">
-<a class="flex items-center gap-2 text-error font-bold tracking-tight px-8 py-3 rounded-full bg-error/10 hover:bg-error/20 transition-colors active-spring" href="/discover">
+<button class="flex items-center gap-2 text-error font-bold tracking-tight px-8 py-3 rounded-full bg-error/10 hover:bg-error/20 transition-colors active-spring" style="border:0;cursor:pointer;font:inherit;" onclick="(async()=>{try{await fetch('/api/auth/logout',{method:'POST',credentials:'include'});}catch{} window.location='/'})()">
 <span class="material-symbols-outlined">logout</span>
 Sign Out
-</a>
+</button>
 </div><footer class="ios-spring-reveal pt-12 text-center space-y-2 opacity-30" style="animation-delay: 0.4s;">
 <p class="text-[10px] font-black tracking-[0.3em] uppercase">Protein Outfitters © 2024</p>
 <p class="text-[9px] font-medium tracking-widest uppercase">Version 4.2.0 Build 882</p>
@@ -288,18 +288,39 @@ Sign Out
 <span class="material-symbols-outlined">grid_view</span>
 <span class="font-['Inter'] text-[11px] font-semibold tracking-wide uppercase">Feed</span>
 </a>
-<div class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-white/40 px-4 py-2 hover:text-[#061b0e] dark:hover:text-white transition-colors active:scale-90 duration-300">
+<a class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-white/40 px-4 py-2 hover:text-[#061b0e] dark:hover:text-white transition-colors active:scale-90 duration-300" href="/discover" style="text-decoration:none;">
 <span class="material-symbols-outlined">search</span>
 <span class="font-['Inter'] text-[11px] font-semibold tracking-wide uppercase">Explore</span>
-</div>
-<div class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-white/40 px-4 py-2 hover:text-[#061b0e] dark:hover:text-white transition-colors active:scale-90 duration-300">
-<span class="material-symbols-outlined">fitness_center</span>
-<span class="font-['Inter'] text-[11px] font-semibold tracking-wide uppercase">Workout</span>
-</div>
+</a>
+<a class="flex flex-col items-center justify-center text-[#061b0e]/40 dark:text-white/40 px-4 py-2 hover:text-[#061b0e] dark:hover:text-white transition-colors active:scale-90 duration-300" href="/account" style="text-decoration:none;">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-['Inter'] text-[11px] font-semibold tracking-wide uppercase">Orders</span>
+</a>
 <!-- Profile Active -->
 <div class="flex flex-col items-center justify-center bg-[#061b0e] dark:bg-white text-white dark:text-[#061b0e] rounded-full px-6 py-2.5 transition-all duration-300 scale-105 active:scale-90 duration-300">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
 <span class="font-['Inter'] text-[11px] font-semibold tracking-wide uppercase">Profile</span>
 </div>
 </nav>
+
+<!-- Cowork audit fix: persistent dark-mode toggle -->
+<script>
+(function () {
+  const KEY = 'po_dark_mode';
+  const root = document.documentElement;
+  const toggle = document.querySelector('section.ios-spring-reveal.pt-8 .w-14.h-8.rounded-full');
+  if (!toggle) return;
+  function paint(on) {
+    if (on) { root.classList.add('dark'); root.classList.remove('light'); toggle.style.background = '#0a2012'; toggle.querySelector('.absolute').style.transform = 'translateX(24px)'; }
+    else { root.classList.add('light'); root.classList.remove('dark'); toggle.style.background = ''; toggle.querySelector('.absolute').style.transform = 'translateX(0)'; }
+  }
+  paint(localStorage.getItem(KEY) === '1');
+  toggle.style.cursor = 'pointer';
+  toggle.addEventListener('click', () => {
+    const next = localStorage.getItem(KEY) !== '1';
+    localStorage.setItem(KEY, next ? '1' : '0');
+    paint(next);
+  });
+})();
+</script>
 </body></html>

@@ -280,6 +280,8 @@
 
     function applyFilters() {
       let r = LISTINGS.slice();
+      // Cowork audit fix: hide listings with no real pricing yet (draft data).
+      r = r.filter(l => Number(l.priceLb) > 0 || Number(l.farmerRate) > 0);
       if (state.species !== 'all') r = r.filter(l => l.species === state.species);
       if (state.practice.size) r = r.filter(l => l.practice.some(p => state.practice.has(p)));
       if (state.certs.size) r = r.filter(l => l.certs.some(c => state.certs.has(c)));

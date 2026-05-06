@@ -543,48 +543,78 @@
     updateStats();
   }));
 
-  // ============ SAVE — persist to processors record ============
+  // Save: persist schedule + capabilities via /api/processors PATCH.
+  // Schedule comes from `week` (the in-memory weekly defaults built from data-dow cards)
+  // plus any `overrides` keyed by ISO date. Capabilities come from .pill-toggle.on inside
+  // each species [data-cap=...] container.
   document.getElementById('saveBtn').addEventListener('click', async () => {
-    const b = document.getElementById('saveBtn');
-    b.textContent = 'Saving…'; b.disabled = true;
+    const btn = document.getElementById('saveBtn');
+    const origText = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Saving...';
 
-    const schedule = {};
-    document.querySelectorAll('[data-day]').forEach(el => {
-      const day = el.dataset.day;
-      const open = !el.classList.contains('off');
-      const cap = parseInt(el.querySelector('.cap-num')?.textContent || '0') || 0;
-      if (day) schedule[day] = { open, capacity: cap };
-    });
+    const schedule = {
+      // 0=Sun..6=Sat -> { open, capacity }
+      weekly: Object.fromEntries(
+        Object.entries(week).map(([d, w]) => [d, { open: !!w.open, capacity: Number(w.cap) || 0 }])
+      ),
+      // ISO date -> { open, capacity } overrides
+      overrides: Object.fromEntries(
+        Object.entries(overrides).map(([iso, w]) => [iso, { open: !!w.open, capacity: Number(w.cap) || 0 }])
+      )
+    };
+
     const capabilities = {};
-    document.querySelectorAll('.pill.on, .pill.locked-on, .pill-toggle.on').forEach(p => {
-      const sp = p.dataset.species || p.dataset.sp;
-      const cap = p.dataset.capability || p.dataset.cap;
-      if (sp && cap) {
-        capabilities[sp] = capabilities[sp] || {};
-        capabilities[sp][cap] = true;
-      }
+    document.querySelectorAll('.pill-grid[data-cap]').forEach(grid => {
+      const sp = grid.dataset.cap;
+      capabilities[sp] = [...grid.querySelectorAll('.pill-toggle.on, .pill-toggle.locked-on')]
+        .map(p => p.textContent.trim().replace(/^[✓]\s*/, ''));
     });
 
     try {
-      const me = await window.PO_API.me();
-      if (!me.user) { window.PO_API.openAuth('Sign in to save', 'processor'); b.disabled = false; b.textContent = 'Save schedule + capabilities →'; return; }
+      const me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null);
+      if (!me || !me.user) {
+        if (window.PO_API && window.PO_API.openAuth) window.PO_API.openAuth('Sign in to save', 'processor');
+        else window.location = '/account';
+        btn.disabled = false; btn.textContent = origText; return;
+      }
       const all = await fetch('/api/processors').then(r => r.json());
       const mine = (all.processors || []).find(p => p.owner_id === me.user.id);
       if (!mine) {
         if (confirm('No processor record found. Set up your plant first?')) window.location = '/processor';
-        b.disabled = false; b.textContent = 'Save schedule + capabilities →'; return;
+        btn.disabled = false; btn.textContent = origText; return;
       }
       const r = await fetch('/api/processors?slug=' + encodeURIComponent(mine.slug), {
         method: 'PATCH', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ schedule, capabilities })
+        body: JSON.stringify({ schedule, capabilities, date_overrides: schedule.overrides })
       });
       if (!r.ok) throw new Error('Save failed');
-      b.textContent = '✓ Saved'; b.style.background = '#cfe9d3'; b.style.color = 'var(--brand)';
-      setTimeout(() => { b.textContent = 'Save schedule + capabilities →'; b.style.background = ''; b.style.color = ''; b.disabled = false; }, 1800);
+      btn.textContent = 'Saved ✓'; btn.style.background = '#cfe9d3'; btn.style.color = 'var(--brand)';
+      setTimeout(() => { btn.textContent = origText; btn.style.background = ''; btn.style.color = ''; btn.disabled = false; }, 1800);
     } catch (e) {
-      b.textContent = 'Save failed'; b.disabled = false;
-      setTimeout(() => { b.textContent = 'Save schedule + capabilities →'; }, 2000);
+      btn.textContent = 'Save failed'; btn.disabled = false;
+      setTimeout(() => { btn.textContent = origText; }, 2000);
+    }
+  });
+
+  // Preview: route to the public processor profile.
+  const previewBtn = document.getElementById('previewBtn');
+  if (previewBtn) previewBtn.addEventListener('click', async () => {
+    const orig = previewBtn.textContent;
+    previewBtn.disabled = true; previewBtn.textContent = 'Loading...';
+    try {
+      const me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null);
+      if (!me || !me.user) {
+        if (window.PO_API && window.PO_API.openAuth) window.PO_API.openAuth('Sign in to preview', 'processor');
+        else window.location = '/account';
+        return;
+      }
+      const all = await fetch('/api/processors').then(r => r.json()).catch(() => ({ processors: [] }));
+      const mine = (all.processors || []).find(p => p.owner_id === me.user.id);
+      window.location = mine ? ('/processor?slug=' + mine.slug) : '/processor';
+    } catch (e) {
+      previewBtn.textContent = 'Preview failed';
+      setTimeout(() => { previewBtn.textContent = orig; previewBtn.disabled = false; }, 1500);
     }
   });
 

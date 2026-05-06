@@ -135,7 +135,7 @@ inputs.forEach((inp, i) => {
   try {
     const r = await fetch('/api/processors', { credentials: 'include' });
     const data = await r.json();
-    const me = await fetch('/api/config', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null);
+    const me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null);
     const userId = me?.user?.id;
     const mine = (data.processors || []).filter(p => userId && p.owner_id === userId);
     if (!mine.length) {
