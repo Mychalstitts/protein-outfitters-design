@@ -79,14 +79,29 @@ export default async function handler(req) {
     try {
       const baseSlug = slugify(`${r.name}-${r.city || r.state}`);
       if (!baseSlug) { skipped++; continue; }
-      // Find unique slug (collisions rare but real)
-      let finalSlug = baseSlug, n = 0;
-      while (true) {
-        const exists = await sql`SELECT 1 FROM processors WHERE slug = ${finalSlug} LIMIT 1`;
-        if (!exists[0]) break;
-        n++;
-        finalSlug = `${baseSlug}-${n}`;
-        if (n > 30) { finalSlug = null; break; }
+      // Match on (name, state) first — if an existing imported record has the same name+state,
+      // re-use its slug (so subsequent re-runs UPDATE instead of duplicating).
+      let finalSlug = null;
+      const existingByName = await sql`
+        SELECT slug FROM processors
+        WHERE LOWER(name) = LOWER(${r.name})
+          AND state = ${r.state}
+          AND owner_id IS NULL
+        LIMIT 1`;
+      if (existingByName[0]) {
+        finalSlug = existingByName[0].slug;
+      } else {
+        // No existing match — find a unique slug. Collisions are rare but real (different
+        // shops with the same name in the same city).
+        finalSlug = baseSlug;
+        let n = 0;
+        while (true) {
+          const exists = await sql`SELECT 1 FROM processors WHERE slug = ${finalSlug} LIMIT 1`;
+          if (!exists[0]) break;
+          n++;
+          finalSlug = `${baseSlug}-${n}`;
+          if (n > 30) { finalSlug = null; break; }
+        }
       }
       if (!finalSlug) { skipped++; continue; }
 
