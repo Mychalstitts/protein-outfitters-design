@@ -1042,6 +1042,16 @@ body { background: var(--bg); overflow-x: hidden; }
     const farmName = l.farm_name || 'Independent farm';
     const animalLabel = `${l.number ? l.number + ' — ' : ''}${l.breed || speciesLabel(l.species)}${l.sex ? ' ' + l.sex : ''}`;
 
+    // Farm rating badge — only shows when there are reviews on file.
+    const rating = Number(l.farm_avg_rating || 0);
+    const reviewCount = Number(l.farm_review_count || 0);
+    const ratingBadge = reviewCount > 0
+      ? `<span class="product-rating" style="display:inline-flex;align-items:center;gap:4px;font:700 12px/1 'Inter';color:#061b0e;background:#fbf9f5;padding:4px 8px;border-radius:999px;border:1px solid rgba(6,27,14,.08);">
+           <svg width="11" height="11" viewBox="0 0 24 24" fill="#dca54a" style="flex-shrink:0;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+           ${rating.toFixed(1)} <span style="opacity:.55;font-weight:600;">(${reviewCount})</span>
+         </span>`
+      : '';
+
     return `<button class="product" data-open-sheet
         data-animal="${l.id}" data-name="${animalLabel}"
         data-producer="${farmName}${l.farm_city ? ' · ' + l.farm_city + ', ' + l.farm_state : ''}"
@@ -1051,6 +1061,7 @@ body { background: var(--bg); overflow-x: hidden; }
         data-price-w="${l.shares?.whole?.price || 0}">
         <div class="product-photo" style="background-image: url('${photo}');">
           <span class="product-tag">${tag}</span>
+          ${ratingBadge ? `<span style="position:absolute;top:12px;right:12px;">${ratingBadge}</span>` : ''}
         </div>
         <div class="product-meta">
           <span class="product-eyebrow">${speciesLabel(l.species)}${practice}</span>

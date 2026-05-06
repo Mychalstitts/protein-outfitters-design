@@ -284,15 +284,39 @@
           <div class="field">
             <label>Sex</label>
             <select id="sex">
-              <option>Steer</option><option>Heifer</option><option>Cow</option><option>Bull</option>
+              <optgroup label="Cattle / Bison" id="sex-beef">
+                <option>Steer</option><option>Heifer</option><option>Cow</option><option>Bull</option>
+              </optgroup>
+              <optgroup label="Hog" id="sex-pork" hidden>
+                <option>Barrow</option><option>Gilt</option><option>Sow</option><option>Boar</option>
+              </optgroup>
+              <optgroup label="Lamb / Sheep" id="sex-lamb" hidden>
+                <option>Wether</option><option>Ewe</option><option>Ram</option>
+              </optgroup>
+              <optgroup label="Goat" id="sex-goat" hidden>
+                <option>Wether</option><option>Doe</option><option>Buck</option>
+              </optgroup>
+              <optgroup label="Venison" id="sex-venison" hidden>
+                <option>Buck</option><option>Doe</option>
+              </optgroup>
+              <optgroup label="Poultry" id="sex-poultry" hidden>
+                <option>Hen</option><option>Rooster</option><option>Capon</option>
+              </optgroup>
             </select>
           </div>
         </div>
 
-        <div class="field">
-          <label>Animal ID or name</label>
-          <input type="text" id="animalId" placeholder="e.g. #2641 or Buster">
-          <span class="help">Buyers see this on their reservation.</span>
+        <div class="row-2">
+          <div class="field">
+            <label>Animal ID or name</label>
+            <input type="text" id="animalId" placeholder="e.g. #2641 or Buster">
+            <span class="help">Buyers see this on their reservation.</span>
+          </div>
+          <div class="field">
+            <label>Sub-breed (optional)</label>
+            <input type="text" id="subbreed" placeholder="e.g. Wagyu × Angus, Berkshire-Duroc cross">
+            <span class="help">Helpful for marketing crossbreeds and heritage strains.</span>
+          </div>
         </div>
       </section>
 
@@ -719,7 +743,14 @@
       certs,
       shares,
       photos: S.photoUrls || [],
-      status: 'active'
+      status: 'active',
+      // Listing detail polish (Trello bug list) — capture the structured form values.
+      feed_type:   S.feedType   || null,
+      finish_feed: S.finishFeed || null,
+      subbreed:    document.getElementById('subbreed')?.value || null,
+      sex_detail:  S.sex || null,
+      antibiotics: S.antibiotics || null,
+      hormones:    S.hormones   || null,
     };
     return await window.PO_API.createListing(body);
   }
@@ -741,6 +772,13 @@
     if (visible && visible.firstElementChild) {
       document.getElementById('breed').value = visible.firstElementChild.value;
       S.breed = visible.firstElementChild.value;
+    }
+    // Sex selector — show only the right optgroup for the chosen species.
+    document.querySelectorAll('#sex optgroup').forEach(og => og.hidden = og.id !== `sex-${sp}`);
+    const sexVisible = document.querySelector(`#sex-${sp}`);
+    if (sexVisible && sexVisible.firstElementChild) {
+      document.getElementById('sex').value = sexVisible.firstElementChild.value;
+      S.sex = sexVisible.firstElementChild.value;
     }
     recompute();
   }));

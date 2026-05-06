@@ -104,6 +104,34 @@
   <footer class="sheet-foot"><button class="sheet-back" id="sheetBack" disabled>← Back</button><button class="sheet-next" id="sheetNext" disabled>Continue →</button></footer>
 </aside>`;
 
+  // ── Referral capture ───────────────────────────────────────────
+  // If the URL has ?ref=CODE, stash it in localStorage and call /api/referrals
+  // to validate. We attach the code to checkout/signup later — best-effort.
+  (function captureReferralCode() {
+    try {
+      const params = new URLSearchParams(location.search);
+      const ref = (params.get('ref') || '').toUpperCase().trim();
+      if (!ref || !/^[A-Z2-9]{6}$/.test(ref)) return;
+      // Don't overwrite a previously captured one
+      if (!localStorage.getItem('po_ref_code')) {
+        localStorage.setItem('po_ref_code', ref);
+        localStorage.setItem('po_ref_captured_at', String(Date.now()));
+        // Validate quietly. If valid, leave the ref in storage; if not, drop it.
+        fetch('/api/referrals?code=' + encodeURIComponent(ref))
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data || !data.valid) {
+              localStorage.removeItem('po_ref_code');
+              localStorage.removeItem('po_ref_captured_at');
+            } else {
+              localStorage.setItem('po_ref_owner_name', data.owner_name || '');
+            }
+          })
+          .catch(() => { /* ignore */ });
+      }
+    } catch (e) { /* localStorage may be blocked */ }
+  })();
+
   // Inject footer + sheet into body
   function inject() {
     const host = document.getElementById('po-shell-host');
