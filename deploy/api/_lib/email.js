@@ -163,6 +163,24 @@ export const TEMPLATES = {
     }),
   },
 
+  'C19.delivered_complaint_window': {
+    subject: () => 'Picked up — let us know if anything\'s off (7 days)',
+    render: (c) => layout({
+      heading: 'You\'ve picked up. The 7-day window starts now.',
+      body: `<p>Hi ${firstName(c.buyer_name)},</p>
+<p>Glad you've got <strong>${c.animal_label || 'your share'}</strong> home. A few quick things:</p>
+<ul style="padding-left:20px;">
+  <li><strong>Inventory it.</strong> Cross-check what you got against your cut sheet — note any missing or unexpected packs.</li>
+  <li><strong>Freezer it fast.</strong> Anything you're not eating in 3 days goes in the freezer at 0°F or below.</li>
+  <li><strong>You have 7 days</strong> to flag a quality issue (off-flavor, freezer burn from delayed pickup, wrong cut). After that the window closes.</li>
+</ul>
+<p>If something's not right — tap "Flag a quality issue" on your reservation in your account, or reply to this email with photos. We respond same business day.</p>
+<p>If everything's great, we'd love a star rating on the producer + processor when you have a sec — it's how we keep the marketplace honest.</p>`,
+      ctaLabel: 'Open your reservation →',
+      ctaHref: `${baseUrl()}/account?reservation=${c.reservation_id}`,
+    }),
+  },
+
   'C8_C9_C10.cancel_confirmation': {
     subject: (c) => `Reservation cancelled — ${c.refund_status || 'see refund details inside'}`,
     render: (c) => {
@@ -239,6 +257,19 @@ export const TEMPLATES = {
     }),
   },
 
+  'F11.no_show_flag': {
+    subject: () => 'No-show flagged on your drop-off — deposit forfeit',
+    render: (c) => layout({
+      heading: 'You missed your drop-off slot.',
+      body: `<p>Hi ${firstName(c.farmer_name)},</p>
+<p>${c.processor_name || 'The processor'} didn't see you arrive on <strong>${fmtDate(c.drop_off_date)}</strong> for <strong>${c.animal_label || 'your animal'}</strong>. Per our drop-off policy, we've flagged the booking as a no-show and forfeited your <strong>${fmt$(c.deposit_amount)}</strong> deposit to the processor — they held the slot, no one showed.</p>
+<p>If something went wrong on your end (sick animal, trailer issue, weather, miscommunication), reply to this email and we'll review the flag. One-off events don't escalate; only repeat patterns (3+ in 12 months) trigger a review of your producer status.</p>
+<p>If you want to reschedule with the same buyers, we can re-list the animal — just let us know.</p>`,
+      ctaLabel: 'Talk to us →',
+      ctaHref: `mailto:hello@proteinoutfitters.com?subject=No-show%20flag%20review`,
+    }),
+  },
+
   'F7.payout_disbursed': {
     subject: (c) => `Payout sent — ${fmt$(c.payout_amount)} for ${c.animal_label || 'your animal'}`,
     render: (c) => layout({
@@ -266,6 +297,18 @@ export const TEMPLATES = {
 <p>${c.farm_name || 'A farmer'} just booked a slot for <strong>${c.animal_label || 'an animal'}</strong> on <strong>${fmtDate(c.drop_off_date)}</strong>.</p>
 <p><strong>What we know:</strong> ${c.species || 'animal'}, ~${c.estimated_hw_lbs || '—'} lb hanging weight, ${c.share_count || 1} share buyer${c.share_count > 1 ? 's' : ''}.</p>`,
       ctaLabel: 'View in queue →',
+      ctaHref: `${baseUrl()}/processor-ops`,
+    }),
+  },
+
+  'P2.cut_sheet_finalized': {
+    subject: (c) => `Cut sheet in for ${c.animal_label || 'an animal'}`,
+    render: (c) => layout({
+      heading: 'Cut sheet finalized.',
+      body: `<p>Hi ${firstName(c.processor_contact)},</p>
+<p>${c.buyer_first || 'A buyer'} just submitted their cut sheet for <strong>${c.animal_label || 'an animal'}</strong> (${c.farm_name || 'farm'}). It's locked in now — they can\'t change it after this point unless they ask us.</p>
+<p>Open the queue to see exactly which cuts they picked, grind ratio, vacuum-seal preference, and any special instructions in the CSR field.</p>`,
+      ctaLabel: 'Open queue →',
       ctaHref: `${baseUrl()}/processor-ops`,
     }),
   },
