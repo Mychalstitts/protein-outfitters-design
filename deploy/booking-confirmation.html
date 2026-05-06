@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Booking confirmation — Protein Outfitters</title>
+<meta name="description" content="Your drop-off booking. Show this code to the processor at check-in." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+
+<style>
+.bc-hero { background: linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%); color: var(--ink-inverse); padding: clamp(40px,5vw,72px) 0; }
+.bc-hero h1 { color: white; max-width: 22ch; margin: var(--s-3) 0 var(--s-2); }
+.bc-hero p { color: rgba(255,255,255,0.85); max-width: 60ch; }
+
+.bc-card {
+  background: var(--surface); border-radius: var(--r-4);
+  padding: var(--s-7); box-shadow: var(--sh-1); text-align: center;
+  max-width: 600px; margin: var(--s-8) auto;
+}
+.bc-card h2 { margin: 0 0 var(--s-2); }
+
+.code-display {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: clamp(48px, 9vw, 80px); font-weight: 800;
+  letter-spacing: 0.18em; line-height: 1;
+  color: var(--ink); padding: var(--s-6) 0; margin: var(--s-4) 0;
+  background: var(--surface-2); border-radius: var(--r-4);
+  border: 2px dashed var(--hairline);
+}
+
+.kv-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3);
+  margin: var(--s-5) 0;
+  text-align: left;
+}
+.kv-grid > div { padding: var(--s-3); background: var(--surface-2); border-radius: var(--r-2); }
+.kv-grid em { display: block; font-size: var(--text-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; font-style: normal; margin-bottom: 2px; }
+.kv-grid strong { font-size: var(--text-sm); }
+
+.deposit-row {
+  background: rgba(125,160,93,.10); border: 1px solid rgba(125,160,93,.25);
+  border-radius: var(--r-3); padding: var(--s-4) var(--s-5);
+  display: flex; justify-content: space-between; align-items: center;
+  margin: var(--s-4) 0;
+  font-size: var(--text-sm);
+}
+
+.print-btn { background: var(--ink); color: var(--ink-inverse); padding: 12px 24px; border-radius: 999px; font-weight: 700; }
+.checklist { text-align: left; padding-left: 20px; margin-top: var(--s-3); }
+.checklist li { padding: 4px 0; font-size: var(--text-sm); color: var(--ink-2); }
+
+.empty {
+  text-align: center; padding: 60px 20px; max-width: 400px; margin: 60px auto;
+  font-size: var(--text-md); color: var(--ink-2);
+}
+.empty img { width: 64px; opacity: 0.5; margin-bottom: var(--s-3); }
+
+@media print {
+  .bc-hero, .glass-nav, .print-btn, #poFooterMount { display: none !important; }
+  body { background: white; }
+  .bc-card { box-shadow: none; border: 1px solid #ccc; }
+}
+</style>
+</head>
+<body>
+
+<header class="glass-nav">
+  <div class="container">
+    <nav class="row row--between" style="padding: 14px 0;">
+      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; text-decoration: none; color: inherit;">Protein Outfitters</a>
+      <span class="pill" style="font-size: 10px;">BOOKING</span>
+    </nav>
+  </div>
+</header>
+
+<section class="bc-hero">
+  <div class="container">
+    <span class="eyebrow" style="color: var(--accent-soft);">Drop-off booking</span>
+    <h1 class="display-md">You're scheduled.</h1>
+    <p>Bring this 6-digit code to the processor on drop-off day. They'll enter it to accept your animal — that's how the platform releases your deposit and starts the buyers' countdown.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div id="bookingMount"></div>
+</div>
+
+<div id="poFooterMount"></div>
+<script src="/po-shell.js"></script>
+
+<script>
+(async function loadBooking() {
+  const mount = document.getElementById('bookingMount');
+  const id = new URLSearchParams(location.search).get('booking');
+  if (!id) {
+    mount.innerHTML = `<div class="empty"><img src="/brand/logo-monogram.svg" alt="">No booking ID in the URL.<br>Open this page from the link in your booking-confirmation email.</div>`;
+    return;
+  }
+  try {
+    const r = await fetch('/api/bookings?id=' + encodeURIComponent(id), { credentials: 'include' });
+    if (!r.ok) {
+      const out = await r.json().catch(() => ({}));
+      mount.innerHTML = `<div class="empty">${out.error || 'Booking not found.'}</div>`;
+      return;
+    }
+    const { booking } = await r.json();
+    if (!booking) { mount.innerHTML = `<div class="empty">Booking not found.</div>`; return; }
+    render(booking);
+  } catch (e) {
+    mount.innerHTML = `<div class="empty">Network error: ${e.message}</div>`;
+  }
+
+  function render(b) {
+    const animalLabel = `${b.animal_number ? b.animal_number + ' · ' : ''}${b.breed || b.species || 'animal'}`;
+    const drop = b.drop_off_date ? new Date(b.drop_off_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD';
+    const code = b.checkin_code || '— used —';
+    const codeFmt = /^\d{6}$/.test(code) ? code.replace(/(\d{3})(\d{3})/, '$1 $2') : code;
+    const dep = Number(b.deposit_amount || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    const depStatus = b.deposit_status || 'held';
+    mount.innerHTML = `
+      <div class="bc-card">
+        <span class="eyebrow">Drop-off check-in code</span>
+        <div class="code-display">${codeFmt}</div>
+        <p style="font-size: var(--text-sm); color: var(--ink-2); margin: 0;">Show this to ${b.processor_name || 'the processor'} on drop-off day.<br>${b.checkin_code ? 'Single-use — code is consumed when scanned.' : 'This code has already been used.'}</p>
+
+        <div class="kv-grid">
+          <div><em>Animal</em><strong>${animalLabel}</strong></div>
+          <div><em>Drop-off</em><strong>${drop}</strong></div>
+          <div><em>Processor</em><strong>${b.processor_name || '—'}</strong></div>
+          <div><em>Booking status</em><strong>${(b.status || 'scheduled').replace('-', ' ')}</strong></div>
+        </div>
+
+        <div class="deposit-row">
+          <div>
+            <strong>Refundable deposit ${depStatus === 'released' ? '✓ released' : depStatus === 'forfeit' ? '⚠ forfeit' : 'on hold'}</strong>
+            <div style="font-size: 12px; color: var(--ink-3); margin-top: 2px;">Auto-refunds when the processor accepts your animal. Forfeit only if you no-show.</div>
+          </div>
+          <strong style="font-size: var(--text-lg);">${dep}</strong>
+        </div>
+
+        <p style="font-size: var(--text-sm); color: var(--ink-2);"><strong>Drop-off checklist:</strong></p>
+        <ul class="checklist">
+          <li>Withhold feed 24 hours prior; water OK</li>
+          <li>Confirm trailer + driver</li>
+          <li>Bring this code (screenshot is fine)</li>
+          <li>Plan ~45 min on-site</li>
+        </ul>
+
+        <button class="print-btn" onclick="window.print()" style="margin-top: var(--s-5);">Print this page</button>
+      </div>`;
+  }
+})();
+</script>
+</body>
+</html>

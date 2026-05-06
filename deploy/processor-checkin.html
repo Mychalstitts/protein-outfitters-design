@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Check-in — Protein Outfitters</title>
+<meta name="description" content="Processor-side check-in. Enter the farmer's 6-digit code to accept their animal." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
+
+<style>
+.ck-hero { background: linear-gradient(160deg, #1a201d 0%, #0a0d0b 100%); color: var(--ink-inverse); padding: clamp(40px,5vw,72px) 0; }
+.ck-hero h1 { color: white; max-width: 22ch; margin: var(--s-3) 0 var(--s-2); }
+.ck-hero p { color: rgba(255,255,255,0.85); max-width: 60ch; }
+
+.ck-grid { display: grid; gap: var(--s-6); grid-template-columns: 1fr; padding-block: var(--s-8); max-width: 720px; margin: 0 auto; }
+.ck-card { background: var(--surface); border-radius: var(--r-4); padding: var(--s-6); box-shadow: var(--sh-1); }
+.ck-card h3 { margin: 0 0 var(--s-3); }
+.ck-card p { margin: 0 0 var(--s-3); color: var(--ink-2); font-size: var(--text-sm); }
+
+.code-row { display: flex; gap: 8px; justify-content: center; margin: var(--s-5) 0; }
+.code-input {
+  width: 56px; height: 72px; text-align: center;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 36px; font-weight: 800; line-height: 1;
+  border: 2px solid var(--hairline); border-radius: var(--r-3);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.code-input:focus { outline: none; border-color: var(--brand); background: white; }
+
+.field-row { display: grid; gap: 6px; margin-bottom: var(--s-3); }
+.field-row label { font-size: var(--text-sm); font-weight: 700; }
+.field-row select, .field-row input[type=text] {
+  padding: 10px 12px; border-radius: var(--r-2); border: 1px solid var(--hairline);
+  background: var(--surface-2); font: inherit;
+}
+
+.scan-btn { background: var(--brand-grad); color: var(--ink-inverse); width: 100%; padding: 16px; border-radius: var(--r-3); font-weight: 800; font-size: var(--text-md); }
+.scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.result { padding: var(--s-5); border-radius: var(--r-3); margin-top: var(--s-4); font-size: var(--text-sm); }
+.result.ok { background: rgba(125,160,93,.12); color: var(--brand-darker, var(--brand)); }
+.result.err { background: rgba(194,82,80,.10); color: #c25250; }
+.result strong { display: block; margin-bottom: 6px; font-size: var(--text-md); color: var(--ink); }
+
+.helper { font-size: var(--text-xs); color: var(--ink-3); margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<header class="glass-nav">
+  <div class="container">
+    <nav class="row row--between" style="padding: 14px 0;">
+      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; text-decoration: none; color: inherit;">Protein Outfitters</a>
+      <span class="pill" style="font-size: 10px;">CHECK-IN</span>
+    </nav>
+  </div>
+</header>
+
+<section class="ck-hero">
+  <div class="container">
+    <span class="eyebrow" style="color: var(--accent-soft);">Drop-off check-in</span>
+    <h1 class="display-md">Accept an animal.</h1>
+    <p>Type the 6-digit code from the farmer's confirmation. The platform releases their deposit, flips the buyers' reservation status, and emails everyone the animal arrived.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ck-grid">
+
+    <div class="ck-card">
+      <h3>1. Pick your plant</h3>
+      <p>If you operate more than one plant, pick which one this animal is arriving at.</p>
+      <div class="field-row">
+        <label>Plant</label>
+        <select id="processorSelect"><option value="">Loading…</option></select>
+      </div>
+    </div>
+
+    <div class="ck-card">
+      <h3>2. Enter the code</h3>
+      <p>Six digits. The farmer has it on their phone or printed on the booking confirmation.</p>
+      <div class="code-row" id="codeRow">
+        <input class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+      </div>
+      <button class="scan-btn" id="scanBtn">Accept the animal</button>
+      <p class="helper">Code is single-use. Once you accept, the booking flips to "checked-in" and the deposit refunds to the farmer automatically.</p>
+      <div id="result" style="display:none;"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="poFooterMount"></div>
+<script src="/po-shell.js"></script>
+
+<script>
+const inputs = Array.from(document.querySelectorAll('.code-input'));
+const procSelect = document.getElementById('processorSelect');
+const scanBtn = document.getElementById('scanBtn');
+const resultEl = document.getElementById('result');
+
+// Auto-advance focus across the 6 boxes
+inputs.forEach((inp, i) => {
+  inp.addEventListener('input', () => {
+    inp.value = inp.value.replace(/\D/g, '').slice(0,1);
+    if (inp.value && i < inputs.length - 1) inputs[i+1].focus();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !inp.value && i > 0) inputs[i-1].focus();
+    if (e.key === 'Enter') doCheckin();
+  });
+  inp.addEventListener('paste', e => {
+    const txt = (e.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0,6);
+    if (txt.length === 6) {
+      e.preventDefault();
+      txt.split('').forEach((d, j) => { if (inputs[j]) inputs[j].value = d; });
+      inputs[Math.min(5, txt.length-1)].focus();
+    }
+  });
+});
+
+(async function loadMyProcessors() {
+  try {
+    const r = await fetch('/api/processors', { credentials: 'include' });
+    const data = await r.json();
+    const me = await fetch('/api/config', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null);
+    const userId = me?.user?.id;
+    const mine = (data.processors || []).filter(p => userId && p.owner_id === userId);
+    if (!mine.length) {
+      procSelect.innerHTML = '<option value="">No processor on your account — visit /processor to set one up</option>';
+      scanBtn.disabled = true;
+      return;
+    }
+    procSelect.innerHTML = mine.map(p => `<option value="${p.slug}">${p.name}${p.city ? ' · ' + p.city : ''}</option>`).join('');
+  } catch (e) {
+    procSelect.innerHTML = '<option value="">Failed to load — refresh</option>';
+    scanBtn.disabled = true;
+  }
+})();
+
+async function doCheckin() {
+  const code = inputs.map(i => i.value).join('');
+  if (!/^\d{6}$/.test(code)) {
+    showResult('err', 'Enter all 6 digits before accepting.');
+    return;
+  }
+  const slug = procSelect.value;
+  if (!slug) { showResult('err', 'Pick which plant first.'); return; }
+  scanBtn.disabled = true;
+  scanBtn.textContent = 'Accepting…';
+  try {
+    const r = await fetch('/api/check-in', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ code, processor_slug: slug }),
+    });
+    const out = await r.json();
+    if (!r.ok) { showResult('err', out.error || 'Check-in failed'); return; }
+    const a = out.animal || {};
+    const animalLabel = `${a.animal_number ? a.animal_number + ' · ' : ''}${a.breed || a.species || 'animal'}`;
+    showResult('ok',
+      `<strong>Animal accepted ✓</strong>` +
+      `<div>${animalLabel} from ${a.farm_name || 'farm'}.</div>` +
+      `<div style="margin-top:6px;">Buyers notified: ${out.buyers_notified || 0}. Deposit released. Booking flipped to checked-in.</div>`,
+      true);
+    // Reset for next animal
+    inputs.forEach(inp => inp.value = '');
+    inputs[0].focus();
+  } catch (e) {
+    showResult('err', 'Network error: ' + e.message);
+  } finally {
+    scanBtn.disabled = false;
+    scanBtn.textContent = 'Accept the animal';
+  }
+}
+
+function showResult(kind, html, isHTML = false) {
+  resultEl.style.display = 'block';
+  resultEl.className = 'result ' + kind;
+  resultEl.innerHTML = isHTML ? html : `<strong>${kind === 'ok' ? 'Done' : 'Heads up'}</strong>${html}`;
+}
+
+scanBtn.addEventListener('click', doCheckin);
+inputs[0].focus();
+</script>
+</body>
+</html>
