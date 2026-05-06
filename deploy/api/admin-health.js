@@ -10,7 +10,7 @@
 // Admin-only. Read-only — running migrations or rotating secrets happens
 // elsewhere. This is just the dashboard.
 
-import { sql, rawQuery, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -80,22 +80,12 @@ const CRONS_EXPECTED = [
   { path: '/api/annual-donor-acknowledgment', schedule: '0 15 15 1 *', purpose: 'Yearly D3 consolidated tax letter (Jan 15)' },
 ];
 
-async function checkTable(name) {
-  try {
-    // information_schema is universally safe + doesn't trigger seq scans
-    const rows = await sql`
-      SELECT COUNT(*)::int AS c
-      FROM information_schema.tables
-      WHERE table_schema = 'public' AND table_name = ${name}`;
-    if (!rows[0]?.c) return { table: name, exists: false };
-    // Get a quick row count for triage. We use rawQuery (pg pool) since
-    // table name has to be interpolated and Neon's tagged template won't
-    // bind identifiers. Whitelisted to known TABLES list above so it's safe.
-    const count = await rawQuery(`SELECT EXISTS (SELECT 1 FROM "${name}" LIMIT 1) AS has_rows`);
-    return { table: name, exists: true, has_rows: !!count[0]?.has_rows };
-  } catch (e) {
-    return { table: name, exists: false, error: e.message.slice(0, 80) };
-  }
+// Wrap a promise with a timeout so a slow upstream doesn't hang the whole function.
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(`${label} timed out after ${ms}ms`)), ms)),
+  ]);
 }
 
 async function checkStripe() {
@@ -106,19 +96,27 @@ async function checkStripe() {
     const StripeModule = await import('stripe');
     const Stripe = StripeModule.default || StripeModule;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    const balance = await stripe.balance.retrieve();
-    const account = await stripe.accounts.retrieve();
+    const [balanceRes, accountRes] = await Promise.allSettled([
+      withTimeout(stripe.balance.retrieve(), 4000, 'stripe.balance'),
+      withTimeout(stripe.accounts.retrieve(), 4000, 'stripe.accounts'),
+    ]);
+    if (balanceRes.status !== 'fulfilled' || accountRes.status !== 'fulfilled') {
+      return { connected: false, reason: (balanceRes.reason?.message || accountRes.reason?.message || 'Stripe call failed').slice(0, 200) };
+    }
+    const balance = balanceRes.value;
+    const account = accountRes.value;
+
     let webhookEvents = [];
     let webhookSummary = null;
     try {
-      const endpoints = await stripe.webhookEndpoints.list({ limit: 100 });
-      // Find the endpoint pointing at our /api/stripe-webhook
+      const endpoints = await withTimeout(stripe.webhookEndpoints.list({ limit: 100 }), 4000, 'stripe.webhookEndpoints');
       const ours = endpoints.data.find(e => /\/api\/stripe-webhook/.test(e.url));
       if (ours) {
         webhookEvents = ours.enabled_events || [];
         webhookSummary = { url: ours.url, status: ours.status, enabled_count: webhookEvents.length };
       }
-    } catch (e) { /* webhook listing requires elevated key — ok if blocked */ }
+    } catch (e) { /* webhook listing may require restricted key with webhook scopes — degrade gracefully */ }
+
     return {
       connected: true,
       account_id: account.id,
@@ -133,7 +131,9 @@ async function checkStripe() {
       webhook: webhookSummary,
       webhook_events_subscribed: webhookEvents,
       webhook_events_required: REQUIRED_STRIPE_EVENTS,
-      webhook_events_missing: REQUIRED_STRIPE_EVENTS.filter(e => !webhookEvents.includes(e)),
+      webhook_events_missing: webhookSummary
+        ? REQUIRED_STRIPE_EVENTS.filter(e => !webhookEvents.includes(e))
+        : [], // if we couldn't list endpoints, don't lie about what's missing
     };
   } catch (e) {
     return { connected: false, reason: e.message.slice(0, 200) };
@@ -146,9 +146,9 @@ async function checkResend() {
   }
   try {
     // Resend doesn't have a cheap "ping" endpoint — list domains is the lightest call.
-    const r = await fetch('https://api.resend.com/domains', {
+    const r = await withTimeout(fetch('https://api.resend.com/domains', {
       headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
-    });
+    }), 4000, 'resend.domains');
     if (!r.ok) {
       return { connected: false, reason: `Resend API returned ${r.status}` };
     }
@@ -184,17 +184,26 @@ export default async function handler(req) {
   const requiredMissing = envReport.filter(e => e.required && !e.set);
   const optionalMissing = envReport.filter(e => !e.required && !e.set);
 
-  // ── Schema ──
+  // ── Schema (single information_schema query — much faster than 25 round-trips) ──
   let schemaReport = [];
   try {
-    schemaReport = await Promise.all(TABLES.map(checkTable));
+    const present = await withTimeout(sql`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = ANY(${TABLES})`,
+      4000, 'schema.tables');
+    const presentSet = new Set(present.map(r => r.table_name));
+    schemaReport = TABLES.map(t => ({ table: t, exists: presentSet.has(t) }));
   } catch (e) {
-    schemaReport = [{ error: e.message }];
+    schemaReport = TABLES.map(t => ({ table: t, exists: false, error: e.message.slice(0, 80) }));
   }
   const tablesMissing = schemaReport.filter(t => t.exists === false);
 
-  // ── Integrations ──
-  const [stripe, resend] = await Promise.all([checkStripe(), checkResend()]);
+  // ── Integrations (run in parallel, each with its own internal timeouts) ──
+  const [stripe, resend] = await Promise.all([
+    checkStripe().catch(e => ({ connected: false, reason: e.message.slice(0, 200) })),
+    checkResend().catch(e => ({ connected: false, reason: e.message.slice(0, 200) })),
+  ]);
 
   // ── Score ──
   // Each required-env, each table, stripe-connected, resend-connected is a check.
