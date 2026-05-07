@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Map · Protein Outfitters</title>
-<meta name="description" content="Every farm, every processor, every market — mapped. The platform's atlas." />
+<meta name="description" content="Live atlas of farms, processors, demand heat, and hardware-opportunity zones across the upper Midwest." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,9 +14,7 @@
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<!-- Leaflet.heat for the demand heatmap -->
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-<!-- Leaflet.markercluster -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -25,107 +23,226 @@
 <link rel="stylesheet" href="./po-shell.css">
 
 <style>
-  body { margin: 0; background: #fbf9f5; color: var(--ink, #061b0e); font-family: 'Inter', system-ui, sans-serif; }
+  :root {
+    --map-bg: #0a1410;
+    --map-panel: #0f1d18;
+    --map-panel-2: #142823;
+    --map-text: #e8eee9;
+    --map-muted: rgba(232,238,233,.55);
+    --map-line: rgba(232,238,233,.10);
+    --po-green: #7da05d;
+    --po-green-bright: #a3c97a;
+    --po-orange: #ff7a3d;
+    --po-red: #ff4548;
+    --po-yellow: #ffce4f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--map-bg); color: var(--map-text); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 
   /* Layout */
   .map-page { display: grid; grid-template-rows: auto 1fr; height: 100dvh; min-height: 720px; }
   .map-frame { display: grid; grid-template-columns: 360px 1fr; height: 100%; overflow: hidden; }
   @media (max-width: 920px) { .map-frame { grid-template-columns: 1fr; grid-template-rows: 1fr 320px; } }
 
+  /* Top header */
+  .map-top { background: var(--map-panel); padding: 14px 22px; display: flex; gap: 18px; align-items: center; border-bottom: 1px solid var(--map-line); }
+  .map-top a { color: var(--map-text); text-decoration: none; font: 800 14px/1 'Inter'; letter-spacing: -0.01em; }
+  .map-top .stats { margin-left: auto; display: flex; gap: 18px; font: 600 12px/1 'Inter'; color: var(--map-muted); flex-wrap: wrap; }
+  .map-top .stats strong { color: var(--po-green-bright); font-weight: 800; margin-right: 4px; }
+  .map-top .tier-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(125,160,93,.15); border: 1px solid rgba(125,160,93,.3); font: 800 11px/1 'Inter'; letter-spacing: .04em; text-transform: uppercase; color: var(--po-green-bright); cursor: pointer; }
+  .map-top .tier-pill.hardware { background: rgba(255,122,61,.15); border-color: rgba(255,122,61,.4); color: var(--po-orange); }
+  .map-top .tier-pill.free { background: rgba(232,238,233,.08); border-color: rgba(232,238,233,.18); color: var(--map-muted); }
+
   /* Sidebar */
-  .map-side { background: #fff; border-right: 1px solid rgba(6,27,14,.08); display: flex; flex-direction: column; overflow: hidden; }
-  .map-side-head { padding: 18px 20px 14px; border-bottom: 1px solid rgba(6,27,14,.07); }
-  .map-side-head h1 { font: 900 22px/1.1 'Inter'; letter-spacing: -0.02em; margin: 0 0 4px; }
-  .map-side-head p { font: 500 12.5px/1.5 'Inter'; color: var(--ink-2, #5a6359); margin: 0; }
+  .map-side { background: var(--map-panel); border-right: 1px solid var(--map-line); display: flex; flex-direction: column; overflow: hidden; }
+  .map-side-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--map-line); }
+  .map-side-head h1 { font: 900 22px/1.1 'Inter'; letter-spacing: -0.02em; margin: 0 0 4px; color: var(--map-text); }
+  .map-side-head p { font: 500 12.5px/1.5 'Inter'; color: var(--map-muted); margin: 0; }
   .map-side-body { flex: 1; overflow-y: auto; padding: 8px; }
-  .map-side-foot { padding: 12px 16px; border-top: 1px solid rgba(6,27,14,.07); font: 500 11.5px/1.5 'Inter'; color: var(--ink-2, #5a6359); display: flex; gap: 10px; align-items: center; }
+  .map-side-foot { padding: 12px 16px; border-top: 1px solid var(--map-line); font: 500 11.5px/1.5 'Inter'; color: var(--map-muted); display: flex; gap: 10px; align-items: center; }
 
   /* Layer tabs */
-  .layer-tabs { display: flex; gap: 4px; padding: 12px 16px; background: rgba(6,27,14,.03); border-bottom: 1px solid rgba(6,27,14,.06); flex-wrap: wrap; }
-  .layer-tab { flex: 1; min-width: 70px; padding: 9px 8px; border-radius: 9px; background: transparent; border: 0; font: 700 11.5px/1.2 'Inter'; color: var(--ink-2, #5a6359); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: background .15s; }
-  .layer-tab:hover { background: rgba(6,27,14,.05); }
-  .layer-tab.active { background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); }
+  .layer-tabs { display: flex; gap: 4px; padding: 12px 16px; background: var(--map-panel-2); border-bottom: 1px solid var(--map-line); flex-wrap: wrap; }
+  .layer-tab { flex: 1; min-width: 64px; padding: 9px 8px; border-radius: 9px; background: transparent; border: 0; font: 700 11.5px/1.2 'Inter'; color: var(--map-muted); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all .2s; position: relative; }
+  .layer-tab:hover:not(.locked) { background: rgba(232,238,233,.06); color: var(--map-text); }
+  .layer-tab.active { background: var(--po-green); color: #061b0e; }
+  .layer-tab.active.opportunity-active { background: var(--po-orange); color: #fff; }
   .layer-tab .count { font: 800 16px/1 'Inter'; }
-  .layer-tab .label { font-size: 10px; opacity: .85; letter-spacing: .04em; text-transform: uppercase; }
-  .layer-tab.locked { opacity: .35; cursor: not-allowed; }
-  .layer-tab.locked::after { content: '🔒'; font-size: 9px; margin-left: 4px; }
+  .layer-tab .label { font-size: 9.5px; opacity: .9; letter-spacing: .04em; text-transform: uppercase; }
+  .layer-tab.locked::after { content: '🔒'; position: absolute; top: 4px; right: 6px; font-size: 9px; }
+  .layer-tab.locked .count { opacity: .4; }
+  .layer-tab.locked .label { opacity: .4; }
 
   /* List items in side panel */
   .list-item { display: flex; gap: 12px; padding: 11px 12px; border-radius: 10px; cursor: pointer; transition: background .15s; align-items: flex-start; }
-  .list-item:hover { background: rgba(6,27,14,.04); }
-  .list-item.active { background: rgba(125,160,93,.13); border: 1px solid rgba(125,160,93,.3); }
-  .list-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; font: 800 11.5px/1 'Inter'; color: #fbf9f5; }
-  .list-icon.farm { background: linear-gradient(135deg, #7da05d, #5a8540); }
+  .list-item:hover { background: rgba(232,238,233,.06); }
+  .list-item.active { background: rgba(125,160,93,.16); border: 1px solid rgba(125,160,93,.35); }
+  .list-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; font: 800 11.5px/1 'Inter'; color: #fbf9f5; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+  .list-icon.farm { background: linear-gradient(135deg, var(--po-green), #5a8540); }
   .list-icon.processor { background: linear-gradient(135deg, #b48a5a, #8a6840); }
-  .list-icon.demand { background: linear-gradient(135deg, #d39c1f, #a17714); }
-  .list-icon.opportunity { background: linear-gradient(135deg, #c25250, #963d3b); }
+  .list-icon.demand { background: linear-gradient(135deg, var(--po-yellow), #d39c1f); color: #4a3000; }
+  .list-icon.opportunity { background: linear-gradient(135deg, var(--po-orange), #ce4d1f); }
+  .list-icon.prospect { background: linear-gradient(135deg, #6b7c93, #4a5868); }
   .list-body { flex: 1; min-width: 0; }
-  .list-title { font: 700 13px/1.3 'Inter'; color: var(--ink, #061b0e); margin: 0 0 2px; }
-  .list-meta { font: 500 11.5px/1.4 'Inter'; color: var(--ink-2, #5a6359); margin: 0; }
+  .list-title { font: 700 13px/1.3 'Inter'; color: var(--map-text); margin: 0 0 2px; }
+  .list-meta { font: 500 11.5px/1.4 'Inter'; color: var(--map-muted); margin: 0; }
   .list-pill { display: inline-block; padding: 1px 7px; border-radius: 999px; font: 700 9.5px/1.5 'Inter'; letter-spacing: .04em; text-transform: uppercase; margin-right: 4px; }
-  .list-pill.green { background: rgba(125,160,93,.18); color: #2d4a18; }
-  .list-pill.red   { background: rgba(194,82,80,.16); color: #963d3b; }
-  .list-pill.orange { background: rgba(211,156,31,.18); color: #6b4f00; }
-  .list-empty { padding: 36px 16px; text-align: center; color: var(--ink-2, #5a6359); font: 500 13px/1.5 'Inter'; }
+  .list-pill.green { background: rgba(125,160,93,.22); color: var(--po-green-bright); }
+  .list-pill.red   { background: rgba(255,69,72,.18); color: #ff8e90; }
+  .list-pill.orange { background: rgba(255,122,61,.18); color: var(--po-orange); }
+  .list-pill.gray { background: rgba(107,124,147,.22); color: #9aafc4; }
+  .list-pill.blue { background: rgba(74,139,175,.22); color: #7ab8da; }
+  .list-empty { padding: 36px 16px; text-align: center; color: var(--map-muted); font: 500 13px/1.5 'Inter'; }
+
+  /* Locked-tier teaser inside sidebar */
+  .locked-teaser { padding: 28px 20px; text-align: center; background: linear-gradient(135deg, rgba(255,122,61,.08), rgba(255,69,72,.08)); border-radius: 12px; margin: 12px; border: 1px solid rgba(255,122,61,.18); }
+  .locked-teaser h3 { font: 900 18px/1.2 'Inter'; margin: 0 0 8px; color: var(--map-text); }
+  .locked-teaser p { font: 500 12.5px/1.5 'Inter'; color: var(--map-muted); margin: 0 0 16px; }
+  .locked-teaser .tier-cta { display: inline-block; padding: 10px 20px; border-radius: 999px; background: linear-gradient(135deg, var(--po-orange), #ce4d1f); color: #fff; text-decoration: none; font: 800 12px/1 'Inter'; letter-spacing: .02em; cursor: pointer; border: 0; }
+  .locked-teaser .tier-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(255,122,61,.4); }
 
   /* Map canvas */
   .map-canvas { position: relative; }
-  #leafletMap { width: 100%; height: 100%; background: #f5f1e8; }
+  #leafletMap { width: 100%; height: 100%; background: var(--map-bg); }
+  .leaflet-container { background: var(--map-bg) !important; font-family: 'Inter', sans-serif; }
 
-  .map-loading { position: absolute; inset: 0; display: grid; place-items: center; background: #f5f1e8; z-index: 999; pointer-events: none; transition: opacity .2s; }
+  .map-loading { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10,20,16,.95); z-index: 999; pointer-events: none; transition: opacity .2s; }
   .map-loading.hide { opacity: 0; pointer-events: none; }
-  .map-loading .spinner { width: 36px; height: 36px; border: 3px solid rgba(6,27,14,.1); border-top-color: #7da05d; border-radius: 999px; animation: spin .9s linear infinite; }
+  .map-loading .spinner { width: 36px; height: 36px; border: 3px solid rgba(232,238,233,.15); border-top-color: var(--po-green); border-radius: 999px; animation: spin .9s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Top header */
-  .map-top { background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); padding: 12px 22px; display: flex; gap: 18px; align-items: center; }
-  .map-top a { color: var(--ink-inverse, #fbf9f5); text-decoration: none; font: 800 14px/1 'Inter'; letter-spacing: -0.01em; }
-  .map-top .stats { margin-left: auto; display: flex; gap: 18px; font: 600 12px/1 'Inter'; color: rgba(251,249,245,.75); }
-  .map-top .stats strong { color: #cfe9d3; font-weight: 800; margin-right: 4px; }
+  /* ────── Snapchat-style custom pins ────── */
+  /* Avatar pin: circular bubble with optional photo or initials, anchored at the bottom */
+  .po-pin {
+    position: relative;
+    width: 44px; height: 44px;
+    border-radius: 999px;
+    background: var(--po-green);
+    border: 3px solid #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+    display: grid; place-items: center;
+    font: 900 13px/1 'Inter'; color: #fff;
+    background-size: cover; background-position: center;
+    transition: transform .15s ease;
+    cursor: pointer;
+  }
+  .po-pin::after {
+    content: ''; position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+    width: 12px; height: 12px; background: inherit; border: 0; border-radius: 2px;
+    transform: translateX(-50%) rotate(45deg); box-shadow: 4px 4px 8px rgba(0,0,0,.15);
+  }
+  .po-pin:hover { transform: scale(1.08); z-index: 1000; }
+  .po-pin.farm { background-color: var(--po-green); }
+  .po-pin.processor { background-color: #b48a5a; }
+  .po-pin.opportunity { background-color: var(--po-orange); border-color: #fff8; animation: opp-pulse 2s ease-in-out infinite; }
+  .po-pin.prospect { background-color: #6b7c93; }
+  .po-pin.prospect.contacted { background-color: #4a8baf; }
+  .po-pin.farm.active::before, .po-pin.processor.active::before {
+    /* Pulsing ring for "live activity" */
+    content: ''; position: absolute; inset: -6px; border-radius: 999px;
+    border: 2.5px solid var(--po-green-bright); opacity: .9;
+    animation: live-pulse 1.6s ease-out infinite;
+  }
+  @keyframes live-pulse {
+    0% { transform: scale(1); opacity: .9; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+  @keyframes opp-pulse {
+    0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,.35), 0 0 0 0 rgba(255,122,61,.5); }
+    50% { box-shadow: 0 6px 18px rgba(0,0,0,.35), 0 0 0 14px rgba(255,122,61,0); }
+  }
 
-  /* Custom Leaflet marker styles */
-  .pin { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 999px 999px 999px 0; transform: rotate(-45deg); border: 2px solid #fbf9f5; box-shadow: 0 4px 10px rgba(6,27,14,.25); }
-  .pin > * { transform: rotate(45deg); color: #fbf9f5; font: 900 11px/1 'Inter'; }
-  .pin.farm { background: #7da05d; }
-  .pin.processor { background: #b48a5a; }
-  .pin.opportunity { background: #c25250; }
-  .pin.prospect { background: #6b7c93; }
-  .pin.prospect.contacted { background: #4a8baf; }
-  .list-icon.prospect { background: linear-gradient(135deg, #6b7c93, #4a5868); }
-  .list-pill.gray { background: rgba(107,124,147,.18); color: #4a5868; }
-  .list-pill.blue { background: rgba(74,139,175,.18); color: #2a5d7a; }
+  /* Hover label that pops above the pin */
+  .po-pin .pin-label {
+    position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, -8px);
+    background: #061b0e; color: #fff;
+    padding: 5px 10px; border-radius: 999px;
+    font: 700 11px/1.2 'Inter'; white-space: nowrap;
+    box-shadow: 0 6px 14px rgba(0,0,0,.4);
+    opacity: 0; pointer-events: none; transition: opacity .15s;
+  }
+  .po-pin:hover .pin-label { opacity: 1; }
 
-  /* Popup */
-  .leaflet-popup-content-wrapper { border-radius: 14px; box-shadow: 0 12px 30px rgba(6,27,14,.18); padding: 0; }
-  .leaflet-popup-content { margin: 14px 16px; font: 500 13px/1.45 'Inter'; }
-  .leaflet-popup-content h4 { font: 800 14px/1.2 'Inter'; margin: 0 0 6px; color: var(--ink, #061b0e); }
-  .leaflet-popup-content p { margin: 0 0 4px; color: var(--ink-2, #5a6359); }
-  .leaflet-popup-content .cta { display: inline-block; margin-top: 8px; padding: 6px 12px; border-radius: 999px; background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); font: 700 11.5px/1 'Inter'; text-decoration: none; }
+  /* Cluster styling — Snapchat-like */
+  .marker-cluster-small,
+  .marker-cluster-medium,
+  .marker-cluster-large { background: rgba(125,160,93,.4) !important; }
+  .marker-cluster-small div,
+  .marker-cluster-medium div,
+  .marker-cluster-large div { background: var(--po-green) !important; color: #fff !important; font: 800 13px/1 'Inter' !important; }
 
-  /* Heatmap legend */
-  .map-legend { position: absolute; bottom: 18px; right: 18px; background: rgba(255,255,255,.95); padding: 10px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(6,27,14,.12); font: 600 11.5px/1.4 'Inter'; z-index: 500; max-width: 240px; }
-  .map-legend h5 { margin: 0 0 6px; font: 800 11px/1 'Inter'; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2, #5a6359); }
+  /* Popup styling */
+  .leaflet-popup-content-wrapper { border-radius: 16px !important; box-shadow: 0 16px 38px rgba(0,0,0,.4) !important; padding: 0 !important; background: var(--map-panel) !important; color: var(--map-text) !important; }
+  .leaflet-popup-content { margin: 16px 18px !important; font: 500 13px/1.45 'Inter'; color: var(--map-text); }
+  .leaflet-popup-content h4 { font: 800 14px/1.2 'Inter'; margin: 0 0 6px; color: var(--map-text); }
+  .leaflet-popup-content p { margin: 0 0 4px; color: var(--map-muted); }
+  .leaflet-popup-content .cta { display: inline-block; margin-top: 10px; padding: 8px 14px; border-radius: 999px; background: var(--po-green); color: #061b0e; font: 800 12px/1 'Inter'; text-decoration: none; }
+  .leaflet-popup-content .cta.orange { background: var(--po-orange); color: #fff; }
+  .leaflet-popup-tip { background: var(--map-panel) !important; }
+
+  /* Legend overlays */
+  .map-legend { position: absolute; bottom: 18px; right: 18px; background: rgba(15,29,24,.95); padding: 11px 14px; border-radius: 12px; box-shadow: 0 8px 22px rgba(0,0,0,.45); font: 600 11.5px/1.4 'Inter'; z-index: 500; max-width: 240px; color: var(--map-text); border: 1px solid var(--map-line); }
+  .map-legend h5 { margin: 0 0 6px; font: 800 11px/1 'Inter'; letter-spacing: .04em; text-transform: uppercase; color: var(--map-muted); }
+  .map-legend p { margin: 0 0 6px; color: var(--map-muted); font-size: 11px; }
   .map-legend .scale { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-  .map-legend .scale-bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #cfe9d3, #d39c1f, #c25250); }
-  .map-legend .scale-end { font: 600 10px/1 'Inter'; color: var(--ink-2, #5a6359); }
+  .map-legend .scale-bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(90deg, transparent, var(--po-yellow), var(--po-orange), var(--po-red)); }
+  .map-legend .scale-end { font: 600 10px/1 'Inter'; color: var(--map-muted); }
+
+  /* Upgrade modal */
+  .upgrade-overlay { position: fixed; inset: 0; background: rgba(6,18,14,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9000; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .upgrade-overlay.show { display: flex; }
+  .upgrade-card { background: var(--map-panel); color: var(--map-text); border-radius: 22px; max-width: 720px; width: 100%; padding: 36px; box-shadow: 0 30px 80px rgba(0,0,0,.5); position: relative; border: 1px solid var(--map-line); }
+  .upgrade-close { position: absolute; top: 14px; right: 16px; background: transparent; border: 0; color: var(--map-muted); font-size: 22px; cursor: pointer; }
+  .upgrade-card h2 { font: 900 26px/1.15 'Inter'; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .upgrade-card .sub { font: 500 14px/1.5 'Inter'; color: var(--map-muted); margin: 0 0 26px; }
+  .upgrade-tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .upgrade-tiers { grid-template-columns: 1fr; } }
+  .upgrade-tier { background: var(--map-panel-2); border-radius: 16px; padding: 22px; border: 1px solid var(--map-line); }
+  .upgrade-tier.featured { border-color: var(--po-orange); background: linear-gradient(135deg, rgba(255,122,61,.08), rgba(255,69,72,.06)); position: relative; }
+  .upgrade-tier.featured::before { content: 'BEST VALUE'; position: absolute; top: -10px; left: 22px; padding: 4px 9px; border-radius: 999px; background: var(--po-orange); color: #fff; font: 800 10px/1 'Inter'; letter-spacing: .08em; }
+  .upgrade-tier h3 { font: 900 17px/1.2 'Inter'; margin: 0 0 6px; }
+  .upgrade-tier .price { font: 900 28px/1 'Inter'; letter-spacing: -0.02em; margin: 8px 0 14px; }
+  .upgrade-tier .price small { font-size: 13px; font-weight: 600; color: var(--map-muted); margin-left: 4px; }
+  .upgrade-tier ul { list-style: none; padding: 0; margin: 0 0 18px; font: 500 12.5px/1.6 'Inter'; color: var(--map-muted); }
+  .upgrade-tier li::before { content: '✓ '; color: var(--po-green-bright); font-weight: 800; }
+  .upgrade-tier .tier-cta { display: block; width: 100%; padding: 11px; border-radius: 999px; background: var(--map-text); color: #061b0e; font: 800 13px/1 'Inter'; border: 0; cursor: pointer; text-align: center; text-decoration: none; }
+  .upgrade-tier.featured .tier-cta { background: linear-gradient(135deg, var(--po-orange), #ce4d1f); color: #fff; }
+  .upgrade-tier .tier-cta:hover { transform: translateY(-1px); }
+  .upgrade-tier .tier-cta:disabled { opacity: .55; cursor: not-allowed; }
+
+  /* Hardware ROI drawer (when an opportunity is clicked) */
+  .roi-drawer { position: absolute; left: 18px; bottom: 18px; max-width: 360px; background: rgba(15,29,24,.96); padding: 16px 18px; border-radius: 14px; box-shadow: 0 12px 36px rgba(0,0,0,.5); z-index: 600; color: var(--map-text); border: 1px solid rgba(255,122,61,.3); display: none; }
+  .roi-drawer.show { display: block; }
+  .roi-drawer h4 { font: 900 15px/1.1 'Inter'; margin: 0 0 4px; }
+  .roi-drawer .num-row { display: flex; gap: 14px; margin: 10px 0; }
+  .roi-drawer .num { font: 900 22px/1 'Inter'; color: var(--po-orange); }
+  .roi-drawer .num + small { font: 600 10.5px/1.3 'Inter'; color: var(--map-muted); display: block; }
+  .roi-drawer .cta { display: inline-block; margin-top: 10px; padding: 9px 16px; border-radius: 999px; background: var(--po-orange); color: #fff; text-decoration: none; font: 800 12px/1 'Inter'; }
+  .roi-drawer .close { float: right; background: transparent; border: 0; color: var(--map-muted); cursor: pointer; font-size: 18px; line-height: 1; }
+  @media (max-width: 920px) { .roi-drawer { left: 12px; right: 12px; max-width: none; } }
+
+  /* Toast (success/error) */
+  .map-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--map-panel); color: var(--map-text); padding: 12px 20px; border-radius: 999px; box-shadow: 0 10px 28px rgba(0,0,0,.45); font: 700 13px/1 'Inter'; z-index: 9100; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; border: 1px solid var(--map-line); }
+  .map-toast.show { opacity: 1; transform: translateX(-50%) translateY(-2px); }
 </style>
 </head>
 
-<body>
+<body data-po-home="off">
 
 <div class="map-page">
   <header class="map-top">
     <a href="/">PROTEIN OUTFITTERS</a>
-    <span style="opacity:.5;">·</span>
-    <span style="font-weight:600;">Atlas</span>
+    <span style="opacity:.4;">·</span>
+    <span style="font-weight:600;color:var(--map-muted);">Atlas</span>
     <div class="stats" id="topStats"></div>
+    <button class="tier-pill free" id="tierPill" type="button" title="Click to upgrade your map insights">FREE</button>
   </header>
 
   <div class="map-frame">
     <aside class="map-side">
       <div class="map-side-head">
         <h1 id="layerTitle">Loading…</h1>
-        <p id="layerLead">Mapping every farm, processor, and market across the upper Midwest.</p>
+        <p id="layerLead">Mapping every farm, processor, and demand pocket across the upper Midwest.</p>
       </div>
 
       <div class="layer-tabs" id="layerTabs">
@@ -133,16 +250,16 @@
           <span class="count" id="cFarms">—</span><span class="label">Farms</span>
         </button>
         <button class="layer-tab" data-layer="processors" type="button">
-          <span class="count" id="cProc">—</span><span class="label">Processors</span>
+          <span class="count" id="cProc">—</span><span class="label">Cutters</span>
         </button>
         <button class="layer-tab locked" data-layer="demand" type="button">
           <span class="count" id="cDemand">—</span><span class="label">Demand</span>
         </button>
         <button class="layer-tab locked" data-layer="opportunity" type="button">
-          <span class="count" id="cOpp">—</span><span class="label">Hardware</span>
+          <span class="count" id="cOpp">—</span><span class="label">ROI Zones</span>
         </button>
         <button class="layer-tab locked" data-layer="prospects" type="button">
-          <span class="count" id="cProspects">—</span><span class="label">Prospects</span>
+          <span class="count" id="cProspects">—</span><span class="label">Recruit</span>
         </button>
       </div>
 
@@ -159,14 +276,47 @@
     <div class="map-canvas">
       <div id="leafletMap"></div>
       <div class="map-loading" id="mapLoading"><div class="spinner"></div></div>
-      <div class="map-legend" id="mapLegend" style="display:none;">
-        <h5>Demand intensity</h5>
-        <div>Buyer signups by ZIP, last 90 days</div>
-        <div class="scale"><span class="scale-end">low</span><div class="scale-bar"></div><span class="scale-end">high</span></div>
+      <div class="map-legend" id="mapLegend" style="display:none;"></div>
+      <div class="roi-drawer" id="roiDrawer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Upgrade modal -->
+<div class="upgrade-overlay" id="upgradeOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="upgrade-card">
+    <button class="upgrade-close" id="upgradeClose" aria-label="Close">✕</button>
+    <h2 id="upgradeHead">Unlock map insights</h2>
+    <p class="sub" id="upgradeSub">See where buyer demand is concentrated, which zips lack processing capacity, and which prospects are worth recruiting first.</p>
+    <div class="upgrade-tiers">
+      <div class="upgrade-tier" id="tierProCard">
+        <h3>Map Insights Pro</h3>
+        <div class="price">$29<small>/month</small></div>
+        <ul>
+          <li>Live demand heatmap (buyer signups, recent reservations)</li>
+          <li>"Live now" pulse on active zips</li>
+          <li>Save searches + email alerts</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <button class="tier-cta" id="ctaPro">Upgrade to Pro →</button>
+      </div>
+      <div class="upgrade-tier featured" id="tierHardwareCard">
+        <h3>Hardware Insights</h3>
+        <div class="price">$199<small>/month</small></div>
+        <ul>
+          <li>Everything in Pro</li>
+          <li><strong style="color:var(--po-orange)">Hardware ROI zones</strong> — every zip with high demand and no nearby processor</li>
+          <li>Per-zone ROI estimate (MHU payback math)</li>
+          <li>Recruiting prospects layer (FSIS / AAMP / EatWild leads)</li>
+          <li>Geographic CSV export</li>
+        </ul>
+        <button class="tier-cta" id="ctaHardware">Upgrade to Hardware →</button>
       </div>
     </div>
   </div>
 </div>
+
+<div class="map-toast" id="mapToast"></div>
 
 <script>
 (function () {
@@ -178,74 +328,97 @@
     attributionControl: true,
   }).setView([45.5, -94], 5);
 
-  // Style: muted earth-tone tiles to match the brand
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  // Dark Snapchat-vibe tile style
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
     maxZoom: 19,
   }).addTo(map);
 
-  // Custom HTML pin
-  function pinIcon(kind, label = '') {
+  // ── Helpers ──────────────────────────────────────────────────
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function initials(s) {
+    return String(s || '?').split(/[\s.&-]+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join('').slice(0, 2);
+  }
+  function showToast(msg, ms = 1800) {
+    const el = document.getElementById('mapToast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => el.classList.remove('show'), ms);
+  }
+
+  // ── Snapchat-style avatar pin ────────────────────────────────
+  function avatarPin({ kind, label, name, photoUrl, active }) {
+    const safeName = escapeHtml(name || '');
+    const initialsHtml = initials(name);
+    const photoStyle = photoUrl ? ` style="background-image:url('${escapeHtml(photoUrl)}')"` : '';
+    const labelHtml = name ? `<span class="pin-label">${safeName}</span>` : '';
+    const bodyHtml = photoUrl ? '' : (label ?? initialsHtml);
     return L.divIcon({
-      className: 'po-pin-wrapper',
-      html: `<div class="pin ${kind}"><span>${label || ''}</span></div>`,
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-      popupAnchor: [0, -28],
+      className: 'po-pin-wrap',
+      html: `<div class="po-pin ${kind}${active ? ' active' : ''}"${photoStyle}>${bodyHtml}${labelHtml}</div>`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 50],
+      popupAnchor: [0, -46],
     });
   }
 
   // ── Layer state ──────────────────────────────────────────────
   const layers = {
-    farms: L.markerClusterGroup({ disableClusteringAtZoom: 9 }),
-    processors: L.markerClusterGroup({ disableClusteringAtZoom: 9 }),
+    farms: L.markerClusterGroup({ disableClusteringAtZoom: 9, showCoverageOnHover: false }),
+    processors: L.markerClusterGroup({ disableClusteringAtZoom: 9, showCoverageOnHover: false }),
     demand: L.layerGroup(),
     opportunity: L.layerGroup(),
-    prospects: L.markerClusterGroup({ disableClusteringAtZoom: 9 }),
+    prospects: L.markerClusterGroup({ disableClusteringAtZoom: 9, showCoverageOnHover: false }),
   };
   let heatLayer = null;
   let currentLayer = 'farms';
-  let DATA = { farms: [], processors: [], demand: [], opportunity: [], is_admin: false };
+  let DATA = { farms: [], processors: [], demand: [], opportunity: [], prospects: [], tier: 'free', is_admin: false, locked: { demand: true, opportunity: true, prospects: true } };
 
-  // ── Layer title metadata ─────────────────────────────────────
+  // ── Layer metadata ───────────────────────────────────────────
   const LAYER_META = {
     farms: {
       title: 'Farms',
-      lead: 'Every farm with a profile on Protein Outfitters. Click a pin to see who they are and what they\'re raising.',
+      lead: 'Every farm with a profile on Protein Outfitters. Tap an avatar to see who they are and what they\'re raising.',
     },
     processors: {
-      title: 'Processors',
-      lead: 'USDA / state-inspected processors and lockers. Buyers rely on these for cut and wrap; farmers schedule drop-offs here.',
+      title: 'Custom-cut processors',
+      lead: 'State and federally-inspected processors who take farmer drop-off work. Pulsing dots = bookings in the last 24h.',
     },
     demand: {
-      title: 'Customer demand',
-      lead: 'Where buyer signups concentrate. Heatmap intensity shows real demand for whole-animal protein — recruit farms here.',
+      title: 'Live demand heatmap',
+      lead: 'Where buyer signups concentrate. Brighter = stronger pull. Pro tier required.',
     },
     opportunity: {
-      title: 'Hardware sales targets',
-      lead: 'Zips with active demand but no processor within 60 miles. Each red pin is a place where a new MHU pays back fast — book demos here.',
+      title: 'Hardware ROI zones',
+      lead: 'Zips with high demand AND no processor within 60 miles. Each pulsing pin is a place where a new MHU pays back fast — tap to see ROI math.',
     },
     prospects: {
       title: 'Recruiting prospects',
-      lead: 'Farms and processors found in USDA FSIS / AAMP / Eat Wild data who haven\'t signed up yet. Click a pin to send a recruiting email or mark contacted.',
+      lead: 'Farms and processors found in USDA / AAMP / EatWild data who haven\'t signed up yet. Tap to send a recruiting email.',
     },
   };
 
-  // ── Render side list ─────────────────────────────────────────
-  function escapeHtml(s) {
-    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-  }
-
-  function initials(s) {
-    return String(s || '?').split(/[\s.&-]+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join('');
-  }
-
+  // ── Side list rendering ──────────────────────────────────────
   function renderSideList() {
     const el = document.getElementById('sideList');
     const meta = LAYER_META[currentLayer];
     document.getElementById('layerTitle').textContent = meta.title;
     document.getElementById('layerLead').textContent = meta.lead;
+
+    if (DATA.locked && DATA.locked[currentLayer]) {
+      const tier = currentLayer === 'demand' ? 'pro' : 'hardware';
+      el.innerHTML = `
+        <div class="locked-teaser">
+          <h3>${currentLayer === 'demand' ? 'Demand heatmap is a Pro feature' : currentLayer === 'opportunity' ? 'Hardware ROI Zones — Hardware Insights tier' : 'Recruiting prospects — Hardware Insights tier'}</h3>
+          <p>${currentLayer === 'demand' ? 'See where buyer demand actually clusters so you can recruit the right farms.' : 'Spot every zip with active demand and no nearby processor — the perfect places to drop a Friesla MHU.'}</p>
+          <button class="tier-cta" data-upgrade="${tier}">Unlock ${tier === 'pro' ? 'Pro · $29/mo' : 'Hardware · $199/mo'}</button>
+        </div>`;
+      return;
+    }
 
     let items = [];
     if (currentLayer === 'farms') {
@@ -260,7 +433,7 @@
       items = DATA.processors.map(p => ({
         kind: 'processor',
         title: p.name,
-        meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.inspection ? ' · ' + p.inspection.toUpperCase() + ' inspected' : ''}`,
+        meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.inspection ? ' · ' + p.inspection.toUpperCase() : ''}`,
         pills: (p.species || []).slice(0, 3).map(t => ({ text: t, color: 'orange' })),
         lat: p.lat, lng: p.lng, link: null,
       }));
@@ -278,16 +451,14 @@
         title: 'ZIP ' + o.zip + ' · ' + o.user_count + ' buyer' + (o.user_count === 1 ? '' : 's'),
         meta: o.nearest_processor_miles == null ? 'No processor in our network' : `Nearest processor: ${o.nearest_processor_miles} mi away`,
         pills: [{ text: 'hardware target', color: 'red' }],
-        lat: o.lat, lng: o.lng, link: null,
+        lat: o.lat, lng: o.lng, link: null, opportunity: o,
       }));
     } else if (currentLayer === 'prospects') {
       items = (DATA.prospects || []).slice(0, 100).map(p => ({
         kind: 'prospect',
         title: p.name,
-        meta: `${p.kind === 'farm' ? '🌾' : '🔪'} ${p.city || ''}${p.state ? ', ' + p.state : ''} · source: ${p.source}`,
-        pills: [
-          { text: p.invite_status, color: p.invite_status === 'sent' ? 'blue' : (p.invite_status === 'clicked' ? 'green' : 'gray') }
-        ],
+        meta: `${p.kind === 'farm' ? '🌾' : '🔪'} ${p.city || ''}${p.state ? ', ' + p.state : ''} · ${p.source}`,
+        pills: [{ text: p.invite_status, color: p.invite_status === 'sent' ? 'blue' : (p.invite_status === 'clicked' ? 'green' : 'gray') }],
         lat: p.lat, lng: p.lng, link: null, prospect_id: p.id,
       }));
     }
@@ -297,216 +468,313 @@
       return;
     }
 
-    el.innerHTML = items.map((it, i) => `
-      <div class="list-item" data-idx="${i}" data-lat="${it.lat}" data-lng="${it.lng}">
-        <span class="list-icon ${it.kind}">${escapeHtml(initials(it.title))}</span>
+    el.innerHTML = items.map((item, i) => `
+      <div class="list-item" data-i="${i}" data-lat="${item.lat}" data-lng="${item.lng}"${item.link ? ` data-link="${escapeHtml(item.link)}"` : ''}>
+        <div class="list-icon ${item.kind}">${initials(item.title)}</div>
         <div class="list-body">
-          <p class="list-title">${escapeHtml(it.title)}</p>
-          <p class="list-meta">${escapeHtml(it.meta)}</p>
-          ${it.pills.map(p => `<span class="list-pill ${p.color}">${escapeHtml(p.text)}</span>`).join('')}
+          <h4 class="list-title">${escapeHtml(item.title)}</h4>
+          <p class="list-meta">${escapeHtml(item.meta)}</p>
+          ${item.pills.length ? `<div style="margin-top:4px;">${item.pills.map(p => `<span class="list-pill ${p.color}">${escapeHtml(p.text)}</span>`).join('')}</div>` : ''}
         </div>
-      </div>
-    `).join('');
+      </div>`).join('');
 
-    el.querySelectorAll('.list-item').forEach(node => {
-      node.addEventListener('click', () => {
-        const lat = parseFloat(node.getAttribute('data-lat'));
-        const lng = parseFloat(node.getAttribute('data-lng'));
-        if (Number.isFinite(lat) && Number.isFinite(lng)) {
-          map.setView([lat, lng], 11, { animate: true });
-        }
-      });
-    });
-
-    document.getElementById('footStat').textContent = `${items.length} ${meta.title.toLowerCase()} shown`;
+    // Click → fly to + open popup
+    el.querySelectorAll('.list-item').forEach(li => li.addEventListener('click', () => {
+      const lat = parseFloat(li.dataset.lat), lng = parseFloat(li.dataset.lng);
+      if (!isNaN(lat) && !isNaN(lng)) map.flyTo([lat, lng], 12, { duration: .9 });
+    }));
   }
 
-  // ── Build map layers ─────────────────────────────────────────
-  function buildFarmsLayer() {
+  // ── Render markers ───────────────────────────────────────────
+  function renderFarms() {
     layers.farms.clearLayers();
-    DATA.farms.forEach(f => {
-      const m = L.marker([f.lat, f.lng], { icon: pinIcon('farm') });
+    for (const f of DATA.farms) {
+      if (f.lat == null || f.lng == null) continue;
+      const m = L.marker([f.lat, f.lng], { icon: avatarPin({ kind: 'farm', name: f.name, photoUrl: f.avatar_url, active: f.recent }) });
       m.bindPopup(`
         <h4>${escapeHtml(f.name)}</h4>
-        <p>${escapeHtml(f.city || '')}${f.state ? ', ' + f.state : ''}</p>
-        ${f.listings_count ? `<p><strong>${f.listings_count}</strong> active listing${f.listings_count === 1 ? '' : 's'}</p>` : '<p style="opacity:.6">No active listings</p>'}
-        ${f.slug ? `<a class="cta" href="/farm/${escapeHtml(f.slug)}">Visit profile →</a>` : ''}
-      `);
+        <p>${escapeHtml(f.city || '')}${f.state ? ', ' + escapeHtml(f.state) : ''}</p>
+        ${f.listings_count ? `<p>${f.listings_count} active listing${f.listings_count === 1 ? '' : 's'}</p>` : ''}
+        ${f.slug ? `<a class="cta" href="/farm/${escapeHtml(f.slug)}">Visit profile →</a>` : ''}`);
       layers.farms.addLayer(m);
-    });
+    }
   }
-
-  function buildProcessorsLayer() {
+  function renderProcessors() {
     layers.processors.clearLayers();
-    DATA.processors.forEach(p => {
-      const m = L.marker([p.lat, p.lng], { icon: pinIcon('processor') });
+    for (const p of DATA.processors) {
+      if (p.lat == null || p.lng == null) continue;
+      const m = L.marker([p.lat, p.lng], { icon: avatarPin({ kind: 'processor', name: p.name, active: p.recent }) });
       m.bindPopup(`
         <h4>${escapeHtml(p.name)}</h4>
-        <p>${escapeHtml(p.city || '')}${p.state ? ', ' + p.state : ''}</p>
+        <p>${escapeHtml(p.city || '')}${p.state ? ', ' + escapeHtml(p.state) : ''}</p>
         ${p.inspection ? `<p>Inspection: <strong>${escapeHtml(p.inspection.toUpperCase())}</strong></p>` : ''}
-        ${p.species?.length ? `<p>Species: ${escapeHtml(p.species.join(', '))}</p>` : ''}
-      `);
+        ${(p.species && p.species.length) ? `<p>Species: ${p.species.map(escapeHtml).join(', ')}</p>` : ''}`);
       layers.processors.addLayer(m);
-    });
-  }
-
-  function buildDemandLayer() {
-    layers.demand.clearLayers();
-    if (heatLayer) {
-      map.removeLayer(heatLayer);
-      heatLayer = null;
     }
+  }
+  function renderDemandHeat() {
+    if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
     if (!DATA.demand.length) return;
-    const points = DATA.demand.map(d => [d.lat, d.lng, Math.min(1, d.user_count / 10)]);
+    const max = Math.max(...DATA.demand.map(d => d.user_count + d.reservation_count * 2), 1);
+    const points = DATA.demand.map(d => [d.lat, d.lng, (d.user_count + d.reservation_count * 2) / max]);
     heatLayer = L.heatLayer(points, {
-      radius: 35, blur: 25, maxZoom: 11,
-      gradient: { 0.0: '#cfe9d3', 0.4: '#d39c1f', 0.7: '#c25250', 1.0: '#7d2c2a' },
+      radius: 38, blur: 30, maxZoom: 12, max: 1,
+      gradient: { 0.0: 'rgba(255,206,79,0)', 0.3: '#ffce4f', 0.6: '#ff7a3d', 1.0: '#ff4548' },
     });
+    layers.demand.clearLayers();
+    layers.demand.addLayer(heatLayer);
   }
-
-  function buildOpportunityLayer() {
+  function renderOpportunity() {
     layers.opportunity.clearLayers();
-    DATA.opportunity.filter(o => o.hardware_target).forEach(o => {
-      const m = L.marker([o.lat, o.lng], { icon: pinIcon('opportunity') });
+    for (const o of DATA.opportunity) {
+      if (!o.hardware_target) continue;
+      if (o.lat == null || o.lng == null) continue;
+      const m = L.marker([o.lat, o.lng], { icon: avatarPin({ kind: 'opportunity', name: 'ROI ZONE · ZIP ' + o.zip, label: '$$$' }) });
+      m.on('click', () => openRoiDrawer(o));
       m.bindPopup(`
-        <h4>ZIP ${escapeHtml(o.zip)}</h4>
-        <p><strong>${o.user_count}</strong> buyer${o.user_count === 1 ? '' : 's'} · ${o.reservation_count} reservation${o.reservation_count === 1 ? '' : 's'} (90d)</p>
-        <p>${o.nearest_processor_miles == null ? 'No processor in network' : 'Nearest processor: <strong>' + o.nearest_processor_miles + ' mi</strong>'}</p>
-        <a class="cta" href="/hardware?utm_source=map&utm_medium=opportunity&utm_zip=${escapeHtml(o.zip)}">Recruit this area →</a>
-      `);
+        <h4>Hardware ROI zone</h4>
+        <p><strong>${o.user_count} buyer${o.user_count === 1 ? '' : 's'}</strong> in ZIP ${escapeHtml(o.zip)}</p>
+        <p>${o.nearest_processor_miles == null ? 'No processor in our network nearby' : 'Nearest processor: <strong>' + o.nearest_processor_miles + ' mi away</strong>'}</p>
+        <a class="cta orange" href="javascript:void(0)" onclick="window.poOpenROI && window.poOpenROI('${escapeHtml(o.zip)}')">See MHU payback math →</a>`);
       layers.opportunity.addLayer(m);
-    });
-  }
-
-  function buildProspectsLayer() {
-    layers.prospects.clearLayers();
-    (DATA.prospects || []).forEach(p => {
-      const isContacted = ['sent', 'clicked', 'queued'].includes(p.invite_status);
-      const m = L.marker([p.lat, p.lng], { icon: pinIcon('prospect' + (isContacted ? ' contacted' : '')) });
-      const channel = p.email ? `email: <code>${escapeHtml(p.email)}</code>` : (p.phone ? `phone: ${escapeHtml(p.phone)}` : 'no contact info');
-      m.bindPopup(`
-        <h4>${escapeHtml(p.name)}</h4>
-        <p>${escapeHtml(p.kind === 'farm' ? '🌾 Farm' : '🔪 Processor')} · ${escapeHtml(p.city || '')}${p.state ? ', ' + p.state : ''}</p>
-        <p>Source: <strong>${escapeHtml(p.source)}</strong> · status: <strong>${escapeHtml(p.invite_status)}</strong></p>
-        <p>${channel}</p>
-        ${p.website ? `<p><a href="${escapeHtml(p.website)}" target="_blank" rel="noopener">${escapeHtml(p.website)}</a></p>` : ''}
-        <button class="cta" onclick="window.poInviteProspect('${escapeHtml(p.id)}', this)">${isContacted ? 'Re-send invite →' : 'Send recruiting email →'}</button>
-      `);
-      layers.prospects.addLayer(m);
-    });
-  }
-
-  // Exposed globally so the popup buttons can call it
-  window.poInviteProspect = async function (id, btn) {
-    btn.disabled = true; btn.textContent = 'Sending…';
-    try {
-      const r = await fetch('/api/admin-prospect?id=' + encodeURIComponent(id) + '&action=invite', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const data = await r.json();
-      if (r.ok) {
-        btn.textContent = '✓ ' + (data.email_sent ? 'Email sent' : 'Marked invited');
-        setTimeout(() => map.closePopup(), 1500);
-        // Optimistically refresh the data
-        setTimeout(load, 1800);
-      } else {
-        btn.disabled = false; btn.textContent = 'Failed: ' + (data.error || r.status);
-      }
-    } catch (e) {
-      btn.disabled = false; btn.textContent = 'Network error';
     }
+  }
+  function renderProspects() {
+    layers.prospects.clearLayers();
+    for (const p of DATA.prospects) {
+      if (p.lat == null || p.lng == null) continue;
+      const isContacted = p.invite_status !== 'new';
+      const m = L.marker([p.lat, p.lng], { icon: avatarPin({ kind: 'prospect' + (isContacted ? ' contacted' : ''), name: p.name }) });
+      m.bindPopup(`
+        <h4>${escapeHtml(p.name)} <small style="opacity:.6;font-weight:600;">· ${escapeHtml(p.kind)}</small></h4>
+        <p>${escapeHtml(p.city || '')}${p.state ? ', ' + escapeHtml(p.state) : ''}</p>
+        <p>Source: ${escapeHtml(p.source)} · Status: <strong>${escapeHtml(p.invite_status)}</strong></p>
+        ${p.email ? `<p>Email: <code style="font-size:11px;color:var(--map-muted)">${escapeHtml(p.email)}</code></p>` : ''}
+        <button class="cta" onclick="window.poInviteProspect('${escapeHtml(p.id)}', this)">${isContacted ? 'Re-send invite →' : 'Send recruiting email →'}</button>`);
+      layers.prospects.addLayer(m);
+    }
+  }
+
+  // ── ROI drawer ───────────────────────────────────────────────
+  function openRoiDrawer(o) {
+    // Simple ROI math: assume each MHU does 8 head/wk @ $300 net = $2400/wk × 50 wks = $120k/yr
+    // Adjust for local demand: more buyers = closer to capacity
+    const demandFactor = Math.min(1, (o.user_count || 1) / 10);
+    const annualNet = Math.round(120000 * demandFactor);
+    const paybackMo = Math.max(8, Math.round(195000 / (annualNet / 12)));
+    const drawer = document.getElementById('roiDrawer');
+    drawer.innerHTML = `
+      <button class="close" onclick="document.getElementById('roiDrawer').classList.remove('show')">✕</button>
+      <h4>ZIP ${escapeHtml(o.zip)} · ROI Zone</h4>
+      <div style="font:500 11.5px/1.4 'Inter';color:var(--map-muted);margin-bottom:6px;">${o.nearest_processor_miles == null ? 'No processor in our network nearby' : 'Nearest processor: <strong style="color:var(--map-text);">' + o.nearest_processor_miles + ' mi away</strong>'}</div>
+      <div class="num-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><div class="num">${o.user_count}</div><small>active buyers</small></div>
+        <div><div class="num">${paybackMo}<small style="font-size:14px;font-weight:700;color:var(--map-muted);"> mo</small></div><small>MHU payback estimate</small></div>
+        <div><div class="num">$${(annualNet/1000).toFixed(0)}k</div><small>est. annual net</small></div>
+        <div><div class="num">8<small style="font-size:14px;font-weight:700;color:var(--map-muted);"> hd/wk</small></div><small>throughput cap</small></div>
+      </div>
+      <div style="font:500 11px/1.4 'Inter';color:var(--map-muted);margin:10px 0 8px;">Numbers are rough — based on $300 net per head, 8 head/wk capacity, 50 weeks/year. Real ROI depends on financing, your team, and uptime.</div>
+      <a class="cta" href="/hardware">Schedule MHU consult →</a>`;
+    drawer.classList.add('show');
+  }
+  // Expose for popup link
+  window.poOpenROI = (zip) => {
+    const o = DATA.opportunity.find(x => x.zip === zip);
+    if (o) openRoiDrawer(o);
   };
 
-  function showLayer(name) {
+  // ── Layer switching ──────────────────────────────────────────
+  function setLayer(name) {
+    if (DATA.locked && DATA.locked[name]) {
+      // Tier-locked — show upgrade modal directly instead of switching
+      openUpgradeModal(name === 'demand' ? 'pro' : 'hardware');
+      // Still flip the side panel to show the locked teaser, but keep current map markers
+      currentLayer = name;
+      document.querySelectorAll('.layer-tab').forEach(t => t.classList.toggle('active', t.dataset.layer === name));
+      document.querySelectorAll('.layer-tab').forEach(t => t.classList.toggle('opportunity-active', t.dataset.layer === name && name === 'opportunity'));
+      renderSideList();
+      return;
+    }
     currentLayer = name;
-    Object.values(layers).forEach(l => map.removeLayer(l));
-    if (heatLayer) map.removeLayer(heatLayer);
-
     document.querySelectorAll('.layer-tab').forEach(t => {
       t.classList.toggle('active', t.dataset.layer === name);
+      t.classList.toggle('opportunity-active', t.dataset.layer === name && name === 'opportunity');
     });
 
-    if (name === 'farms') {
-      map.addLayer(layers.farms);
-      document.getElementById('mapLegend').style.display = 'none';
-      if (DATA.farms.length) {
-        const bounds = L.latLngBounds(DATA.farms.map(f => [f.lat, f.lng]));
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+    // Toggle layer visibility
+    Object.entries(layers).forEach(([k, lyr]) => {
+      if (k === name) {
+        if (!map.hasLayer(lyr)) map.addLayer(lyr);
+      } else {
+        if (map.hasLayer(lyr)) map.removeLayer(lyr);
       }
-    } else if (name === 'processors') {
-      map.addLayer(layers.processors);
-      document.getElementById('mapLegend').style.display = 'none';
-      if (DATA.processors.length) {
-        const bounds = L.latLngBounds(DATA.processors.map(p => [p.lat, p.lng]));
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
-      }
-    } else if (name === 'demand') {
-      if (heatLayer) heatLayer.addTo(map);
-      document.getElementById('mapLegend').style.display = 'block';
+    });
+
+    // Legend
+    const legend = document.getElementById('mapLegend');
+    if (name === 'demand') {
+      legend.innerHTML = '<h5>Demand intensity</h5><p>Buyer signups + reservations (90d)</p><div class="scale"><span class="scale-end">low</span><div class="scale-bar"></div><span class="scale-end">high</span></div>';
+      legend.style.display = 'block';
     } else if (name === 'opportunity') {
-      map.addLayer(layers.opportunity);
-      map.addLayer(layers.processors);  // show processors as context
-      document.getElementById('mapLegend').style.display = 'none';
-    } else if (name === 'prospects') {
-      map.addLayer(layers.prospects);
-      document.getElementById('mapLegend').style.display = 'none';
-      if (DATA.prospects?.length) {
-        const bounds = L.latLngBounds(DATA.prospects.map(p => [p.lat, p.lng]));
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 7 });
-      }
+      legend.innerHTML = '<h5>Hardware ROI zones</h5><p>Demand &gt; 0, no processor within 60 mi. Tap a pin for MHU payback math.</p>';
+      legend.style.display = 'block';
+    } else {
+      legend.style.display = 'none';
     }
+
     renderSideList();
   }
 
-  // ── Load data ────────────────────────────────────────────────
+  // ── Tier UI ──────────────────────────────────────────────────
+  function paintTier() {
+    const pill = document.getElementById('tierPill');
+    pill.classList.remove('free', 'hardware');
+    if (DATA.tier === 'hardware') {
+      pill.classList.add('hardware');
+      pill.textContent = DATA.is_admin ? 'ADMIN · ALL ACCESS' : 'HARDWARE INSIGHTS';
+    } else if (DATA.tier === 'pro') {
+      pill.textContent = 'PRO';
+    } else {
+      pill.classList.add('free');
+      pill.textContent = 'FREE · UPGRADE';
+    }
+
+    // Apply lock styling to layer tabs based on actual lock state
+    document.querySelectorAll('.layer-tab').forEach(t => {
+      const layer = t.dataset.layer;
+      const locked = DATA.locked && DATA.locked[layer];
+      t.classList.toggle('locked', !!locked);
+    });
+  }
+
+  // ── Upgrade modal ────────────────────────────────────────────
+  function openUpgradeModal(focus = 'pro') {
+    const ov = document.getElementById('upgradeOverlay');
+    const head = document.getElementById('upgradeHead');
+    const sub = document.getElementById('upgradeSub');
+    if (focus === 'hardware') {
+      head.textContent = 'See where to put your next MHU.';
+      sub.textContent = 'Hardware Insights surfaces every zip with high demand and no nearby processor — the exact places where a new mobile harvest unit pays back fastest.';
+    } else {
+      head.textContent = 'Unlock the live demand heatmap.';
+      sub.textContent = 'Pro shows you where buyer demand actually clusters — so you know which farms to recruit and which territories to defend.';
+    }
+    ov.classList.add('show');
+    ov.setAttribute('aria-hidden', 'false');
+  }
+  function closeUpgradeModal() {
+    document.getElementById('upgradeOverlay').classList.remove('show');
+    document.getElementById('upgradeOverlay').setAttribute('aria-hidden', 'true');
+  }
+  document.getElementById('upgradeClose').addEventListener('click', closeUpgradeModal);
+  document.getElementById('upgradeOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'upgradeOverlay') closeUpgradeModal();
+  });
+  document.getElementById('tierPill').addEventListener('click', () => {
+    if (DATA.tier === 'hardware') {
+      showToast('You already have full access ✓');
+    } else {
+      openUpgradeModal(DATA.tier === 'pro' ? 'hardware' : 'pro');
+    }
+  });
+
+  // Subscribe-action handlers
+  async function startCheckout(tier) {
+    try {
+      const r = await fetch('/api/map-subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tier }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'subscribe failed');
+      window.location.href = d.url;
+    } catch (e) {
+      showToast('Could not start checkout: ' + (e.message || ''), 3500);
+    }
+  }
+  document.getElementById('ctaPro').addEventListener('click', () => startCheckout('pro'));
+  document.getElementById('ctaHardware').addEventListener('click', () => startCheckout('hardware'));
+  document.body.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-upgrade]');
+    if (t) openUpgradeModal(t.dataset.upgrade);
+  });
+
+  // ── Layer tab clicks ─────────────────────────────────────────
+  document.querySelectorAll('.layer-tab').forEach(t => {
+    t.addEventListener('click', () => setLayer(t.dataset.layer));
+  });
+
+  // ── Stats up top ─────────────────────────────────────────────
+  function paintStats() {
+    document.getElementById('topStats').innerHTML = `
+      <span><strong>${DATA.farms.length}</strong>farms</span>
+      <span><strong>${DATA.processors.length}</strong>cutters</span>
+      ${DATA.demand && DATA.demand.length ? `<span><strong>${DATA.counts?.demand_zips || DATA.demand.length}</strong>demand zips</span>` : ''}
+      ${DATA.opportunity && DATA.opportunity.length ? `<span><strong>${DATA.counts?.opportunity_targets || DATA.opportunity.filter(o => o.hardware_target).length}</strong>ROI zones</span>` : ''}`;
+    document.getElementById('cFarms').textContent = DATA.farms.length;
+    document.getElementById('cProc').textContent = DATA.processors.length;
+    document.getElementById('cDemand').textContent = DATA.demand.length || (DATA.locked?.demand ? '🔒' : '0');
+    document.getElementById('cOpp').textContent = (DATA.opportunity || []).filter(o => o.hardware_target).length || (DATA.locked?.opportunity ? '🔒' : '0');
+    document.getElementById('cProspects').textContent = (DATA.prospects || []).length || (DATA.locked?.prospects ? '🔒' : '0');
+    document.getElementById('footStat').textContent =
+      currentLayer === 'farms' ? `${DATA.farms.length} farms mapped` :
+      currentLayer === 'processors' ? `${DATA.processors.length} processors mapped` :
+      currentLayer === 'demand' ? `${DATA.demand.length} demand pockets` :
+      currentLayer === 'opportunity' ? `${(DATA.opportunity || []).filter(o => o.hardware_target).length} ROI targets` :
+      `${(DATA.prospects || []).length} prospects`;
+  }
+
+  // ── Recruiting prospect: send invite (admin/hardware tier) ───
+  window.poInviteProspect = async function (id, btnEl) {
+    btnEl.textContent = 'Sending…'; btnEl.disabled = true;
+    try {
+      const r = await fetch(`/api/admin-prospect?id=${encodeURIComponent(id)}&action=invite`, { method: 'POST', credentials: 'include' });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'failed');
+      btnEl.textContent = '✓ ' + (d.email_sent ? 'Email sent' : 'Marked invited');
+      showToast('Prospect contacted ✓');
+    } catch (e) {
+      btnEl.textContent = 'Failed — try again';
+      btnEl.disabled = false;
+      showToast('Invite failed: ' + (e.message || ''), 2400);
+    }
+  };
+
+  // ── Load + go ────────────────────────────────────────────────
   async function load() {
     try {
       const r = await fetch('/api/map-data', { credentials: 'include' });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || 'failed');
-      DATA = data;
-
-      // Stats banner
-      document.getElementById('topStats').innerHTML = `
-        <span><strong>${data.counts.farms}</strong>farms</span>
-        <span><strong>${data.counts.processors}</strong>processors</span>
-        ${data.is_admin ? `<span><strong>${data.counts.demand_zips}</strong>demand zips</span><span style="color:#f6c5c4;"><strong>${data.counts.opportunity_targets}</strong>hardware targets</span><span style="color:#cfe9d3;"><strong>${data.counts.prospects_new || 0}</strong>new prospects</span>` : ''}
-      `;
-      // Counters
-      document.getElementById('cFarms').textContent = data.counts.farms;
-      document.getElementById('cProc').textContent = data.counts.processors;
-      document.getElementById('cDemand').textContent = data.is_admin ? data.counts.demand_zips : '🔒';
-      document.getElementById('cOpp').textContent = data.is_admin ? data.counts.opportunity_targets : '🔒';
-      const cProspectsEl = document.getElementById('cProspects');
-      if (cProspectsEl) cProspectsEl.textContent = data.is_admin ? (data.prospects?.length ?? 0) : '🔒';
-
-      // Unlock admin tabs
-      if (data.is_admin) {
-        document.querySelectorAll('.layer-tab.locked').forEach(t => t.classList.remove('locked'));
-      }
-
-      buildFarmsLayer();
-      buildProcessorsLayer();
-      if (data.is_admin) {
-        buildDemandLayer();
-        buildOpportunityLayer();
-        buildProspectsLayer();
-      }
-      showLayer('farms');
+      const d = await r.json();
+      DATA = d;
+      paintTier();
+      renderFarms();
+      renderProcessors();
+      renderDemandHeat();
+      renderOpportunity();
+      renderProspects();
+      paintStats();
+      setLayer('farms');
       document.getElementById('mapLoading').classList.add('hide');
+
+      // Surface success after Stripe checkout return
+      const url = new URL(location.href);
+      if (url.searchParams.get('subscribed')) {
+        showToast(`✓ ${url.searchParams.get('subscribed') === 'hardware' ? 'Hardware Insights' : 'Pro'} activated`, 3000);
+        url.searchParams.delete('subscribed');
+        history.replaceState({}, '', url.pathname + (url.search || ''));
+      }
+      if (url.searchParams.get('canceled')) {
+        showToast('Checkout canceled', 1800);
+        url.searchParams.delete('canceled');
+        history.replaceState({}, '', url.pathname + (url.search || ''));
+      }
     } catch (e) {
-      document.getElementById('mapLoading').innerHTML = `<div style="text-align:center;color:#a13a3a;font:600 13px Inter;padding:20px;">Couldn't load map.<br><span style="color:rgba(6,27,14,.5);">${escapeHtml(e.message || '')}</span></div>`;
+      document.getElementById('sideList').innerHTML = `<div class="list-empty">Could not load map: ${escapeHtml(e.message || '')}</div>`;
+      document.getElementById('mapLoading').classList.add('hide');
     }
   }
-
-  document.querySelectorAll('.layer-tab').forEach(t => {
-    t.addEventListener('click', () => {
-      if (t.classList.contains('locked')) return;
-      showLayer(t.dataset.layer);
-    });
-  });
-
   load();
 })();
 </script>

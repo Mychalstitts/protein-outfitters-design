@@ -203,39 +203,61 @@ async function buildOpportunity(processors, demand) {
   return out;
 }
 
+// Tier model — admin gets everything; everyone else is gated.
+//   free      → farms + processors only
+//   pro       → + demand heatmap + activity pulses
+//   hardware  → + opportunity zones + recruiting prospects
+function tierForUser(user) {
+  if (!user) return 'free';
+  if (user.role === 'admin') return 'hardware';
+  const t = (user.map_tier || 'free').toString().toLowerCase();
+  if (t === 'hardware' || t === 'pro' || t === 'free') return t;
+  return 'free';
+}
+
+function canSee(tier, layer) {
+  if (layer === 'farms' || layer === 'processors') return true;
+  if (layer === 'demand') return tier === 'pro' || tier === 'hardware';
+  if (layer === 'opportunity' || layer === 'prospects') return tier === 'hardware';
+  return false;
+}
+
 export default async function handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
 
-  // Demand + opportunity are admin-only (strategic data we don't surface
-  // to the public). Farms + processors are public.
   const url = new URL(req.url);
-  const layer = url.searchParams.get('layer'); // optional: 'farms', 'processors', 'demand', 'opportunity', or null=all
+  const layer = url.searchParams.get('layer');
 
   const user = await currentUser(req).catch(() => null);
+  const tier = tierForUser(user);
   const isAdmin = user?.role === 'admin';
 
   try {
     const farms = (layer === null || layer === 'farms' || !layer) ? await loadFarms() : [];
-    const processors = (layer === null || layer === 'processors' || !layer || layer === 'opportunity') ? await loadProcessors() : [];
+    // Need processors for opportunity computation even if user can't view processors layer.
+    const needProcessors = layer === null || layer === 'processors' || !layer || layer === 'opportunity';
+    const processors = needProcessors ? await loadProcessors() : [];
+
     let demand = [];
     let opportunity = [];
     let prospects = [];
-    if (isAdmin && (layer === null || layer === 'demand' || layer === 'opportunity' || !layer)) {
+    if (canSee(tier, 'demand') && (layer === null || layer === 'demand' || layer === 'opportunity' || !layer)) {
       demand = await loadDemand();
-      if (layer === null || layer === 'opportunity' || !layer) {
-        opportunity = await buildOpportunity(processors, demand);
-      }
     }
-    if (isAdmin && (layer === null || layer === 'prospects' || !layer)) {
+    if (canSee(tier, 'opportunity') && (layer === null || layer === 'opportunity' || !layer)) {
+      if (!demand.length) demand = await loadDemand();
+      opportunity = await buildOpportunity(processors, demand);
+    }
+    if (canSee(tier, 'prospects') && (layer === null || layer === 'prospects' || !layer)) {
       prospects = await loadProspects();
     }
 
     return json({
       farms,
       processors,
-      demand: isAdmin ? demand : [],
-      opportunity: isAdmin ? opportunity : [],
-      prospects: isAdmin ? prospects : [],
+      demand: canSee(tier, 'demand') ? demand : [],
+      opportunity: canSee(tier, 'opportunity') ? opportunity : [],
+      prospects: canSee(tier, 'prospects') ? prospects : [],
       counts: {
         farms: farms.length,
         processors: processors.length,
@@ -243,7 +265,13 @@ export default async function handler(req) {
         opportunity_targets: opportunity.filter(o => o.hardware_target).length,
         prospects_new: prospects.filter(p => p.invite_status === 'new').length,
       },
+      tier,
       is_admin: isAdmin,
+      locked: {
+        demand: !canSee(tier, 'demand'),
+        opportunity: !canSee(tier, 'opportunity'),
+        prospects: !canSee(tier, 'prospects'),
+      },
     });
   } catch (e) {
     return err(500, 'map-data failed: ' + (e.message || 'unknown').slice(0, 200));
