@@ -159,6 +159,17 @@
           <div class="fm-standing-stat"><div class="v" id="fmStatReservations">—</div><div class="lab">Reservations</div></div>
           <div class="fm-standing-stat"><div class="v" id="fmStatRevenue">—</div><div class="lab">Earned</div></div>
         </div>
+        <!-- Profile completion meter (Airbnb-style nudge) — populated by JS -->
+        <div id="fmCompletionMeter" style="display:none;margin-top:18px;padding:14px 18px;background:rgba(125,160,93,0.08);border-radius:12px;border:1px solid rgba(125,160,93,0.18);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+            <div style="font:700 13px/1.3 'Inter';">Your farm profile is <span id="fmCompletionPct" style="color:var(--brand,#061b0e);">—</span> complete</div>
+            <div id="fmCompletionHint" style="font:600 11.5px/1.4 'Inter';color:var(--ink-2,#5a6359);"></div>
+          </div>
+          <div style="height:6px;background:rgba(6,27,14,0.08);border-radius:999px;overflow:hidden;margin-bottom:10px;">
+            <div id="fmCompletionBar" style="height:100%;background:linear-gradient(90deg,#7da05d,#5a8540);border-radius:999px;width:0;transition:width .9s cubic-bezier(.2,.85,.3,1.2);"></div>
+          </div>
+          <ul id="fmCompletionList" style="margin:0;padding-left:0;list-style:none;font:500 12.5px/1.6 'Inter';color:var(--ink-2,#5a6359);"></ul>
+        </div>
       </div>
     </div>
 
@@ -366,15 +377,7 @@
     // Standing card
     document.getElementById('fmStanding').style.display = '';
     const link = document.getElementById('fmPublicProfileLink');
-    if (link) {
-      if (primaryFarm.slug) {
-        link.href = '/farm/' + primaryFarm.slug;
-      } else {
-        // No slug yet (farm just created, not provisioned) — hide the link
-        // instead of shipping a button that lands on /farm/ → 404.
-        link.style.display = 'none';
-      }
-    }
+    if (link) link.href = '/farm/' + primaryFarm.slug;
     document.getElementById('fmFarmRole').textContent = `${primaryFarm.name}${primaryFarm.city ? ' · ' + primaryFarm.city + ', ' + primaryFarm.state : ''}`;
     const certs = (primaryFarm.certs || []).map(c => c.toUpperCase()).slice(0, 3).join(' · ');
     document.getElementById('fmFarmName').textContent = certs || 'Verified producer';
@@ -386,6 +389,53 @@
     if (primaryFarm.avatar_url) {
       const av = document.getElementById('fmFarmAvatar');
       if (av) av.style.backgroundImage = `url(${JSON.stringify(primaryFarm.avatar_url)})`;
+    }
+
+    // ─── Profile completion meter (Airbnb's host nudge) ─────────
+    // Each item is worth a fixed % so the bar is easy to read. Total = 100.
+    const checks = [
+      { label: 'Add a profile photo',      done: !!primaryFarm.avatar_url,            link: '/credentials',   weight: 15, ifMissing: 'Profile photos drive 2× more buyer trust' },
+      { label: 'Add a cover photo',        done: !!primaryFarm.cover_url,             link: '/credentials',   weight: 10, ifMissing: '1280×720 banner that buyers see first' },
+      { label: 'Tell your farm story',     done: !!(primaryFarm.bio && primaryFarm.bio.length > 50), link: '/credentials', weight: 15, ifMissing: 'Buyers want to know who raises their meat' },
+      { label: 'List at least one animal', done: allListings.length > 0,              link: '/list-animal',   weight: 25, ifMissing: 'No listings = no reservations' },
+      { label: 'Add certifications',       done: (primaryFarm.certs || []).length > 0, link: '/credentials',   weight: 10, ifMissing: 'USDA Organic, Animal Welfare, etc.' },
+      { label: 'Add production practices', done: (primaryFarm.practices || []).length > 0, link: '/credentials', weight: 10, ifMissing: 'Grass-fed, regenerative, heritage breeds' },
+      { label: 'Connect Stripe payouts',   done: !!primaryFarm.stripe_account_id,     link: '/account',       weight: 15, ifMissing: 'Get paid directly when buyers reserve' },
+    ];
+    const earned = checks.reduce((s, c) => s + (c.done ? c.weight : 0), 0);
+    const meter = document.getElementById('fmCompletionMeter');
+    if (meter) {
+      meter.style.display = '';
+      document.getElementById('fmCompletionPct').textContent = earned + '%';
+      requestAnimationFrame(() => {
+        const bar = document.getElementById('fmCompletionBar');
+        if (bar) bar.style.width = earned + '%';
+      });
+      const missing = checks.filter(c => !c.done);
+      const hint = document.getElementById('fmCompletionHint');
+      if (hint) {
+        if (earned === 100) {
+          hint.textContent = '✓ Profile complete';
+          hint.style.color = '#5a8540';
+          meter.style.background = 'rgba(125,160,93,0.16)';
+        } else if (missing.length === 1) {
+          hint.textContent = '1 thing left';
+        } else {
+          hint.textContent = `${missing.length} things left`;
+        }
+      }
+      const listEl = document.getElementById('fmCompletionList');
+      if (listEl) {
+        // Show the 3 most impactful missing items
+        const top = missing.sort((a, b) => b.weight - a.weight).slice(0, 3);
+        listEl.innerHTML = top.length === 0
+          ? ''
+          : top.map(c => `
+            <li style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid rgba(6,27,14,0.06);">
+              <span><span style="color:#a0a8a4;margin-right:8px;">○</span><strong style="color:var(--ink,#061b0e);font-weight:700;">${c.label}</strong> · <span style="opacity:.85;">${c.ifMissing}</span></span>
+              <a href="${c.link}" style="font:700 11.5px/1 'Inter';color:var(--brand,#061b0e);text-decoration:none;padding:6px 12px;background:rgba(125,160,93,0.16);border-radius:999px;white-space:nowrap;margin-left:10px;">+ ${c.weight}%</a>
+            </li>`).join('');
+      }
     }
 
     // Greeting sub: count reservations + nearest harvest
@@ -446,7 +496,7 @@
     const bookingCta = needsBooking
       ? `<button onclick="event.stopPropagation();openBookingModal('${l.id}','${(l.number || '').replace(/'/g, "\\'")}','${(l.breed || l.species).replace(/'/g, "\\'")}','${l.expected_finish_date || ''}','${l.estimated_hanging_weight || ''}')" style="margin-top:8px;padding:6px 12px;background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;font:700 11px/1 'Inter';cursor:pointer;width:100%;">Book a processor →</button>`
       : `<div style="margin-top:8px;padding:6px 12px;background:rgba(125,160,93,.10);color:#7da05d;border-radius:999px;font:700 11px/1.4 'Inter';text-align:center;">✓ Processor booked</div>`;
-    return `<a class="product" href="/listing?id=${l.id}" style="text-decoration:none;">
+    return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
       <div class="product-photo" style="background-image: url('${photo}');"><span class="product-tag">Reserving · ${reservedShares}/${totShares || '?'}</span></div>
       <div class="product-meta">
         <span class="product-eyebrow">${l.species[0].toUpperCase()+l.species.slice(1)}${l.practice && l.practice.length ? ' · ' + l.practice[0] : ''}</span>
@@ -455,7 +505,7 @@
         <div class="product-foot"><span class="product-price">From <strong>$${typeof fromPrice === 'number' ? fromPrice.toFixed(2) + '/lb' : fromPrice}</strong></span><span class="product-cta">Manage →</span></div>
         ${bookingCta}
       </div>
-    </a>`;
+    </button>`;
   }).join('');
 
   grid.innerHTML = cards + addLink.outerHTML;

@@ -6,11 +6,7 @@
     { "source": "/farm/:slug", "destination": "/farm-profile.html" }
   ],
   "redirects": [
-    { "source": "/produced", "destination": "/producers", "permanent": true },
-    { "source": "/legal/privacy", "destination": "/policies/privacy", "permanent": false },
-    { "source": "/legal/terms",   "destination": "/policies/terms",   "permanent": false },
-    { "source": "/privacy",       "destination": "/policies/privacy", "permanent": false },
-    { "source": "/terms",         "destination": "/policies/terms",   "permanent": false }
+    { "source": "/produced", "destination": "/producers", "permanent": true }
   ],
   "crons": [
     {
@@ -20,6 +16,10 @@
     {
       "path": "/api/annual-donor-acknowledgment",
       "schedule": "0 15 15 1 *"
+    },
+    {
+      "path": "/api/keep-warm",
+      "schedule": "*/5 * * * *"
     }
   ],
   "headers": [
