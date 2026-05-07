@@ -783,7 +783,9 @@
   if (window.PO_CLARITY_ID) {
     installClarity(window.PO_CLARITY_ID);
   } else {
-    fetch('/api/public-config', { cache: 'force-cache' })
+    // Honor server cache-control (60s) instead of force-cache. force-cache
+    // would pin a null response forever if the env var was set after first fetch.
+    fetch('/api/public-config')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d && d.clarity_project_id) installClarity(d.clarity_project_id); })
       .catch(() => {});
