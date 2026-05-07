@@ -3,8 +3,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/farm/:slug", "destination": "/farm-profile.html" }
-  ],
+    { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" }  ],
   "redirects": [
     { "source": "/produced", "destination": "/producers", "permanent": true }
   ],
