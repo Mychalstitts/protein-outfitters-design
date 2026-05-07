@@ -1015,4 +1015,79 @@
       return { ok: false, error: e.message };
     }
   };
+
+  // ── Referral capture + landing banner ─────────────────────────
+  // When someone arrives with ?ref=XYZ123 we:
+  //   1. Stash the code in localStorage so it survives the magic-link
+  //      round-trip (email → /api/auth/verify) without being lost.
+  //   2. Surface a subtle "Got $25 off your first share — claim it"
+  //      banner so the visitor knows there's value waiting.
+  //   3. Patch any /api/auth/request-link form on the page to include
+  //      the ref code in the `next` URL so /api/auth/verify can capture
+  //      it server-side.
+  // The banner is dismissable per session and never shows on /account or
+  // admin pages (where it'd be noise to a logged-in user).
+  function captureReferral() {
+    const params = new URLSearchParams(location.search);
+    const incoming = (params.get('ref') || '').toUpperCase().trim();
+    let stored = null;
+    try { stored = localStorage.getItem('po_ref_code'); } catch {}
+    if (incoming && /^[A-Z2-9]{6}$/.test(incoming)) {
+      try { localStorage.setItem('po_ref_code', incoming); } catch {}
+      stored = incoming;
+    }
+    if (!stored) return;
+
+    // Skip noisy contexts
+    const skip = ['/account', '/admin', '/admin-overview', '/admin-health', '/admin-bootstrap', '/admin-email', '/admin-ams-import', '/admin-fsis-import', '/processor-checkin', '/booking-confirmation', '/policies/'];
+    if (skip.some(p => location.pathname.startsWith(p))) return;
+    try { if (sessionStorage.getItem('po_ref_banner_dismissed') === '1') return; } catch {}
+
+    if (document.querySelector('.po-ref-banner')) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'po-ref-banner';
+    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9001;background:linear-gradient(135deg,#7da05d 0%,#5a7a44 100%);color:#fbf9f5;padding:11px 18px;display:flex;align-items:center;justify-content:center;gap:14px;font:600 13.5px/1.3 \'Inter\',system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.18);';
+    bar.innerHTML = `
+      <span style="font-size:16px;">🎁</span>
+      <span><strong>$25 off your first share.</strong> Reserve and your friend gets $25 too.</span>
+      <button class="po-ref-banner-dismiss" aria-label="Dismiss" style="background:transparent;border:0;color:rgba(251,249,245,.7);font:700 16px/1 'Inter';cursor:pointer;padding:0 4px;margin-left:6px;">×</button>
+    `;
+    bar.addEventListener('click', (e) => {
+      if (e.target.classList.contains('po-ref-banner-dismiss')) {
+        bar.remove();
+        try { sessionStorage.setItem('po_ref_banner_dismissed', '1'); } catch {}
+      }
+    });
+    // Push body down so the banner doesn't cover the nav.
+    const pad = document.createElement('style');
+    pad.textContent = '@media (max-width:640px){.po-ref-banner{font-size:12.5px;padding:9px 12px}}';
+    document.head.appendChild(pad);
+    document.body.insertBefore(bar, document.body.firstChild);
+
+    // Patch any inline auth form on the page so the ref code rides along
+    // with `next` to the verify endpoint. We rewrite the value just before
+    // submit — both <form action> and any <input name="next"> field.
+    document.addEventListener('submit', (e) => {
+      const form = e.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      const action = (form.action || '').toString();
+      if (!action.includes('/api/auth/request-link')) return;
+      const nextField = form.querySelector('input[name="next"]');
+      if (nextField) {
+        try {
+          const u = new URL(nextField.value || '/account', location.origin);
+          if (!u.searchParams.has('ref')) {
+            u.searchParams.set('ref', stored);
+            nextField.value = u.pathname + u.search;
+          }
+        } catch {}
+      }
+    }, true);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', captureReferral);
+  } else {
+    captureReferral();
+  }
 })();
