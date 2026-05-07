@@ -1,40 +1,36 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" }  ],
-  "redirects": [
-    { "source": "/produced", "destination": "/producers", "permanent": true }
-  ],
-  "crons": [
-    {
-      "path": "/api/email-tick",
-      "schedule": "0 14 * * *"
-    },
-    {
-      "path": "/api/annual-donor-acknowledgment",
-      "schedule": "0 15 15 1 *"
-    },
-    {
-      "path": "/api/keep-warm",
-      "schedule": "*/5 * * * *"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" }
-      ]
-    },
-    {
-      "source": "/theme.css",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
-      ]
-    }
-  ]
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "rewrites": [
+          { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" }
+    ],
+    "redirects": [
+          { "source": "/produced",      "destination": "/producers",        "permanent": true  },
+          { "source": "/legal/privacy", "destination": "/policies/privacy", "permanent": false },
+          { "source": "/legal/terms",   "destination": "/policies/terms",   "permanent": false },
+          { "source": "/privacy",       "destination": "/policies/privacy", "permanent": false },
+          { "source": "/terms",         "destination": "/policies/terms",   "permanent": false }
+    ],
+    "crons": [
+          { "path": "/api/email-tick",                  "schedule": "0 14 * * *"   },
+          { "path": "/api/annual-donor-acknowledgment", "schedule": "0 15 15 1 *"  },
+          { "path": "/api/keep-warm",                   "schedule": "*/5 * * * *"  }
+    ],
+    "headers": [
+          {
+                  "source": "/(.*)",
+                  "headers": [
+                            { "key": "X-Frame-Options",        "value": "SAMEORIGIN" },
+                            { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" },
+                            { "key": "X-Content-Type-Options", "value": "nosniff" }
+                  ]
+          },
+          {
+                  "source": "/theme.css",
+                  "headers": [
+                            { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
+                  ]
+          }
+    ]
 }
