@@ -571,7 +571,35 @@ const SCHEMA_STATEMENTS = [
     display     TEXT,
     source      TEXT NOT NULL DEFAULT 'nominatim',
     created_at  TIMESTAMPTZ DEFAULT NOW()
-  )`
+  )`,
+
+  // ──────────────────────────────────────────────────────────
+  // Referral activation — store code that got the buyer here, plus the
+  // credit balance that's accumulated from successful referrals + redemptions.
+  // Crediting logic lives in stripe-webhook.js when checkout.session.completed
+  // fires for the buyer's first paid reservation; consumption logic lives in
+  // checkout.js (deposit is reduced by available credit, capped at deposit-1
+  // so Stripe still has a non-zero payment to charge).
+  // ──────────────────────────────────────────────────────────
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by_code TEXT`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_credit_cents INTEGER NOT NULL DEFAULT 0`,
+  `CREATE INDEX IF NOT EXISTS users_referred_by_code_idx ON users(referred_by_code)`,
+
+  // ──────────────────────────────────────────────────────────
+  // Web Push subscriptions — endpoint + keys per device, opt-in only.
+  // VAPID auth + push send happens server-side via /api/push-send.
+  // ──────────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
+    endpoint    TEXT UNIQUE NOT NULL,
+    p256dh      TEXT NOT NULL,
+    auth_key    TEXT NOT NULL,
+    user_agent  TEXT,
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
+    last_seen_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON push_subscriptions(user_id)`
 ];
 
 const SEED_SQL = [

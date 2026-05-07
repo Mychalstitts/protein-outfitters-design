@@ -51,7 +51,7 @@ export default async function handler(req) {
       if (!rows[0]) return err(404, 'Code not found');
       return json({ code: rows[0].code, owner_name: rows[0].owner_name, valid: true });
     }
-    // Otherwise return my own code (creating it on first call).
+    // Otherwise return my own code (creating it on first call) + balance.
     const user = await currentUser(req);
     if (!user) return err(401, 'Sign in required');
     const code = await ensureUserCode(user.id);
@@ -59,10 +59,17 @@ export default async function handler(req) {
       SELECT id, redeemed_email, reward_status, reward_amount, created_at
       FROM referral_redemptions WHERE code = ${code}
       ORDER BY created_at DESC LIMIT 50`;
+    const balRow = await sql`SELECT referral_credit_cents FROM users WHERE id = ${user.id} LIMIT 1`;
+    const balanceCents = Number(balRow[0]?.referral_credit_cents || 0);
+    const creditedCount = redemptions.filter(r => r.reward_status === 'credited').length;
     return json({
       code,
       url: (process.env.PUBLIC_BASE_URL || 'https://www.proteinoutfitters.com') + '?ref=' + code,
       redemptions,
+      balance_cents: balanceCents,
+      balance_dollars: balanceCents / 100,
+      credited_count: creditedCount,
+      reward_per_side_cents: 2500,
     });
   }
 

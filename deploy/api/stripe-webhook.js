@@ -63,6 +63,72 @@ export default async function handler(req) {
               updated_at = NOW()
           WHERE id = ${reservationId}`;
 
+        // ─── Referral credit application ─────────────────────────
+        // Two distinct things happen here:
+        //
+        //   1. CONSUMING credit the buyer already had: if this checkout used
+        //      session.metadata.referral_credit_cents to discount the deposit,
+        //      decrement the buyer's balance now (we held off doing this at
+        //      checkout-creation time so a failed payment doesn't burn credit).
+        //
+        //   2. EARNING credit on the FIRST paid reservation: if the buyer
+        //      signed up via a ref code (recorded in users.referred_by_code +
+        //      a pending row in referral_redemptions), credit BOTH sides $25
+        //      and flip the redemption to 'credited'. Subsequent reservations
+        //      no-op because the redemption is no longer pending.
+        try {
+          const REFERRAL_REWARD_CENTS = 2500; // $25 each side — Airbnb's #
+          const usedCents = Number(session.metadata?.referral_credit_cents || 0);
+          const buyerUserId = session.metadata?.buyer_user_id || null;
+
+          // (1) Consume credit — guard against zero / null buyer / negative.
+          if (buyerUserId && usedCents > 0) {
+            await sql`
+              UPDATE users
+              SET referral_credit_cents = GREATEST(0, referral_credit_cents - ${usedCents}),
+                  updated_at = NOW()
+              WHERE id = ${buyerUserId}`;
+          }
+
+          // (2) Earn credit on first paid reservation.
+          if (buyerUserId) {
+            const paidCount = await sql`
+              SELECT COUNT(*)::int AS n FROM reservations
+              WHERE buyer_id = ${buyerUserId}
+                AND status IN ('deposit-paid','dropped-off','ready','picked-up')`;
+            const isFirstPaid = (paidCount[0]?.n || 0) === 1; // we just flipped it; =1 means this is the first
+            if (isFirstPaid) {
+              const pending = await sql`
+                SELECT id, code FROM referral_redemptions
+                WHERE redeemed_by = ${buyerUserId} AND reward_status = 'pending'
+                ORDER BY created_at ASC LIMIT 1`;
+              if (pending[0]) {
+                const ownerRow = await sql`
+                  SELECT owner_user_id FROM referral_codes WHERE code = ${pending[0].code} LIMIT 1`;
+                const ownerId = ownerRow[0]?.owner_user_id || null;
+
+                // Credit both sides + close the redemption in one transaction
+                // so we never end up with a half-credited row.
+                if (ownerId && ownerId !== buyerUserId) {
+                  await sql`
+                    UPDATE users
+                    SET referral_credit_cents = referral_credit_cents + ${REFERRAL_REWARD_CENTS},
+                        updated_at = NOW()
+                    WHERE id IN (${buyerUserId}, ${ownerId})`;
+                  await sql`
+                    UPDATE referral_redemptions
+                    SET reward_status = 'credited',
+                        reward_amount = ${REFERRAL_REWARD_CENTS},
+                        reservation_id = ${reservationId}
+                    WHERE id = ${pending[0].id}`;
+                }
+              }
+            }
+          }
+        } catch (refErr) {
+          console.error('Referral crediting failed (non-fatal):', refErr.message);
+        }
+
         // ── Stripe Connect split routing (only fires when accounts exist) ──
         // Pulls farmer + processor connected accounts from reservation metadata,
         // calculates each party's share of the post-fee total, and issues
