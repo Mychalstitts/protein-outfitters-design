@@ -8,13 +8,13 @@
 //   site card — same image, same headline, every time. Useless for virality.
 //
 // What this does:
-//   1. Sniffs the User-Agent. If it's a known social-scraper bot, returns
-//      a tiny HTML doc with farm-specific og:title, og:description, og:image,
-//      and twitter:card tags. The bot reads the meta and is done — no JS
-//      ever runs, so we don't need the full SPA.
-//   2. For real humans, fetches the farm-profile.html SPA shell from the
-//      same origin and returns it unchanged. URL stays /farm/:slug, the
-//      SPA reads the slug from the path and renders the farm normally.
+//   Always returns the full farm-profile.html SPA shell, but with the
+//   farm-specific Open Graph + Twitter meta tags spliced into <head>.
+//   Both bots and humans get the same response — bots read the meta,
+//   humans get the same HTML the SPA expects, then JS hydrates as normal.
+//   This means the CDN can cache the response by URL with no Vary on
+//   User-Agent, which is critical: branching on UA inside an Edge Function
+//   makes every cache lookup a coin flip and breaks viral previews.
 //
 // Wired in via vercel.json:
 //   { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" }
@@ -22,8 +22,6 @@
 import { sql } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
-
-const SOCIAL_BOT_RE = /facebookexternalhit|Twitterbot|LinkedInBot|Slackbot|WhatsApp|TelegramBot|Discordbot|SkypeUriPreview|Embedly|Pinterest|redditbot|Applebot|googlebot|bingbot|YandexBot|DuckDuckBot|iframely|vkShare|W3C_Validator|baiduspider|facebookcatalog|GoogleOther/i;
 
 const SITE_ORIGIN = 'https://www.proteinoutfitters.com';
 // NOTE: og-image.svg is what the rest of the site uses today. SVG works in
@@ -42,22 +40,18 @@ function esc(s) {
     .replace(/'/g, '&#39;');
 }
 
-function buildOgDoc(farm, slug) {
+function buildMetaBlock(farm, slug) {
   const title = `${farm.name} — Reserve a whole animal | Protein Outfitters`;
   const desc = (farm.bio && farm.bio.length > 20)
     ? farm.bio.replace(/\s+/g, ' ').slice(0, 190).trim()
-    : `${farm.name} raises pasture-finished livestock in ${farm.city || ''}${farm.city && farm.state ? ', ' : ''}${farm.state || ''}. Reserve your share with one tap on Protein Outfitters.`;
+    : `${farm.name} raises pasture-finished livestock${farm.city ? ' in ' + farm.city : ''}${farm.state ? ', ' + farm.state : ''}. Reserve your share with one tap on Protein Outfitters.`;
   const cover = farm.cover_url || farm.avatar_url || DEFAULT_OG_IMAGE;
   const url = `${SITE_ORIGIN}/farm/${slug}`;
 
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+  return `
+<!-- begin /api/farm-meta server-rendered -->
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
-
-<!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Protein Outfitters">
 <meta property="og:url" content="${esc(url)}">
@@ -67,87 +61,71 @@ function buildOgDoc(farm, slug) {
 <meta property="og:image:alt" content="${esc(farm.name)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-
-<!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${esc(cover)}">
-
 <link rel="canonical" href="${esc(url)}">
-</head>
-<body>
-<h1>${esc(farm.name)}</h1>
-<p>${esc(desc)}</p>
-<p><a href="${esc(url)}">View this farm on Protein Outfitters</a></p>
-</body>
-</html>`;
+<!-- end /api/farm-meta -->
+`;
+}
+
+// Strip the existing generic <title> and any og:* / twitter:* meta from the
+// SPA shell so our farm-specific block wins. Scrapers usually take the FIRST
+// match, but cleaning up the duplicates avoids any ambiguity and keeps the
+// served HTML clean.
+function scrubGenericMeta(html) {
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/i, '')
+    .replace(/<meta\s+name=["']description["'][\s\S]*?>/gi, '')
+    .replace(/<meta\s+property=["']og:[^"']+["'][\s\S]*?>/gi, '')
+    .replace(/<meta\s+name=["']twitter:[^"']+["'][\s\S]*?>/gi, '')
+    .replace(/<link\s+rel=["']canonical["'][\s\S]*?>/gi, '');
+}
+
+function injectIntoHead(html, block) {
+  const headOpen = html.match(/<head[^>]*>/i);
+  if (!headOpen) return block + html;
+  const idx = headOpen.index + headOpen[0].length;
+  return html.slice(0, idx) + block + html.slice(idx);
 }
 
 export default async function handler(req) {
   const url = new URL(req.url, SITE_ORIGIN);
   const slug = url.searchParams.get('slug') || '';
-  const ua = req.headers.get('user-agent') || '';
 
-  // Real users → just stream the SPA shell back. URL stays /farm/:slug.
-  // We return a normal 200 with the static HTML; Vercel's edge cache + CDN
-  // makes this effectively free.
-  if (!SOCIAL_BOT_RE.test(ua)) {
-    try {
-      const shellRes = await fetch(`${SITE_ORIGIN}/farm-profile.html`, {
-        headers: { 'cache-control': 'public, max-age=60' }
-      });
-      if (!shellRes.ok) {
-        return new Response('Farm profile unavailable', { status: 502 });
-      }
-      const html = await shellRes.text();
-      return new Response(html, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-        }
-      });
-    } catch {
-      return new Response('Farm profile unavailable', { status: 502 });
-    }
+  // Fetch the SPA shell + farm record in parallel — both are cheap, neither
+  // depends on the other, no reason to serialize.
+  const [shellRes, farmRows] = await Promise.all([
+    fetch(`${SITE_ORIGIN}/farm-profile.html`, { redirect: 'follow' }).catch(() => null),
+    slug ? sql`SELECT name, bio, city, state, cover_url, avatar_url FROM farms WHERE slug = ${slug} LIMIT 1`.catch(() => []) : Promise.resolve([]),
+  ]);
+
+  if (!shellRes || !shellRes.ok) {
+    return new Response('Farm profile unavailable', { status: 502 });
   }
 
-  // Bot path — fetch farm by slug, return OG-rich tiny doc.
-  if (!slug) {
-    return new Response('Missing slug', { status: 400 });
-  }
+  const farm = farmRows[0] || {
+    name: 'Protein Outfitters',
+    bio: 'A whole animal, in three taps. Reserve pasture-finished livestock direct from family farms.',
+    city: '',
+    state: '',
+    cover_url: DEFAULT_OG_IMAGE,
+    avatar_url: DEFAULT_OG_IMAGE,
+  };
 
-  let farm = null;
-  try {
-    const rows = await sql`
-      SELECT name, bio, city, state, cover_url, avatar_url
-      FROM farms
-      WHERE slug = ${slug}
-      LIMIT 1
-    `;
-    farm = rows[0] || null;
-  } catch {
-    /* fall through to default card */
-  }
+  let shellHtml = await shellRes.text();
+  shellHtml = scrubGenericMeta(shellHtml);
+  const finalHtml = injectIntoHead(shellHtml, buildMetaBlock(farm, slug));
 
-  if (!farm) {
-    farm = {
-      name: 'Protein Outfitters',
-      bio: 'A whole animal, in three taps. Reserve pasture-finished livestock direct from family farms.',
-      city: '', state: '',
-      cover_url: DEFAULT_OG_IMAGE,
-      avatar_url: DEFAULT_OG_IMAGE,
-    };
-  }
-
-  return new Response(buildOgDoc(farm, slug), {
+  return new Response(finalHtml, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      // Cache OG cards aggressively at the edge — farms don't update often,
-      // and re-rendering on every share isn't free.
-      'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600',
+      // Cache aggressively at the edge keyed by URL — same response served
+      // to bots and humans, so no Vary needed. Farms don't change often;
+      // hitting fresh data on first request after edit is fine.
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
     }
   });
 }
