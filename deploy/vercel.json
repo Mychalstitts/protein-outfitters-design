@@ -6,7 +6,11 @@
     { "source": "/farm/:slug", "destination": "/farm-profile.html" }
   ],
   "redirects": [
-    { "source": "/produced", "destination": "/producers", "permanent": true }
+    { "source": "/produced", "destination": "/producers", "permanent": true },
+    { "source": "/legal/privacy", "destination": "/policies/privacy", "permanent": false },
+    { "source": "/legal/terms",   "destination": "/policies/terms",   "permanent": false },
+    { "source": "/privacy",       "destination": "/policies/privacy", "permanent": false },
+    { "source": "/terms",         "destination": "/policies/terms",   "permanent": false }
   ],
   "crons": [
     {

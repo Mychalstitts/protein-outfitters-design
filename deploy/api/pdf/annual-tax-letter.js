@@ -29,7 +29,7 @@ const fmt$ = (n) => n != null
   : '—';
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
-export default async function handler(req) {
+async function _handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
   const url = new URL(req.url);
   const year = parseInt(url.searchParams.get('year') || (new Date().getFullYear() - 1), 10);
@@ -209,4 +209,17 @@ export default async function handler(req) {
 
     footer(doc, { footnote: `${CHARITY.name} · ${CHARITY.address} · EIN ${CHARITY.ein} · ${year} consolidated acknowledgment` });
   }, filename);
+}
+
+// Top-level guard — see deed-of-gift.js for rationale.
+export default async function handler(req) {
+  try {
+    return await _handler(req);
+  } catch (e) {
+    console.error('[/api/pdf/annual-tax-letter]', e);
+    return new Response(
+      JSON.stringify({ error: 'pdf_generation_failed', message: String(e?.message || e) }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 }

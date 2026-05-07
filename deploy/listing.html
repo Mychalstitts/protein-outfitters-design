@@ -271,7 +271,14 @@
   document.getElementById('lgFarmLoc').textContent = `${l.farm_city || ''}${l.farm_city && l.farm_state ? ', ' : ''}${l.farm_state || ''}`;
   document.getElementById('lgFarmPractices').textContent = (l.farm_practices && l.farm_practices.length) ? l.farm_practices.map(p => cap(p.replace('-',' '))).join(', ') : '—';
   document.getElementById('lgFarmEst').textContent = '—';
-  document.getElementById('lgFarmLink').href = '/farm/' + l.farm_slug;
+  // Only wire the farm link when we actually have a slug. Otherwise hide it
+  // so we don't ship a button that lands on a 404 (`/farm/`).
+  const farmLinkEl = document.getElementById('lgFarmLink');
+  if (l.farm_slug) {
+    farmLinkEl.href = '/farm/' + l.farm_slug;
+  } else if (farmLinkEl) {
+    farmLinkEl.style.display = 'none';
+  }
 
   // Rating badge under farm name (only if reviews exist).
   if (Number(l.farm_review_count || 0) > 0) {

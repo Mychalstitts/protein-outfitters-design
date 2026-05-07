@@ -887,7 +887,7 @@ body { background: var(--bg); overflow-x: hidden; }
         <li><a href="/farmer">Producer dashboard</a></li>
         <li><a href="/processor">Processor portal</a></li>
         <li><a href="/processor-saas">Processor pricing</a></li>
-        <li><a href="/donation-flow">Donation Depot</a></li>
+        <li><a href="/donation-flow">Producer Partnership</a></li>
       </ul>
     </div>
     <div>
@@ -897,6 +897,14 @@ body { background: var(--bg); overflow-x: hidden; }
         <li><a href="/screens">All screens</a></li>
         <li><a href="/brand">Brand</a></li>
         <li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="/policies/privacy">Privacy</a></li>
+        <li><a href="/policies/terms">Terms</a></li>
+        <li><a href="/policies/refunds">Refunds</a></li>
       </ul>
     </div>
   </div>
@@ -1023,7 +1031,7 @@ body { background: var(--bg); overflow-x: hidden; }
   function speciesLabel(s){ return ({cattle:'Beef', hog:'Pork', lamb:'Lamb', goat:'Goat', bison:'Bison', venison:'Venison', poultry:'Poultry'})[s] || s; }
   function photoFor(l){
     if (l.photos && l.photos[0]) return l.photos[0];
-    const map = { cattle:'/img/cattle-pasture.jpg', hog:'/img/premium-pig.jpg', lamb:'/img/premium-sheep.jpg', goat:'/img/premium-sheep.jpg', bison:'/img/cattle-pasture.jpg', venison:'/img/premium-deer.jpg', poultry:'/img/poultry.jpg' };
+    const map = { cattle:'/img/cattle-pasture.jpg', hog:'/img/premium-pig.jpg', lamb:'/img/premium-sheep.jpg', goat:'/img/premium-sheep.jpg', bison:'/img/cattle-pasture.jpg', venison:'/img/venison.jpg', poultry:'/img/poultry.jpg' };
     return map[l.species] || '/img/cattle-pasture.jpg';
   }
 
@@ -1053,13 +1061,19 @@ body { background: var(--bg); overflow-x: hidden; }
          </span>`
       : '';
 
+    // Convert per-lb-HW farmer rate into total share dollar amount so the
+    // reserve sheet shows e.g. "$1,275" instead of "$7.5" for a quarter share.
+    // Falls back to 0 if no rate on file (filtered out upstream).
+    const totalQ = Math.round(Number(l.shares?.quarter?.price || 0) * hw * 0.25);
+    const totalH = Math.round(Number(l.shares?.half?.price || 0) * hw * 0.5);
+    const totalW = Math.round(Number(l.shares?.whole?.price || 0) * hw * 1);
     return `<button class="product" data-open-sheet
         data-animal="${l.id}" data-name="${animalLabel}"
         data-producer="${farmName}${l.farm_city ? ' · ' + l.farm_city + ', ' + l.farm_state : ''}"
         data-photo="${photo}"
-        data-price-q="${l.shares?.quarter?.price || 0}"
-        data-price-h="${l.shares?.half?.price || 0}"
-        data-price-w="${l.shares?.whole?.price || 0}">
+        data-price-q="${totalQ}"
+        data-price-h="${totalH}"
+        data-price-w="${totalW}">
         <div class="product-photo" style="background-image: url('${photo}');">
           <span class="product-tag">${tag}</span>
           ${ratingBadge ? `<span style="position:absolute;top:12px;right:12px;">${ratingBadge}</span>` : ''}
@@ -1159,13 +1173,16 @@ body { background: var(--bg); overflow-x: hidden; }
     });
   }
 
-  document.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      sheet.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      state.processor = btn.dataset.processor;
-      nextBtn.disabled = false;
-    });
+  // Use event delegation: processor options are injected asynchronously by
+  // loadProcessors() (and may be re-rendered), so binding listeners directly
+  // at script init misses the dynamically created buttons.
+  sheet.addEventListener('click', (e) => {
+    const btn = e.target.closest('.sheet-step[data-step="2"] .option');
+    if (!btn || !sheet.contains(btn)) return;
+    sheet.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state.processor = btn.dataset.processor;
+    nextBtn.disabled = false;
   });
 
   function setStep(n) {
@@ -1205,13 +1222,10 @@ body { background: var(--bg); overflow-x: hidden; }
       ctxName.textContent = a.name;
       ctxSub.textContent = a.producer;
     } else {
-      // No animal: jump to listings, close
-      backdrop.classList.add('open');
-      sheet.classList.add('open');
-      sheet.setAttribute('aria-hidden', 'false');
-      setTimeout(() => {
-        document.querySelector('#reserve').scrollIntoView({ behavior: 'smooth' });
-      }, 50);
+      // No animal selected — just scroll the user down to the listings grid.
+      // Previously we also opened the sheet here, which left an empty share
+      // picker on top of the listings. Scroll-only is the right UX.
+      document.querySelector('#reserve')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
     state.share = null; state.processor = null;
@@ -1233,36 +1247,38 @@ body { background: var(--bg); overflow-x: hidden; }
     document.body.style.overflow = '';
   }
 
-  // Wire buttons
-  document.querySelectorAll('[data-open-sheet]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const card = e.currentTarget;
-      if (card.dataset.animal) {
+  // Wire buttons via event delegation so dynamically-rendered .product cards
+  // (injected after the /api/listings fetch resolves) also trigger the sheet.
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('[data-open-sheet]');
+    if (!card) return;
+    if (card.dataset.animal) {
+      open({
+        id: card.dataset.animal,
+        name: card.dataset.name,
+        producer: card.dataset.producer,
+        photo: card.dataset.photo,
+        priceQ: Number(card.dataset.priceQ || 0),
+        priceH: Number(card.dataset.priceH || 0),
+        priceW: Number(card.dataset.priceW || 0)
+      });
+    } else {
+      // Open with placeholder — first card
+      const first = document.querySelector('.product');
+      if (first && first.dataset.animal) {
         open({
-          id: card.dataset.animal,
-          name: card.dataset.name,
-          producer: card.dataset.producer,
-          photo: card.dataset.photo,
-          priceQ: Number(card.dataset.priceQ || 0),
-          priceH: Number(card.dataset.priceH || 0),
-          priceW: Number(card.dataset.priceW || 0)
+          id: first.dataset.animal,
+          name: first.dataset.name,
+          producer: first.dataset.producer,
+          photo: first.dataset.photo,
+          priceQ: Number(first.dataset.priceQ || 0),
+          priceH: Number(first.dataset.priceH || 0),
+          priceW: Number(first.dataset.priceW || 0)
         });
       } else {
-        // Open with placeholder — first card
-        const first = document.querySelector('.product');
-        if (first) {
-          open({
-            id: first.dataset.animal,
-            name: first.dataset.name,
-            producer: first.dataset.producer,
-            photo: first.dataset.photo,
-            priceQ: Number(first.dataset.priceQ || 0),
-            priceH: Number(first.dataset.priceH || 0),
-            priceW: Number(first.dataset.priceW || 0)
-          });
-        }
+        open();
       }
-    });
+    }
   });
 
   closeBtn.addEventListener('click', close);

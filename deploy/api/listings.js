@@ -57,7 +57,20 @@ async function listListings(url) {
     `;
   }
 
-  return json({ listings: rows });
+  // Audit fix #6: drop listings with no real share price set.
+  // Producers can save a draft animal and forget to back-fill share prices —
+  // historically those leaked into /discover and /listing?id=… as $0/lb "Reserve"
+  // buttons, which the prior audit caught. Filter them out here so every
+  // consumer of /api/listings (homepage, /discover, /listing) sees the same
+  // safe set rather than depending on each page applying its own anyPrice>0 check.
+  const filtered = (rows || []).filter(row => {
+    const s = row.shares || {};
+    const half  = Number(s.half  && s.half.price)  || 0;
+    const whole = Number(s.whole && s.whole.price) || 0;
+    const qtr   = Number(s.quarter && s.quarter.price) || 0;
+    return (half + whole + qtr) > 0;
+  });
+  return json({ listings: filtered });
 }
 
 async function createListing(req) {

@@ -366,7 +366,15 @@
     // Standing card
     document.getElementById('fmStanding').style.display = '';
     const link = document.getElementById('fmPublicProfileLink');
-    if (link) link.href = '/farm/' + primaryFarm.slug;
+    if (link) {
+      if (primaryFarm.slug) {
+        link.href = '/farm/' + primaryFarm.slug;
+      } else {
+        // No slug yet (farm just created, not provisioned) — hide the link
+        // instead of shipping a button that lands on /farm/ → 404.
+        link.style.display = 'none';
+      }
+    }
     document.getElementById('fmFarmRole').textContent = `${primaryFarm.name}${primaryFarm.city ? ' · ' + primaryFarm.city + ', ' + primaryFarm.state : ''}`;
     const certs = (primaryFarm.certs || []).map(c => c.toUpperCase()).slice(0, 3).join(' · ');
     document.getElementById('fmFarmName').textContent = certs || 'Verified producer';
@@ -438,7 +446,7 @@
     const bookingCta = needsBooking
       ? `<button onclick="event.stopPropagation();openBookingModal('${l.id}','${(l.number || '').replace(/'/g, "\\'")}','${(l.breed || l.species).replace(/'/g, "\\'")}','${l.expected_finish_date || ''}','${l.estimated_hanging_weight || ''}')" style="margin-top:8px;padding:6px 12px;background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;font:700 11px/1 'Inter';cursor:pointer;width:100%;">Book a processor →</button>`
       : `<div style="margin-top:8px;padding:6px 12px;background:rgba(125,160,93,.10);color:#7da05d;border-radius:999px;font:700 11px/1.4 'Inter';text-align:center;">✓ Processor booked</div>`;
-    return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
+    return `<a class="product" href="/listing?id=${l.id}" style="text-decoration:none;">
       <div class="product-photo" style="background-image: url('${photo}');"><span class="product-tag">Reserving · ${reservedShares}/${totShares || '?'}</span></div>
       <div class="product-meta">
         <span class="product-eyebrow">${l.species[0].toUpperCase()+l.species.slice(1)}${l.practice && l.practice.length ? ' · ' + l.practice[0] : ''}</span>
@@ -447,7 +455,7 @@
         <div class="product-foot"><span class="product-price">From <strong>$${typeof fromPrice === 'number' ? fromPrice.toFixed(2) + '/lb' : fromPrice}</strong></span><span class="product-cta">Manage →</span></div>
         ${bookingCta}
       </div>
-    </button>`;
+    </a>`;
   }).join('');
 
   grid.innerHTML = cards + addLink.outerHTML;

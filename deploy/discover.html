@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Discover · Protein Outfitters</title>
   <meta name="description" content="Find pasture-raised cattle, hogs, lamb, and poultry from real farms. Filter by certifications, location, finish date, and more — like Airbnb for the meat marketplace." />
-  <link rel="icon" type="image/svg+xml" href="/brand/po-favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
   <meta property="og:title" content="Discover · Protein Outfitters" />
   <meta property="og:description" content="Filter the marketplace by species, breed, certifications, location, and price. Smart natural-language search powered by AI." />
   <meta property="og:image" content="/img/hero-pasture.jpg" />
@@ -323,7 +323,7 @@
           </div>
           <div class="lc-body">
             <div class="lc-row1"><span class="lc-name">${l.name}</span><span class="lc-price">$${l.priceLb.toFixed(2)}<em>/lb all-in</em></span></div>
-            <div class="lc-farm"><a href="/farm/${l.farmSlug}" onclick="event.stopPropagation()">${l.farm}</a></div>
+            <div class="lc-farm">${l.farmSlug ? `<a href="/farm/${l.farmSlug}" onclick="event.stopPropagation()">${l.farm}</a>` : `<span>${l.farm}</span>`}</div>
             <div class="lc-meta">
               <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${l.distance} mi</span>
               <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Ready ${new Date(l.ready).toLocaleDateString('en',{month:'short',day:'numeric'})}</span>

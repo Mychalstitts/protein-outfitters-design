@@ -23,8 +23,29 @@ const QUERIES = {
   }
 };
 
+// Per-fetch timeout — Vercel Hobby kills the whole function at ~10s, so any
+// upstream call that hangs takes the entire endpoint with it. 8s on individual
+// calls leaves headroom to assemble the response and return *something* even
+// if Google Places / Geocoding is degraded.
+const FETCH_TIMEOUT_MS = 8000;
+
+async function fetchWithTimeout(url, init = {}, ms = FETCH_TIMEOUT_MS) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(new Error('upstream timeout')), ms);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 async function geocodeZip(zip, key) {
-  const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(zip + ', USA')}&key=${key}`);
+  let r;
+  try {
+    r = await fetchWithTimeout(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(zip + ', USA')}&key=${key}`);
+  } catch (e) {
+    throw new Error(`Geocode timeout for ZIP ${zip}: ${e.message}`);
+  }
   const data = await r.json();
   if (data.status !== 'OK' || !data.results?.[0]) return null;
   const loc = data.results[0].geometry.location;
@@ -39,7 +60,7 @@ async function placesTextSearch(query, lat, lng, radiusMeters, key) {
     maxResultCount: 20,
     includedType: undefined,
   };
-  const r = await fetch('https://places.googleapis.com/v1/places:searchText', {
+  const r = await fetchWithTimeout('https://places.googleapis.com/v1/places:searchText', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
