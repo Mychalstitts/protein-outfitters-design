@@ -1,0 +1,21 @@
+# Protein Outfitters — robots.txt
+# Allow all reputable crawlers; keep API and admin out of search.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /admin-overview
+Disallow: /admin-ams-import
+Disallow: /admin-bootstrap
+Disallow: /admin-email
+Disallow: /admin-fsis-import
+Disallow: /admin-health
+Disallow: /screens
+Disallow: /processor-config
+Disallow: /processor-checkin
+Disallow: /processor-ops
+Disallow: /processor-schedule
+Disallow: /credentials
+
+Sitemap: https://www.proteinoutfitters.com/sitemap.xml
