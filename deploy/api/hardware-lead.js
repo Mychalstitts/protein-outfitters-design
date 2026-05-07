@@ -23,7 +23,11 @@
 //   - POST to HARDWARE_CRM_WEBHOOK_URL if set (HubSpot/Pipedrive/Salesforce/Zapier — generic JSON webhook)
 
 import { sql, currentUser, err, json } from './_lib/db.js';
-import { sendLifecycleEmail } from './_lib/email.js';
+// NOTE: sendLifecycleEmail is loaded lazily inside the handler. A static import
+// of './_lib/email.js' at module init was crashing the function with
+// FUNCTION_INVOCATION_FAILED in production whenever its transitive deps
+// (Resend / DB schema bootstrap) couldn't initialize cleanly. Lazy-loading
+// keeps lead capture working even if the email pipeline is misconfigured.
 
 export const config = { runtime: 'nodejs' };
 
@@ -54,7 +58,7 @@ function temperatureFor(score) {
   return score >= 60 ? 'hot' : score >= 35 ? 'warm' : 'cold';
 }
 
-export default async function handler(req) {
+async function _handler(req) {
   const url = new URL(req.url);
 
   // ── GET: admin lead list ──
@@ -191,6 +195,7 @@ ${b.notes ? `<p style="margin-top:16px;padding:12px 14px;background:#f5f1e8;bord
 
     // ── Side effect 3: best-effort acknowledgment to the lead ──
     try {
+      const { sendLifecycleEmail } = await import('./_lib/email.js');
       await sendLifecycleEmail('Hardware.lead_received', {
         to: b.email,
         full_name: b.full_name,
@@ -204,4 +209,16 @@ ${b.notes ? `<p style="margin-top:16px;padding:12px 14px;background:#f5f1e8;bord
   }
 
   return err(405, 'Method not allowed');
+}
+
+// Top-level guard — every error becomes a structured 500 instead of a
+// Vercel FUNCTION_INVOCATION_FAILED, so the /hardware quote form gets a real
+// message back even when the DB or env is in a bad state.
+export default async function handler(req) {
+  try {
+    return await _handler(req);
+  } catch (e) {
+    console.error('hardware-lead crashed:', e?.stack || e?.message || e);
+    return err(500, 'Lead capture temporarily unavailable. Email mychal@proteinoutfitters.com directly.');
+  }
 }

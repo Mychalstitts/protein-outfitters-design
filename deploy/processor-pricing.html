@@ -315,6 +315,7 @@
 </section>
 
 <div id="po-shell-host"></div>
+<script src="./po-api.js"></script>
 <script src="./po-shell.js"></script>
 <script>
 (function () {
@@ -428,13 +429,79 @@
   // Pill toggles
   document.querySelectorAll('.pill-toggle').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
 
-  // Save / preview (visual only)
-  document.getElementById('saveBtn').addEventListener('click', () => {
+  // Save: persist {base_fees, per_lb_fees, capabilities} via /api/processors PATCH.
+  document.getElementById('saveBtn').addEventListener('click', async () => {
     const btn = document.getElementById('saveBtn');
-    btn.textContent = '✓ Saved';
-    btn.style.background = '#cfe9d3';
-    btn.style.color = 'var(--brand)';
-    setTimeout(() => { btn.textContent = 'Save config →'; btn.style.background = ''; btn.style.color = ''; }, 1600);
+    const origText = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      // Build the per-species payload. We always send the currently-selected species.
+      const base_fees = { kill_fee: val('killFee') };
+      const per_lb_fees = {
+        processing: val('cutFee'),
+        vacuum_seal: val('vacFee'),
+        boneless: val('boneFee'),
+        grind: val('grindFee'),
+        smoke: val('smokeFee'),
+        sausage: val('sausageFee'),
+        patty: val('pattyFee'),
+        jerky: val('jerkyFee')
+      };
+      const offered_cuts = [...document.querySelectorAll('.pp-block .pill-toggle.on')]
+        .map(p => p.textContent.trim());
+      const booking = {
+        capacity_per_day: val('capPerDay'),
+        lead_days: val('leadDays'),
+        deposit: val('depFee'),
+        age_extra_per_week: val('ageFee')
+      };
+      const me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null);
+      if (!me || !me.user) {
+        if (window.PO_API && window.PO_API.openAuth) window.PO_API.openAuth('Sign in to save your pricing', 'processor');
+        else window.location = '/account';
+        btn.disabled = false; btn.textContent = origText; return;
+      }
+      // Find the processor record this user owns.
+      const all = await fetch('/api/processors').then(r => r.json()).catch(() => ({ processors: [] }));
+      const mine = (all.processors || []).find(p => p.owner_id === me.user.id);
+      if (!mine) {
+        alert('Set up your plant first (visit /processor) before saving pricing.');
+        btn.disabled = false; btn.textContent = origText; return;
+      }
+      const r = await fetch('/api/processors?slug=' + encodeURIComponent(mine.slug), {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base_fees, per_lb_fees, offered_cuts, booking, species_pricing: { [species]: { base_fees, per_lb_fees } } })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      btn.textContent = '✓ Saved';
+      btn.style.background = '#cfe9d3'; btn.style.color = 'var(--brand)';
+      setTimeout(() => { btn.textContent = origText; btn.style.background = ''; btn.style.color = ''; btn.disabled = false; }, 1800);
+    } catch (e) {
+      btn.textContent = 'Save failed';
+      setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000);
+    }
+  });
+
+  // Preview: route to the public processor profile (or /processor if not yet set up).
+  const previewBtn = document.getElementById('previewBtn');
+  if (previewBtn) previewBtn.addEventListener('click', async () => {
+    const orig = previewBtn.textContent;
+    previewBtn.disabled = true; previewBtn.textContent = 'Loading…';
+    try {
+      const me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null);
+      if (!me || !me.user) {
+        if (window.PO_API && window.PO_API.openAuth) window.PO_API.openAuth('Sign in to preview', 'processor');
+        else window.location = '/account';
+        return;
+      }
+      const all = await fetch('/api/processors').then(r => r.json()).catch(() => ({ processors: [] }));
+      const mine = (all.processors || []).find(p => p.owner_id === me.user.id);
+      window.location = mine ? ('/processor?slug=' + mine.slug) : '/processor';
+    } catch (e) {
+      previewBtn.textContent = 'Preview failed';
+      setTimeout(() => { previewBtn.textContent = orig; previewBtn.disabled = false; }, 1500);
+    }
   });
 
   applyDefaults();

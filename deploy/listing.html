@@ -4,15 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>#2641 · Black Angus steer · Protein Outfitters</title>
-<meta name="description" content="Reserve a fraction of #2641 — a 1,180 lb grass-fed Black Angus steer raised by Northfield Pastures in Bemidji, MN." />
-<meta property="og:title" content="#2641 · Black Angus steer · Protein Outfitters" />
+<title>Reserve a share · Protein Outfitters</title>
+<meta name="description" content="Reserve a fraction of a real, named animal from a verified producer on Protein Outfitters. Pick the cuts. We handle every step from drop-off to driveway." />
+<meta property="og:title" content="Reserve a share · Protein Outfitters" />
 <meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/listing" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="#2641 · Black Angus steer · Protein Outfitters" />
+<meta name="twitter:title" content="Reserve a share · Protein Outfitters" />
 <meta name="twitter:description" content="Reserve a fraction of a real, named animal from a verified producer." />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -179,6 +179,28 @@
     document.getElementById('lgFromMeta').textContent = '';
   }
 
+  // Cowork audit fix: if this listing has no positive pricing, hide the Reserve CTAs
+  // and show a clear "Coming soon" note. Prevents buyers from being deep-linked into a
+  // checkout that quotes $0.
+  const allInZero = (
+    !Number(l.shares?.quarter?.price) &&
+    !Number(l.shares?.half?.price) &&
+    !Number(l.shares?.whole?.price) &&
+    !Number(l.price_per_lb)
+  );
+  if (allInZero) {
+    document.querySelectorAll('.js-reserve, .listing-actions-cta button, [data-open-sheet]').forEach(b => {
+      b.disabled = true;
+      b.style.opacity = '0.4';
+      b.style.cursor = 'not-allowed';
+      if (b.matches && b.matches('button')) b.textContent = 'Pricing coming soon';
+    });
+    const fromEl = document.getElementById('lgFromPrice');
+    const metaEl = document.getElementById('lgFromMeta');
+    if (fromEl) fromEl.innerHTML = 'Coming soon';
+    if (metaEl) metaEl.textContent = '· producer is finalizing the listing';
+  }
+
   // ─── Specs grid ─────────────────────────────────
   const specs = [];
   if (l.breed) specs.push(['Breed', l.breed + (l.subbreed ? ` (${l.subbreed})` : '')]);
@@ -249,7 +271,14 @@
   document.getElementById('lgFarmLoc').textContent = `${l.farm_city || ''}${l.farm_city && l.farm_state ? ', ' : ''}${l.farm_state || ''}`;
   document.getElementById('lgFarmPractices').textContent = (l.farm_practices && l.farm_practices.length) ? l.farm_practices.map(p => cap(p.replace('-',' '))).join(', ') : '—';
   document.getElementById('lgFarmEst').textContent = '—';
-  document.getElementById('lgFarmLink').href = '/farm/' + l.farm_slug;
+  // Only wire the farm link when we actually have a slug. Otherwise hide it
+  // so we don't ship a button that lands on a 404 (`/farm/`).
+  const farmLinkEl = document.getElementById('lgFarmLink');
+  if (l.farm_slug) {
+    farmLinkEl.href = '/farm/' + l.farm_slug;
+  } else if (farmLinkEl) {
+    farmLinkEl.style.display = 'none';
+  }
 
   // Rating badge under farm name (only if reviews exist).
   if (Number(l.farm_review_count || 0) > 0) {

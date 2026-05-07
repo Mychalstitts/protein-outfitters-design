@@ -427,7 +427,7 @@
         title: f.name,
         meta: `${f.city || ''}${f.state ? ', ' + f.state : ''}${f.listings_count ? ' · ' + f.listings_count + ' listing' + (f.listings_count === 1 ? '' : 's') : ''}`,
         pills: (f.identity || []).slice(0, 2).map(t => ({ text: t.replace(/-/g, ' '), color: 'green' })),
-        lat: f.lat, lng: f.lng, link: '/farm/' + f.slug,
+        lat: f.lat, lng: f.lng, link: f.slug ? '/farm/' + f.slug : null,
       }));
     } else if (currentLayer === 'processors') {
       items = DATA.processors.map(p => ({
@@ -495,7 +495,7 @@
         <h4>${escapeHtml(f.name)}</h4>
         <p>${escapeHtml(f.city || '')}${f.state ? ', ' + escapeHtml(f.state) : ''}</p>
         ${f.listings_count ? `<p>${f.listings_count} active listing${f.listings_count === 1 ? '' : 's'}</p>` : ''}
-        <a class="cta" href="/farm/${escapeHtml(f.slug)}">Visit profile →</a>`);
+        ${f.slug ? `<a class="cta" href="/farm/${escapeHtml(f.slug)}">Visit profile →</a>` : ''}`);
       layers.farms.addLayer(m);
     }
   }

@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Play CDN — required so the tailwind.config below actually compiles. -->
+<script src="https://cdn.tailwindcss.com"></script>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -400,4 +402,59 @@ nav a:hover { opacity: 0.7; }
 </div>
 <div id="po-shell-host"></div>
 <script src="./po-shell.js"></script>
+
+
+<!-- Cowork audit fix: wire settings rows + dark mode + auth-aware profile -->
+<script>
+(function () {
+  // 1) Make each settings row clickable.
+  const ROUTE = {
+    'Security & Privacy': '/credentials',
+    'Notifications':       '/notifications',
+    'Payment Methods':     '/finance',
+    'Region':              '/account',
+    'Unit System':         '/account',
+    'Help Center':         '/faq',
+    'Terms of Service':    '/policies/terms',
+    'Privacy Policy':      '/policies/privacy'
+  };
+  document.querySelectorAll('div.flex.items-center.justify-between.p-5.cursor-pointer, div.flex.items-center.justify-between.p-5').forEach(row => {
+    if (!row.classList.contains('cursor-pointer')) return;
+    const title = (row.querySelector('p.font-bold') || {}).textContent;
+    if (!title) return;
+    const href = ROUTE[title.trim()];
+    if (!href) return;
+    row.setAttribute('role', 'link');
+    row.setAttribute('tabindex', '0');
+    row.addEventListener('click', () => { window.location = href; });
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location = href; } });
+  });
+
+  // 2) Persistent dark-mode toggle.
+  const KEY = 'po_dark_mode';
+  const root = document.documentElement;
+  const checkbox = document.querySelector('input.ios-toggle[type="checkbox"]');
+  function applyTheme(on) {
+    if (on) { root.classList.add('dark');  root.classList.remove('light'); }
+    else    { root.classList.add('light'); root.classList.remove('dark'); }
+  }
+  applyTheme(localStorage.getItem(KEY) === '1');
+  if (checkbox) {
+    checkbox.checked = localStorage.getItem(KEY) === '1';
+    checkbox.addEventListener('change', () => {
+      localStorage.setItem(KEY, checkbox.checked ? '1' : '0');
+      applyTheme(checkbox.checked);
+    });
+  }
+
+  // 3) Replace the placeholder Marcus Sterling profile data with the signed-in user.
+  fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null).then(data => {
+    if (!data || !data.user) return;
+    const u = data.user;
+    const display = u.name || u.email.split('@')[0];
+    document.querySelectorAll('h2').forEach(h => { if (h.textContent.includes('Marcus Sterling')) h.textContent = display; });
+    document.querySelectorAll('p').forEach(p => { if (p.textContent.includes('marcus.sterling@')) p.textContent = u.email; });
+  }).catch(() => {});
+})();
+</script>
 </body></html>

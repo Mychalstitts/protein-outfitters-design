@@ -7,8 +7,12 @@
 //
 // All exports return a Node Readable stream you can pipe to a Response body
 // or convert to a Buffer for attaching to an email.
-
-import PDFDocument from 'pdfkit';
+//
+// NOTE: pdfkit is loaded *lazily* inside pdfToBuffer because a top-level
+// `import PDFDocument from 'pdfkit'` was crashing the function with
+// FUNCTION_INVOCATION_FAILED in production whenever Vercel's nft tracer
+// didn't bundle pdfkit's Helvetica.afm font. Dynamic import gives us a
+// real, catchable error instead of a generic invocation failure.
 
 // Brand constants — match the rest of the site.
 const BRAND = {
@@ -24,6 +28,9 @@ const PAGE = { size: 'LETTER', margin: 64 };
 
 // Convenience: build a PDF and resolve to a Buffer (used when emailing).
 export async function pdfToBuffer(buildFn) {
+  // Lazy-load pdfkit so a missing-font / require-resolution failure surfaces
+  // as a normal thrown error instead of a top-level module-init crash.
+  const PDFDocument = (await import('pdfkit')).default;
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument(PAGE);
     const chunks = [];

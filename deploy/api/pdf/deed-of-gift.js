@@ -23,7 +23,7 @@ const CHARITY = {
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—';
 
-export default async function handler(req) {
+async function _handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
   const url = new URL(req.url);
   const donationId = url.searchParams.get('donation');
@@ -121,4 +121,19 @@ export default async function handler(req) {
 
     footer(doc, { footnote: `Deed of Gift — Donation ${donationId.slice(0, 8)} · ${CHARITY.name}` });
   }, filename);
+}
+
+// Top-level guard — any thrown error becomes a structured 500 instead of
+// Vercel's generic FUNCTION_INVOCATION_FAILED page (which gave us no
+// debugging surface during the 2026-05 audit).
+export default async function handler(req) {
+  try {
+    return await _handler(req);
+  } catch (e) {
+    console.error('[/api/pdf/deed-of-gift]', e);
+    return new Response(
+      JSON.stringify({ error: 'pdf_generation_failed', message: String(e?.message || e) }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 }
