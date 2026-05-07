@@ -128,7 +128,7 @@ export default async function handler(req) {
   const user = await currentUser(req);
   if (!user || user.role !== 'admin') return err(403, 'Admin only');
 
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'https://www.proteinoutfitters.com');
   const id = url.searchParams.get('id');
   const format = url.searchParams.get('format') || (req.method === 'GET' && id ? 'html' : 'json');
 

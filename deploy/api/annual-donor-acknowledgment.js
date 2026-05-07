@@ -33,7 +33,7 @@ function authorized(req, url) {
 }
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'https://www.proteinoutfitters.com');
   if (!authorized(req, url)) return err(401, 'Unauthorized');
   if (!['GET', 'POST'].includes(req.method)) return err(405, 'Method not allowed');
 

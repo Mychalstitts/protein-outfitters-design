@@ -24,7 +24,8 @@ const ALLOWED_KINDS = ['farm', 'processor'];
 export default async function handler(req) {
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured');
 
-  const url = new URL(req.url);
+  // Node runtime: req.url is relative; URL() needs a base.
+  const url = new URL(req.url, 'https://www.proteinoutfitters.com');
   const kind = (req.method === 'GET' ? url.searchParams.get('kind') : null) || (await peekJson(req))?.kind;
   if (!ALLOWED_KINDS.includes(kind)) return err(400, 'kind must be "farm" or "processor"');
 
