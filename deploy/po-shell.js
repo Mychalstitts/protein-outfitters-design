@@ -765,4 +765,87 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refreshNav);
   else refreshNav();
+
+  // ── Microsoft Clarity ────────────────────────────────────────
+  // Real-user session recordings, heatmaps, rage-click + dead-click detection.
+  // Auto-loads when /api/public-config returns a clarity_project_id. Skipped on
+  // localhost so we don't pollute prod analytics during dev.
+  function installClarity(projectId) {
+    if (!projectId) return;
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+    if (window.clarity) return;
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, 'clarity', 'script', projectId);
+  }
+  if (window.PO_CLARITY_ID) {
+    installClarity(window.PO_CLARITY_ID);
+  } else {
+    fetch('/api/public-config', { cache: 'force-cache' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && d.clarity_project_id) installClarity(d.clarity_project_id); })
+      .catch(() => {});
+  }
+
+  // ── PWA hooks ────────────────────────────────────────────────
+  // Inject manifest link (so any page becomes installable) + register the
+  // service worker so the site works offline and qualifies as a PWA. Both are
+  // prerequisites for App Store / Play Store wrappers.
+  function ensureManifestLink() {
+    if (document.querySelector('link[rel="manifest"]')) return;
+    const l = document.createElement('link');
+    l.rel = 'manifest';
+    l.href = '/manifest.webmanifest';
+    document.head.appendChild(l);
+  }
+  function ensureThemeColor() {
+    if (document.querySelector('meta[name="theme-color"]')) return;
+    const m = document.createElement('meta');
+    m.name = 'theme-color';
+    m.content = '#061b0e';
+    document.head.appendChild(m);
+  }
+  function ensureAppleMeta() {
+    if (document.querySelector('meta[name="apple-mobile-web-app-capable"]')) return;
+    const a = document.createElement('meta');
+    a.name = 'apple-mobile-web-app-capable';
+    a.content = 'yes';
+    document.head.appendChild(a);
+    const b = document.createElement('meta');
+    b.name = 'apple-mobile-web-app-status-bar-style';
+    b.content = 'black-translucent';
+    document.head.appendChild(b);
+    const c = document.createElement('meta');
+    c.name = 'apple-mobile-web-app-title';
+    c.content = 'Protein Outfitters';
+    document.head.appendChild(c);
+  }
+  ensureManifestLink();
+  ensureThemeColor();
+  ensureAppleMeta();
+
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    // Register after load so we don't compete with critical render
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {/* SW registration is best-effort */});
+    });
+  }
+
+  // Listen for the install prompt; expose a `window.poShowInstallPrompt()` so
+  // any page can render an "Install app" button when supported.
+  let deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    document.dispatchEvent(new CustomEvent('po:install-available'));
+  });
+  window.poShowInstallPrompt = async function () {
+    if (!deferredInstallPrompt) return { outcome: 'unavailable' };
+    deferredInstallPrompt.prompt();
+    const result = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    return result;
+  };
 })();
