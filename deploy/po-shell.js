@@ -850,4 +850,169 @@
     deferredInstallPrompt = null;
     return result;
   };
+
+  // ── Live activity ticker (FOMO) ───────────────────────────────
+  // Booking.com made billions on this — "Sarah from Brainerd just reserved a
+  // quarter share of #214 from Twin Pines Ranch · 4 minutes ago". Mounts to
+  // any element with data-po-activity-ticker. Auto-rotates every 6 seconds.
+  // Pages opt in by adding `<div data-po-activity-ticker></div>` anywhere; if
+  // none exists on a page that wants it, we mount in the bottom-left corner.
+  function installActivityTicker() {
+    // Skip on tiny pages where it'd feel intrusive (settings, admin, etc.)
+    const skipPaths = ['/settings', '/admin', '/admin-overview', '/admin-health', '/admin-bootstrap', '/admin-email', '/admin-ams-import', '/admin-fsis-import', '/processor-checkin', '/booking-confirmation', '/list-animal', '/cut-sheet', '/policies/privacy', '/policies/terms', '/policies/refunds', '/credentials'];
+    if (skipPaths.some(p => location.pathname.startsWith(p))) return;
+    if (document.body.getAttribute('data-po-ticker') === 'off') return;
+
+    // Inject the ticker styles once
+    if (!document.getElementById('po-ticker-style')) {
+      const style = document.createElement('style');
+      style.id = 'po-ticker-style';
+      style.textContent = `
+        .po-ticker {
+          position: fixed; bottom: 18px; left: 18px; z-index: 9000;
+          max-width: 360px; min-width: 240px;
+          background: rgba(6, 27, 14, 0.95); color: #fbf9f5;
+          border-radius: 14px; padding: 11px 16px 11px 14px;
+          box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+          font: 500 12.5px/1.45 'Inter', system-ui, sans-serif;
+          backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+          transform: translateY(120%); opacity: 0;
+          transition: transform .45s cubic-bezier(.2,.85,.3,1.2), opacity .25s ease;
+          cursor: pointer;
+        }
+        .po-ticker.show { transform: translateY(0); opacity: 1; }
+        .po-ticker.hide { transform: translateY(120%); opacity: 0; }
+        .po-ticker-row { display: flex; gap: 9px; align-items: flex-start; }
+        .po-ticker-emoji { font-size: 18px; line-height: 1.2; flex: 0 0 auto; }
+        .po-ticker-body { flex: 1; min-width: 0; }
+        .po-ticker-text { color: #fbf9f5; }
+        .po-ticker-text strong { color: #cfe9d3; font-weight: 700; }
+        .po-ticker-meta { font-size: 10.5px; color: rgba(251,249,245,.55); margin-top: 2px; letter-spacing: .03em; }
+        .po-ticker-close { position: absolute; top: 4px; right: 6px; background: transparent; border: 0; color: rgba(251,249,245,.4); font: 700 14px/1 'Inter'; cursor: pointer; padding: 4px 6px; }
+        .po-ticker-close:hover { color: #fbf9f5; }
+        @media (max-width: 640px) {
+          .po-ticker { left: 12px; right: 12px; bottom: 12px; max-width: none; min-width: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .po-ticker { transition: opacity .2s; transform: none; }
+          .po-ticker.show { opacity: 1; }
+          .po-ticker.hide { opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Build the DOM node (one ticker per page)
+    let ticker = document.querySelector('.po-ticker');
+    if (!ticker) {
+      ticker = document.createElement('div');
+      ticker.className = 'po-ticker';
+      ticker.setAttribute('role', 'status');
+      ticker.setAttribute('aria-live', 'polite');
+      ticker.innerHTML = '<button class="po-ticker-close" aria-label="Dismiss">×</button><div class="po-ticker-row"><span class="po-ticker-emoji">🥩</span><div class="po-ticker-body"><div class="po-ticker-text"></div><div class="po-ticker-meta"></div></div></div>';
+      document.body.appendChild(ticker);
+    }
+
+    const closeBtn = ticker.querySelector('.po-ticker-close');
+    const emojiEl = ticker.querySelector('.po-ticker-emoji');
+    const textEl = ticker.querySelector('.po-ticker-text');
+    const metaEl = ticker.querySelector('.po-ticker-meta');
+    let dismissed = false;
+    let events = [];
+    let cursor = 0;
+    let tickerTimer = null;
+
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      ticker.classList.remove('show');
+      ticker.classList.add('hide');
+      dismissed = true;
+      if (tickerTimer) clearInterval(tickerTimer);
+      // Don't show again this session
+      try { sessionStorage.setItem('po_ticker_dismissed', '1'); } catch {}
+    });
+
+    ticker.addEventListener('click', () => {
+      const ev = events[(cursor - 1 + events.length) % events.length];
+      if (ev && ev.link) location.href = ev.link;
+    });
+
+    function showEvent(ev) {
+      if (!ev) return;
+      emojiEl.textContent = ev.emoji || '🥩';
+      textEl.textContent = ev.text;
+      metaEl.textContent = ev.time;
+      ticker.classList.remove('hide');
+      ticker.classList.add('show');
+    }
+
+    function rotate() {
+      if (dismissed || !events.length) return;
+      const ev = events[cursor % events.length];
+      cursor++;
+      // Briefly hide for transition
+      ticker.classList.remove('show');
+      ticker.classList.add('hide');
+      setTimeout(() => showEvent(ev), 350);
+    }
+
+    // Skip if user already dismissed in this session
+    try { if (sessionStorage.getItem('po_ticker_dismissed') === '1') return; } catch {}
+
+    // Fetch + start rotating
+    fetch('/api/recent-activity', { cache: 'default' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        events = (d && d.events) || [];
+        if (!events.length) return;
+        // First event after a small delay so it doesn't fight with first-paint
+        setTimeout(() => {
+          showEvent(events[0]);
+          cursor = 1;
+          // Rotate every 7 seconds, stop after 5 rotations to not annoy
+          let rotations = 0;
+          tickerTimer = setInterval(() => {
+            if (rotations >= 4) { clearInterval(tickerTimer); return; }
+            rotate();
+            rotations++;
+          }, 7000);
+        }, 1800);
+      })
+      .catch(() => {});
+  }
+  // Wait until idle to install — never block first-paint
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(installActivityTicker, { timeout: 3000 });
+  } else {
+    setTimeout(installActivityTicker, 1500);
+  }
+
+  // ── Global share helper ──────────────────────────────────────
+  // Any page calls window.poShare({ title, text, url }) to invoke the native
+  // share sheet on iOS/Android, falling back to "copied to clipboard" with a
+  // toast confirmation. Tracks the share via Clarity custom event so we can
+  // see in the dashboard which pages drive the most viral coefficient.
+  window.poShare = async function (opts = {}) {
+    const url = opts.url || location.href;
+    const title = opts.title || document.title || 'Protein Outfitters';
+    const text = opts.text || '';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        if (window.clarity) try { window.clarity('event', 'share_native_used'); } catch {}
+        return { ok: true, method: 'native' };
+      }
+      await navigator.clipboard.writeText(url);
+      if (window.clarity) try { window.clarity('event', 'share_link_copied'); } catch {}
+      // Toast
+      const t = document.createElement('div');
+      t.textContent = '✓ Link copied to clipboard';
+      t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#061b0e;color:#fbf9f5;padding:11px 20px;border-radius:999px;font:700 13px/1 \'Inter\',system-ui,sans-serif;z-index:9999;box-shadow:0 8px 22px rgba(0,0,0,.35);';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1800);
+      return { ok: true, method: 'clipboard' };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  };
 })();
