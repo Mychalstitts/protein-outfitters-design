@@ -1,13 +1,35 @@
-// GET /api/auth/verify?token=XXX&next=/account
+// GET /api/auth/verify?token=XXX&next=/account&ref=XYZ123
 // Consumes magic-link token, creates session, sets cookie, redirects.
+//
+// `ref` (or `?ref=` embedded in `next`) is captured into users.referred_by_code
+// for newly created users. Triggers a referral_redemptions row so the credit
+// pipeline (stripe-webhook.js) can reward both sides on the first paid order.
 import { sql, randomToken, setSessionCookie } from '../_lib/db.js';
 
 export const config = { runtime: 'edge' };
+
+// Pull a referral code out of either the explicit ?ref= param, or whatever
+// `next` URL the user is bouncing to (e.g. /discover?ref=XYZ). Codes are
+// 6-char A-Z/2-9 — anything else is rejected to keep the column clean.
+function extractRefCode(url, nextRaw) {
+  const direct = url.searchParams.get('ref');
+  if (direct && /^[A-Z2-9]{6}$/i.test(direct.trim())) return direct.trim().toUpperCase();
+  try {
+    if (nextRaw && nextRaw.includes('ref=')) {
+      // `next` may be a relative path with its own query string
+      const u = new URL(nextRaw, 'https://www.proteinoutfitters.com');
+      const r = u.searchParams.get('ref');
+      if (r && /^[A-Z2-9]{6}$/i.test(r.trim())) return r.trim().toUpperCase();
+    }
+  } catch { /* ignore malformed next */ }
+  return null;
+}
 
 export default async function handler(req) {
   const url = new URL(req.url);
   const token = url.searchParams.get('token');
   const next = url.searchParams.get('next') || '/account';
+  const refCode = extractRefCode(url, next);
   if (!token) return new Response('Missing token', { status: 400 });
 
   // Look up token
@@ -25,14 +47,38 @@ export default async function handler(req) {
   // Mark token consumed
   await sql`UPDATE auth_tokens SET consumed_at = NOW() WHERE token = ${token}`;
 
-  // Find or create user
+  // Find or create user. If a ref code is in flight AND the user is new (or
+  // had no code stored yet), stamp it on the row so the credit pipeline knows
+  // who to reward. We never overwrite an existing code — first-touch wins.
   const userRows = await sql`
-    INSERT INTO users (email)
-    VALUES (${t.email})
-    ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
-    RETURNING id
+    INSERT INTO users (email, referred_by_code)
+    VALUES (${t.email}, ${refCode})
+    ON CONFLICT (email) DO UPDATE
+      SET updated_at = NOW(),
+          referred_by_code = COALESCE(users.referred_by_code, EXCLUDED.referred_by_code)
+    RETURNING id, (xmax = 0) AS is_new, referred_by_code
   `;
   const userId = userRows[0].id;
+  const isNew = !!userRows[0].is_new;
+  const finalRefCode = userRows[0].referred_by_code;
+
+  // Best-effort: log a pending redemption so admin/credit logic has a row to
+  // act on. Idempotent — guarded by (code, redeemed_by) uniqueness via the
+  // earlier-created index pattern, but we also gate on isNew to avoid
+  // double-counting on repeat sign-ins.
+  if (isNew && finalRefCode) {
+    try {
+      // Confirm the code is real and not the user's own (defensive — also
+      // checked at /api/referrals POST time, but we never trust client URL).
+      const codeRow = await sql`SELECT owner_user_id FROM referral_codes WHERE code = ${finalRefCode} LIMIT 1`;
+      if (codeRow[0] && codeRow[0].owner_user_id !== userId) {
+        await sql`
+          INSERT INTO referral_redemptions (code, redeemed_by, redeemed_email, reward_status)
+          VALUES (${finalRefCode}, ${userId}, ${t.email}, 'pending')
+        `;
+      }
+    } catch (e) { console.error('referral-redemption-log:', e.message); }
+  }
 
   // Create session
   const sessionId = randomToken(40);
