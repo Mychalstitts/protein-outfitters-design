@@ -14,8 +14,21 @@
    app shell. Old caches are purged on activate.
 ============================================================ */
 
-const SHELL_VERSION = 'po-shell-v1';
-const STATIC_VERSION = 'po-static-v1';
+// Bump SHELL_VERSION on every deploy that ships new po-shell.js / theme.css to
+// invalidate the previous cached shell. Otherwise users keep getting the old
+// JavaScript even after a deploy lands.
+const SHELL_VERSION = 'po-shell-v3';
+const STATIC_VERSION = 'po-static-v3';
+
+// Files that change frequently and MUST be network-first so deploys propagate
+// without waiting for cache eviction. Anything else gets cache-first behavior.
+const NETWORK_FIRST_PATHS = new Set([
+  '/po-shell.js',
+  '/po-shell.css',
+  '/po-api.js',
+  '/theme.css',
+  '/manifest.webmanifest',
+]);
 
 // Pages we want available offline. Light list — anything we genuinely
 // expect the user to land on after first visit.
@@ -69,9 +82,10 @@ self.addEventListener('fetch', (event) => {
     url.hostname.includes('vercel-insights.com')
   ) return;
 
-  // Network-first for HTML (so deploys propagate fast).
+  // Network-first for HTML AND for our app shell scripts (so deploys propagate fast).
   const accept = req.headers.get('accept') || '';
-  if (req.mode === 'navigate' || accept.includes('text/html')) {
+  const isAppShellScript = url.hostname === self.location.hostname && NETWORK_FIRST_PATHS.has(url.pathname);
+  if (req.mode === 'navigate' || accept.includes('text/html') || isAppShellScript) {
     event.respondWith(
       fetch(req)
         .then(res => {
