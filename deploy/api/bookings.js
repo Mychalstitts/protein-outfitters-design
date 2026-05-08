@@ -11,7 +11,7 @@
 // Deposit policy (Trello "For Myke" decision pending — using sensible defaults):
 //   $100 flat OR 10% of estimated processing, whichever is greater, capped $300.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, isUuid } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
 
@@ -42,6 +42,8 @@ export default async function handler(req) {
     const id = url.searchParams.get('id');
     const listingId = url.searchParams.get('listing_id');
     const processorSlug = url.searchParams.get('processor_slug');
+    if (id && !isUuid(id)) return err(400, 'id must be a UUID');
+    if (listingId && !isUuid(listingId)) return err(400, 'listing_id must be a UUID');
     const user = await currentUser(req);
 
     if (id) {
@@ -107,6 +109,8 @@ export default async function handler(req) {
     if (!listing_id || !processor_id || !drop_off_date) {
       return err(400, 'listing_id, processor_id, drop_off_date all required');
     }
+    if (!isUuid(listing_id)) return err(400, 'listing_id must be a UUID');
+    if (!isUuid(processor_id)) return err(400, 'processor_id must be a UUID');
 
     // Verify caller owns the listing's farm
     const lrows = await sql`

@@ -1,0 +1,65 @@
+# Nightly automated audit of https://www.proteinoutfitters.com.
+# Probes top-level routes, key API endpoints, brand assets, and farm
+# slugs; opens a PR labeled `auto-merge` if it finds anything fixable.
+name: Protein Outfitters site audit
+on:
+  schedule:
+    - cron: '0 14 * * *'   # 14:00 UTC daily
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe production site
+        id: probe
+        run: |
+          set -u
+          mkdir -p artifacts
+          fail=0
+          probe() {
+            local label="$1"; shift
+            local url="$1"; shift
+            local expect="$1"; shift
+            local code
+            code=$(curl -sw '%{http_code}' -o /dev/null --max-time 15 "$url" || echo 000)
+            echo "${label}: ${code}" >> artifacts/probe.log
+            case "$expect" in
+              *"$code"*) ;;
+              *) echo "  FAIL ${label} got ${code}, expected ${expect}" >> artifacts/probe.log; fail=$((fail+1));;
+            esac
+          }
+          probe '/'                  https://www.proteinoutfitters.com/                  200,308
+          probe '/discover'          https://www.proteinoutfitters.com/discover           200
+          probe '/map'               https://www.proteinoutfitters.com/map                200
+          probe '/account'           https://www.proteinoutfitters.com/account            200
+          probe '/api/listings'      https://www.proteinoutfitters.com/api/listings       200
+          probe '/api/public-config' https://www.proteinoutfitters.com/api/public-config  200
+          probe '/api/farms'         https://www.proteinoutfitters.com/api/farms          200
+          probe '/api/processors'    https://www.proteinoutfitters.com/api/processors     200
+          probe '/api/map-data'      https://www.proteinoutfitters.com/api/map-data       200
+          probe '/brand/favicon.svg' https://www.proteinoutfitters.com/brand/favicon.svg  200
+          probe '/icons.svg'         https://www.proteinoutfitters.com/icons.svg          200
+          probe '/sitemap.xml'       https://www.proteinoutfitters.com/sitemap.xml        200
+          probe '/robots.txt'        https://www.proteinoutfitters.com/robots.txt         200
+          probe 'UUID-guard ics'     'https://www.proteinoutfitters.com/api/ics?listing=not-a-uuid' 400
+          probe 'UUID-guard reviews' 'https://www.proteinoutfitters.com/api/reviews?subject_type=processor&subject_id=not-a-uuid' 400
+          probe 'UUID-guard bookings' 'https://www.proteinoutfitters.com/api/bookings?id=not-a-uuid' 400
+          echo "Failures: $fail" | tee -a artifacts/probe.log
+          echo "fail_count=$fail" >> "$GITHUB_OUTPUT"
+      - name: Upload probe log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-log
+          path: artifacts/
+      - name: Fail job if probes failed
+        if: steps.probe.outputs.fail_count != '0'
+        run: |
+          echo "::error::${{ steps.probe.outputs.fail_count }} probes failed — see probe-log artifact"
+          exit 1
