@@ -162,59 +162,132 @@
       @media (max-width: 480px) {
         .po-home-anchor { font-size: 10.5px; padding: 7px 12px 7px 8px; }
       }
-      /* Mobile button overflow fixes — apply broadly so any button on any
-         page wraps + scales rather than getting clipped. Override only when
-         a page explicitly needs single-line buttons. */
+      /* ────────────────────────────────────────────────────────
+         GLOBAL MOBILE DEFENSIVE LAYER (≤640px)
+         ────────────────────────────────────────────────────────
+         User reported "things not fitting, buttons covering each
+         other, words not fitting in buttons" across ALL pages —
+         not just one. These rules are intentionally aggressive +
+         broad so per-page CSS doesn't have to be touched. Anything
+         that needs to opt out can override with !important.
+         ──────────────────────────────────────────────────────── */
       @media (max-width: 640px) {
-        button, .btn, a.btn, .ds-go-btn, .ds-view-btn, .tier-cta, .wallet-cta,
-        .res-cta, .layer-tab, .filter-tab, .notif-actions button {
-          max-width: 100%;
-          white-space: normal;
-          word-break: break-word;
-          line-height: 1.2;
+        /* Hard guard: no horizontal scroll, period. If a child blows
+           out, body clips it. Better than a sideways-scrolling page. */
+        html, body {
+          max-width: 100vw;
+          overflow-x: hidden;
+          -webkit-text-size-adjust: 100%;
         }
-        /* Common button-row containers — make them wrap instead of clip */
+        /* Block-level containers should never exceed viewport width. */
+        body * {
+          max-width: 100%;
+        }
+        /* But preserve layout for things that legitimately scroll
+           horizontally (carousels, code, tables). */
+        .fm-tabs, .ds-tabs, .ac-tabs, .pr-tabs,
+        .horiz-scroll, [data-horiz-scroll], pre, code, table { max-width: none; }
+
+        /* ── Universal button shrink + wrap ── */
+        button, .btn, a.btn, .ds-go-btn, .ds-view-btn, .tier-cta, .wallet-cta,
+        .res-cta, .layer-tab, .filter-tab, .notif-actions button,
+        .species-card, .pill-toggle, .preset, .bulk-btn, .cs-skip, .tab,
+        .rv-tab, .species-tab, .cr-filter-btn, .btn-xl, .btn-pay,
+        .btn-primary, .btn-secondary, .btn-submit, .btn-follow,
+        .sheet-next, .sheet-back, .wiz-next, .wiz-back, [role="button"] {
+          max-width: 100%;
+          white-space: normal !important;
+          word-break: break-word;
+          overflow-wrap: anywhere;
+          line-height: 1.2;
+          font-size: clamp(11px, 3.4vw, 14px);
+          min-height: 40px; /* tappable */
+        }
+        /* Big CTA buttons stay readable but stop overflowing */
+        .btn-xl, .btn-pay { padding: 12px 16px !important; font-size: 14px !important; }
+
+        /* ── Common button-row containers — wrap, don't clip ── */
         .row, .actions, .btn-row, .map-top .stats, .filter-tabs,
-        .notif-actions, .map-side-foot, .po-foot-inner {
+        .notif-actions, .map-side-foot, .po-foot-inner,
+        .pp-actions, .ac-actions, .fm-actions, .ds-actions,
+        .checkout-actions, .ac-stats, .fm-stats, .ds-stats,
+        .stats, .stat-row, .kpi-row, .tile-row, .card-row {
           flex-wrap: wrap !important;
           gap: 8px;
         }
-        /* The reserve sheet's pay stack used to clip on phones */
+
+        /* ── Reserve sheet's pay stack / inline forms ── */
         .pay-stack { flex-direction: column; align-items: stretch; }
         .pay-stack .btn-pay { width: 100%; }
-        /* Headers shouldn't horizontally scroll */
-        header.glass-nav nav, header .row, .map-top {
+
+        /* ── Headers: never horizontal-scroll ── */
+        header, header.glass-nav nav, header .row, .map-top {
           flex-wrap: wrap;
         }
-        /* Site nav: 4-link middle row doesn't fit at 390px on top of
-           wordmark + sign-in. Hide the link tray on phones — wordmark
-           still gets back to /, Sign in still anchored top-right. The
-           full nav is reachable via the footer (which is always present
-           via po-shell). Long-term: replace with a hamburger; this is
-           the fast fix that stops clipping + tap-overlap. */
+
+        /* ── Site nav (.po-nav): 4 nav-links + wordmark + sign-in
+              don't fit at 390px. Hide middle tray, keep brand + sign-in.
+              Full nav reachable via the always-present footer. ── */
         .po-nav { padding: 10px 14px !important; gap: 8px !important; }
         .po-nav-links { display: none !important; }
-        .po-mark { font-size: 13px !important; }
-        .po-mark img { width: 22px; height: 22px; }
+        .po-mark { font-size: 13px !important; min-width: 0; }
+        .po-mark img { width: 22px; height: 22px; flex-shrink: 0; }
         .po-nav-actions { margin-left: auto; }
         .po-nav-actions .signin {
           padding: 8px 14px; font-size: 13px;
           min-height: 40px; display: inline-flex; align-items: center;
         }
-        /* Keep the producer dashboard / processor sub-navs from wrapping
-           into a 4-line stack — let them scroll horizontally instead. */
-        .fm-tabs, .ds-tabs, .ac-tabs, .pr-tabs {
+
+        /* ── Sub-nav / tab strips: scroll instead of wrap to 4 lines ── */
+        .fm-tabs, .ds-tabs, .ac-tabs, .pr-tabs, .nav-tabs,
+        .filter-tabs, .layer-tabs, .species-grid {
           flex-wrap: nowrap !important;
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
         }
         .fm-tabs::-webkit-scrollbar, .ds-tabs::-webkit-scrollbar,
-        .ac-tabs::-webkit-scrollbar, .pr-tabs::-webkit-scrollbar { display: none; }
-        /* Live activity ticker shouldn't overlap the bottom-right of
-           narrow screens (it lives bottom-left already, just guard
-           against side-panel cards crowding it). */
-        body { -webkit-text-size-adjust: 100%; }
+        .ac-tabs::-webkit-scrollbar, .pr-tabs::-webkit-scrollbar,
+        .nav-tabs::-webkit-scrollbar, .filter-tabs::-webkit-scrollbar,
+        .layer-tabs::-webkit-scrollbar { display: none; }
+
+        /* ── Wizard / form containers: never narrower than the parent,
+              and don't stack inputs side-by-side at 390px ── */
+        .row-2, .row-3, .field-row, .form-row, .grid-2, .grid-3 {
+          display: block !important;
+        }
+        .row-2 > *, .row-3 > *, .field-row > *,
+        .form-row > *, .grid-2 > *, .grid-3 > * {
+          width: 100% !important;
+          margin-bottom: 12px;
+        }
+        input[type="text"], input[type="email"], input[type="tel"],
+        input[type="number"], input[type="search"], select, textarea {
+          width: 100% !important;
+          max-width: 100%;
+          font-size: 16px; /* iOS won't zoom-on-focus at 16px+ */
+        }
+
+        /* ── Cards / surfaces: keep them in the viewport ── */
+        .card, .glass, .ac-standing, .ac-greeting, .fm-standing,
+        .ds-card, .pp-card, .listing-card, .stat-tile, .cs-stat {
+          width: auto;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+
+        /* ── Headlines that get cut: scale, don't overflow ── */
+        h1 { font-size: clamp(22px, 6vw, 30px) !important; line-height: 1.15; }
+        h2 { font-size: clamp(18px, 5vw, 24px) !important; line-height: 1.2; }
+        h3 { font-size: clamp(16px, 4.5vw, 20px) !important; line-height: 1.25; }
+
+        /* ── Dialogs / sheets: make sure they fit ── */
+        .sheet, .modal, .dialog, .drawer {
+          width: 100% !important;
+          max-width: 100vw !important;
+          left: 0 !important;
+          right: 0 !important;
+        }
       }
     `;
     document.head.appendChild(s);
