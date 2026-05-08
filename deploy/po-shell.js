@@ -186,15 +186,49 @@
         header.glass-nav nav, header .row, .map-top {
           flex-wrap: wrap;
         }
+        /* Site nav: 4-link middle row doesn't fit at 390px on top of
+           wordmark + sign-in. Hide the link tray on phones — wordmark
+           still gets back to /, Sign in still anchored top-right. The
+           full nav is reachable via the footer (which is always present
+           via po-shell). Long-term: replace with a hamburger; this is
+           the fast fix that stops clipping + tap-overlap. */
+        .po-nav { padding: 10px 14px !important; gap: 8px !important; }
+        .po-nav-links { display: none !important; }
+        .po-mark { font-size: 13px !important; }
+        .po-mark img { width: 22px; height: 22px; }
+        .po-nav-actions { margin-left: auto; }
+        .po-nav-actions .signin {
+          padding: 8px 14px; font-size: 13px;
+          min-height: 40px; display: inline-flex; align-items: center;
+        }
+        /* Keep the producer dashboard / processor sub-navs from wrapping
+           into a 4-line stack — let them scroll horizontally instead. */
+        .fm-tabs, .ds-tabs, .ac-tabs, .pr-tabs {
+          flex-wrap: nowrap !important;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .fm-tabs::-webkit-scrollbar, .ds-tabs::-webkit-scrollbar,
+        .ac-tabs::-webkit-scrollbar, .pr-tabs::-webkit-scrollbar { display: none; }
+        /* Live activity ticker shouldn't overlap the bottom-right of
+           narrow screens (it lives bottom-left already, just guard
+           against side-panel cards crowding it). */
+        body { -webkit-text-size-adjust: 100%; }
       }
     `;
     document.head.appendChild(s);
 
-    // Inject the home anchor unless we're already on the homepage, or a page
-    // opts out via data-po-home="off".
+    // Inject the home anchor ONLY when the page has no nav of its own.
+    // Reported bug 2026-05-07: on /list-animal (and most other pages) the
+    // floating pill stacks on top of the page's own wordmark — duplicate
+    // brand mark + intercepted taps in the top-left. Auto-detect any nav
+    // element instead of requiring per-page opt-out via data-po-home="off".
     const path = location.pathname.replace(/\/$/, '') || '/';
     if (path === '/' || path === '/index' || path === '/index.html') return;
     if (document.body.getAttribute('data-po-home') === 'off') return;
+    const hasNav = !!document.querySelector('header, nav, .po-nav, .glass-nav, .topnav, .fm-nav, .ds-nav, .ac-nav');
+    if (hasNav) return;
     const a = document.createElement('a');
     a.href = '/';
     a.className = 'po-home-anchor';
@@ -1045,13 +1079,18 @@
 
     if (document.querySelector('.po-ref-banner')) return;
 
+    // Banner sits inline at the top of <body>, NOT position:fixed, so the
+    // page's own nav (which is itself often sticky/fixed) doesn't get
+    // overlaid. Body content shifts down by exactly the banner height,
+    // which is what we want — the nav can either go above or below
+    // depending on its own positioning.
     const bar = document.createElement('div');
     bar.className = 'po-ref-banner';
-    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9001;background:linear-gradient(135deg,#7da05d 0%,#5a7a44 100%);color:#fbf9f5;padding:11px 18px;display:flex;align-items:center;justify-content:center;gap:14px;font:600 13.5px/1.3 \'Inter\',system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.18);';
+    bar.style.cssText = 'position:relative;z-index:50;background:linear-gradient(135deg,#7da05d 0%,#5a7a44 100%);color:#fbf9f5;padding:10px 18px;display:flex;align-items:center;justify-content:center;gap:14px;font:600 13.5px/1.3 \'Inter\',system-ui,sans-serif;text-align:center;';
     bar.innerHTML = `
       <span style="font-size:16px;">🎁</span>
       <span><strong>$25 off your first share.</strong> Reserve and your friend gets $25 too.</span>
-      <button class="po-ref-banner-dismiss" aria-label="Dismiss" style="background:transparent;border:0;color:rgba(251,249,245,.7);font:700 16px/1 'Inter';cursor:pointer;padding:0 4px;margin-left:6px;">×</button>
+      <button class="po-ref-banner-dismiss" aria-label="Dismiss" style="background:transparent;border:0;color:rgba(251,249,245,.85);font:700 18px/1 'Inter';cursor:pointer;padding:0 4px;margin-left:6px;">×</button>
     `;
     bar.addEventListener('click', (e) => {
       if (e.target.classList.contains('po-ref-banner-dismiss')) {
@@ -1059,9 +1098,8 @@
         try { sessionStorage.setItem('po_ref_banner_dismissed', '1'); } catch {}
       }
     });
-    // Push body down so the banner doesn't cover the nav.
     const pad = document.createElement('style');
-    pad.textContent = '@media (max-width:640px){.po-ref-banner{font-size:12.5px;padding:9px 12px}}';
+    pad.textContent = '@media (max-width:640px){.po-ref-banner{font-size:12px;padding:9px 12px;gap:8px}.po-ref-banner span:first-of-type{display:none}}';
     document.head.appendChild(pad);
     document.body.insertBefore(bar, document.body.firstChild);
 
