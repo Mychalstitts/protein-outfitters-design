@@ -17,8 +17,8 @@
 // Bump SHELL_VERSION on every deploy that ships new po-shell.js / theme.css to
 // invalidate the previous cached shell. Otherwise users keep getting the old
 // JavaScript even after a deploy lands.
-const SHELL_VERSION = 'po-shell-v5';
-const STATIC_VERSION = 'po-static-v5';
+const SHELL_VERSION = 'po-shell-v6';
+const STATIC_VERSION = 'po-static-v6';
 
 // Files that change frequently and MUST be network-first so deploys propagate
 // without waiting for cache eviction. Anything else gets cache-first behavior.
