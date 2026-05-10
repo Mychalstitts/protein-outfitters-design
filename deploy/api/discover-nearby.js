@@ -4,23 +4,23 @@
 // Returns candidate partners and (best-effort) inserts them into discovered_partners.
 //
 // Uses Places API (New) — set GOOGLE_MAPS_KEY in Vercel.
-//
-// Tuned for Vercel's 10s default function timeout:
-//   - per-fetch timeout: 4s (was 8s — stops one slow upstream from eating the whole budget)
-//   - persist=false by default (DB inserts add 100-300ms each; the page can re-issue persist=true after first paint)
-//   - maxDuration: 30 so the function can complete in pathological cases instead of hard-killing
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
-export const maxDuration = 30;
+export const config = { runtime: 'nodejs' };
 
-async function fetchWithTimeout(url, opts = {}, ms = 4000) {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), ms);
-  try { return await fetch(url, { ...opts, signal: ctl.signal }); }
-  finally { clearTimeout(t); }
+// 8-second client-side timeout on every Google upstream call.
+// Without this, Places-API stalls just hang the whole serverless function
+// until Vercel's 10-second cold-start cap kills it (run-13/14 timeouts).
+const UPSTREAM_TIMEOUT_MS = 8000;
+async function fetchWithTimeout(url, init = {}) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(t);
+  }
 }
-
 
 const QUERIES = {
   farm: {
@@ -79,10 +79,10 @@ function extractStateZip(addressComponents = []) {
   return { state, zip };
 }
 
-async function _handler(req) {
+export default async function handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
   const key = process.env.GOOGLE_MAPS_KEY;
-  if (!key) return err(503, 'GOOGLE_MAPS_KEY not configured');
+  if (!key) return err(500, 'GOOGLE_MAPS_KEY not configured');
 
   const u = new URL(req.url, 'https://www.proteinoutfitters.com');
   const zip = u.searchParams.get('zip');
@@ -91,9 +91,7 @@ async function _handler(req) {
   const radius = Math.min(80, Math.max(5, parseInt(u.searchParams.get('radius') || '50'))) * 1609.34; // miles → meters
   let lat = parseFloat(u.searchParams.get('lat'));
   let lng = parseFloat(u.searchParams.get('lng'));
-  // Default persist=false: skip DB inserts on first call so the response is fast.
-  // The discover page can re-call with persist=true once results are rendered.
-  const persist = u.searchParams.get('persist') === 'true';
+  const persist = u.searchParams.get('persist') !== 'false'; // default: insert into DB
 
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     if (!zip) return err(400, 'Provide either zip OR lat+lng');
@@ -134,7 +132,7 @@ async function _handler(req) {
     };
   });
 
-  // Best-effort: insert/update into discovered_partners table (only if persist=true)
+  // Best-effort: insert/update into discovered_partners table
   let inserted = 0;
   if (persist && candidates.length) {
     for (const c of candidates) {
@@ -164,14 +162,4 @@ async function _handler(req) {
     persisted: inserted,
     errors
   });
-}
-
-// Top-level guard so we never hand back a generic FUNCTION_INVOCATION_FAILED.
-export default async function handler(req) {
-  try {
-    return await _handler(req);
-  } catch (e) {
-    console.error('discover-nearby crashed:', e?.stack || e?.message || e);
-    return err(500, 'Discovery search failed. Try again with a smaller radius or different ZIP.');
-  }
 }
