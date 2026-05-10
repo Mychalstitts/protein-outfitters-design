@@ -1,26 +1,30 @@
 // /api/processor-subscription — SaaS subscription management for processors
 //
-//   GET   → current subscription for the authed processor
-//   POST  → create Stripe Checkout session for a tier+cadence
+// GET    → current subscription for the authed processor
+// POST   → create Stripe Checkout session for a tier+cadence
 //          body: { tier: 'standard' | 'premium', cadence: 'monthly' | 'annual', success_url?, cancel_url? }
-//   DELETE → cancel at period end (sets cancel_at_period_end=true; doesn't terminate immediately)
+// DELETE → cancel at period end (sets cancel_at_period_end=true; doesn't terminate immediately)
 //
 // Pricing values come from Vercel env vars so the policy decision (final
 // tier prices) can land later without a code change:
 //
-//   STRIPE_PRICE_STANDARD_MONTHLY   — recurring price id, e.g. price_1NX...
-//   STRIPE_PRICE_STANDARD_ANNUAL    — same, annual cadence
-//   STRIPE_PRICE_PREMIUM_MONTHLY    — same, premium tier
-//   STRIPE_PRICE_PREMIUM_ANNUAL     — same, premium annual
+//   STRIPE_PRICE_STANDARD_MONTHLY  — recurring price id, e.g. price_1NX...
+//   STRIPE_PRICE_STANDARD_ANNUAL   — same, annual cadence
+//   STRIPE_PRICE_PREMIUM_MONTHLY   — same, premium tier
+//   STRIPE_PRICE_PREMIUM_ANNUAL    — same, premium annual
 //
 // Until those are set, the endpoint returns a clear 503 "Pricing not yet
 // configured" — the page falls back to the toast UX it has today.
 //
 // The 'free' tier writes a row directly without touching Stripe.
+//
+// Edge runtime — Stripe SDK 17.4+ supports edge via Stripe.createFetchHttpClient(),
+// which avoids Node http-agent cold-start hangs.
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
+export const maxDuration = 30;
 
 const PRICE_KEYS = {
   'standard.monthly': 'STRIPE_PRICE_STANDARD_MONTHLY',
@@ -54,6 +58,14 @@ async function loadSubscription(processorId) {
     ORDER BY updated_at DESC
     LIMIT 1`;
   return rows[0] || null;
+}
+
+async function getStripe() {
+  const StripeModule = await import('stripe');
+  const Stripe = StripeModule.default || StripeModule;
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
 }
 
 export default async function handler(req) {
@@ -112,9 +124,7 @@ export default async function handler(req) {
       return err(503, 'Stripe not configured: STRIPE_SECRET_KEY missing');
     }
 
-    const StripeModule = await import('stripe');
-    const Stripe = StripeModule.default || StripeModule;
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const stripe = await getStripe();
 
     // Reuse existing customer if we already have one
     const existing = await loadSubscription(processor.id);
@@ -138,7 +148,7 @@ export default async function handler(req) {
         metadata: { processor_id: processor.id, tier, cadence, kind: 'processor_saas' },
       },
       success_url: body.success_url || `${baseUrl}/processor?subscribed=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  body.cancel_url  || `${baseUrl}/processor-saas?canceled=1`,
+      cancel_url: body.cancel_url || `${baseUrl}/processor-saas?canceled=1`,
       allow_promotion_codes: true,
       billing_address_collection: 'auto',
     });
@@ -172,9 +182,7 @@ export default async function handler(req) {
 
     if (process.env.STRIPE_SECRET_KEY) {
       try {
-        const StripeModule = await import('stripe');
-        const Stripe = StripeModule.default || StripeModule;
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+        const stripe = await getStripe();
         await stripe.subscriptions.update(sub.stripe_subscription_id, { cancel_at_period_end: true });
       } catch (e) {
         return err(502, `Stripe cancel failed: ${e.message}`);
