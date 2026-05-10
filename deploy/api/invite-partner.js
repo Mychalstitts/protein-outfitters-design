@@ -6,7 +6,7 @@
 import { Resend } from 'resend';
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
 const FROM = process.env.RESEND_FROM || 'Protein Outfitters <hello@proteinoutfitters.com>';
 const SITE = 'https://www.proteinoutfitters.com';

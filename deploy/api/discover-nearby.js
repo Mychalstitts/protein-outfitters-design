@@ -8,6 +8,14 @@ import { sql, currentUser, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
+async function fetchWithTimeout(url, opts = {}, ms = 8000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  try { return await fetch(url, { ...opts, signal: ctl.signal }); }
+  finally { clearTimeout(t); }
+}
+
+
 const QUERIES = {
   farm: {
     beef:    ['cattle ranch', 'beef farm', 'grass-fed beef'],
@@ -24,7 +32,7 @@ const QUERIES = {
 };
 
 async function geocodeZip(zip, key) {
-  const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(zip + ', USA')}&key=${key}`);
+  const r = await fetchWithTimeout(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(zip + ', USA')}&key=${key}`);
   const data = await r.json();
   if (data.status !== 'OK' || !data.results?.[0]) return null;
   const loc = data.results[0].geometry.location;
@@ -39,7 +47,7 @@ async function placesTextSearch(query, lat, lng, radiusMeters, key) {
     maxResultCount: 20,
     includedType: undefined,
   };
-  const r = await fetch('https://places.googleapis.com/v1/places:searchText', {
+  const r = await fetchWithTimeout('https://places.googleapis.com/v1/places:searchText', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

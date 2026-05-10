@@ -25,7 +25,7 @@
 import { sql, currentUser, err, json } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
 const TIMELINE_PTS = { '0-3m': 25, '3-6m': 20, '6-12m': 15, '12+m': 10, 'exploring': 0 };
 const ROLE_PTS = {

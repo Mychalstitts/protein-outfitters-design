@@ -1,6 +1,6 @@
 // /api/ics?reservation=UUID  → .ics file the user can import into any calendar app.
 // /api/ics?listing=UUID      → .ics for the listing's harvest date (producer-facing).
-import { sql, err } from './_lib/db.js';
+import { sql, err, isUuid } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
 
@@ -50,6 +50,8 @@ export default async function handler(req) {
   const url = new URL(req.url);
   const reservationId = url.searchParams.get('reservation');
   const listingId = url.searchParams.get('listing');
+  if (reservationId && !isUuid(reservationId)) return err(400, 'reservation must be a UUID');
+  if (listingId && !isUuid(listingId)) return err(400, 'listing must be a UUID');
 
   let events = [];
   let filename = 'protein-outfitters.ics';
