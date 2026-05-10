@@ -250,7 +250,19 @@
   document.getElementById('lgFarmLoc').textContent = `${l.farm_city || ''}${l.farm_city && l.farm_state ? ', ' : ''}${l.farm_state || ''}`;
   document.getElementById('lgFarmPractices').textContent = (l.farm_practices && l.farm_practices.length) ? l.farm_practices.map(p => cap(p.replace('-',' '))).join(', ') : '—';
   document.getElementById('lgFarmEst').textContent = '—';
-  document.getElementById('lgFarmLink').href = '/farm/' + l.farm_slug;
+  {
+    const lgFarmLink = document.getElementById('lgFarmLink');
+    if (lgFarmLink) {
+      if (l.farm_slug) {
+        lgFarmLink.href = '/farm/' + l.farm_slug;
+        lgFarmLink.removeAttribute('aria-disabled');
+      } else {
+        lgFarmLink.href = '#';
+        lgFarmLink.setAttribute('aria-disabled', 'true');
+        lgFarmLink.addEventListener('click', e => e.preventDefault(), { once: true });
+      }
+    }
+  }
 
   // Rating badge under farm name (only if reviews exist).
   if (Number(l.farm_review_count || 0) > 0) {

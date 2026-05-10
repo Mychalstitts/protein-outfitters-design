@@ -660,7 +660,7 @@
     const slots = [...S.photoUrls].slice(0, 8);
     while (slots.length < 4) slots.push(null);
     photoGrid.innerHTML = slots.map(u => u
-      ? `<div class="photo-thumb" style="background-image:url('${u}'); position:relative;"><button onclick="removePhoto('${u}'); event.stopPropagation();" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;width:22px;height:22px;cursor:pointer">×</button></div>`
+      ? `<div class="photo-thumb" style="background-image:url('${u}'); position:relative;"><button type="button" aria-label="Remove photo" onclick="removePhoto('${u}'); event.stopPropagation();" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;width:22px;height:22px;cursor:pointer">×</button></div>`
       : `<div class="photo-thumb" style="background:var(--surface);border:2px dashed rgba(0,0,0,0.1);"></div>`
     ).join('');
   }

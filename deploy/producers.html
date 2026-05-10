@@ -291,14 +291,15 @@
           .filter(Boolean).join(' ');
         const cover = f.cover_url || '/img/ranch.jpg';
         const loc = [f.city, f.state].filter(Boolean).join(', ') || 'Northland';
-        return `
-          <a href="/farm/${f.slug}" class="farm-card" data-tags="${tags}">
+        const inner = `
             <div class="farm-cover" style="background-image:url('${cover}')"></div>
             <div class="farm-meta">
               <h3>${f.name}</h3>
               <p>${loc} · ${f.listings_count || 0} listings</p>
-            </div>
-          </a>`;
+            </div>`;
+        return f.slug
+          ? `<a href="/farm/${f.slug}" class="farm-card" data-tags="${tags}">${inner}</a>`
+          : `<div class="farm-card" data-tags="${tags}" aria-disabled="true">${inner}</div>`;
       }).join('');
     } catch (e) { /* keep static fallback cards */ }
   })();

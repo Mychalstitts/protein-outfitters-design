@@ -12,7 +12,7 @@
 //                                   resolution, refund_cents, created_at, updated_at)
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
 const MAX_DETAIL = 4000;
 const MAX_SUMMARY = 200;
