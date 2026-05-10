@@ -1,0 +1,51 @@
+# Nightly probe of www.proteinoutfitters.com.
+# Opens an issue (and a PR if any drift) when the static surface regresses.
+name: Protein Outfitters site audit
+on:
+  schedule:
+    - cron: '0 14 * * *'   # 14:00 UTC daily (~9am Central)
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe top-level routes
+        id: probe
+        run: |
+          set -e
+          BASE=https://www.proteinoutfitters.com
+          fail=0; out=""
+          for r in / /discover /map /hardware /donation-flow /producers /processor /processor-saas /farmer /faq /brand /screens /admin-overview /account /invite-partner; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 12 "$BASE$r")
+            if [ "$code" != "200" ]; then fail=$((fail+1)); out="$out\n$code $r"; fi
+          done
+          for r in /admin /admin-email /admin-health /booking-confirmation /checkout /confirmed /credentials /cut-sheet /cuts /finance /list-animal /listing /notifications /onboarding /processor-checkin /processor-ops /processor-pricing /processor-schedule /profile /reserve-flow /reviews /settings /site-visit /trends; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 12 "$BASE$r")
+            if [ "$code" != "200" ]; then fail=$((fail+1)); out="$out\n$code $r"; fi
+          done
+          for u in "/api/ics?listing=not-a-uuid" "/api/reviews?subject_type=processor&subject_id=not-a-uuid" "/api/bookings?id=not-a-uuid"; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$BASE$u")
+            if [ "$code" = "500" ]; then fail=$((fail+1)); out="$out\n$code $u (UUID guard regression)"; fi
+          done
+          if [ "$fail" -gt 0 ]; then
+            printf "::error ::Site audit: %d failures%b\n" "$fail" "$out"
+            exit 1
+          fi
+          echo "All checks passed."
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Audit: regressions on ${new Date().toISOString().slice(0,10)}`,
+              body: 'Nightly site audit failed. See action log for the failing routes.',
+              labels: ['audit','regression']
+            });
