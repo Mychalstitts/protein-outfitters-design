@@ -1,18 +1,19 @@
 // /api/donate-to-fund — open a Stripe Checkout Session for an unrestricted gift to the
 // Producer Partnership program fund (kill-fee + processing for donated animals).
 //
-// POST { amount, donor_email?, donor_name?, designation? }  →  { url, fund_id }
+// POST { amount, donor_email?, donor_name?, designation? } → { url, fund_id }
 //
 // Anonymous-friendly: donor_email/name are optional. We insert a `pledged` row
 // in donation_funds keyed to the Stripe PaymentIntent so the stripe-webhook
 // can flip it to `received` once the charge succeeds.
 //
-// Stripe SDK uses Node Buffer/crypto, so this stays on the nodejs runtime.
-// The Stripe import is lazy (inside the handler) so a missing/broken stripe
-// install can't take the function down at module init.
+// Edge runtime — Stripe SDK 17.4+ supports edge via Stripe.createFetchHttpClient(),
+// which avoids the Node http-agent cold-start that was hanging this endpoint
+// past Vercel's 10s default function timeout.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
+export const maxDuration = 30;
 
 // We keep amounts in real-world bounds the form already enforces client-side,
 // but re-validate server-side to protect the ledger.
@@ -33,7 +34,7 @@ async function _handler(req) {
   }
 
   const donor_email = body.donor_email ? String(body.donor_email).trim().toLowerCase() : null;
-  const donor_name  = body.donor_name  ? String(body.donor_name).trim().slice(0, 200)  : null;
+  const donor_name = body.donor_name ? String(body.donor_name).trim().slice(0, 200) : null;
   const designation = body.designation ? String(body.designation).trim().slice(0, 200) : null;
 
   if (donor_email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(donor_email)) {
@@ -54,9 +55,11 @@ async function _handler(req) {
   const fund_id = inserted[0].id;
 
   // 2. Create the Stripe Checkout Session.
-  // Lazy-import so module-load is never gated on the stripe package.
+  // Lazy-import + edge fetch HTTP client so cold-start is fast on edge runtime.
   const { default: Stripe } = await import('stripe');
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
   const origin = req.headers.get('origin') || 'https://www.proteinoutfitters.com';
 
   const session = await stripe.checkout.sessions.create({
@@ -91,7 +94,7 @@ async function _handler(req) {
       },
     },
     success_url: `${origin}/donation-flow?donation=${fund_id}&status=success`,
-    cancel_url:  `${origin}/donation-flow?donation=${fund_id}&status=cancel`,
+    cancel_url: `${origin}/donation-flow?donation=${fund_id}&status=cancel`,
     automatic_tax: { enabled: false },
   });
 
