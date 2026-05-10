@@ -40,6 +40,19 @@
   pointer-events: none;
   visibility: hidden;
 }
+/* Mobile: the desktop padding (28-48px) eats ~56-96px of horizontal space
+   on a 374px iPhone, which forces .species-grid to a single 270px column
+   stacking 5 cards vertically. Pulling padding way down + tightening the
+   shell wrapper gives the grid enough room to reflow into 2 columns and
+   keeps the form fields readable without per-page rewrites. */
+@media (max-width: 640px) {
+  .wiz-shell { padding: 20px 10px 60px !important; }
+  .wiz-step { padding: 18px 16px !important; border-radius: 20px; }
+  .wiz-step h1 { font-size: clamp(22px, 6vw, 32px); }
+  .species-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; gap: 10px !important; }
+  .species-card { padding: 16px 10px; }
+  .species-card .name { font-size: 13px; }
+}
 .wiz-step.active { opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; visibility: visible; }
 .wiz-step.exit-left { transform: translateX(-60px) scale(0.97); opacity: 0; }
 .wiz-step.enter-from-left { transform: translateX(-60px) scale(0.985); }
