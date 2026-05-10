@@ -266,9 +266,10 @@ nav a:hover { opacity: 0.7; }
 <span class="material-symbols-outlined text-primary">dark_mode</span>
 <span class="font-bold tracking-tight">Dark Experience</span>
 </div>
-<button class="w-14 h-8 rounded-full bg-outline-variant/30 relative transition-colors duration-500 hover:bg-primary/20">
+<button id="darkModeToggle" role="switch" aria-checked="false" aria-label="Toggle dark mode" class="w-14 h-8 rounded-full bg-outline-variant/30 relative transition-colors duration-500 hover:bg-primary/20" onclick="(function(b){var on=b.getAttribute('aria-checked')!=='true';b.setAttribute('aria-checked',on?'true':'false');var k=b.querySelector('div');if(k){k.style.transform=on?'translateX(24px)':'translateX(0)';}b.style.background=on?'rgba(141,181,128,.5)':'';try{localStorage.setItem('po-dark',on?'1':'0');}catch(e){}document.documentElement.classList.toggle('dark',on);})(this)">
 <div class="absolute left-1 top-1 w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 translate-x-0"></div>
 </button>
+<script>(function(){try{var on=localStorage.getItem('po-dark')==='1';var b=document.getElementById('darkModeToggle');if(b&&on){b.setAttribute('aria-checked','true');var k=b.querySelector('div');if(k)k.style.transform='translateX(24px)';b.style.background='rgba(141,181,128,.5)';document.documentElement.classList.add('dark');}}catch(e){}})();</script>
 </div>
 </section>
 <!-- Branding & Build -->
@@ -278,7 +279,7 @@ nav a:hover { opacity: 0.7; }
 Sign Out
 </a>
 </div><footer class="ios-spring-reveal pt-12 text-center space-y-2 opacity-30" style="animation-delay: 0.4s;">
-<p class="text-[10px] font-black tracking-[0.3em] uppercase">Protein Outfitters © 2024</p>
+<p class="text-[10px] font-black tracking-[0.3em] uppercase">Protein Outfitters © 2026</p>
 <p class="text-[9px] font-medium tracking-widest uppercase">Version 4.2.0 Build 882</p>
 </footer>
 </main>

@@ -377,7 +377,16 @@
     // Standing card
     document.getElementById('fmStanding').style.display = '';
     const link = document.getElementById('fmPublicProfileLink');
-    if (link) link.href = '/farm/' + primaryFarm.slug;
+    if (link) {
+      if (primaryFarm.slug) {
+        link.href = '/farm/' + primaryFarm.slug;
+        link.removeAttribute('aria-disabled');
+      } else {
+        link.href = '#';
+        link.setAttribute('aria-disabled', 'true');
+        link.addEventListener('click', e => e.preventDefault(), { once: true });
+      }
+    }
     document.getElementById('fmFarmRole').textContent = `${primaryFarm.name}${primaryFarm.city ? ' · ' + primaryFarm.city + ', ' + primaryFarm.state : ''}`;
     const certs = (primaryFarm.certs || []).map(c => c.toUpperCase()).slice(0, 3).join(' · ');
     document.getElementById('fmFarmName').textContent = certs || 'Verified producer';
