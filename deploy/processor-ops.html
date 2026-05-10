@@ -217,14 +217,14 @@ body { background: var(--surface-2); }
     <h1>Hilltop Custom Meats</h1>
     <p class="sub">Processor dashboard</p>
     <nav>
-      <a href="/processor"><button class="active">📋 Today's queue <span class="count">3</span></button></a>
-      <a href="/processor-schedule"><button>📅 Week</button></a>
-      <a href="/processor-schedule"><button>📊 Month</button></a>
-      <a href="/notifications"><button>📥 Inbox <span class="count">5</span></button></a>
-      <a href="/processor"><button>❄️ Hanging cooler <span class="count">3</span></button></a>
-      <a href="/processor"><button>📦 Ready for pickup <span class="count">2</span></button></a>
-      <a href="/finance"><button>💸 Earnings</button></a>
-      <a href="/processor-config"><button>⚙️ Config</button></a>
+      <a href="/processor" aria-label="Today's queue, 3 items" aria-current="page"><button type="button" class="active" tabindex="-1" aria-hidden="true">📋 Today's queue <span class="count">3</span></button></a>
+      <a href="/processor-schedule" aria-label="Week schedule"><button type="button" tabindex="-1" aria-hidden="true">📅 Week</button></a>
+      <a href="/processor-schedule" aria-label="Month schedule"><button type="button" tabindex="-1" aria-hidden="true">📊 Month</button></a>
+      <a href="/notifications" aria-label="Inbox, 5 unread"><button type="button" tabindex="-1" aria-hidden="true">📥 Inbox <span class="count">5</span></button></a>
+      <a href="/processor" aria-label="Hanging cooler, 3 items"><button type="button" tabindex="-1" aria-hidden="true">❄️ Hanging cooler <span class="count">3</span></button></a>
+      <a href="/processor" aria-label="Ready for pickup, 2 items"><button type="button" tabindex="-1" aria-hidden="true">📦 Ready for pickup <span class="count">2</span></button></a>
+      <a href="/finance" aria-label="Earnings"><button type="button" tabindex="-1" aria-hidden="true">💸 Earnings</button></a>
+      <a href="/processor-config" aria-label="Configuration"><button type="button" tabindex="-1" aria-hidden="true">⚙️ Config</button></a>
     </nav>
   </aside>
 
@@ -236,10 +236,10 @@ body { background: var(--surface-2); }
         <h2 class="display-md mt-2">Friday, June 21</h2>
       </div>
       <div class="proc-tabs">
-        <button class="active">Today</button>
-        <button onclick="showToast('Week view: Outlook-style 7-day grid')">Week</button>
-        <button onclick="showToast('Month view: capacity heatmap')">Month</button>
-        <button onclick="showToast('Inbox: messages threaded per share.id')">Inbox</button>
+        <button type="button" class="active" aria-pressed="true" onclick="showToast('Today view active')">Today</button>
+        <button type="button" onclick="showToast('Week view: Outlook-style 7-day grid')">Week</button>
+        <button type="button" onclick="showToast('Month view: capacity heatmap')">Month</button>
+        <button type="button" onclick="showToast('Inbox: messages threaded per share.id')">Inbox</button>
       </div>
     </header>
 
@@ -301,7 +301,7 @@ body { background: var(--surface-2); }
             <div class="label-sub">14-day target · check Jul 5</div>
           </div>
           <progress value="0" max="14"></progress>
-          <button class="btn btn--secondary btn--sm">Log wt</button>
+          <button type="button" class="btn btn--secondary btn--sm" onclick="showToast('Log weight: prompt → save to share #402')">Log wt</button>
         </div>
         <div class="cooler-row">
           <div class="cooler-icon" style="background: linear-gradient(135deg,#7d6b5a,#a89485);">H</div>
@@ -310,7 +310,7 @@ body { background: var(--surface-2); }
             <div class="label-sub">Awaiting cut sheet on 1 buyer</div>
           </div>
           <progress value="7" max="7"></progress>
-          <button class="btn btn--primary btn--sm">Start fab</button>
+          <button type="button" class="btn btn--primary btn--sm" onclick="showToast('Started fabrication for Hog #88')">Start fab</button>
         </div>
         <div class="cooler-row">
           <div class="cooler-icon" style="background: linear-gradient(135deg,#9d7d6b,#bea08b);">L</div>
@@ -319,7 +319,7 @@ body { background: var(--surface-2); }
             <div class="label-sub">Auto-advances Tuesday</div>
           </div>
           <progress value="5" max="7"></progress>
-          <button class="btn btn--ghost btn--sm">In progress</button>
+          <button type="button" class="btn btn--ghost btn--sm" aria-disabled="true" onclick="showToast('Lamb #L20 in progress · auto-advances Tuesday')">In progress</button>
         </div>
       </div>
     </section>
@@ -342,7 +342,7 @@ body { background: var(--surface-2); }
             <div class="label-title">Steer #401 · Mark R.</div>
             <div class="label-sub">Pickup window ends today · storage fee accrues tomorrow</div>
           </div>
-          <button class="btn btn--danger btn--sm">Call</button>
+          <button type="button" class="btn btn--danger btn--sm" onclick="showToast('Calling Mark R. — opening dialer …')">Call</button>
         </div>
       </div>
     </section>
@@ -385,7 +385,7 @@ body { background: var(--surface-2); }
 <!-- ============ FARMER QR VIEW ============ -->
 <div class="farmer-page" id="view-farmer-qr">
   <div class="row row--between mb-6">
-    <button class="btn btn--ghost btn--sm">← Back</button>
+    <button type="button" class="btn btn--ghost btn--sm" aria-label="Back to processor view" onclick="switchRole('processor')">← Back</button>
     <span class="eyebrow">Drop-off ticket</span>
     <span></span>
   </div>
@@ -446,7 +446,7 @@ body { background: var(--surface-2); }
 <!-- ============ FARMER BOOKING VIEW ============ -->
 <div class="farmer-page" id="view-farmer-book">
   <div class="row row--between mb-6">
-    <button class="btn btn--ghost btn--sm">← Back</button>
+    <button type="button" class="btn btn--ghost btn--sm" aria-label="Back to processor view" onclick="switchRole('processor')">← Back</button>
     <span class="eyebrow">Confirm booking</span>
     <span></span>
   </div>

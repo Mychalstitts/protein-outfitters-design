@@ -12,6 +12,9 @@
 //                                   resolution, refund_cents, created_at, updated_at)
 import { sql, currentUser, err, json } from './_lib/db.js';
 
+// runtime: 'edge' — nodejs cold-start was timing out at 10-12s on Vercel
+// (run-14 reproduction). Resend SDK is already lazy-imported inside the
+// handler and works on edge.
 export const config = { runtime: 'edge' };
 
 const MAX_DETAIL = 4000;
