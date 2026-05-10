@@ -106,7 +106,7 @@
   </div>
   <div class="farm-actions">
     <button class="btn-follow" id="followBtn"><span id="followIcon">+</span> <span id="followText">Follow</span></button>
-    <button class="btn-share">Share</button>
+    <button type="button" class="btn-share" id="shareBtn">Share</button>
   </div>
 </div>
 
@@ -315,6 +315,52 @@
     fb.classList.toggle('following', following);
     fi.textContent = following ? '✓' : '+';
     ft.textContent = following ? 'Following' : 'Follow';
+  });
+
+  // Share button — Web Share API with clipboard fallback
+  async function sharePage(btn) {
+    const url = location.href;
+    const title = document.title;
+    try {
+      if (navigator.share) { await navigator.share({ title, url }); }
+      else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        if (btn) {
+          const orig = btn.textContent;
+          btn.textContent = 'Copied ✓';
+          setTimeout(() => { btn.textContent = orig; }, 1800);
+        }
+      } else {
+        window.prompt('Copy this link', url);
+      }
+    } catch (e) { /* user cancelled — no-op */ }
+  }
+  const sb = document.getElementById('shareBtn');
+  if (sb) sb.addEventListener('click', () => sharePage(sb));
+
+  // Post-foot interactions (likes / comments / share). Local-state toggle for now.
+  document.querySelectorAll('.post-foot').forEach(foot => {
+    const buttons = foot.querySelectorAll('button');
+    buttons.forEach((b, i) => {
+      b.addEventListener('click', () => {
+        const text = (b.textContent || '').trim();
+        if (i === 0 || /♥/.test(text)) {
+          // Like toggle
+          const wasLiked = b.classList.contains('liked');
+          b.classList.toggle('liked', !wasLiked);
+          const m = text.match(/(\d+)/);
+          if (m) {
+            const n = parseInt(m[1], 10) + (wasLiked ? -1 : 1);
+            b.textContent = '♥ ' + n;
+          }
+        } else if (/💬/.test(text)) {
+          // Comments — no comments module on demo page; surface notice
+          window.prompt('Leave a comment on this post', '');
+        } else if (/↗|Share/.test(text)) {
+          sharePage(b);
+        }
+      });
+    });
   });
 </script>
 </body>
