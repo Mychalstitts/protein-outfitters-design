@@ -167,7 +167,7 @@ nav a:hover { opacity: 0.7; }
 <!-- TopAppBar: Predicted Component Structure -->
 <header class="fixed top-0 w-full z-50 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 backdrop-blur-xl shadow-[0_40px_60px_-10px_rgba(27,28,26,0.04)]">
 <div class="flex justify-between items-center px-8 h-20 w-full">
-<button class="active:scale-95 transition-transform duration-200 hover:opacity-70">
+<button type="button" aria-label="Back" class="active:scale-95 transition-transform duration-200 hover:opacity-70" onclick="if(window.history.length>1){window.history.back();}else{window.location.href='/discover';}">
 <span class="material-symbols-outlined text-[#061b0e] dark:text-[#fbf9f5]">arrow_back</span>
 </button>
 <h1 class="font-['Inter'] font-bold tracking-tight uppercase text-lg text-[#061b0e] dark:text-white">Profile</h1>
@@ -194,7 +194,7 @@ nav a:hover { opacity: 0.7; }
 <h2 class="text-5xl md:text-6xl font-black tracking-tighter text-primary leading-none">Marcus Sterling</h2>
 <p class="text-on-surface-variant font-medium tracking-wide">marcus.sterling@curator.com</p>
 </div>
-<button class="px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface text-sm font-bold tracking-tight hover:bg-surface-container-highest transition-colors active-spring">
+<button type="button" class="px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface text-sm font-bold tracking-tight hover:bg-surface-container-highest transition-colors active-spring" onclick="window.location.href='/settings'">
                     Edit Profile
                 </button>
 </div>

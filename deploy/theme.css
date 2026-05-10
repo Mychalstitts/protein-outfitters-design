@@ -244,7 +244,10 @@ a { color: inherit; text-decoration: none; }
 .btn--xl { padding: 20px 32px; font-size: var(--text-lg); border-radius: var(--r-4); }
 .btn--sm { padding: 8px 14px; font-size: var(--text-xs); border-radius: var(--r-2); }
 
-.btn--block { width: 100%; }
+.btn--block { width: 100%; white-space: normal; word-break: keep-all; overflow-wrap: anywhere; }
+/* Run 40: full-width buttons must allow wrapping so long labels (e.g.
+   "Confirm with Apple Pay → $100", "Submit & schedule a call") don't
+   overflow on narrow viewports. Base .btn is white-space: nowrap. */
 .btn--apple-pay {
   background: black; color: white;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;

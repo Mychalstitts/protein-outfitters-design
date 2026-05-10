@@ -198,18 +198,18 @@ nav a:hover { opacity: 0.7; }
 <span class="material-symbols-outlined text-primary-container scale-150" data-icon="restaurant">restaurant</span>
 </div>
 <!-- Thickness Customization -->
-<div class="mb-12">
+<div class="mb-12" data-picker="thickness">
 <label class="block text-sm font-black tracking-widest uppercase mb-6 text-outline">Standard Thickness</label>
 <div class="flex gap-4">
-<button class="flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center ring-4 ring-primary-container ring-offset-4 ring-offset-surface-container-low transition-all scale-100 active:scale-95 group">
+<button type="button" data-value="1" aria-pressed="true" class="thickness-opt active flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center ring-4 ring-primary-container ring-offset-4 ring-offset-surface-container-low transition-all scale-100 active:scale-95 group">
 <span class="text-2xl font-black mb-1">1"</span>
 <span class="text-xs font-bold text-outline group-hover:text-primary transition-colors">The Classic</span>
 </button>
-<button class="flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center transition-all scale-100 active:scale-95 group hover:bg-surface-container-high">
+<button type="button" data-value="1.25" aria-pressed="false" class="thickness-opt flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center transition-all scale-100 active:scale-95 group hover:bg-surface-container-high">
 <span class="text-2xl font-black mb-1 text-on-surface">1.25"</span>
 <span class="text-xs font-bold text-outline group-hover:text-primary transition-colors">Butcher's Cut</span>
 </button>
-<button class="flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center transition-all scale-100 active:scale-95 group hover:bg-surface-container-high">
+<button type="button" data-value="1.5" aria-pressed="false" class="thickness-opt flex-1 py-6 bg-surface-container-lowest rounded-2xl flex flex-col items-center justify-center transition-all scale-100 active:scale-95 group hover:bg-surface-container-high">
 <span class="text-2xl font-black mb-1 text-on-surface">1.5"</span>
 <span class="text-xs font-bold text-outline group-hover:text-primary transition-colors">Steakhouse</span>
 </button>
@@ -347,4 +347,29 @@ nav a:hover { opacity: 0.7; }
 </nav>
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
+<script>
+  // Wire up the Standard Thickness picker (3 options: 1", 1.25", 1.5")
+  // This was previously decorative-only — buttons looked interactive but
+  // clicking did nothing. Toggles the active ring + aria-pressed state.
+  (function wireThicknessPicker() {
+    var picker = document.querySelector('[data-picker="thickness"]');
+    if (!picker) return;
+    var opts = picker.querySelectorAll('.thickness-opt');
+    var ACTIVE_RING = ['ring-4','ring-primary-container','ring-offset-4','ring-offset-surface-container-low'];
+    function setActive(target) {
+      opts.forEach(function (b) {
+        var on = (b === target);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        b.classList.toggle('active', on);
+        ACTIVE_RING.forEach(function (cls) { b.classList.toggle(cls, on); });
+        // also swap the inner number's text-on-surface tint to match active state
+        var num = b.querySelector('span.text-2xl');
+        if (num) num.classList.toggle('text-on-surface', !on);
+      });
+    }
+    opts.forEach(function (b) {
+      b.addEventListener('click', function () { setActive(b); });
+    });
+  })();
+</script>
 </body></html>
