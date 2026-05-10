@@ -11,7 +11,7 @@
 //   - maxDuration: 30 so the function can complete in pathological cases instead of hard-killing
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 export const maxDuration = 30;
 
 async function fetchWithTimeout(url, opts = {}, ms = 4000) {
