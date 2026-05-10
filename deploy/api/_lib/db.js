@@ -89,3 +89,11 @@ export function slugify(s) {
     .replace(/\s+/g, '-')
     .slice(0, 60);
 }
+
+// ─── UUID validator ────────────────────────────────────────
+// Postgres throws "invalid input syntax for type uuid" → unhandled 500 if we
+// pass a non-UUID into a uuid column. Validate first and return 400 early.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function isUuid(s) {
+  return typeof s === 'string' && UUID_RE.test(s);
+}
