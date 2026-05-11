@@ -6,7 +6,8 @@
 // Uses Places API (New) — set GOOGLE_MAPS_KEY in Vercel.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
+export const maxDuration = 30;
 
 // 8-second client-side timeout on every Google upstream call.
 // Without this, Places-API stalls just hang the whole serverless function
