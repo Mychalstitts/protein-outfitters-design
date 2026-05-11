@@ -47,37 +47,46 @@ export default async function handler(req) {
   // Mark token consumed
   await sql`UPDATE auth_tokens SET consumed_at = NOW() WHERE token = ${token}`;
 
-  // Find or create user. If a ref code is in flight AND the user is new (or
-  // had no code stored yet), stamp it on the row so the credit pipeline knows
-  // who to reward. We never overwrite an existing code — first-touch wins.
+  // Find or create user.
+  //
+  // ⚠ Critical: keep the bare INSERT as the primary path. An earlier change
+  // here referenced `users.referred_by_code` directly, which doesn't exist
+  // until the batch-4 migration runs — so every magic-link sign-in was
+  // throwing a "column does not exist" error until the migration fired.
+  // The referral capture is now best-effort and runs AFTER the user is
+  // safely created, in a try/catch that can't break auth.
   const userRows = await sql`
-    INSERT INTO users (email, referred_by_code)
-    VALUES (${t.email}, ${refCode})
-    ON CONFLICT (email) DO UPDATE
-      SET updated_at = NOW(),
-          referred_by_code = COALESCE(users.referred_by_code, EXCLUDED.referred_by_code)
-    RETURNING id, (xmax = 0) AS is_new, referred_by_code
+    INSERT INTO users (email)
+    VALUES (${t.email})
+    ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
+    RETURNING id, (xmax = 0) AS is_new
   `;
   const userId = userRows[0].id;
   const isNew = !!userRows[0].is_new;
-  const finalRefCode = userRows[0].referred_by_code;
 
-  // Best-effort: log a pending redemption so admin/credit logic has a row to
-  // act on. Idempotent — guarded by (code, redeemed_by) uniqueness via the
-  // earlier-created index pattern, but we also gate on isNew to avoid
-  // double-counting on repeat sign-ins.
-  if (isNew && finalRefCode) {
+  // Best-effort: stamp the referral code + log a pending redemption. Both
+  // wrapped in try/catch so a missing column or table never breaks sign-in.
+  if (refCode) {
     try {
-      // Confirm the code is real and not the user's own (defensive — also
-      // checked at /api/referrals POST time, but we never trust client URL).
-      const codeRow = await sql`SELECT owner_user_id FROM referral_codes WHERE code = ${finalRefCode} LIMIT 1`;
-      if (codeRow[0] && codeRow[0].owner_user_id !== userId) {
-        await sql`
-          INSERT INTO referral_redemptions (code, redeemed_by, redeemed_email, reward_status)
-          VALUES (${finalRefCode}, ${userId}, ${t.email}, 'pending')
-        `;
+      // Only stamps if the column exists AND the user doesn't already have one
+      // (first-touch wins). Silently no-ops pre-migration.
+      await sql`
+        UPDATE users
+        SET referred_by_code = ${refCode}, updated_at = NOW()
+        WHERE id = ${userId} AND referred_by_code IS NULL
+      `;
+      if (isNew) {
+        const codeRow = await sql`SELECT owner_user_id FROM referral_codes WHERE code = ${refCode} LIMIT 1`;
+        if (codeRow[0] && codeRow[0].owner_user_id !== userId) {
+          await sql`
+            INSERT INTO referral_redemptions (code, redeemed_by, redeemed_email, reward_status)
+            VALUES (${refCode}, ${userId}, ${t.email}, 'pending')
+          `;
+        }
       }
-    } catch (e) { console.error('referral-redemption-log:', e.message); }
+    } catch (e) {
+      console.error('referral-capture (non-fatal):', e.message);
+    }
   }
 
   // Create session
