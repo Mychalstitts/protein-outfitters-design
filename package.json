@@ -1,0 +1,11 @@
+{
+  "name": "protein-outfitters-design",
+  "version": "1.0.0",
+  "description": "Static prototypes for Protein Outfitters",
+  "scripts": {
+    "validate:jsonld": "node scripts/validate-jsonld.js"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
