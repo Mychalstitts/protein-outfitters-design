@@ -73,6 +73,12 @@
 - Minor meta polish.
 - All checkout and payment flow functionality preserved.
 
+## 13. Automated JSON-LD Validation (New)
+- Created `package.json` with `validate:jsonld` script
+- Added `scripts/validate-jsonld.js` — scans all `.html` files, extracts JSON-LD blocks, validates JSON syntax + basic Schema.org structure (`@context`, `@type`, and common required fields)
+- Added `.github/workflows/validate-schema.yml` — runs validation automatically on every push and pull request
+- Validation fails the CI if any JSON-LD errors are found
+
 ## Patterns Applied (Across All Pages)
 - Consistent meta titles/descriptions
 - Schema.org structured data where relevant (Organization, WebPage, ItemList, HowTo)
@@ -87,9 +93,10 @@ The core buyer, producer, processor, hardware, and checkout flows now have:
 - Strong SEO foundation via Schema.org
 - Consistent surfacing of future AI capabilities
 - Preserved (and in some cases enhanced) interactivity
+- Automated JSON-LD validation in CI
 
 **Recommended next steps**:
-- Apply similar treatment to any remaining very small pages if desired
+- Run `npm install` then `npm run validate:jsonld` locally to test
 - Begin migrating high-value interactions into the production React app
 - Consider adding more realistic demo data or connecting to Firebase for live prototyping
 
