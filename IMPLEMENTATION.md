@@ -61,6 +61,12 @@
 - Minor meta polish.
 - All interactive fraction selection, processor choice, date picking, and payment flows preserved.
 
+### 11. hardware.html (Hardware Catalog & Configurator)
+- Added Schema.org structured data.
+- Added **AI sizing recommendations ready** hint.
+- Minor meta polish.
+- All interactive catalog, detail, configurator, quote, and confirmation flows preserved.
+
 ## Patterns Applied (Across All Pages)
 - Consistent meta titles/descriptions
 - Schema.org structured data where relevant (Organization, WebPage, ItemList, HowTo)
@@ -69,9 +75,9 @@
 - Minor UX/branding consistency improvements
 
 ## Current Status
-**Core prototype pages completed.**
+**Major prototype pages completed.**
 
-The main buyer, producer, and processor flows now have:
+The core buyer, producer, processor, and hardware flows now have:
 - Strong SEO foundation via Schema.org
 - Consistent surfacing of future AI capabilities
 - Preserved (and in some cases enhanced) interactivity
