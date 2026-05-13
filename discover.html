@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Discover · Protein Outfitters</title>
-<meta name="description" content="Every animal currently reserving on Protein Outfitters. Filter by species, ranch, or harvest window." />
+<meta name="description" content="Every animal currently reserving on Protein Outfitters. Filter by species, ranch, or harvest window. Real named animals from verified farms." />
 <meta property="og:title" content="Discover · Protein Outfitters" />
-<meta property="og:description" content="Every animal currently reserving on Protein Outfitters." />
+<meta property="og:description" content="Every animal currently reserving on Protein Outfitters. Filter by species, ranch, or harvest window." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/discover" />
 <meta property="og:type" content="website" />
@@ -15,6 +15,52 @@
 <meta name="twitter:title" content="Discover · Protein Outfitters" />
 <meta name="twitter:description" content="Every animal currently reserving on Protein Outfitters." />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+
+<!-- Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Available Animals on Protein Outfitters",
+  "description": "Real named animals from verified farms in MN, WI, ND, SD. Reserve fractions and customize cuts.",
+  "numberOfItems": 6,
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item": {
+        "@type": "Product",
+        "name": "#2641 Black Angus steer",
+        "description": "Grass-fed beef from Northfield Pastures, Bemidji MN. Harvest May 28.",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": "1395",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item": {
+        "@type": "Product",
+        "name": "#2702 Hereford heifer",
+        "description": "Grass-finished beef from Crow Wing Cattle Co. Harvest June 4."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Protein Outfitters",
+  "url": "https://www.proteinoutfitters.com"
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -31,6 +77,23 @@
 .chip.active { background: var(--brand); color: #fbf9f5; border-color: var(--brand); }
 .discover-grid-wrap { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
 .discover-grid { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: clamp(20px, 2vw, 32px); }
+
+/* AI Find hint */
+.ai-find {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-soft);
+  color: var(--brand);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 12px;
+  cursor: pointer;
+  transition: transform .2s;
+}
+.ai-find:hover { transform: translateY(-1px); }
 </style>
 </head>
 <body>
@@ -48,7 +111,7 @@
   <div class="discover-hero-inner">
     <p class="po-eyebrow">Now reserving · MN · WI · ND · SD</p>
     <h1 class="po-h2">Six animals.<br>Pick one.</h1>
-    <p class="po-lead">Real animals from real ranches. Tap any card to start the three-tap reserve flow.</p>
+    <p class="po-lead">Real animals from real ranches. Tap any card to start the three-tap reserve flow. <span class="ai-find" onclick="alert('AI Find: In production this would use Gemini to recommend animals based on your preferences, location, and cut needs. Try the Reserve flow on any card!')">✨ AI Find</span></p>
   </div>
 </section>
 
@@ -104,6 +167,9 @@
     const f = chip.dataset.filter;
     document.querySelectorAll('.product').forEach(p => { p.style.display = (f === 'all' || p.dataset.cat === f) ? '' : 'none'; });
   }));
+
+  // Simple AI Find demo interaction (prototype)
+  console.log('%c[Prototype] AI Find ready — in production this would call Gemini for smart recommendations.', 'color:#666');
 </script>
 </body>
 </html>
