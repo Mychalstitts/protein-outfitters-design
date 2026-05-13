@@ -55,6 +55,12 @@
 - Minor meta polish.
 - All dynamic credential toggles, filters, and upload flows preserved.
 
+### 10. reserve-flow.html (Reservation Flow)
+- Added Schema.org structured data.
+- Added **AI recommendations ready** hint.
+- Minor meta polish.
+- All interactive fraction selection, processor choice, date picking, and payment flows preserved.
+
 ## Patterns Applied (Across All Pages)
 - Consistent meta titles/descriptions
 - Schema.org structured data where relevant (Organization, WebPage, ItemList, HowTo)
