@@ -4,11 +4,33 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>Verdant | Farm Map</title>
+<title>Map · Protein Outfitters</title>
+<meta name="description" content="Interactive farm map for Protein Outfitters. Discover nearby producers, demand heatmaps, and ROI zones across MN, WI, ND, SD." />
+<meta property="og:title" content="Map · Protein Outfitters" />
+<meta property="og:description" content="Interactive farm map. Find real animals near you and start reserving in three taps." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/map" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Map · Protein Outfitters" />
+<meta name="twitter:description" content="Interactive farm map for Protein Outfitters." />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Protein Outfitters Farm Map",
+  "description": "Interactive map showing farms, processors, and demand across the upper Midwest.",
+  "url": "https://www.proteinoutfitters.com/map"
+}
+</script>
+
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -94,33 +116,24 @@
       min-height: max(884px, 100dvh);
     }
   </style>
-  <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
-<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/" />
-<meta property="og:type" content="website" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
-<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 </head>
 <body class="bg-surface text-on-surface antialiased overflow-hidden">
 <!-- TopAppBar -->
 <header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-[#061b0e]/80 backdrop-blur-xl shadow-[0_40px_60px_-10px_rgba(27,28,26,0.05)]">
 <div class="flex items-center justify-between px-8 py-4 w-full max-w-screen-2xl mx-auto">
 <div class="flex items-center gap-4">
-<button class="hover:opacity-80 transition-opacity duration-300 active:scale-95 text-[#061b0e] dark:text-[#fbf9f5]">
-<span class="material-symbols-outlined">menu</span>
+<button class="hover:opacity-80 transition-opacity duration-300 active:scale-95 text-[#061b0e] dark:text-[#fbf9f5]" onclick="window.location.href='/'">
+<span class="material-symbols-outlined">arrow_back</span>
 </button>
-<h1 class="font-bold tracking-tighter text-2xl Inter text-[#061b0e] dark:text-[#fbf9f5]">Verdant</h1>
+<h1 class="font-bold tracking-tighter text-2xl Inter text-[#061b0e] dark:text-[#fbf9f5]">Verdant Map</h1>
 </div>
 <div class="flex items-center gap-6">
 <nav class="hidden md:flex items-center gap-8">
-<a class="text-[#061b0e]/60 dark:text-[#fbf9f5]/60 hover:opacity-80 transition-opacity duration-300 font-medium" href="#">Market</a>
-<a class="text-[#061b0e] dark:text-[#fbf9f5] hover:opacity-80 transition-opacity duration-300 font-bold" href="#">Map</a>
+<a class="text-[#061b0e]/60 dark:text-[#fbf9f5]/60 hover:opacity-80 transition-opacity duration-300 font-medium" href="/discover">Market</a>
+<a class="text-[#061b0e] dark:text-[#fbf9f5] hover:opacity-80 transition-opacity duration-300 font-bold" href="/map">Map</a>
 <a class="text-[#061b0e]/60 dark:text-[#fbf9f5]/60 hover:opacity-80 transition-opacity duration-300 font-medium" href="#">Reports</a>
 </nav>
-<div class="w-10 h-10 rounded-full overflow-hidden shadow-sm border border-outline-variant/10">
+<div class="w-10 h-10 rounded-full overflow-hidden shadow-sm border border-outline-variant/10 cursor-pointer" onclick="window.location.href='/account'">
 <img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a professional man in his 40s with a warm smile and natural soft outdoor lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiSk6EYMfJhJMSSCUGMctf9oLB3NrnmMCBfFNkpqgqNsdUKJCWljyxWiIctL2MyPALA0K7XydnOW9oHU8E1Ly8Pypi451jB43Tq0idXW2hg5Stn7CI-Z-SQgKp9wl_DBtMWMWwD8gaE9tz7BqbNcLQfqxvL4ZvvxoSma535bzjHTpGhhHJlKitZcOSlnJ61HkxKCPl6g1NABCRRB3DlB2S6psyrOIXMiTO510HU-3YKpaXphNF9NhsEJFIVBaeoQ8F2q-_HQ3JguHT"/>
 </div>
 </div>
@@ -137,13 +150,13 @@
 <div class="absolute top-24 left-1/2 -translate-x-1/2 w-full max-w-lg px-6 z-20">
 <div class="bg-surface-container-lowest/90 backdrop-blur-md rounded-full shadow-2xl flex items-center px-6 py-4 group transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/10">
 <span class="material-symbols-outlined text-outline">search</span>
-<input class="bg-transparent border-none focus:ring-0 w-full px-4 text-on-surface placeholder:text-outline/60 font-medium" placeholder="Search local farms or breeds..." type="text"/>
-<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors">tune</span>
+<input id="map-search" class="bg-transparent border-none focus:ring-0 w-full px-4 text-on-surface placeholder:text-outline/60 font-medium" placeholder="Search local farms or breeds..." type="text" onkeyup="filterMapResults()"/>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors" onclick="document.getElementById('map-search').focus()">tune</span>
 </div>
 </div>
 <!-- Map Pins (Asymmetric Placement) -->
 <!-- Pin 1 -->
-<div class="absolute top-1/3 left-1/4 z-10 animate-bounce cursor-pointer group">
+<div class="absolute top-1/3 left-1/4 z-10 animate-bounce cursor-pointer group" onclick="selectFarm('Prairie Edge Farm')">
 <div class="bg-primary-container text-on-primary-container p-3 rounded-full shadow-lg scale-100 group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">agriculture</span>
 </div>
@@ -152,7 +165,7 @@
 </div>
 </div>
 <!-- Pin 2 -->
-<div class="absolute top-1/2 left-2/3 z-10 cursor-pointer group">
+<div class="absolute top-1/2 left-2/3 z-10 cursor-pointer group" onclick="selectFarm('Northfield Pastures')">
 <div class="bg-white text-primary p-3 rounded-full shadow-lg scale-100 group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">potted_plant</span>
 </div>
@@ -161,7 +174,7 @@
 </div>
 </div>
 <!-- Pin 3 (Small) -->
-<div class="absolute top-1/4 right-1/4 z-10 cursor-pointer group opacity-60">
+<div class="absolute top-1/4 right-1/4 z-10 cursor-pointer group opacity-60" onclick="selectFarm('Processor Hub')">
 <div class="bg-primary text-white p-2 rounded-full shadow-sm">
 <span class="material-symbols-outlined text-sm">home_work</span>
 </div>
@@ -173,16 +186,16 @@
 <div class="flex items-center justify-between mb-8">
 <div>
 <h2 class="text-3xl font-black tracking-tighter text-[#061b0e] dark:text-[#fbf9f5]">Farms Near You</h2>
-<p class="text-on-surface-variant font-medium tracking-tight">6 premium farms within 25 miles</p>
+<p class="text-on-surface-variant font-medium tracking-tight">6 premium farms within 25 miles • <span class="text-primary">Map Insights Pro</span> available</p>
 </div>
-<button class="bg-surface-container-high px-6 py-3 rounded-full text-on-surface font-bold text-sm hover:bg-surface-container-highest transition-colors active:scale-95">
+<button onclick="window.location.href='/discover'" class="bg-surface-container-high px-6 py-3 rounded-full text-on-surface font-bold text-sm hover:bg-surface-container-highest transition-colors active:scale-95">
                             View List
                         </button>
 </div>
 <!-- Bento Cards Container -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="farm-cards">
 <!-- Card 1: Prairie Edge Farm -->
-<div class="group bg-surface-container-lowest rounded-[2rem] p-6 flex gap-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+<div class="group bg-surface-container-lowest rounded-[2rem] p-6 flex gap-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer" onclick="selectFarm('Prairie Edge Farm')">
 <div class="w-32 h-32 flex-shrink-0 rounded-2xl overflow-hidden">
 <img alt="Prairie Edge Farm" class="w-full h-full object-cover" data-alt="Lush green pasture with highland cattle grazing under a dramatic overcast sky with high contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjtXj-ZRGbSnFOjhVvL7wREUKMibIENdJuXW0CpAvp0L7VAb1-a2oi170O4CV_m4IlDz-drJX15KEYdjqZb-3rAd2aDTVaO_xrVryxwJyyofFMw89144yRPlrtTvqROv4J41VTWUK_kByx5-yk6nRohvs7TWI9eVubrt0DsmHo8VJBY2HS40RrY7vD__Ah9_bi6cp0w7DBqSqdPMju550SXXTpDFuulCVYS-wbrqyYs7aGrvVYDS9sLI3lxXT6109Z6GTbiAd9Vfpp"/>
 </div>
@@ -196,14 +209,14 @@
 </div>
 <div class="flex items-center justify-between mt-4">
 <span class="text-xs font-black uppercase tracking-widest text-primary/40">12 SHARES LEFT</span>
-<button class="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+<button onclick="event.stopImmediatePropagation(); window.location.href='/discover'" class="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined">arrow_forward</span>
 </button>
 </div>
 </div>
 </div>
 <!-- Card 2: Northfield Pastures -->
-<div class="group bg-surface-container-lowest rounded-[2rem] p-6 flex gap-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+<div class="group bg-surface-container-lowest rounded-[2rem] p-6 flex gap-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer" onclick="selectFarm('Northfield Pastures')">
 <div class="w-32 h-32 flex-shrink-0 rounded-2xl overflow-hidden">
 <img alt="Northfield Pastures" class="w-full h-full object-cover" data-alt="Scenic organic farm with wooden barns and rolling hills in the background during golden hour" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6fMjmngQ-rb7LTXGSk-R22sYU08u8CZzo6XjazcX3lBR6wdIqQ_Xlu4Btx-vq1Rwqz91mTo3Q8kNke2Eo6vPcjz1Zcxr5zIY6flYs6jlwKvBmVXQOuA2iN1VoReVTZP__iRuk8aq0PKpEB0OQQaUFVH6-cvSnZ4SOYpJE0mZdSpU9RHSz7i1mFxg_IK0rLgI46Nysc4K3NHUM6IyJ0YfXY1GJuop2anoc7BURmUAUMTFpHOCggI_WoO_AJQS_d-i15RprKGOBku0E"/>
 </div>
@@ -217,7 +230,7 @@
 </div>
 <div class="flex items-center justify-between mt-4">
 <span class="text-xs font-black uppercase tracking-widest text-primary/40">2 SHARES LEFT</span>
-<button class="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+<button onclick="event.stopImmediatePropagation(); window.location.href='/discover'" class="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined">arrow_forward</span>
 </button>
 </div>
@@ -231,7 +244,7 @@
 <!-- BottomNavBar -->
 <nav class="fixed bottom-0 left-0 w-full z-50 bg-white/80 dark:bg-[#061b0e]/80 backdrop-blur-xl rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
 <div class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4">
-<div class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] transition-colors cursor-pointer group active:scale-90 duration-200">
+<div class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] transition-colors cursor-pointer group active:scale-90 duration-200" onclick="window.location.href='/discover'">
 <span class="material-symbols-outlined mb-1">potted_plant</span>
 <span class="font-medium text-[10px] uppercase tracking-widest Inter">Market</span>
 </div>
@@ -243,10 +256,29 @@
 <span class="material-symbols-outlined mb-1">fact_check</span>
 <span class="font-medium text-[10px] uppercase tracking-widest Inter">Reports</span>
 </div>
-<div class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] transition-colors cursor-pointer group active:scale-90 duration-200">
+<div class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2 hover:text-[#061b0e] dark:hover:text-[#fbf9f5] transition-colors cursor-pointer group active:scale-90 duration-200" onclick="window.location.href='/account'">
 <span class="material-symbols-outlined mb-1">person</span>
 <span class="font-medium text-[10px] uppercase tracking-widest Inter">Account</span>
 </div>
 </div>
 </nav>
+
+<script>
+function filterMapResults() {
+  const query = document.getElementById('map-search').value.toLowerCase();
+  const cards = document.querySelectorAll('#farm-cards > div');
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+
+function selectFarm(farmName) {
+  alert(`Selected: ${farmName}\n\nIn full app: This would open the farm profile, show current animals, and let you start reserving directly from the map.`);
+  // Future: window.location.href = '/discover?farm=' + encodeURIComponent(farmName);
+}
+
+// Keyboard support for search
+console.log('%c[Prototype] Map page enhanced with search filtering and clickable pins.', 'color:#666');
+</script>
 </body></html>
