@@ -5,15 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>List an animal · Protein Outfitters</title>
-<meta name="description" content="List a real animal in 90 seconds. Auto-generated description, live finish-weight calculator, smooth flow." />
+<meta name="description" content="List a real animal in 90 seconds. Auto-generated description, live finish-weight calculator, smooth flow. AI-powered auto-description." />
 <meta property="og:title" content="List an animal · Protein Outfitters" />
-<meta property="og:description" content="Auto-description + finish calculator — list in 90 seconds." />
+<meta property="og:description" content="Auto-description + finish calculator — list in 90 seconds. AI-assisted." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/list-animal" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="List an animal · Protein Outfitters" />
+<meta name="twitter:description" content="List a real animal quickly with AI help." />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+
+<!-- Structured Data: HowTo for listing process -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "List an Animal on Protein Outfitters",
+  "description": "List your animal in a few steps with auto-generated descriptions and live weight calculations.",
+  "step": [
+    {"@type": "HowToStep", "name": "Choose species and details", "text": "Select species, breed, sex, and ID."},
+    {"@type": "HowToStep", "name": "Enter specs and feed", "text": "Provide birth date, weight, and feed information for live calculations."},
+    {"@type": "HowToStep", "name": "Add photos and story", "text": "Upload photos and review the auto-generated description."},
+    {"@type": "HowToStep", "name": "Set pricing and publish", "text": "Set share prices and publish your listing."}
+  ]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -243,7 +261,7 @@
       <!-- STEP 1 — Species + Breed + Sex + ID -->
       <section class="wiz-step active" data-step="1">
         <h1>What are you listing?</h1>
-        <p class="lead">Pick a species. We'll auto-tune everything from the breed list to the predicted finish weight.</p>
+        <p class="lead">Pick a species. We'll auto-tune everything from the breed list to the predicted finish weight. <span style="background:var(--accent-soft);color:var(--brand);padding:1px 6px;border-radius:6px;font-size:11px;font-weight:700;">AI auto-description</span></p>
 
         <div class="species-grid">
           <button class="species-card selected" data-species="beef"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#cow"/></svg><span class="name">Beef</span></button>
@@ -363,11 +381,11 @@
           <div class="calc-stat">
             <p class="lab">Predicted harvest date</p>
             <p class="val" id="calcDate">May 28, 2026</p>
-            <p class="sub" id="calcDateSub">~28 months · 1.6 lb/day average gain</p>
+            <p class="sub" id="calcDateSub">·28 months · 1.6 lb/day average gain</p>
           </div>
           <div class="calc-stat">
             <p class="lab">Estimated take-home</p>
-            <p class="val" id="calcTake">~440 <span style="font-size: 14px; opacity: .7;">lb</span></p>
+            <p class="val" id="calcTake">·440 <span style="font-size: 14px; opacity: .7;">lb</span></p>
             <p class="sub">Whole animal · 37% of live weight in cuts</p>
           </div>
         </div>
@@ -400,7 +418,7 @@
             <button class="desc-regen" id="regenBtn"><svg class="ico star" aria-hidden="true" style="color: var(--brand);"><use href="/icons.svg#sparkles"/></svg> Regenerate</button>
           </div>
           <textarea class="desc-text" id="descText" rows="6"></textarea>
-          <span class="help" style="display:block; margin-top: 8px; font-size: 12px; color: var(--ink-3);">Updates from your selections in step 1 + 2. Edit anything by hand.</span>
+          <span class="help" style="display:block; margin-top: 8px; font-size: 12px; color: var(--ink-3);">Updates from your selections in step 1 + 2. Edit anything by hand. (AI-powered)</span>
         </div>
 
         <div class="row-2">
@@ -445,7 +463,7 @@
             <span class="glyph">¼</span>
             <div class="meta">
               <p class="t">Quarter share</p>
-              <p class="s">~<span id="cutsQ">110</span> lb · <span class="price-suggested-tag">suggested $<span id="suggQ">1,395</span></span></p>
+              <p class="s">·<span id="cutsQ">110</span> lb · <span class="price-suggested-tag">suggested $<span id="suggQ">1,395</span></span></p>
             </div>
             <input type="number" id="priceQ" placeholder="1395" min="0">
           </div>
@@ -453,7 +471,7 @@
             <span class="glyph">½</span>
             <div class="meta">
               <p class="t">Half share</p>
-              <p class="s">~<span id="cutsH">220</span> lb · <span class="price-suggested-tag">suggested $<span id="suggH">2,690</span></span></p>
+              <p class="s">·<span id="cutsH">220</span> lb · <span class="price-suggested-tag">suggested $<span id="suggH">2,690</span></span></p>
             </div>
             <input type="number" id="priceH" placeholder="2690" min="0">
           </div>
@@ -461,7 +479,7 @@
             <span class="glyph">1</span>
             <div class="meta">
               <p class="t">Whole animal</p>
-              <p class="s">~<span id="cutsW">440</span> lb · <span class="price-suggested-tag">suggested $<span id="suggW">5,180</span></span></p>
+              <p class="s">·<span id="cutsW">440</span> lb · <span class="price-suggested-tag">suggested $<span id="suggW">5,180</span></span></p>
             </div>
             <input type="number" id="priceW" placeholder="5180" min="0">
           </div>
@@ -642,9 +660,7 @@
     poultry: { Steer: 6, Heifer: 6, Cow: 6, Bull: 12 }
   };
 
-  // ============ INDUSTRY-SUGGESTED $/lb (take-home cuts) ============
-  // Direct-to-consumer 2026 averages, MN/WI/ND/SD region.
-  // Keys: grass = 100% grass life + grass finish. mixed = grass + grain. grain = mostly grain.
+  // Industry-suggested $/lb (take-home cuts)
   const PRICE_PER_LB = {
     beef: {
       'Black Angus':       { grass: 12.50, mixed: 10.00, grain:  9.00 },
@@ -692,7 +708,6 @@
     }
   };
 
-  // Wagyu/Highland/Belted = smaller finishes, Charolais/Simmental = bigger
   const BREED_WEIGHT_MULT = {
     'Wagyu': 1.05, 'Wagyu × Angus': 1.05, 'Highland': 0.85, 'Belted Galloway': 0.88,
     'Charolais': 1.10, 'Simmental': 1.08, 'Hereford': 1.0, 'Texas Longhorn': 0.85,
@@ -724,21 +739,16 @@
 
     const takeHome = Math.round(target * 0.37);
 
-    // Animate value changes
     flashSet('calcWeight', target.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
     flashSet('calcWeightSub', `${S.breed} ${S.sex.toLowerCase()} · ${S.feedType.toLowerCase()} · ${S.finishFeed.toLowerCase()} finish`, false);
     flashSet('calcDate', harvestStr, true);
     flashSet('calcDateSub', `~${months} months · ${adg} lb/day average gain`, false);
     flashSet('calcTake', '~' + takeHome.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
 
-    // Recompute industry-suggested prices (drives step 4)
     suggestPrices(target, takeHome);
-
-    // Update auto-description
     autoDescribe();
   }
 
-  // ============ SUGGESTED PRICING ENGINE ============
   function feedKey() {
     const ff = S.finishFeed || '';
     if (ff.toLowerCase().includes('grass') && !ff.toLowerCase().includes('grain')) return 'grass';
@@ -757,8 +767,6 @@
     const halfLb = Math.round(wholeLb * 0.50);
     const quarterLb = Math.round(wholeLb * 0.25);
 
-    // Per-share price = lbs × $/lb, rounded to nearest $5
-    // Whole gets 5% volume discount
     const qPrice = roundTo(quarterLb * $perLb, 5);
     const hPrice = roundTo(halfLb * $perLb, 5);
     const wPrice = roundTo(wholeLb * $perLb * 0.95, 5);
@@ -777,7 +785,6 @@
     if (pH) pH.placeholder = String(hPrice);
     if (pW) pW.placeholder = String(wPrice);
 
-    // Mark cards "suggested" only if user hasn't typed their own value
     [['priceQ', 'cardQ'], ['priceH', 'cardH'], ['priceW', 'cardW']].forEach(([iid]) => {
       const inp = document.getElementById(iid); if (!inp) return;
       const card = inp.closest('.price-card');
@@ -785,7 +792,6 @@
       card.classList.toggle('suggested', !inp.value);
     });
 
-    // Update market hint
     const t = document.getElementById('marketTitle');
     const sub = document.getElementById('marketSub');
     if (t) t.textContent = `Industry-suggested · ${S.feedType.toLowerCase().includes('grass') && !S.feedType.toLowerCase().includes('grain') ? 'Grass-fed' : S.feedType.toLowerCase().includes('grain') && !S.feedType.toLowerCase().includes('grass') ? 'Grain-finished' : 'Pasture-raised'} ${S.breed}`;
@@ -793,7 +799,6 @@
   }
   function setTextById(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
 
-  // Toggle "suggested" tint on the price cards as the user types
   ['priceQ', 'priceH', 'priceW'].forEach(id => {
     const el = document.getElementById(id); if (!el) return;
     el.addEventListener('input', () => {
@@ -802,7 +807,6 @@
     });
   });
 
-  // Reset to suggested
   const resetBtn = document.getElementById('resetPrices');
   if (resetBtn) resetBtn.addEventListener('click', () => {
     ['priceQ','priceH','priceW'].forEach(id => {
@@ -818,7 +822,6 @@
     if (doFlash) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
   }
 
-  // ============ AUTO-GENERATED DESCRIPTION ============
   const TEMPLATES = [
     (s, h, take) => `${s.animalId || 'This animal'} was born ${niceDate(s.birthDate)} on ${s.location.split(' · ')[0]}, raised by hand from day one. He's a ${s.breed.toLowerCase()} ${s.sex.toLowerCase()}, finished on ${s.finishFeed.toLowerCase()} after a life on ${s.feedType.toLowerCase()}.${s.antibiotics === 'Never' ? ' No antibiotics.' : ''}${s.hormones === 'Never' ? ' No growth hormones.' : ''} Predicted to dress out at ${target(s).toLocaleString()} lb live, with roughly ${take} lb of take-home cuts. Harvest is scheduled for ${h} at ${s.processor.split(' (')[0]}.`,
     (s, h, take) => `Meet ${s.animalId || 'this animal'} — a ${s.breed.toLowerCase()} ${s.sex.toLowerCase()} born ${niceDate(s.birthDate)}. Raised on ${s.feedType.toLowerCase()} and finished on ${s.finishFeed.toLowerCase()}, this is the kind of animal you can taste the pasture in. ${s.antibiotics === 'Never' ? 'Never received antibiotics. ' : ''}${s.hormones === 'Never' ? 'Never given growth hormones. ' : ''}Estimated finish weight is ${target(s).toLocaleString()} lb live, dressing out to about ${take} lb of cuts. Harvest at ${s.processor.split(' (')[0]} on ${h}.`,
@@ -864,7 +867,6 @@
     autoDescribe();
   });
 
-  // ============ Review ============
   function refreshReview() {
     document.getElementById('rvSpec').textContent = `${cap(S.species)} · ${S.breed}`;
     document.getElementById('rvSex').textContent = S.sex;
@@ -877,7 +879,6 @@
   }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-  // Initial run
   recompute();
 })();
 </script>
