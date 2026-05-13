@@ -37,6 +37,18 @@
 - Added **AI queue insights ready** hint.
 - Minor meta polish.
 
+### 7. list-animal.html (Listing Wizard)
+- Added Schema.org `HowTo` structured data.
+- Added **AI auto-description** hint.
+- Minor meta polish.
+- All advanced wizard functionality (live calculator, pricing engine, auto-description) preserved.
+
+### 8. reviews.html (Reputation System)
+- Added Schema.org structured data.
+- Added **AI reputation insights ready** hint.
+- Minor meta polish.
+- All interactive star ratings, tabs, and submission flows preserved.
+
 ## Patterns Applied
 - Consistent meta titles/descriptions across pages
 - Schema.org where relevant (Organization, WebPage, ItemList, HowTo)
@@ -45,13 +57,12 @@
 - Minor UX/branding consistency improvements
 
 ## Status
-All major public-facing prototype pages have received SEO + structured data improvements.
+Major public-facing prototype pages have received SEO + structured data improvements + consistent AI feature surfacing.
 
 **Next recommended actions** (if desired):
-- Apply similar treatment to remaining pages (`list-animal.html`, `reviews.html`, `credentials.html`, etc.)
-- Create a full audit summary document
-- Migrate high-value interactions to the production React app (PO2 repo)
-- Add more animals or real data to listings
+- Continue with remaining pages if needed (`credentials.html`, `reserve-flow.html`, etc.)
+- Expand IMPLEMENTATION.md with more recommendations
+- Begin migrating high-value interactions into the production React app
 
 ---
 *Generated iteratively by Grok on May 13, 2026*
