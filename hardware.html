@@ -11,6 +11,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./theme.css">
 
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Hardware - Friesla Modular Processing Units",
+  "description": "USDA-grade mobile processing units for on-farm harvest, cut & wrap, and aging."
+}
+</script>
+
 <style>
 .page-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: var(--r-3); box-shadow: var(--sh-0); max-width: 460px; margin: var(--s-6) auto; flex-wrap: wrap; }
 .page-tabs button { flex: 1; padding: 10px 12px; border-radius: var(--r-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-2); white-space: nowrap; }
@@ -246,7 +256,7 @@
   <section class="hw-hero">
     <div class="container hw-hero-content">
       <span class="eyebrow" style="color: var(--accent-soft);">Friesla Modular Processing</span>
-      <h1 class="display-2xl mt-4">USDA-grade processing on your land. In 90 days.</h1>
+      <h1 class="display-2xl mt-4">USDA-grade processing on your land. In 90 days. <span style="background:var(--accent-soft);color:var(--brand);padding:1px 6px;border-radius:6px;font-size:11px;font-weight:700;">AI sizing recommendations ready</span></h1>
       <p>The PS1 mobile harvest unit is a fully-equipped, federally-inspectable processing facility on a 36-foot trailer. Drop it in, hook up power and water, start processing. Built by a 4th-generation meat cutter who got tired of the bottleneck.</p>
       <div class="row gap-3 mt-6" style="flex-wrap: wrap;">
         <button class="btn btn--apple-pay btn--lg" onclick="showPage('quote')">Get a quote</button>
@@ -285,8 +295,8 @@
       <article class="sku" onclick="showPage('detail')">
         <div class="sku-photo cut-wrap"></div>
         <div class="sku-body">
-          <span class="eyebrow">PS1 Cut &amp; Wrap</span>
-          <h3>Cut &amp; Wrap Module</h3>
+          <span class="eyebrow">PS1 Cut & Wrap</span>
+          <h3>Cut & Wrap Module</h3>
           <div class="price">$85k <small style="font-size: 12px; color: var(--ink-3);">starting at</small></div>
           <p class="body-sm">24' module for finishing — vacuum sealer, grinder, smoker option. Pairs with PS1 or stand-alone.</p>
           <div class="sku-stats">
@@ -322,7 +332,7 @@
       <div>
         <span class="eyebrow" style="color: var(--accent-soft);">Recommended for new operators</span>
         <h2 class="display-lg">Full Pipeline Package</h2>
-        <p>PS1 + Cut &amp; Wrap + Aging — bundled at $260k (~12% off list). Adds 18 months of Standard SaaS subscription, free integration with PO marketplace booking, and priority site-visit scheduling.</p>
+        <p>PS1 + Cut & Wrap + Aging — bundled at $260k (~12% off list). Adds 18 months of Standard SaaS subscription, free integration with PO marketplace booking, and priority site-visit scheduling.</p>
         <div class="bundle-stats">
           <div class="stat"><strong>$260k</strong><span>Bundle price</span></div>
           <div class="stat"><strong>$35k</strong><span>You save</span></div>
@@ -344,7 +354,7 @@
       <div class="card specs-card">
         <table class="specs-table">
           <thead>
-            <tr><th>Spec</th><th>PS1 Harvest</th><th>Cut &amp; Wrap</th><th>Aging</th></tr>
+            <tr><th>Spec</th><th>PS1 Harvest</th><th>Cut & Wrap</th><th>Aging</th></tr>
           </thead>
           <tbody>
             <tr><td>Lead price</td><td><strong>$145k</strong></td><td><strong>$85k</strong></td><td><strong>$65k</strong></td></tr>
@@ -352,7 +362,7 @@
             <tr><td>Beef/day</td><td>4</td><td>—</td><td>—</td></tr>
             <tr><td>Hog/day</td><td>8</td><td>—</td><td>—</td></tr>
             <tr><td>Lamb/day</td><td>20</td><td>—</td><td>—</td></tr>
-            <tr><td>Cut &amp; wrap</td><td>—</td><td>1,200 lbs/day</td><td>—</td></tr>
+            <tr><td>Cut & wrap</td><td>—</td><td>1,200 lbs/day</td><td>—</td></tr>
             <tr><td>Aging capacity</td><td>—</td><td>—</td><td>1,200 cu ft (60 day)</td></tr>
             <tr><td>USDA inspectable</td><td>✓ (with package)</td><td>✓</td><td>✓</td></tr>
             <tr><td>Power</td><td>200A · 480V</td><td>100A · 240V</td><td>50A · 240V</td></tr>
@@ -519,12 +529,12 @@
         </div>
         <div class="option-row" data-base="cut-wrap" data-price="85000" onclick="selectOption(this, 'base')">
           <span style="font-size: 18px;">○</span>
-          <div><div class="opt-name">Cut &amp; Wrap only</div><div class="opt-meta">24' trailer · 1,200 lbs/day finishing</div></div>
+          <div><div class="opt-name">Cut & Wrap only</div><div class="opt-meta">24' trailer · 1,200 lbs/day finishing</div></div>
           <div class="opt-price">$85,000</div>
         </div>
         <div class="option-row is-selected" data-base="bundle" data-price="260000" onclick="selectOption(this, 'base')">
           <span style="font-size: 18px;">●</span>
-          <div><div class="opt-name">Full Pipeline Package <span class="pill pill--accent" style="margin-left: 6px; padding: 2px 8px;">~12% off</span></div><div class="opt-meta">PS1 + Cut &amp; Wrap + Aging · 18mo SaaS</div></div>
+          <div><div class="opt-name">Full Pipeline Package <span class="pill pill--accent" style="margin-left: 6px; padding: 2px 8px;">~12% off</span></div><div class="opt-meta">PS1 + Cut & Wrap + Aging · 18mo SaaS</div></div>
           <div class="opt-price">$260,000</div>
         </div>
       </div>
@@ -692,7 +702,7 @@
             <textarea class="textarea" placeholder="Tell us about your operation — current throughput, why now, anything specific you want covered on the call."></textarea>
           </div>
 
-          <button type="button" class="btn btn--primary btn--xl btn--block mt-6" onclick="showPage('confirm')">Submit &amp; schedule a call</button>
+          <button type="button" class="btn btn--primary btn--xl btn--block mt-6" onclick="showPage('confirm')">Submit & schedule a call</button>
           <p class="text-faint text-center mt-3" style="font-size: 11px;">By submitting you agree to our privacy policy. We don't share your contact info with anyone.</p>
         </form>
       </div>
