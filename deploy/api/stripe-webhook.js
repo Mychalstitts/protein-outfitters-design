@@ -14,8 +14,7 @@ import Stripe from 'stripe';
 import { sql } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-export const config = { runtime: 'nodejs', api: { bodyParser: false } };
-
+export const config = { runtime: 'nodejs' };
 export default async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   if (!process.env.STRIPE_SECRET_KEY) return new Response('Stripe not configured', { status: 500 });
