@@ -10,11 +10,21 @@
 //
 // Vercel hands us the raw body via req.text() — Stripe needs the raw bytes
 // to verify the signature, so we cannot run on edge runtime.
+//
+// NOTE on the config below: we previously set `api: { bodyParser: false }`
+// here, which is a Pages Router legacy hint that forced Vercel to deliver
+// req as a Node IncomingMessage (where req.headers is a plain object and
+// req.text doesn't exist). That broke this Web Standards handler with
+// `TypeError: req.headers.get is not a function`. With the hint omitted,
+// Vercel sees the single-arg handler returning Response and gives us a
+// Web Request — req.headers.get('stripe-signature') and req.text() both
+// work, and req.text() yields the raw body bytes Stripe needs to verify
+// the signature.
 import Stripe from 'stripe';
 import { sql } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-export const config = { runtime: 'nodejs', api: { bodyParser: false } };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
