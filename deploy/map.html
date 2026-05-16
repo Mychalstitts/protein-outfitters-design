@@ -495,7 +495,7 @@
         <h4>${escapeHtml(f.name)}</h4>
         <p>${escapeHtml(f.city || '')}${f.state ? ', ' + escapeHtml(f.state) : ''}</p>
         ${f.listings_count ? `<p>${f.listings_count} active listing${f.listings_count === 1 ? '' : 's'}</p>` : ''}
-        ${f.slug ? `<a class="cta" href="/farm/${escapeHtml(f.slug)}">Visit profile →</a>` : ''}`);
+        ${f.slug ? `<a class="cta" href="/farm/${encodeURIComponent(f.slug)}">Visit profile →</a>` : ''}`);
       layers.farms.addLayer(m);
     }
   }
@@ -564,7 +564,7 @@
     const paybackMo = Math.max(8, Math.round(195000 / (annualNet / 12)));
     const drawer = document.getElementById('roiDrawer');
     drawer.innerHTML = `
-      <button class="close" onclick="document.getElementById('roiDrawer').classList.remove('show')">✕</button>
+      <button class="close" type="button" aria-label="Close ROI drawer" onclick="document.getElementById('roiDrawer').classList.remove('show')">✕</button>
       <h4>ZIP ${escapeHtml(o.zip)} · ROI Zone</h4>
       <div style="font:500 11.5px/1.4 'Inter';color:var(--map-muted);margin-bottom:6px;">${o.nearest_processor_miles == null ? 'No processor in our network nearby' : 'Nearest processor: <strong style="color:var(--map-text);">' + o.nearest_processor_miles + ' mi away</strong>'}</div>
       <div class="num-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">

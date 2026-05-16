@@ -132,7 +132,7 @@
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
     <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/farmer" class="active">My ranch</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
-    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a href="/list-animal" style="text-decoration:none;"><button>List an animal</button></a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a href="/list-animal" aria-label="List an animal" style="text-decoration:none;"><button type="button" tabindex="-1" aria-hidden="true">List an animal</button></a></div>
   </nav>
 </div>
 
@@ -377,7 +377,16 @@
     // Standing card
     document.getElementById('fmStanding').style.display = '';
     const link = document.getElementById('fmPublicProfileLink');
-    if (link) link.href = '/farm/' + primaryFarm.slug;
+    if (link) {
+      if (primaryFarm.slug) {
+        link.href = '/farm/' + primaryFarm.slug;
+        link.removeAttribute('aria-disabled');
+      } else {
+        link.href = '#';
+        link.setAttribute('aria-disabled', 'true');
+        link.addEventListener('click', e => e.preventDefault(), { once: true });
+      }
+    }
     document.getElementById('fmFarmRole').textContent = `${primaryFarm.name}${primaryFarm.city ? ' · ' + primaryFarm.city + ', ' + primaryFarm.state : ''}`;
     const certs = (primaryFarm.certs || []).map(c => c.toUpperCase()).slice(0, 3).join(' · ');
     document.getElementById('fmFarmName').textContent = certs || 'Verified producer';

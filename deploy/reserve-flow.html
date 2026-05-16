@@ -294,9 +294,9 @@ header.nav { position: sticky; top: 0; z-index: 20;
     <div class="section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div class="section-label" style="margin:0">Choose processor &amp; date</div>
-        <div style="display:flex;gap:4px;background:var(--surface);border-radius:999px;padding:3px;box-shadow:0 1px 0 var(--hairline)">
-          <button style="border:0;background:var(--brand);color:white;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer">Map</button>
-          <button style="border:0;background:transparent;color:var(--ink-2);padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer">List</button>
+        <div class="ml-toggle" role="tablist" aria-label="Processor list view" style="display:flex;gap:4px;background:var(--surface);border-radius:999px;padding:3px;box-shadow:0 1px 0 var(--hairline)">
+          <button type="button" role="tab" aria-selected="true" data-ml="map" onclick="(function(b){var w=b.parentNode;w.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-selected','false');x.style.background='transparent';x.style.color='var(--ink-2)';});b.setAttribute('aria-selected','true');b.style.background='var(--brand)';b.style.color='white';})(this)" style="border:0;background:var(--brand);color:white;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer">Map</button>
+          <button type="button" role="tab" aria-selected="false" data-ml="list" onclick="(function(b){var w=b.parentNode;w.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-selected','false');x.style.background='transparent';x.style.color='var(--ink-2)';});b.setAttribute('aria-selected','true');b.style.background='var(--brand)';b.style.color='white';})(this)" style="border:0;background:transparent;color:var(--ink-2);padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer">List</button>
         </div>
       </div>
 

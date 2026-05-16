@@ -167,7 +167,7 @@ nav a:hover { opacity: 0.7; }
 <!-- TopAppBar: Predicted Component Structure -->
 <header class="fixed top-0 w-full z-50 bg-[#fbf9f5]/80 dark:bg-[#061b0e]/80 backdrop-blur-xl shadow-[0_40px_60px_-10px_rgba(27,28,26,0.04)]">
 <div class="flex justify-between items-center px-8 h-20 w-full">
-<button class="active:scale-95 transition-transform duration-200 hover:opacity-70">
+<button type="button" aria-label="Back" class="active:scale-95 transition-transform duration-200 hover:opacity-70" onclick="if(window.history.length>1){window.history.back();}else{window.location.href='/discover';}">
 <span class="material-symbols-outlined text-[#061b0e] dark:text-[#fbf9f5]">arrow_back</span>
 </button>
 <h1 class="font-['Inter'] font-bold tracking-tight uppercase text-lg text-[#061b0e] dark:text-white">Profile</h1>
@@ -191,14 +191,144 @@ nav a:hover { opacity: 0.7; }
 </div>
 <div class="flex-1 space-y-4 text-center md:text-left">
 <div class="space-y-1">
-<h2 class="text-5xl md:text-6xl font-black tracking-tighter text-primary leading-none">Marcus Sterling</h2>
-<p class="text-on-surface-variant font-medium tracking-wide">marcus.sterling@curator.com</p>
+<h2 id="profName" class="text-5xl md:text-6xl font-black tracking-tighter text-primary leading-none">Loading…</h2>
+<p id="profEmail" class="text-on-surface-variant font-medium tracking-wide">—</p>
+<p id="profPhoneZip" class="text-on-surface-variant text-sm tracking-wide opacity-70"></p>
 </div>
-<button class="px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface text-sm font-bold tracking-tight hover:bg-surface-container-highest transition-colors active-spring">
+<button type="button" id="openEditProfile" class="px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface text-sm font-bold tracking-tight hover:bg-surface-container-highest transition-colors active-spring">
                     Edit Profile
                 </button>
 </div>
 </section>
+
+<!-- Edit Profile modal -->
+<div id="editProfileBack" style="display:none;position:fixed;inset:0;background:rgba(6,27,14,.4);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <form id="editProfileForm" style="background:#fff;border-radius:22px;padding:32px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(6,27,14,.25);font-family:'Inter',system-ui,sans-serif;color:#061b0e;position:relative;">
+    <button type="button" id="editProfileX" aria-label="Close" style="position:absolute;top:18px;right:18px;background:rgba(6,27,14,.06);border:0;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;color:#061b0e;">✕</button>
+    <h2 style="font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px;">Edit profile</h2>
+    <p style="font-size:14px;line-height:1.5;opacity:.7;margin:0 0 18px;">Your name and contact info as it appears to producers and processors you work with.</p>
+
+    <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b6660;margin:14px 0 6px;">Name</label>
+    <input id="epName" type="text" autocomplete="name" required style="width:100%;border:1px solid rgba(6,27,14,.12);border-radius:12px;padding:12px 14px;font:500 15px/1.4 inherit;color:#061b0e;outline:none;">
+
+    <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b6660;margin:14px 0 6px;">Email</label>
+    <input id="epEmail" type="email" autocomplete="email" required style="width:100%;border:1px solid rgba(6,27,14,.12);border-radius:12px;padding:12px 14px;font:500 15px/1.4 inherit;color:#061b0e;outline:none;">
+
+    <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b6660;margin:14px 0 6px;">Phone</label>
+    <input id="epPhone" type="tel" autocomplete="tel" placeholder="(218) 555-0100" style="width:100%;border:1px solid rgba(6,27,14,.12);border-radius:12px;padding:12px 14px;font:500 15px/1.4 inherit;color:#061b0e;outline:none;">
+
+    <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b6660;margin:14px 0 6px;">ZIP</label>
+    <input id="epZip" type="text" autocomplete="postal-code" inputmode="numeric" maxlength="10" placeholder="56601" style="width:100%;border:1px solid rgba(6,27,14,.12);border-radius:12px;padding:12px 14px;font:500 15px/1.4 inherit;color:#061b0e;outline:none;">
+
+    <div id="epMsg" style="display:none;margin-top:14px;padding:11px 14px;border-radius:10px;font-size:13px;line-height:1.5;"></div>
+
+    <button type="submit" id="epSave" style="width:100%;background:#061b0e;color:#fbf9f5;border:0;border-radius:12px;padding:13px;font-weight:700;cursor:pointer;font-size:14.5px;margin-top:18px;">Save changes</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const fmt = s => (s == null || s === '') ? '' : String(s);
+  let current = null;
+
+  async function loadMe() {
+    try {
+      const data = await window.PO_API.me();
+      current = data && data.user;
+      const nameEl = document.getElementById('profName');
+      const emailEl = document.getElementById('profEmail');
+      const pzEl = document.getElementById('profPhoneZip');
+      if (!current) {
+        nameEl.textContent = 'Sign in';
+        emailEl.textContent = '';
+        pzEl.textContent = '';
+        // Re-purpose the Edit button to open the auth modal
+        const btn = document.getElementById('openEditProfile');
+        if (btn) { btn.textContent = 'Sign in →'; btn.onclick = () => window.PO_API.openAuth('Sign in to view your profile', 'buyer'); }
+        return;
+      }
+      nameEl.textContent = fmt(current.name) || 'Add your name';
+      emailEl.textContent = fmt(current.email);
+      const phoneZip = [fmt(current.phone), fmt(current.zip)].filter(Boolean).join(' · ');
+      pzEl.textContent = phoneZip;
+    } catch (e) {
+      console.warn('[profile] loadMe failed', e);
+    }
+  }
+
+  function openEdit() {
+    if (!current) { window.PO_API.openAuth('Sign in to edit your profile', 'buyer'); return; }
+    document.getElementById('epName').value  = fmt(current.name);
+    document.getElementById('epEmail').value = fmt(current.email);
+    document.getElementById('epPhone').value = fmt(current.phone);
+    document.getElementById('epZip').value   = fmt(current.zip);
+    const msg = document.getElementById('epMsg'); msg.style.display = 'none'; msg.textContent = '';
+    const back = document.getElementById('editProfileBack');
+    back.style.display = 'flex';
+    setTimeout(() => document.getElementById('epName').focus(), 80);
+  }
+  function closeEdit() {
+    document.getElementById('editProfileBack').style.display = 'none';
+  }
+
+  document.getElementById('openEditProfile').addEventListener('click', openEdit);
+  document.getElementById('editProfileX').addEventListener('click', closeEdit);
+  document.getElementById('editProfileBack').addEventListener('click', e => {
+    if (e.target.id === 'editProfileBack') closeEdit();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEdit(); });
+
+  document.getElementById('editProfileForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('epSave');
+    const msg = document.getElementById('epMsg');
+    const patch = {
+      name:  document.getElementById('epName').value.trim(),
+      email: document.getElementById('epEmail').value.trim(),
+      phone: document.getElementById('epPhone').value.trim(),
+      zip:   document.getElementById('epZip').value.trim()
+    };
+    btn.disabled = true; btn.textContent = 'Saving…';
+    msg.style.display = 'none';
+    try {
+      const r = await window.PO_API.updateProfile(patch);
+      current = r.user || current;
+      msg.style.display = 'block';
+      msg.style.background = 'rgba(125,160,93,.12)';
+      msg.style.border = '1px solid rgba(125,160,93,.3)';
+      msg.style.color = '#061b0e';
+      msg.textContent = '✓ Saved.';
+      btn.textContent = 'Saved ✓';
+      // Refresh display, then auto-close after a beat
+      await loadMe();
+      setTimeout(() => { closeEdit(); btn.disabled = false; btn.textContent = 'Save changes'; }, 900);
+    } catch (e2) {
+      msg.style.display = 'block';
+      msg.style.background = 'rgba(186,26,26,.08)';
+      msg.style.border = '1px solid rgba(186,26,26,.25)';
+      msg.style.color = '#7a1313';
+      msg.textContent = (e2 && e2.message) || 'Could not save. Please try again.';
+      btn.disabled = false; btn.textContent = 'Save changes';
+    }
+  });
+
+  // Sign Out: actually call the API (the bottom-of-page link was just an anchor).
+  document.querySelectorAll('a').forEach(a => {
+    const t = (a.textContent || '').trim();
+    if (t === 'Sign Out') {
+      a.addEventListener('click', async ev => {
+        ev.preventDefault();
+        try { await window.PO_API.logout(); } catch {}
+        window.location.href = '/discover';
+      });
+    }
+  });
+
+  if (window.PO_API) loadMe();
+  else document.addEventListener('DOMContentLoaded', loadMe);
+})();
+</script>
 <!-- Role Selection -->
 <section class="ios-spring-reveal space-y-6" style="animation-delay: 0.1s;">
 <div class="flex items-center gap-3">
@@ -266,9 +396,10 @@ nav a:hover { opacity: 0.7; }
 <span class="material-symbols-outlined text-primary">dark_mode</span>
 <span class="font-bold tracking-tight">Dark Experience</span>
 </div>
-<button class="w-14 h-8 rounded-full bg-outline-variant/30 relative transition-colors duration-500 hover:bg-primary/20">
+<button id="darkModeToggle" role="switch" aria-checked="false" aria-label="Toggle dark mode" class="w-14 h-8 rounded-full bg-outline-variant/30 relative transition-colors duration-500 hover:bg-primary/20" onclick="(function(b){var on=b.getAttribute('aria-checked')!=='true';b.setAttribute('aria-checked',on?'true':'false');var k=b.querySelector('div');if(k){k.style.transform=on?'translateX(24px)':'translateX(0)';}b.style.background=on?'rgba(141,181,128,.5)':'';try{localStorage.setItem('po-dark',on?'1':'0');}catch(e){}document.documentElement.classList.toggle('dark',on);})(this)">
 <div class="absolute left-1 top-1 w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 translate-x-0"></div>
 </button>
+<script>(function(){try{var on=localStorage.getItem('po-dark')==='1';var b=document.getElementById('darkModeToggle');if(b&&on){b.setAttribute('aria-checked','true');var k=b.querySelector('div');if(k)k.style.transform='translateX(24px)';b.style.background='rgba(141,181,128,.5)';document.documentElement.classList.add('dark');}}catch(e){}})();</script>
 </div>
 </section>
 <!-- Branding & Build -->
@@ -278,7 +409,7 @@ nav a:hover { opacity: 0.7; }
 Sign Out
 </a>
 </div><footer class="ios-spring-reveal pt-12 text-center space-y-2 opacity-30" style="animation-delay: 0.4s;">
-<p class="text-[10px] font-black tracking-[0.3em] uppercase">Protein Outfitters © 2024</p>
+<p class="text-[10px] font-black tracking-[0.3em] uppercase">Protein Outfitters © 2026</p>
 <p class="text-[9px] font-medium tracking-widest uppercase">Version 4.2.0 Build 882</p>
 </footer>
 </main>
@@ -303,5 +434,6 @@ Sign Out
 </div>
 </nav>
 <div id="po-shell-host"></div>
+<script src="/po-api.js"></script>
 <script src="/po-shell.js"></script>
 </body></html>

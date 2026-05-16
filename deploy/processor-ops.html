@@ -217,14 +217,14 @@ body { background: var(--surface-2); }
     <h1>Hilltop Custom Meats</h1>
     <p class="sub">Processor dashboard</p>
     <nav>
-      <a href="/processor"><button class="active">📋 Today's queue <span class="count">3</span></button></a>
-      <a href="/processor-schedule"><button>📅 Week</button></a>
-      <a href="/processor-schedule"><button>📊 Month</button></a>
-      <a href="/notifications"><button>📥 Inbox <span class="count">5</span></button></a>
-      <a href="/processor"><button>❄️ Hanging cooler <span class="count">3</span></button></a>
-      <a href="/processor"><button>📦 Ready for pickup <span class="count">2</span></button></a>
-      <a href="/finance"><button>💸 Earnings</button></a>
-      <a href="/processor-config"><button>⚙️ Config</button></a>
+      <a href="/processor" aria-label="Today's queue, 3 items" aria-current="page"><button type="button" class="active" tabindex="-1" aria-hidden="true">📋 Today's queue <span class="count">3</span></button></a>
+      <a href="/processor-schedule" aria-label="Week schedule"><button type="button" tabindex="-1" aria-hidden="true">📅 Week</button></a>
+      <a href="/processor-schedule" aria-label="Month schedule"><button type="button" tabindex="-1" aria-hidden="true">📊 Month</button></a>
+      <a href="/notifications" aria-label="Inbox, 5 unread"><button type="button" tabindex="-1" aria-hidden="true">📥 Inbox <span class="count">5</span></button></a>
+      <a href="/processor" aria-label="Hanging cooler, 3 items"><button type="button" tabindex="-1" aria-hidden="true">❄️ Hanging cooler <span class="count">3</span></button></a>
+      <a href="/processor" aria-label="Ready for pickup, 2 items"><button type="button" tabindex="-1" aria-hidden="true">📦 Ready for pickup <span class="count">2</span></button></a>
+      <a href="/finance" aria-label="Earnings"><button type="button" tabindex="-1" aria-hidden="true">💸 Earnings</button></a>
+      <a href="/processor-config" aria-label="Configuration"><button type="button" tabindex="-1" aria-hidden="true">⚙️ Config</button></a>
     </nav>
   </aside>
 
@@ -236,10 +236,10 @@ body { background: var(--surface-2); }
         <h2 class="display-md mt-2">Friday, June 21</h2>
       </div>
       <div class="proc-tabs">
-        <button class="active">Today</button>
-        <button onclick="showToast('Week view: Outlook-style 7-day grid')">Week</button>
-        <button onclick="showToast('Month view: capacity heatmap')">Month</button>
-        <button onclick="showToast('Inbox: messages threaded per share.id')">Inbox</button>
+        <button type="button" class="active" aria-pressed="true" onclick="showToast('Today view active')">Today</button>
+        <button type="button" onclick="showToast('Week view: Outlook-style 7-day grid')">Week</button>
+        <button type="button" onclick="showToast('Month view: capacity heatmap')">Month</button>
+        <button type="button" onclick="showToast('Inbox: messages threaded per share.id')">Inbox</button>
       </div>
     </header>
 
@@ -301,7 +301,7 @@ body { background: var(--surface-2); }
             <div class="label-sub">14-day target · check Jul 5</div>
           </div>
           <progress value="0" max="14"></progress>
-          <button class="btn btn--secondary btn--sm">Log wt</button>
+          <button type="button" class="btn btn--secondary btn--sm" onclick="showToast('Log weight: prompt → save to share #402')">Log wt</button>
         </div>
         <div class="cooler-row">
           <div class="cooler-icon" style="background: linear-gradient(135deg,#7d6b5a,#a89485);">H</div>
@@ -310,7 +310,7 @@ body { background: var(--surface-2); }
             <div class="label-sub">Awaiting cut sheet on 1 buyer</div>
           </div>
           <progress value="7" max="7"></progress>
-          <button class="btn btn--primary btn--sm">Start fab</button>
+          <button type="button" class="btn btn--primary btn--sm" onclick="showToast('Started fabrication for Hog #88')">Start fab</button>
         </div>
         <div class="cooler-row">
           <div class="cooler-icon" style="background: linear-gradient(135deg,#9d7d6b,#bea08b);">L</div>
@@ -319,7 +319,7 @@ body { background: var(--surface-2); }
             <div class="label-sub">Auto-advances Tuesday</div>
           </div>
           <progress value="5" max="7"></progress>
-          <button class="btn btn--ghost btn--sm">In progress</button>
+          <button type="button" class="btn btn--ghost btn--sm" aria-disabled="true" onclick="showToast('Lamb #L20 in progress · auto-advances Tuesday')">In progress</button>
         </div>
       </div>
     </section>
@@ -342,7 +342,7 @@ body { background: var(--surface-2); }
             <div class="label-title">Steer #401 · Mark R.</div>
             <div class="label-sub">Pickup window ends today · storage fee accrues tomorrow</div>
           </div>
-          <button class="btn btn--danger btn--sm">Call</button>
+          <button type="button" class="btn btn--danger btn--sm" onclick="showToast('Calling Mark R. — opening dialer …')">Call</button>
         </div>
       </div>
     </section>
@@ -385,7 +385,7 @@ body { background: var(--surface-2); }
 <!-- ============ FARMER QR VIEW ============ -->
 <div class="farmer-page" id="view-farmer-qr">
   <div class="row row--between mb-6">
-    <button class="btn btn--ghost btn--sm">← Back</button>
+    <button type="button" class="btn btn--ghost btn--sm" aria-label="Back to processor view" onclick="switchRole('processor')">← Back</button>
     <span class="eyebrow">Drop-off ticket</span>
     <span></span>
   </div>
@@ -446,7 +446,7 @@ body { background: var(--surface-2); }
 <!-- ============ FARMER BOOKING VIEW ============ -->
 <div class="farmer-page" id="view-farmer-book">
   <div class="row row--between mb-6">
-    <button class="btn btn--ghost btn--sm">← Back</button>
+    <button type="button" class="btn btn--ghost btn--sm" aria-label="Back to processor view" onclick="switchRole('processor')">← Back</button>
     <span class="eyebrow">Confirm booking</span>
     <span></span>
   </div>
@@ -485,7 +485,7 @@ body { background: var(--surface-2); }
   <div class="scanner" id="scanner-active">
     <div style="width: 100%; max-width: 360px;">
       <div class="row row--between" style="margin-bottom: var(--s-6);">
-        <button onclick="closeScanner()" style="background: rgba(255,255,255,0.15); color: white; border: 0; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer;">×</button>
+        <button type="button" aria-label="Close scanner" onclick="closeScanner()" style="background: rgba(255,255,255,0.15); color: white; border: 0; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer;">×</button>
         <div style="text-align: center;">
           <div style="font-size: 11px; opacity: 0.7;">Scanning for</div>
           <strong id="scanner-animal" style="font-size: var(--text-md);">Angus Steer #402</strong>
@@ -578,6 +578,237 @@ function showToast(msg) {
 }
 </script>
 <div id="po-shell-host"></div>
+<script src="./po-api.js"></script>
 <script src="./po-shell.js"></script>
+
+<!-- ============================================================
+     Live-mode bootstrap. Takes over the demo bookings list with real
+     data from /api/processor-ops when the signed-in user owns a
+     processor record. Wires QR scan, Log weight, Start fabrication
+     to real PATCH /api/bookings calls.
+     ============================================================ -->
+<script>
+(async function liveProcessorOps() {
+  'use strict';
+  if (!window.PO_API) return;  // SDK not loaded → keep demo as-is
+
+  // ── Auth gate ────────────────────────────────────────
+  let me;
+  try { const r = await window.PO_API.me(); me = r && r.user; } catch { me = null; }
+  if (!me) {
+    // Not signed in → tag the page with a banner pointing to sign-in.
+    injectBanner({
+      text: 'You\'re viewing a demo. Sign in as a processor to manage your real bookings.',
+      cta: 'Sign in',
+      onClick: () => window.PO_API.openAuth('Sign in to manage your processor queue', 'processor')
+    });
+    return;
+  }
+  if (me.role && me.role !== 'processor' && me.role !== 'admin') {
+    injectBanner({
+      text: `You're signed in as a ${me.role}. The processor-ops dashboard is for processor accounts.`,
+      cta: null
+    });
+    return;
+  }
+
+  // ── Try to load real data ────────────────────────────
+  let data;
+  try {
+    data = await window.PO_API.processorOps('today');
+  } catch (e) {
+    if (e.status === 404) {
+      injectBanner({
+        text: 'No processor record on your account yet. Set up your plant to start receiving bookings.',
+        cta: 'Set up plant',
+        onClick: () => { window.location.href = '/processor'; }
+      });
+      return;
+    }
+    console.warn('[processor-ops] live data load failed:', e);
+    return;
+  }
+
+  // ── Replace demo bookings with real data ─────────────
+  const bookingsEl = document.getElementById('bookings');
+  if (!bookingsEl) return;
+  const bookings = data.bookings || [];
+
+  // Hide demo nodes; we'll inject real ones.
+  bookingsEl.innerHTML = '';
+  const eyebrowEl = bookingsEl.previousElementSibling;
+  if (eyebrowEl && eyebrowEl.classList && eyebrowEl.classList.contains('eyebrow')) {
+    eyebrowEl.textContent = `Today's bookings · ${bookings.length} scheduled`;
+  }
+
+  if (!bookings.length) {
+    bookingsEl.innerHTML = `
+      <div style="padding:32px 20px;background:#fff;border-radius:14px;text-align:center;">
+        <div style="font:800 16px/1.4 'Inter';letter-spacing:-.02em;">Nothing on today's queue.</div>
+        <div style="font:500 13px/1.5 'Inter';opacity:.7;margin-top:6px;">When farmers schedule drop-offs, they'll appear here. Visit /processor-schedule to set your weekly capacity.</div>
+      </div>`;
+    return;
+  }
+
+  bookings.forEach(b => bookingsEl.appendChild(renderBooking(b)));
+
+  // ── Wire tab buttons to real views ───────────────────
+  const tabsEl = document.querySelector('.proc-tabs');
+  if (tabsEl) {
+    const tabs = tabsEl.querySelectorAll('button');
+    const VIEW_MAP = ['today', 'week', 'month', 'inbox'];
+    tabs.forEach((btn, idx) => {
+      const view = VIEW_MAP[idx];
+      if (!view) return;
+      btn.onclick = async (ev) => {
+        ev.preventDefault();
+        tabs.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+        btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true');
+        bookingsEl.innerHTML = '<div style="padding:24px;opacity:.5;font:500 13px/1 \'Inter\';">Loading…</div>';
+        try {
+          const d = await window.PO_API.processorOps(view);
+          bookingsEl.innerHTML = '';
+          const items = d.bookings || d.cut_sheets || [];
+          if (!items.length) {
+            bookingsEl.innerHTML = `<div style="padding:32px 20px;background:#fff;border-radius:14px;text-align:center;font:500 14px/1.5 'Inter';opacity:.7;">Nothing in ${view}.</div>`;
+            return;
+          }
+          if (view === 'inbox') items.forEach(cs => bookingsEl.appendChild(renderCutSheet(cs)));
+          else items.forEach(b => bookingsEl.appendChild(renderBooking(b)));
+          if (eyebrowEl && eyebrowEl.classList && eyebrowEl.classList.contains('eyebrow')) {
+            eyebrowEl.textContent = `${cap(view)} · ${items.length}`;
+          }
+        } catch (e) {
+          bookingsEl.innerHTML = `<div style="padding:24px;color:#ba1a1a;">Load failed: ${escapeHtml(e.message)}</div>`;
+        }
+      };
+    });
+  }
+
+  // ── Render helpers ───────────────────────────────────
+  function renderBooking(b) {
+    const div = document.createElement('div');
+    div.className = 'booking';
+    div.dataset.id = b.id;
+    div.dataset.status = b.status || 'scheduled';
+    div.style.cursor = 'pointer';
+    const dotClass = b.status === 'fabricating' ? 'active' : (b.status === 'checked-in' ? 'active' : 'scheduled');
+    const subText = b.status === 'scheduled'
+      ? (b.drop_off_window || 'Awaiting ETA')
+      : (b.status === 'checked-in' ? 'In the cooler' : (b.status === 'fabricating' ? 'On the rail' : (b.status === 'ready' ? 'Ready for pickup' : b.status)));
+    const animalLabel = (b.animal_number ? b.animal_number + ' · ' : '') + (b.breed || cap(b.species || 'Animal'));
+    const time = b.drop_off_window || (b.drop_off_date ? new Date(b.drop_off_date).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '');
+    div.innerHTML = `
+      <span class="state-dot ${dotClass}"></span>
+      <div>
+        <div class="booking-title">${escapeHtml(time)} · ${escapeHtml(animalLabel)}</div>
+        <div class="booking-sub">${escapeHtml(b.farm_name || 'Farm')} · ${escapeHtml(b.status || 'scheduled')}</div>
+        <div class="booking-meta">
+          ${b.hanging_weight_lbs ? `<span class="pill">${b.hanging_weight_lbs} lb HW</span>` : ''}
+          ${b.cut_sheet_id ? '<span class="pill pill--accent">Cut sheet ready</span>' : '<span class="pill pill--warn">No cut sheet</span>'}
+        </div>
+      </div>
+      <div class="booking-actions" style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${actionsFor(b)}
+      </div>
+    `;
+
+    // Wire each action button
+    div.querySelectorAll('[data-act]').forEach(actBtn => {
+      actBtn.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        await handleAction(actBtn.dataset.act, b, actBtn);
+      });
+    });
+
+    return div;
+  }
+
+  function renderCutSheet(cs) {
+    const div = document.createElement('div');
+    div.className = 'booking';
+    div.innerHTML = `
+      <span class="state-dot active"></span>
+      <div>
+        <div class="booking-title">${escapeHtml(cs.buyer_name || cs.buyer_email || 'Buyer')} → ${escapeHtml(cs.animal_number || cs.breed || cap(cs.species))}</div>
+        <div class="booking-sub">${escapeHtml(cs.farm_name)} · ${(cs.cuts && cs.cuts.length) || 0} cuts selected</div>
+        <div class="booking-meta">
+          <span class="pill pill--accent">${escapeHtml(cs.status)}</span>
+          ${cs.notes ? '<span class="pill">Has notes</span>' : ''}
+        </div>
+      </div>
+      <button class="btn btn--secondary btn--sm">Open →</button>
+    `;
+    return div;
+  }
+
+  function actionsFor(b) {
+    const status = b.status || 'scheduled';
+    const id = b.id;
+    if (status === 'scheduled')   return `<button class="btn btn--primary btn--sm" data-act="checkin">QR check-in</button>`;
+    if (status === 'checked-in')  return `
+      <button class="btn btn--secondary btn--sm" data-act="logweight">Log wt</button>
+      <button class="btn btn--primary btn--sm"   data-act="fab">Start fab</button>
+    `;
+    if (status === 'fabricating') return `<button class="btn btn--primary btn--sm" data-act="ready">Mark ready</button>`;
+    if (status === 'ready')       return `<button class="btn btn--primary btn--sm" data-act="pickup">Picked up</button>`;
+    return '';
+  }
+
+  async function handleAction(action, booking, btn) {
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+      let res;
+      if (action === 'checkin') {
+        res = await window.PO_API.updateBooking(booking.id, { status: 'checked-in' });
+        showToast('Checked in ' + (booking.animal_number || ''));
+      } else if (action === 'logweight') {
+        const wStr = prompt('Hanging weight in lbs (e.g. 720)', booking.hanging_weight_lbs || '');
+        if (wStr == null) { btn.disabled = false; btn.textContent = origText; return; }
+        const w = Number(wStr);
+        if (!isFinite(w) || w <= 0) { showToast('Invalid weight'); btn.disabled = false; btn.textContent = origText; return; }
+        res = await window.PO_API.updateBooking(booking.id, { hanging_weight_lbs: w });
+        showToast(`Logged ${w} lb HW`);
+      } else if (action === 'fab') {
+        res = await window.PO_API.updateBooking(booking.id, { status: 'fabricating' });
+        showToast('Fabrication started');
+      } else if (action === 'ready') {
+        res = await window.PO_API.updateBooking(booking.id, { status: 'ready' });
+        showToast('Marked ready for pickup');
+      } else if (action === 'pickup') {
+        res = await window.PO_API.updateBooking(booking.id, { status: 'picked-up' });
+        showToast('Picked up — booking complete');
+      }
+      // Re-render this card with fresh state
+      const fresh = res && res.booking;
+      if (fresh) {
+        Object.assign(booking, fresh);
+        const card = btn.closest('.booking');
+        const newCard = renderBooking({ ...booking, ...fresh });
+        card.replaceWith(newCard);
+      }
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = origText;
+      showToast('Failed: ' + (e.message || 'unknown'));
+    }
+  }
+
+  function injectBanner({ text, cta, onClick }) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:sticky;top:0;z-index:90;background:#061b0e;color:#fbf9f5;padding:11px 18px;font:600 13px/1.4 "Inter";display:flex;align-items:center;justify-content:center;gap:12px;';
+    banner.innerHTML = `<span>${escapeHtml(text)}</span>` + (cta ? `<button style="background:#fbf9f5;color:#061b0e;border:0;border-radius:999px;padding:6px 14px;font:700 12px/1 inherit;cursor:pointer;">${escapeHtml(cta)} →</button>` : '');
+    if (cta && onClick) banner.querySelector('button').addEventListener('click', onClick);
+    document.body.insertBefore(banner, document.body.firstChild);
+  }
+
+  function cap(s) { return String(s || '').replace(/\b\w/g, c => c.toUpperCase()); }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+})();
+</script>
 </body>
 </html>

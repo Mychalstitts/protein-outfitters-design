@@ -186,5 +186,70 @@ export default async function handler(req) {
     return json({ booking, deposit, code });
   }
 
+  // ── PATCH /api/bookings?id=UUID ─────────────────────────
+  // Processor-ops daily workflow updates. Only the processor that owns the
+  // booking's processor_id (or an admin) may PATCH. Allowed transitions are
+  // additive: log hanging weight, start fabrication, mark ready, mark
+  // picked up, mark no-show.
+  if (req.method === 'PATCH') {
+    const id = url.searchParams.get('id');
+    if (!id || !isUuid(id)) return err(400, 'id (UUID) required');
+    const user = await currentUser(req);
+    if (!user) return err(401, 'Sign in required');
+
+    // Verify caller is the processor owning this booking (or admin).
+    const ownerRow = await sql`
+      SELECT b.id, b.status, b.processor_id, b.farm_id, b.listing_id, p.owner_id AS processor_owner
+      FROM bookings b
+      JOIN processors p ON p.id = b.processor_id
+      WHERE b.id = ${id} LIMIT 1`;
+    if (!ownerRow[0]) return err(404, 'Booking not found');
+    const booking = ownerRow[0];
+    if (booking.processor_owner !== user.id && user.role !== 'admin') {
+      return err(403, 'Only the assigned processor can update this booking');
+    }
+
+    let body;
+    try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
+
+    // Allow-listed fields. Each one updates with NOW() touch.
+    const ALLOWED_STATUS = new Set(['scheduled','checked-in','fabricating','ready','picked-up','no-show','cancelled']);
+    if ('hanging_weight_lbs' in body) {
+      const w = Number(body.hanging_weight_lbs);
+      if (!isFinite(w) || w <= 0 || w > 5000) return err(400, 'hanging_weight_lbs must be 0–5000');
+      await sql`UPDATE bookings SET hanging_weight_lbs = ${w}, updated_at = NOW() WHERE id = ${id}`;
+    }
+    if ('status' in body) {
+      if (!ALLOWED_STATUS.has(body.status)) return err(400, 'Invalid status');
+      // Auto-stamp the relevant timestamp column on each transition.
+      const stamps = {
+        'checked-in':  'checked_in_at',
+        'fabricating': 'fabrication_started_at',
+        'ready':       'ready_at',
+        'picked-up':   'picked_up_at',
+        'no-show':     'no_show_at'
+      };
+      const col = stamps[body.status];
+      if (col) {
+        // Use raw column name interpolation safely — switch on the allowlist key.
+        switch (col) {
+          case 'checked_in_at':         await sql`UPDATE bookings SET status = ${body.status}, checked_in_at = NOW(), checked_in_by = ${user.id}, updated_at = NOW() WHERE id = ${id}`; break;
+          case 'fabrication_started_at':await sql`UPDATE bookings SET status = ${body.status}, fabrication_started_at = NOW(), updated_at = NOW() WHERE id = ${id}`; break;
+          case 'ready_at':              await sql`UPDATE bookings SET status = ${body.status}, ready_at = NOW(), updated_at = NOW() WHERE id = ${id}`; break;
+          case 'picked_up_at':          await sql`UPDATE bookings SET status = ${body.status}, picked_up_at = NOW(), updated_at = NOW() WHERE id = ${id}`; break;
+          case 'no_show_at':            await sql`UPDATE bookings SET status = ${body.status}, no_show_at = NOW(), updated_at = NOW() WHERE id = ${id}`; break;
+        }
+      } else {
+        await sql`UPDATE bookings SET status = ${body.status}, updated_at = NOW() WHERE id = ${id}`;
+      }
+    }
+    if ('notes' in body) {
+      await sql`UPDATE bookings SET notes = ${String(body.notes || '').slice(0, 5000)}, updated_at = NOW() WHERE id = ${id}`;
+    }
+
+    const fresh = await sql`SELECT * FROM bookings WHERE id = ${id} LIMIT 1`;
+    return json({ booking: fresh[0] });
+  }
+
   return err(405, 'Method not allowed');
 }

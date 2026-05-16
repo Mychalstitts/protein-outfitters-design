@@ -651,7 +651,7 @@
         <div class="cs-meter-msg" id="meterMsg">Trim from primary cuts auto-routes to ground. Toggle a cut off and its weight moves down here.</div>
         <div class="cs-actions">
           <button class="cs-cta cs-cta--primary" id="submitBtn">Submit to Plant 04 →</button>
-          <button class="cs-cta cs-cta--ghost">Save as draft</button>
+          <button class="cs-cta cs-cta--ghost" id="saveDraftBtn" type="button" onclick="(function(){try{var snap={ts:Date.now(),cuts:Array.from(document.querySelectorAll('input[data-cut]:checked')).map(function(i){return i.dataset.cut;}),pills:Array.from(document.querySelectorAll('.pill-toggle.on')).map(function(p){return p.textContent.trim();})};localStorage.setItem('po-cut-sheet-draft',JSON.stringify(snap));var b=document.getElementById('saveDraftBtn');if(b){var t=b.textContent;b.textContent='Saved ✓';setTimeout(function(){b.textContent=t;},1800);}}catch(e){alert('Could not save draft: '+e.message);}})()">Save as draft</button>
         </div>
       </div>
     </aside>
@@ -872,10 +872,53 @@
   });
 
   // ===== Submit =====
-  document.getElementById('submitBtn').addEventListener('click', () => {
-    document.getElementById('submitBtn').textContent = '✓ Submitted to Plant 04';
-    document.getElementById('submitBtn').style.background = '#cfe9d3';
-    setTimeout(() => { window.location.href = '/confirmed'; }, 1100);
+  // Wires to POST /api/cut-sheets — saves the cut config + emails the processor.
+  // Requires ?reservation_id=<uuid> in the URL. If missing, prompts the buyer
+  // to reserve an animal first (the cut sheet is per-reservation, not generic).
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('submitBtn');
+    const origText = btn.textContent;
+    const origBg = btn.style.background;
+
+    const reservation_id = new URLSearchParams(location.search).get('reservation_id');
+    if (!reservation_id) {
+      btn.textContent = 'Reserve an animal first →';
+      btn.style.background = '#f5e1ad';
+      setTimeout(() => { window.location.href = '/discover'; }, 1400);
+      return;
+    }
+
+    // Read currently selected cuts + pills + species + quarter pick.
+    const cuts = Array.from(document.querySelectorAll('input[data-cut]:checked')).map(i => i.dataset.cut);
+    const pills = Array.from(document.querySelectorAll('.pill-toggle.on')).map(p => p.textContent.trim());
+    const activeTab = document.querySelector('.species-tab.active');
+    const species = activeTab?.dataset?.species || 'beef';
+    const quarterPick = document.querySelector('.quarter-toggle button.active')?.dataset?.quarter || null;
+    const notes = (document.getElementById('cutSheetNotes')?.value || '').trim() || null;
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+    try {
+      await window.PO_API.submitCutSheet({
+        reservation_id, species, cuts, pills, quarter: quarterPick, notes
+      });
+      btn.textContent = '✓ Submitted to your processor';
+      btn.style.background = '#cfe9d3';
+      // Clear the local draft so it doesn't haunt the next visit.
+      try { localStorage.removeItem('po-cut-sheet-draft'); } catch (_) {}
+      setTimeout(() => { window.location.href = '/confirmed?cut_sheet=1&reservation_id=' + encodeURIComponent(reservation_id); }, 1100);
+    } catch (e) {
+      btn.disabled = false;
+      btn.style.background = origBg || '';
+      if (e.status === 401) {
+        btn.textContent = origText;
+        window.PO_API.openAuth('Sign in to submit your cut sheet', 'buyer');
+        return;
+      }
+      btn.textContent = (e && e.message) ? ('Failed: ' + e.message.slice(0, 40)) : 'Submit failed — try again';
+      btn.style.background = '#ffd9d9';
+      setTimeout(() => { btn.textContent = origText; btn.style.background = origBg || ''; }, 3000);
+    }
   });
 
   updateMeter();

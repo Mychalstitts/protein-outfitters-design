@@ -148,18 +148,18 @@ nav a:hover { opacity: 0.7; }
             Protein Outfitters
         </div>
 <div class="hidden md:flex items-center gap-x-8">
-<a class="font-sans tracking-tight font-bold text-sm text-stone-500 dark:text-zinc-400 hover:text-emerald-900 dark:hover:text-emerald-200 hover:bg-stone-200/50 dark:hover:bg-zinc-800/50 transition-all duration-300 ease-out" href="#">Dashboard</a>
-<a class="font-sans tracking-tight font-bold text-sm text-stone-500 dark:text-zinc-400 hover:text-emerald-900 dark:hover:text-emerald-200 hover:bg-stone-200/50 dark:hover:bg-zinc-800/50 transition-all duration-300 ease-out" href="#">Inventory</a>
-<a class="font-sans tracking-tight font-bold text-sm text-stone-500 dark:text-zinc-400 hover:text-emerald-900 dark:hover:text-emerald-200 hover:bg-stone-200/50 dark:hover:bg-zinc-800/50 transition-all duration-300 ease-out" href="#">Logistics</a>
-<a class="font-sans tracking-tight font-bold text-sm text-emerald-950 dark:text-emerald-400 border-b-2 border-emerald-950 dark:border-emerald-400 pb-1" href="#">Analytics</a>
+<a class="font-sans tracking-tight font-bold text-sm text-stone-500 dark:text-zinc-400 hover:text-emerald-900 dark:hover:text-emerald-200 hover:bg-stone-200/50 dark:hover:bg-zinc-800/50 transition-all duration-300 ease-out" href="/admin-overview">Dashboard</a>
+<a class="font-sans tracking-tight font-bold text-sm text-stone-500 dark:text-zinc-400 hover:text-emerald-900 dark:hover:text-emerald-200 hover:bg-stone-200/50 dark:hover:bg-zinc-800/50 transition-all duration-300 ease-out" href="/processor-ops">Inventory</a>
+<a class="font-sans tracking-tight font-bold text-sm text-stone-500 dark:text-zinc-400 hover:text-emerald-900 dark:hover:text-emerald-200 hover:bg-stone-200/50 dark:hover:bg-zinc-800/50 transition-all duration-300 ease-out" href="/processor-schedule">Logistics</a>
+<a class="font-sans tracking-tight font-bold text-sm text-emerald-950 dark:text-emerald-400 border-b-2 border-emerald-950 dark:border-emerald-400 pb-1" href="/trends" aria-current="page">Analytics</a>
 </div>
 <div class="flex items-center gap-4">
-<button class="p-2 rounded-full hover:bg-stone-200/50 transition-all scale-95 active:scale-90">
+<a class="p-2 rounded-full hover:bg-stone-200/50 transition-all scale-95 active:scale-90 inline-flex" href="/notifications" aria-label="Notifications">
 <span class="material-symbols-outlined text-stone-600">notifications</span>
-</button>
-<button class="p-2 rounded-full hover:bg-stone-200/50 transition-all scale-95 active:scale-90">
+</a>
+<a class="p-2 rounded-full hover:bg-stone-200/50 transition-all scale-95 active:scale-90 inline-flex" href="/settings" aria-label="Settings">
 <span class="material-symbols-outlined text-stone-600">settings</span>
-</button>
+</a>
 <div class="h-10 w-10 rounded-full bg-stone-200 overflow-hidden ml-2 ring-2 ring-surface-container-high">
 <img alt="Administrator Profile" data-alt="professional headshot of an executive administrator in a neutral office setting with soft natural lighting" src="/img/angus.jpg"/>
 </div>
@@ -175,36 +175,36 @@ nav a:hover { opacity: 0.7; }
 </div>
 </div>
 <div class="flex flex-col gap-y-1">
-<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-800 text-emerald-950 dark:text-emerald-400 rounded-xl shadow-sm font-sans text-sm font-semibold tracking-wide transition-transform duration-200 scale-102" href="#">
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-800 text-emerald-950 dark:text-emerald-400 rounded-xl shadow-sm font-sans text-sm font-semibold tracking-wide transition-transform duration-200 scale-102" href="/trends" aria-current="page">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">trending_up</span>
                 Market Trends
             </a>
-<a class="flex items-center gap-3 px-4 py-3 text-stone-600 dark:text-zinc-500 hover:translate-x-1 hover:text-emerald-800 dark:hover:text-emerald-200 font-sans text-sm font-semibold tracking-wide transition-all" href="#">
+<a class="flex items-center gap-3 px-4 py-3 text-stone-600 dark:text-zinc-500 hover:translate-x-1 hover:text-emerald-800 dark:hover:text-emerald-200 font-sans text-sm font-semibold tracking-wide transition-all" href="/trends?view=breeds">
 <span class="material-symbols-outlined">pets</span>
                 Breed Analytics
             </a>
-<a class="flex items-center gap-3 px-4 py-3 text-stone-600 dark:text-zinc-500 hover:translate-x-1 hover:text-emerald-800 dark:hover:text-emerald-200 font-sans text-sm font-semibold tracking-wide transition-all" href="#">
+<a class="flex items-center gap-3 px-4 py-3 text-stone-600 dark:text-zinc-500 hover:translate-x-1 hover:text-emerald-800 dark:hover:text-emerald-200 font-sans text-sm font-semibold tracking-wide transition-all" href="/map">
 <span class="material-symbols-outlined">map</span>
                 Regional Growth
             </a>
-<a class="flex items-center gap-3 px-4 py-3 text-stone-600 dark:text-zinc-500 hover:translate-x-1 hover:text-emerald-800 dark:hover:text-emerald-200 font-sans text-sm font-semibold tracking-wide transition-all" href="#">
+<a class="flex items-center gap-3 px-4 py-3 text-stone-600 dark:text-zinc-500 hover:translate-x-1 hover:text-emerald-800 dark:hover:text-emerald-200 font-sans text-sm font-semibold tracking-wide transition-all" href="/processor-schedule">
 <span class="material-symbols-outlined">local_shipping</span>
                 Logistics
             </a>
-<a class="flex items-center gap-3 px-4 py-3 text-stone-600 dark:text-zinc-500 hover:translate-x-1 hover:text-emerald-800 dark:hover:text-emerald-200 font-sans text-sm font-semibold tracking-wide transition-all" href="#">
+<a class="flex items-center gap-3 px-4 py-3 text-stone-600 dark:text-zinc-500 hover:translate-x-1 hover:text-emerald-800 dark:hover:text-emerald-200 font-sans text-sm font-semibold tracking-wide transition-all" href="/finance">
 <span class="material-symbols-outlined">assessment</span>
                 Reports
             </a>
 </div>
 <div class="mt-auto flex flex-col gap-y-1">
-<button class="w-full bg-primary text-white py-3 rounded-xl font-bold text-sm mb-4 hover:opacity-90 transition-all active:scale-95">
+<button type="button" onclick="window.print()" class="w-full bg-primary text-white py-3 rounded-xl font-bold text-sm mb-4 hover:opacity-90 transition-all active:scale-95">
                 Export Global Data
             </button>
-<a class="flex items-center gap-3 px-4 py-2 text-stone-500 hover:text-emerald-900 text-sm font-semibold" href="#">
+<a class="flex items-center gap-3 px-4 py-2 text-stone-500 hover:text-emerald-900 text-sm font-semibold" href="mailto:hello@proteinoutfitters.com?subject=Support%20request">
 <span class="material-symbols-outlined text-sm">help_outline</span>
                 Support
             </a>
-<a class="flex items-center gap-3 px-4 py-2 text-stone-500 hover:text-emerald-900 text-sm font-semibold" href="#">
+<a class="flex items-center gap-3 px-4 py-2 text-stone-500 hover:text-emerald-900 text-sm font-semibold" href="/admin-health">
 <span class="material-symbols-outlined text-sm">inventory_2</span>
                 Archive
             </a>
@@ -301,9 +301,9 @@ nav a:hover { opacity: 0.7; }
 <h2 class="text-2xl font-black tracking-tighter">Sales Velocity</h2>
 <p class="text-on-surface-variant font-medium">Global conversion rates per unit hour</p>
 </div>
-<div class="flex bg-surface-container-low p-1 rounded-full">
-<button class="px-5 py-2 bg-white rounded-full text-xs font-bold shadow-sm">Real-time</button>
-<button class="px-5 py-2 text-xs font-bold text-on-surface-variant">Historical</button>
+<div class="flex bg-surface-container-low p-1 rounded-full" id="trendsWindowToggle">
+<button type="button" data-window="realtime" class="px-5 py-2 bg-white rounded-full text-xs font-bold shadow-sm">Real-time</button>
+<button type="button" data-window="historical" class="px-5 py-2 text-xs font-bold text-on-surface-variant">Historical</button>
 </div>
 </div>
 <div class="flex-grow flex items-center justify-center min-h-[250px]">
@@ -409,16 +409,41 @@ nav a:hover { opacity: 0.7; }
                     </span>
 </div>
 </div>
-<button class="bg-white px-8 py-3 rounded-full text-sm font-black shadow-sm hover:shadow-md transition-all active:scale-95">
+<button type="button" id="trendsPdfBtn" onclick="window.print()" class="bg-white px-8 py-3 rounded-full text-sm font-black shadow-sm hover:shadow-md transition-all active:scale-95">
                 Generate Full PDF Report
             </button>
 </footer>
 </main>
 <!-- Contextual FAB (Analytics Insights) -->
-<button class="fixed bottom-10 right-10 h-16 w-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center group hover:scale-110 transition-all duration-300 z-50">
+<a id="trendsFab" href="/discover?q=forecast%3A%20market%20trends%20next%2030%20days" class="fixed bottom-10 right-10 h-16 w-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center group hover:scale-110 transition-all duration-300 z-50" aria-label="Get AI Forecast">
 <span class="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">auto_awesome</span>
 <span class="absolute right-20 bg-stone-900 text-white text-xs font-bold px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Get AI Forecast</span>
-</button>
+</a>
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
+<script>
+  // Wire up the Real-time / Historical window toggle
+  (function(){
+    var toggle = document.getElementById('trendsWindowToggle');
+    if (!toggle) return;
+    var btns = toggle.querySelectorAll('button[data-window]');
+    var saved = (function(){ try { return sessionStorage.getItem('trends-window'); } catch(e){ return null; } })();
+    function activate(name){
+      btns.forEach(function(b){
+        if (b.dataset.window === name) {
+          b.classList.add('bg-white','rounded-full','shadow-sm');
+          b.classList.remove('text-on-surface-variant');
+        } else {
+          b.classList.remove('bg-white','rounded-full','shadow-sm');
+          b.classList.add('text-on-surface-variant');
+        }
+      });
+      try { sessionStorage.setItem('trends-window', name); } catch(e){}
+    }
+    if (saved) activate(saved);
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){ activate(b.dataset.window); });
+    });
+  })();
+</script>
 </body></html>

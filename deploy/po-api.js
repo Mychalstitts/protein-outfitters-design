@@ -21,6 +21,7 @@
 
   const api = {
     me: () => jsonFetch('/api/auth/me'),
+    updateProfile: (patch) => jsonFetch('/api/auth/me', { method: 'PATCH', body: patch }),
     requestLink: (email, role) => jsonFetch('/api/auth/request-link', { method: 'POST', body: { email, role } }),
     logout: () => jsonFetch('/api/auth/logout', { method: 'POST' }),
 
@@ -37,13 +38,33 @@
     farm: (slug) => jsonFetch('/api/farms?slug=' + encodeURIComponent(slug)),
     createFarm: (data) => jsonFetch('/api/farms', { method: 'POST', body: data }),
 
+    // Farm follows — used by the Follow button on farm-profile.html
+    farmFollowState: (farm_id) => jsonFetch('/api/farm-follow?farm_id=' + encodeURIComponent(farm_id)),
+    followFarm:     (farm_id) => jsonFetch('/api/farm-follow', { method: 'POST', body: { farm_id } }),
+    unfollowFarm:   (farm_id) => jsonFetch('/api/farm-follow?farm_id=' + encodeURIComponent(farm_id), { method: 'DELETE' }),
+
     reservations: () => jsonFetch('/api/reservations'),
     reserve: (data) => jsonFetch('/api/reservations', { method: 'POST', body: data }),
+
+    // Cut sheets — used by /cut-sheet to file real cut instructions for a reservation
+    cutSheet: (reservation_id) => jsonFetch('/api/cut-sheets?reservation_id=' + encodeURIComponent(reservation_id)),
+    submitCutSheet: (data) => jsonFetch('/api/cut-sheets', { method: 'POST', body: data }),
+
+    // Payouts — Stripe Connect transfer from producer/processor balance to bank
+    payouts: () => jsonFetch('/api/payouts'),
+    transferToBank: (role, amount_cents) => jsonFetch('/api/payouts', { method: 'POST', body: amount_cents ? { role, amount_cents } : { role } }),
 
     processors: () => jsonFetch('/api/processors'),
     processor: (slug) => jsonFetch('/api/processors?slug=' + encodeURIComponent(slug)),
     createProcessor: (data) => jsonFetch('/api/processors', { method: 'POST', body: data }),
     updateProcessor: (slug, data) => jsonFetch('/api/processors?slug=' + encodeURIComponent(slug), { method: 'PATCH', body: data }),
+
+    // Processor daily ops dashboard
+    processorOps: (view = 'today') => jsonFetch('/api/processor-ops?view=' + encodeURIComponent(view)),
+    processorOpsStats: () => jsonFetch('/api/processor-ops?view=stats'),
+
+    // Bookings status updates (used by processor-ops action buttons)
+    updateBooking: (id, patch) => jsonFetch('/api/bookings?id=' + encodeURIComponent(id), { method: 'PATCH', body: patch }),
 
     reviews: (subject_type, subject_id) =>
       jsonFetch(`/api/reviews?subject_type=${encodeURIComponent(subject_type)}&subject_id=${encodeURIComponent(subject_id)}`),

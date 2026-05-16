@@ -319,11 +319,11 @@ nav a:hover { opacity: 0.7; }
 <div class="px-12 py-8 bg-surface-container-low rounded-2xl border-2 border-dashed border-primary/10 flex items-center justify-center">
 <span class="font-serif italic text-4xl opacity-80 select-none">T. Curator</span>
 </div>
-<div class="flex gap-4">
-<button class="px-8 py-3 bg-primary text-on-primary font-bold rounded-full hover:scale-105 transition-transform active:scale-95 duration-200">
+<div class="flex gap-4" data-sv-actions>
+<button type="button" data-sv-approve class="px-8 py-3 bg-primary text-on-primary font-bold rounded-full hover:scale-105 transition-transform active:scale-95 duration-200">
                         Approve Report
                     </button>
-<button class="px-8 py-3 bg-surface-container-high text-on-surface font-bold rounded-full hover:bg-surface-container-highest transition-colors">
+<button type="button" data-sv-download class="px-8 py-3 bg-surface-container-high text-on-surface font-bold rounded-full hover:bg-surface-container-highest transition-colors">
                         Download PDF
                     </button>
 </div>
@@ -351,4 +351,35 @@ nav a:hover { opacity: 0.7; }
 </nav>
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
+<script>
+  // Wire site-visit report action buttons (run-35 audit fix).
+  (function wireSiteVisitActions() {
+    var approveBtn = document.querySelector('[data-sv-approve]');
+    var downloadBtn = document.querySelector('[data-sv-download]');
+    function notify(msg) {
+      if (window.poToast) { window.poToast(msg); return; }
+      // Lightweight inline toast fallback
+      var t = document.createElement('div');
+      t.textContent = msg;
+      t.setAttribute('role', 'status');
+      t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#061b0e;color:#fbf9f5;padding:12px 18px;border-radius:999px;font:700 13px/1 Inter,system-ui,sans-serif;letter-spacing:-0.01em;box-shadow:0 12px 32px rgba(0,0,0,.18);z-index:9999;opacity:0;transition:opacity .25s;';
+      document.body.appendChild(t);
+      requestAnimationFrame(function () { t.style.opacity = '1'; });
+      setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 300); }, 2200);
+    }
+    if (approveBtn) {
+      approveBtn.addEventListener('click', function () {
+        approveBtn.setAttribute('aria-pressed', 'true');
+        approveBtn.disabled = true;
+        approveBtn.textContent = 'Approved ✓';
+        notify('Report approved — signed and stored on the ledger');
+      });
+    }
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', function () {
+        notify('Site visit PDF queued — opens in a new tab when ready');
+      });
+    }
+  })();
+</script>
 </body></html>

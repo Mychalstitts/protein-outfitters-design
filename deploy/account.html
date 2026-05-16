@@ -378,7 +378,7 @@
         </div>
         <div class="res-stat">${r.total_estimate ? '$' + Number(r.total_estimate).toFixed(0) : '—'}<span class="sub">${labelStatus(r.status)}</span></div>
         <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-          ${r.farm_slug ? `<a class="res-cta" href="/farm/${r.farm_slug}" style="background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';">↻ Reserve again</a>` : ''}
+          ${r.farm_slug ? `<a class="res-cta" href="/farm/${encodeURIComponent(r.farm_slug)}" style="background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';">↻ Reserve again</a>` : ''}
           <a class="res-cta ghost" href="/finance">Receipt →</a>
         </div>
       </div>`).join('');

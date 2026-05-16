@@ -281,7 +281,7 @@ nav a:hover { opacity: 0.7; }
                 </p>
 <div class="pt-4 flex flex-col items-center gap-1 opacity-40">
 <div class="h-[1px] w-8 bg-white/30 mb-2"></div>
-<span class="text-white text-[9px] font-black tracking-widest uppercase">Minnesota Owned © 2024 Protein Outfitters</span>
+<span class="text-white text-[9px] font-black tracking-widest uppercase">Minnesota Owned © 2026 Protein Outfitters</span>
 </div>
 </div>
 </footer>
@@ -309,16 +309,33 @@ nav a:hover { opacity: 0.7; }
     a.addEventListener('mouseenter', () => { window.__poRoleHint = role; });
     a.addEventListener('focus',      () => { window.__poRoleHint = role; });
   });
-  document.querySelectorAll('[data-sso]').forEach(btn => {
-    btn.addEventListener('click', () => {
+  // SSO buttons currently route to the magic-link email modal — we don't
+  // yet have Apple Sign-In or Google OAuth configured server-side. To avoid
+  // labels lying to users ("Sign in with Apple" should mean Apple), we hide
+  // them and replace with a single honest "Continue with email" CTA. When
+  // real OAuth is wired (api/auth/oauth-callback or similar), this block
+  // can be removed and the original buttons restored.
+  const ssoBtns = document.querySelectorAll('[data-sso]');
+  if (ssoBtns.length) {
+    // Find the container that holds them and replace with one email-CTA.
+    const firstSso = ssoBtns[0];
+    const parent = firstSso.parentNode;
+    const cta = document.createElement('button');
+    cta.type = 'button';
+    cta.className = firstSso.className;
+    cta.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">mail</span> Continue with email';
+    cta.style.cursor = 'pointer';
+    cta.addEventListener('click', () => {
       if (window.PO_API && typeof window.PO_API.openAuth === 'function') {
         window.PO_API.openAuth('Sign in to Protein Outfitters', pickRole());
       } else {
-        // Last-resort fallback if po-api.js failed to load
         window.location.href = '/account';
       }
     });
-  });
+    // Insert the new CTA before the first SSO button, then remove the old ones.
+    parent.insertBefore(cta, firstSso);
+    ssoBtns.forEach(b => b.remove());
+  }
 })();
 </script>
 </body></html>
