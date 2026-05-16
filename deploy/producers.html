@@ -298,7 +298,7 @@
               <p>${loc} · ${f.listings_count || 0} listings</p>
             </div>`;
         return f.slug
-          ? `<a href="/farm/${f.slug}" class="farm-card" data-tags="${tags}">${inner}</a>`
+          ? `<a href="/farm/${encodeURIComponent(f.slug)}" class="farm-card" data-tags="${tags}">${inner}</a>`
           : `<div class="farm-card" data-tags="${tags}" aria-disabled="true">${inner}</div>`;
       }).join('');
     } catch (e) { /* keep static fallback cards */ }

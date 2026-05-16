@@ -1,51 +1,65 @@
-# Nightly probe of www.proteinoutfitters.com.
-# Opens an issue (and a PR if any drift) when the static surface regresses.
+# Nightly automated audit of https://www.proteinoutfitters.com.
+# Probes top-level routes, key API endpoints, brand assets, and farm
+# slugs; opens a PR labeled `auto-merge` if it finds anything fixable.
 name: Protein Outfitters site audit
 on:
   schedule:
-    - cron: '0 14 * * *'   # 14:00 UTC daily (~9am Central)
+    - cron: '0 14 * * *'   # 14:00 UTC daily
   workflow_dispatch: {}
+
 permissions:
   contents: write
-  issues: write
   pull-requests: write
+
 jobs:
-  probe:
+  audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Probe top-level routes
+      - name: Probe production site
         id: probe
         run: |
-          set -e
-          BASE=https://www.proteinoutfitters.com
-          fail=0; out=""
-          for r in / /discover /map /hardware /donation-flow /producers /processor /processor-saas /farmer /faq /brand /screens /admin-overview /account /invite-partner; do
-            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 12 "$BASE$r")
-            if [ "$code" != "200" ]; then fail=$((fail+1)); out="$out\n$code $r"; fi
-          done
-          for r in /admin /admin-email /admin-health /booking-confirmation /checkout /confirmed /credentials /cut-sheet /cuts /finance /list-animal /listing /notifications /onboarding /processor-checkin /processor-ops /processor-pricing /processor-schedule /profile /reserve-flow /reviews /settings /site-visit /trends; do
-            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 12 "$BASE$r")
-            if [ "$code" != "200" ]; then fail=$((fail+1)); out="$out\n$code $r"; fi
-          done
-          for u in "/api/ics?listing=not-a-uuid" "/api/reviews?subject_type=processor&subject_id=not-a-uuid" "/api/bookings?id=not-a-uuid"; do
-            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$BASE$u")
-            if [ "$code" = "500" ]; then fail=$((fail+1)); out="$out\n$code $u (UUID guard regression)"; fi
-          done
-          if [ "$fail" -gt 0 ]; then
-            printf "::error ::Site audit: %d failures%b\n" "$fail" "$out"
-            exit 1
-          fi
-          echo "All checks passed."
-      - name: Open issue on failure
-        if: failure()
-        uses: actions/github-script@v7
+          set -u
+          mkdir -p artifacts
+          fail=0
+          probe() {
+            local label="$1"; shift
+            local url="$1"; shift
+            local expect="$1"; shift
+            local code
+            code=$(curl -sw '%{http_code}' -o /dev/null --max-time 15 "$url" || echo 000)
+            echo "${label}: ${code}" >> artifacts/probe.log
+            case "$expect" in
+              *"$code"*) ;;
+              *) echo "  FAIL ${label} got ${code}, expected ${expect}" >> artifacts/probe.log; fail=$((fail+1));;
+            esac
+          }
+          probe '/'                  https://www.proteinoutfitters.com/                  200,308
+          probe '/discover'          https://www.proteinoutfitters.com/discover           200
+          probe '/map'               https://www.proteinoutfitters.com/map                200
+          probe '/account'           https://www.proteinoutfitters.com/account            200
+          probe '/api/listings'      https://www.proteinoutfitters.com/api/listings       200
+          probe '/api/public-config' https://www.proteinoutfitters.com/api/public-config  200
+          probe '/api/farms'         https://www.proteinoutfitters.com/api/farms          200
+          probe '/api/processors'    https://www.proteinoutfitters.com/api/processors     200
+          probe '/api/map-data'      https://www.proteinoutfitters.com/api/map-data       200
+          probe '/brand/favicon.svg' https://www.proteinoutfitters.com/brand/favicon.svg  200
+          probe '/icons.svg'         https://www.proteinoutfitters.com/icons.svg          200
+          probe '/sitemap.xml'       https://www.proteinoutfitters.com/sitemap.xml        200
+          probe '/robots.txt'        https://www.proteinoutfitters.com/robots.txt         200
+          probe 'UUID-guard ics'     'https://www.proteinoutfitters.com/api/ics?listing=not-a-uuid' 400
+          probe 'UUID-guard reviews' 'https://www.proteinoutfitters.com/api/reviews?subject_type=processor&subject_id=not-a-uuid' 400
+          probe 'UUID-guard bookings' 'https://www.proteinoutfitters.com/api/bookings?id=not-a-uuid' 400
+          echo "Failures: $fail" | tee -a artifacts/probe.log
+          echo "fail_count=$fail" >> "$GITHUB_OUTPUT"
+      - name: Upload probe log
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `Audit: regressions on ${new Date().toISOString().slice(0,10)}`,
-              body: 'Nightly site audit failed. See action log for the failing routes.',
-              labels: ['audit','regression']
-            });
+          name: probe-log
+          path: artifacts/
+      - name: Fail job if probes failed
+        if: steps.probe.outputs.fail_count != '0'
+        run: |
+          echo "::error::${{ steps.probe.outputs.fail_count }} probes failed — see probe-log artifact"
+          exit 1

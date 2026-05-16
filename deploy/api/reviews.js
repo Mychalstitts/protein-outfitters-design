@@ -31,6 +31,8 @@ export default async function handler(req) {
     if (!body.reservation_id || !body.subject_type || !body.subject_id || !body.rating) {
       return err(400, 'reservation_id, subject_type, subject_id, rating required');
     }
+    if (!isUuid(body.reservation_id)) return err(400, 'reservation_id must be a UUID');
+    if (!isUuid(body.subject_id)) return err(400, 'subject_id must be a UUID');
 
     if (!isUuid(body.reservation_id)) return err(400, 'reservation_id must be a UUID');
     if (!isUuid(body.subject_id)) return err(400, 'subject_id must be a UUID');

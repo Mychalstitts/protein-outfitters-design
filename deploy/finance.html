@@ -446,6 +446,7 @@
 </section>
 
 <div id="po-shell-host"></div>
+<script src="./po-api.js"></script>
 <script src="./po-shell.js"></script>
 <script>
 (function () {
@@ -488,11 +489,39 @@
     } catch (e) { /* leave zeros */ }
   })();
 
-  // Transfer button feedback
+  // Transfer to bank — real Stripe Connect payout from the user's available balance.
+  // Replaces the previous fake "✓ Transfer initiated" text-toggle that never moved money.
   const tb = document.getElementById('transferBtn');
-  if (tb) tb.addEventListener('click', () => {
-    tb.querySelector('span').textContent = '✓ Transfer initiated';
-    setTimeout(() => { tb.querySelector('span').textContent = 'Transfer to bank'; }, 1800);
+  if (tb) tb.addEventListener('click', async () => {
+    if (!window.PO_API) { tb.querySelector('span').textContent = 'Loading…'; return; }
+    const span = tb.querySelector('span');
+    const orig = span.textContent;
+    tb.disabled = true;
+    span.textContent = 'Initiating…';
+    try {
+      // Detect which connected account to debit. The "As farmer / As processor"
+      // toggle on this page sets data-role on the active button.
+      const activeRoleBtn = document.querySelector('[data-role-toggle].active') ||
+                            document.querySelector('[data-role-toggle][aria-pressed="true"]');
+      const role = (activeRoleBtn && activeRoleBtn.dataset.role) || 'producer';
+      const result = await window.PO_API.transferToBank(role);
+      const arrive = result?.stripe?.arrival_date
+        ? new Date(result.stripe.arrival_date * 1000).toLocaleDateString('en', { month: 'short', day: 'numeric' })
+        : 'soon';
+      const cents = result?.payout?.amount_cents || 0;
+      const dollars = (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      span.textContent = `✓ ${dollars} en route · arrives ${arrive}`;
+      setTimeout(() => { span.textContent = orig; tb.disabled = false; }, 4200);
+    } catch (e) {
+      tb.disabled = false;
+      if (e && e.status === 401) {
+        span.textContent = 'Sign in to transfer';
+        window.PO_API.openAuth('Sign in to your producer or processor account', 'producer');
+      } else {
+        span.textContent = (e && e.message) ? e.message.slice(0, 60) : 'Transfer failed';
+      }
+      setTimeout(() => { span.textContent = orig; }, 3600);
+    }
   });
 })();
 

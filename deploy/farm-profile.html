@@ -142,9 +142,49 @@
       }).join('');
     }
 
-    // Follow button — local only for now (would persist to DB in a future round)
+    // Follow button — backed by /api/farm-follow (farm_follows table)
     const fb = document.getElementById('fpFollow');
-    fb.addEventListener('click', () => { fb.classList.toggle('followed'); fb.innerHTML = fb.classList.contains('followed') ? '✓ Following' : '+ Follow'; });
+    function paintFollow(state) {
+      fb.classList.toggle('followed', !!state.following);
+      const countSuffix = state.count > 0 ? ` · ${state.count}` : '';
+      fb.innerHTML = (state.following ? '✓ Following' : '+ Follow') + countSuffix;
+      fb.dataset.following = state.following ? '1' : '';
+    }
+    // Initial state — public read, no auth required (returns following=false if signed-out).
+    try {
+      const init = await window.PO_API.farmFollowState(f.id);
+      paintFollow(init);
+    } catch (_) { paintFollow({ following: false, count: 0 }); }
+
+    fb.addEventListener('click', async () => {
+      // Need to be signed in to follow / unfollow
+      try {
+        const me = await window.PO_API.me();
+        if (!me || !me.user) {
+          window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer');
+          return;
+        }
+      } catch (_) {
+        window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer');
+        return;
+      }
+      const wasFollowing = fb.dataset.following === '1';
+      // Optimistic UI
+      fb.disabled = true;
+      paintFollow({ following: !wasFollowing, count: parseInt((fb.textContent.match(/\d+/) || ['0'])[0]) + (wasFollowing ? -1 : 1) });
+      try {
+        const res = wasFollowing
+          ? await window.PO_API.unfollowFarm(f.id)
+          : await window.PO_API.followFarm(f.id);
+        paintFollow(res);
+      } catch (e) {
+        // Roll back on error
+        paintFollow({ following: wasFollowing, count: parseInt((fb.textContent.match(/\d+/) || ['0'])[0]) + (wasFollowing ? 1 : -1) });
+        if (e.status === 401) window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer');
+      } finally {
+        fb.disabled = false;
+      }
+    });
 
     // Share button — Web Share API with copy-to-clipboard fallback
     document.querySelectorAll('.btn-share').forEach(sb => sb.addEventListener('click', async () => {

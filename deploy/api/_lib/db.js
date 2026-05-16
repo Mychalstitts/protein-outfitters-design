@@ -15,6 +15,15 @@ export async function rawQuery(text, params = []) {
   return r.rows;
 }
 
+// ─── UUID validator ────────────────────────────────────────
+// Used at the edge of handlers that take a UUID query/body param,
+// so a non-UUID value produces a clean 400 instead of a Postgres
+// "invalid input syntax for type uuid" 500.
+const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+export function isUuid(s) {
+  return typeof s === 'string' && UUID_RE.test(s);
+}
+
 // ─── JSON response helper ──────────────────────────────────
 export function json(data, init = {}) {
   return new Response(JSON.stringify(data), {

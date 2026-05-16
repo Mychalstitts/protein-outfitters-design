@@ -53,6 +53,8 @@ export default async function handler(req) {
   if (reservationId && !isUuid(reservationId)) return err(400, 'reservation must be a UUID');
   if (listingId && !isUuid(listingId)) return err(400, 'listing must be a UUID');
 
+  if (reservationId && !isUuid(reservationId)) return err(400, 'reservation must be a UUID');
+  if (listingId && !isUuid(listingId)) return err(400, 'listing must be a UUID');
   let events = [];
   let filename = 'protein-outfitters.ics';
 

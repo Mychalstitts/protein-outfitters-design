@@ -10,23 +10,34 @@
 //
 // Vercel hands us the raw body via req.text() — Stripe needs the raw bytes
 // to verify the signature, so we cannot run on edge runtime.
+//
+// NOTE on the config below: we previously set `api: { bodyParser: false }`
+// here, which is a Pages Router legacy hint that forced Vercel to deliver
+// req as a Node IncomingMessage (where req.headers is a plain object and
+// req.text doesn't exist). That broke this Web Standards handler with
+// `TypeError: req.headers.get is not a function`. With the hint omitted,
+// Vercel sees the single-arg handler returning Response and gives us a
+// Web Request — req.headers.get('stripe-signature') and req.text() both
+// work, and req.text() yields the raw body bytes Stripe needs to verify
+// the signature.
 import Stripe from 'stripe';
 import { sql } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
+
 export default async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   if (!process.env.STRIPE_SECRET_KEY) return new Response('Stripe not configured', { status: 500 });
   if (!process.env.STRIPE_WEBHOOK_SECRET) return new Response('Webhook secret missing', { status: 500 });
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
   const sig = req.headers.get('stripe-signature');
   const rawBody = await req.text();
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = await stripe.webhooks.constructEventAsync(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET, undefined, Stripe.createSubtleCryptoProvider());
   } catch (e) {
     return new Response(`Webhook signature mismatch: ${e.message}`, { status: 400 });
   }
