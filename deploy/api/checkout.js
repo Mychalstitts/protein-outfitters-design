@@ -227,53 +227,76 @@ export default async function handler(req) {
     }
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    payment_method_types: ['card'],
-    customer_email: buyer_email,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: 'usd',
-          unit_amount: finalDepositCents,
-          product: PRICING.DEPOSIT_PRODUCT_ID,
+  // Wrap the Stripe call so any failure (invalid price ID, network blip,
+  // signature mismatch) rolls back the share decrement and the pending
+  // reservation row. Otherwise the buyer is stuck behind a phantom share
+  // they'll never pay for. (Fix for the inventory-leak class of bugs.)
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      customer_email: buyer_email,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'usd',
+            unit_amount: finalDepositCents,
+            product: PRICING.DEPOSIT_PRODUCT_ID,
+          },
         },
-      },
-      { quantity: 1, price: PRICING.PROCESSING_PRICE_ID },
-      { quantity: 1, price: PRICING.INSURANCE_PRICE_ID },
-    ],
-    metadata: {
-      reservation_id: reservationId,
-      listing_id,
-      share_size,
-      farm_slug: listing.farm_slug,
-      farm_name: listing.farm_name,
-      animal_number: listing.number || '',
-      meat_estimate_cents: String(meatEstimateCents),
-      hanging_weight_lbs: String(hangingWeight),
-      buyer_user_id: buyerId || '',
-      referral_credit_cents: String(appliedCreditCents),
-    },
-    payment_intent_data: {
-      description: `${shareLabel} · ${animalLabel} (deposit + processing + insurance)`,
+        { quantity: 1, price: PRICING.PROCESSING_PRICE_ID },
+        { quantity: 1, price: PRICING.INSURANCE_PRICE_ID },
+      ],
       metadata: {
         reservation_id: reservationId,
         listing_id,
         share_size,
-        farm_stripe_account_id: listing.farm_stripe_account_id || '',
-        processor_stripe_account_id: processorStripeAccount || '',
+        farm_slug: listing.farm_slug,
+        farm_name: listing.farm_name,
+        animal_number: listing.number || '',
+        meat_estimate_cents: String(meatEstimateCents),
+        hanging_weight_lbs: String(hangingWeight),
+        buyer_user_id: buyerId || '',
+        referral_credit_cents: String(appliedCreditCents),
       },
-      statement_descriptor_suffix: 'PO RESERVE',
-      // transfer_group lets us issue Stripe Transfers from the platform balance
-      // to the farmer's and processor's connected accounts after payment settles.
-      // Webhook-driven payout logic should: total amount → farmer share + processor share + platform retain.
-      transfer_group: transferGroup,
-    },
-    success_url: `${origin}/confirmed?session_id={CHECKOUT_SESSION_ID}&reservation=${reservationId}`,
-    cancel_url: `${origin}/listing?id=${listing_id}&cancelled=1`,
-    automatic_tax: { enabled: false },
-  });
+      payment_intent_data: {
+        description: `${shareLabel} · ${animalLabel} (deposit + processing + insurance)`,
+        metadata: {
+          reservation_id: reservationId,
+          listing_id,
+          share_size,
+          farm_stripe_account_id: listing.farm_stripe_account_id || '',
+          processor_stripe_account_id: processorStripeAccount || '',
+        },
+        statement_descriptor_suffix: 'PO RESERVE',
+        // transfer_group lets us issue Stripe Transfers from the platform balance
+        // to the farmer's and processor's connected accounts after payment settles.
+        // Webhook-driven payout logic should: total amount → farmer share + processor share + platform retain.
+        transfer_group: transferGroup,
+      },
+      success_url: `${origin}/confirmed?session_id={CHECKOUT_SESSION_ID}&reservation=${reservationId}`,
+      cancel_url: `${origin}/listing?id=${listing_id}&cancelled=1`,
+      automatic_tax: { enabled: false },
+    });
+  } catch (stripeErr) {
+    // Roll back: restore the share + drop the pending reservation row. Done
+    // with best-effort try/catches so a rollback miss doesn't mask the real
+    // Stripe error from the response.
+    try {
+      const rollbackShares = JSON.parse(JSON.stringify(newShares));
+      rollbackShares[share_size].available = (rollbackShares[share_size].available || 0) + 1;
+      rollbackShares[share_size].reserved  = Math.max(0, (rollbackShares[share_size].reserved || 0) - 1);
+      await sql`UPDATE listings SET shares = ${rollbackShares}, updated_at = NOW() WHERE id = ${listing_id}`;
+    } catch (rbErr) { console.error('[checkout] inventory rollback failed:', rbErr?.message); }
+    try {
+      await sql`DELETE FROM reservations WHERE id = ${reservationId}`;
+    } catch (rbErr) { console.error('[checkout] reservation rollback failed:', rbErr?.message); }
+    const msg = stripeErr?.message || 'Stripe checkout creation failed';
+    console.error('[checkout] Stripe error, rolled back:', msg);
+    return err(502, msg);
+  }
 
   return json({ url: session.url, reservation_id: reservationId, session_id: session.id });
 }
