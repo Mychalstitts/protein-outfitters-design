@@ -8,11 +8,13 @@
 //
 // Webhook `/api/stripe-webhook` flips the reservation to `deposit-paid` once
 // the buyer completes payment.
-import Stripe from 'stripe';
+// Stripe is loaded lazily inside the handler (same pattern as donate-to-fund.js) —
+// top-level `import Stripe from 'stripe'` bloats the edge bundle.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-// Stripe SDK uses Node Buffer/crypto — must run on Node runtime, not edge.
-export const config = { runtime: 'nodejs' };
+// Edge runtime — avoids the 10-12s nodejs cold-start cap that was hanging
+// customer checkouts. Stripe SDK 17.4+ supports edge via createFetchHttpClient().
+export const config = { runtime: 'edge' };
 
 // Price/product IDs come from env vars. Defaults are LIVE — set test-mode IDs
 // in Vercel Preview/Development env to test with sk_test keys.
@@ -200,7 +202,8 @@ export default async function handler(req) {
   }
 
   // 2. Create Stripe Checkout Session
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const { default: Stripe } = await import('stripe');
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
   const origin = req.headers.get('origin') || 'https://www.proteinoutfitters.com';
   const shareLabel = share_size === 'whole' ? 'Whole animal' : share_size === 'half' ? 'Half share' : share_size === 'quarter' ? 'Quarter share' : 'Eighth share';
   const animalLabel = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species} · ${listing.farm_name}`;
