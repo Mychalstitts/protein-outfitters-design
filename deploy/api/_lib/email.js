@@ -516,7 +516,7 @@ async function writeInAppNotification(templateId, ctx, subject, dedupKey) {
   const title = ctx.notifyTitle || subject || templateId;
   const body  = ctx.notifyBody  || null;
   const notifKey = `notif::${dedupKey}`;
-  await sql`
+  const inserted = await sql`
     INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
     VALUES (
       ${String(ctx.to).toLowerCase()},
@@ -527,7 +527,18 @@ async function writeInAppNotification(templateId, ctx, subject, dedupKey) {
       ${icon},
       ${notifKey}
     )
-    ON CONFLICT (dedup_key) DO NOTHING`;
+    ON CONFLICT (dedup_key) DO NOTHING
+    RETURNING id`;
+  // Fire a web push to the user's registered devices — only if this row was
+  // a fresh INSERT (RETURNING id is empty on ON CONFLICT NO OP), so the same
+  // dedup key can't double-buzz a phone. Lazy import keeps the push helper
+  // out of edge bundles that don't actually send pushes.
+  if (inserted[0]?.id) {
+    try {
+      const { sendPushTo } = await import('./push.js');
+      await sendPushTo({ email: ctx.to });
+    } catch (e) { /* swallow — push is opportunistic, never blocks email */ }
+  }
 }
 
 // Convenience: list available templates (used by /api/email-tick to log support).

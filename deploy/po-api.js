@@ -79,7 +79,40 @@
     },
     notificationsUnreadCount: () => jsonFetch('/api/notifications?count=1'),
     markNotificationRead: (id) => jsonFetch('/api/notifications?id=' + encodeURIComponent(id), { method: 'PATCH' }),
-    markAllNotificationsRead: () => jsonFetch('/api/notifications?all=1', { method: 'PATCH' })
+    markAllNotificationsRead: () => jsonFetch('/api/notifications?all=1', { method: 'PATCH' }),
+
+    // ─ Push notifications ─
+    // Idempotent: re-running on an already-subscribed device upserts at the
+    // server. Returns { ok, attached_user } on success, or { ok: false, reason }
+    // when the browser refused permission or VAPID isn't configured.
+    enablePushNotifications: async () => {
+      if (typeof window === 'undefined') return { ok: false, reason: 'no-window' };
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return { ok: false, reason: 'unsupported' };
+      }
+      try {
+        const cfg = await fetch('/api/push-subscribe').then(r => r.json());
+        if (!cfg.vapid_public_key) return { ok: false, reason: 'vapid-not-configured' };
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') return { ok: false, reason: 'permission-denied' };
+        const reg = await navigator.serviceWorker.ready;
+        // Existing sub? Reuse so we don't rotate keys on every call.
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          // PushManager wants the public key as a Uint8Array, not base64url.
+          const raw = cfg.vapid_public_key.replace(/-/g, '+').replace(/_/g, '/');
+          const pad = (4 - (raw.length % 4)) % 4;
+          const bin = atob(raw + '='.repeat(pad));
+          const u8 = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+          sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8 });
+        }
+        const r = await jsonFetch('/api/push-subscribe', { method: 'POST', body: sub.toJSON() });
+        return { ok: true, ...r };
+      } catch (e) {
+        return { ok: false, reason: e.message || 'subscribe-failed' };
+      }
+    },
   };
 
   window.PO_API = api;

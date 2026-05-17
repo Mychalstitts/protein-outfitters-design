@@ -424,7 +424,7 @@ export default async function handler(req) {
           try {
             const u = await sql`SELECT email FROM users WHERE id = ${mapUserId}`;
             if (u[0]?.email) {
-              await sql`
+              const ins = await sql`
                 INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
                 VALUES (
                   ${String(u[0].email).toLowerCase()},
@@ -437,7 +437,11 @@ export default async function handler(req) {
                   ${isCanceled ? 'alert' : 'check'},
                   ${'notif::map_tier::' + sub.id + '::' + event.type}
                 )
-                ON CONFLICT (dedup_key) DO NOTHING`;
+                ON CONFLICT (dedup_key) DO NOTHING
+                RETURNING id`;
+              if (ins[0]?.id) {
+                try { const { sendPushTo } = await import('./_lib/push.js'); await sendPushTo({ email: u[0].email }); } catch {}
+              }
             }
           } catch (e) { console.error('map-tier notif failed:', e.message); }
 
@@ -510,7 +514,7 @@ export default async function handler(req) {
               await sql`UPDATE users SET map_tier_period_end = ${newEnd} WHERE id = ${mapUser[0].id}`;
             }
             if (mapUser[0].email) {
-              await sql`
+              const ins2 = await sql`
                 INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
                 VALUES (
                   ${String(mapUser[0].email).toLowerCase()},
@@ -521,7 +525,11 @@ export default async function handler(req) {
                   'receipt',
                   ${'notif::map_renew::' + invoice.id}
                 )
-                ON CONFLICT (dedup_key) DO NOTHING`;
+                ON CONFLICT (dedup_key) DO NOTHING
+                RETURNING id`;
+              if (ins2[0]?.id) {
+                try { const { sendPushTo } = await import('./_lib/push.js'); await sendPushTo({ email: mapUser[0].email }); } catch {}
+              }
             }
             console.log(`Map tier invoice.paid: user=${mapUser[0].id} period_end=${newEnd}`);
             // Don't break here — also fall through in case it's a multi-product invoice
@@ -548,7 +556,7 @@ export default async function handler(req) {
             if (to) {
               // Direct insert — there is no email template for this yet, the
               // notification is the user-facing artifact.
-              await sql`
+              const ins3 = await sql`
                 INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
                 VALUES (
                   ${String(to).toLowerCase()},
@@ -559,7 +567,11 @@ export default async function handler(req) {
                   'receipt',
                   ${'notif::invoice_paid::' + invoice.id}
                 )
-                ON CONFLICT (dedup_key) DO NOTHING`;
+                ON CONFLICT (dedup_key) DO NOTHING
+                RETURNING id`;
+              if (ins3[0]?.id) {
+                try { const { sendPushTo } = await import('./_lib/push.js'); await sendPushTo({ email: to }); } catch {}
+              }
             }
           }
         } catch (e) { console.error('invoice.paid notif failed:', e.message); }

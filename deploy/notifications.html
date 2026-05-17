@@ -87,6 +87,13 @@
         <button data-filter="unread" type="button">Unread</button>
       </div>
 
+      <div id="pushBanner" hidden style="margin:14px 0;padding:14px 18px;background:rgba(125,160,93,0.12);border:1px solid rgba(125,160,93,0.35);border-radius:14px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;">
+        <div style="font:600 13px/1.45 'Inter';color:var(--ink,#061b0e);max-width:520px;">
+          <strong style="font-weight:800;">Get notifications on this device</strong> — pickup ready, drop-off reminders, refunds. We'll never spam.
+        </div>
+        <button id="enablePushBtn" type="button" style="font:700 12.5px/1 'Inter';padding:9px 16px;background:var(--ink,#061b0e);color:#fbf9f5;border-radius:999px;border:0;cursor:pointer;letter-spacing:.03em;">Turn on →</button>
+      </div>
+
       <div class="notif-card">
         <div id="notifList">
           <div class="notif-empty"><p>Loading…</p></div>
@@ -202,6 +209,43 @@
     load();
   });
   document.getElementById('refreshBtn').addEventListener('click', load);
+
+  // Show the "Turn on push" banner only when supported + not yet granted.
+  // We don't auto-prompt — the user has to tap the button so the browser
+  // permission request is anchored to a real interaction.
+  (function showPushBannerIfApplicable() {
+    const banner = document.getElementById('pushBanner');
+    if (!banner) return;
+    if (typeof Notification === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (Notification.permission === 'granted' || Notification.permission === 'denied') return;
+    banner.hidden = false;
+  })();
+  const enableBtn = document.getElementById('enablePushBtn');
+  if (enableBtn) {
+    enableBtn.addEventListener('click', async () => {
+      enableBtn.disabled = true;
+      enableBtn.textContent = 'Asking…';
+      const out = window.PO_API && window.PO_API.enablePushNotifications
+        ? await window.PO_API.enablePushNotifications()
+        : { ok: false, reason: 'api-not-ready' };
+      if (out.ok) {
+        enableBtn.textContent = '✓ On';
+        setTimeout(() => { document.getElementById('pushBanner').hidden = true; }, 1200);
+      } else {
+        enableBtn.disabled = false;
+        enableBtn.textContent = 'Turn on →';
+        const reason = out.reason || 'unknown';
+        const msg = reason === 'permission-denied'
+          ? 'You blocked notifications. Re-enable in your browser settings if you change your mind.'
+          : reason === 'vapid-not-configured'
+            ? 'Push notifications aren\'t enabled yet on the server side.'
+            : reason === 'unsupported'
+              ? 'This browser doesn\'t support push notifications.'
+              : 'Couldn\'t turn on push: ' + reason;
+        alert(msg);
+      }
+    });
+  }
 
   checkAuth();
 })();
