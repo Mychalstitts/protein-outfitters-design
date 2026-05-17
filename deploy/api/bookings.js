@@ -249,6 +249,35 @@ export default async function handler(req) {
       await sql`UPDATE bookings SET notes = ${String(body.notes || '').slice(0, 5000)}, updated_at = NOW() WHERE id = ${id}`;
     }
 
+    // D1 — fire tax-letter-ready email when a donated animal's booking
+    // transitions to ready. That's when hanging weight is final and the
+    // PDF at /api/pdf/tax-letter has real data the donor can hand to a CPA.
+    if (body.status === 'ready') {
+      try {
+        const donation = await sql`
+          SELECT d.id AS donation_id, d.estimated_lb, d.fmv,
+                 u.email AS donor_email, u.name AS donor_name,
+                 l.number AS animal_number, l.breed, l.species
+          FROM donations d
+          JOIN listings l ON l.id = d.listing_id
+          JOIN users u ON u.id = d.donor_id
+          WHERE d.listing_id = ${booking.listing_id} LIMIT 1`;
+        if (donation[0]?.donor_email) {
+          const d = donation[0];
+          const { sendLifecycleEmail } = await import('./_lib/email.js');
+          await sendLifecycleEmail('D1.tax_letter_ready', {
+            to: d.donor_email,
+            donor_name: d.donor_name,
+            animal_label: `${d.animal_number ? d.animal_number + ' · ' : ''}${d.breed || d.species || 'donated animal'}`,
+            fmv: d.fmv,
+            hanging_weight: body.hanging_weight_lbs || null,
+            donation_id: d.donation_id,
+            dedupKey: `D1::${d.donation_id}::ready`,
+          });
+        }
+      } catch (e) { console.error('D1 send failed:', e.message); }
+    }
+
     const fresh = await sql`SELECT * FROM bookings WHERE id = ${id} LIMIT 1`;
     return json({ booking: fresh[0] });
   }
