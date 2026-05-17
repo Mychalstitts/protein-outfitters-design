@@ -19,6 +19,14 @@
 import { sql, currentUser, err } from '../_lib/db.js';
 import { pdfResponse, header, footer, paragraph, fieldGrid, BRAND } from '../_lib/pdf.js';
 
+// ⚠ KNOWN ISSUE (2026-05-17): nodejs functions hang past 14s when invoked
+// via the www.proteinoutfitters.com production alias. Edge endpoints work
+// fine; nodejs endpoints respond fast on the preview URL of the same
+// deployment. This is a project-level routing/config issue on Vercel that
+// needs admin investigation — possibly DATABASE_URL not exposed to nodejs
+// functions on the production domain, or a stale function deployment.
+// /api/pdf/* will fail (504) on www.proteinoutfitters.com until that's
+// fixed; pdfkit can't move to edge (needs Buffer + streams + fs for fonts).
 export const config = { runtime: 'nodejs' };
 
 const CHARITY = {
