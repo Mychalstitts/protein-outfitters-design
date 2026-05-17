@@ -19,10 +19,17 @@ import { sql, currentUser, err, json } from './_lib/db.js';
 export const config = { runtime: 'edge' };
 
 export default async function handler(req) {
-  const user = await currentUser(req);
-  if (!user || user.role !== 'admin') return err(403, 'Admin only');
-
   const url = new URL(req.url);
+
+  // Auth: either an admin browser session OR ?secret=$MIGRATE_SECRET (lets
+  // an operator run this from a script without holding an admin cookie).
+  const secret = url.searchParams.get('secret');
+  const secretOk = !!(process.env.MIGRATE_SECRET && secret && secret === process.env.MIGRATE_SECRET);
+  if (!secretOk) {
+    const user = await currentUser(req);
+    if (!user || user.role !== 'admin') return err(403, 'Admin or ?secret=$MIGRATE_SECRET required');
+  }
+
   const olderMin = Math.max(1, parseInt(url.searchParams.get('older_than_minutes') || '5', 10));
 
   // Find leaked rows: pending status, no Stripe PI, older than cutoff.
