@@ -88,11 +88,7 @@
   <div class="sheet-body">
     <div class="sheet-context"><div class="sheet-context-img" id="sheetContextImg"></div><div class="sheet-context-text"><p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p><p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p></div></div>
     <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><div class="options" id="shareOptions"></div></section>
-    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Where will you pick up?</h3><div class="options">
-      <button class="option" data-processor="04"><span class="option-glyph">04</span><span class="option-text"><span class="option-title">Plant 04 · Bemidji, MN</span><span class="option-sub">12 mi · Suggested · Pickup window: 8 AM – 5 PM</span></span><span class="option-price">Free</span></button>
-      <button class="option" data-processor="17"><span class="option-glyph">17</span><span class="option-text"><span class="option-title">Plant 17 · Cass Lake, MN</span><span class="option-sub">38 mi · Pickup window: 7 AM – 4 PM</span></span><span class="option-price">Free</span></button>
-      <button class="option" data-processor="22"><span class="option-glyph">22</span><span class="option-text"><span class="option-title">Plant 22 · Brainerd, MN</span><span class="option-sub">62 mi · Pickup window: 8 AM – 6 PM</span></span><span class="option-price">Free</span></button>
-    </div></section>
+    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Where will you pick up?</h3><div class="options" id="processorOptions"><div style="padding:14px;font:500 13px/1.4 var(--ff-sans);opacity:.6;">Loading processors…</div></div></section>
     <section class="sheet-step" data-step="3" hidden><h3 class="sheet-q">Reserve it.</h3>
       <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Pay your deposit + fees today. Meat is settled at pickup based on actual hanging weight.</p>
       <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18.00</span></div><div class="summary-row total"><span>Reserve today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
@@ -270,12 +266,45 @@
       }));
     }
 
-    sheet.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(btn => btn.addEventListener('click', () => {
-      sheet.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      state.processor = btn.dataset.processor;
-      nextBtn.disabled = false;
-    }));
+    // Step 2 processor list — populated dynamically from /api/processors.
+    // Cached in module scope so reopening the sheet doesn't refetch.
+    let _processorsCache = null;
+    async function loadProcessors() {
+      if (_processorsCache) return _processorsCache;
+      try {
+        const r = await fetch('/api/processors');
+        const data = await r.json().catch(() => ({}));
+        _processorsCache = Array.isArray(data.processors) ? data.processors
+                          : Array.isArray(data) ? data : [];
+      } catch { _processorsCache = []; }
+      return _processorsCache;
+    }
+    async function renderProcessorOptions() {
+      const wrap = document.getElementById('processorOptions');
+      if (!wrap) return;
+      const list = await loadProcessors();
+      if (!list.length) {
+        wrap.innerHTML = '<div style="padding:14px;font:500 13px/1.4 var(--ff-sans);opacity:.7;">No processors available yet. Continue and we\'ll assign one for you.</div>';
+        // Allow proceeding without a processor — server treats null as "TBD".
+        state.processor = null;
+        nextBtn.disabled = false;
+        return;
+      }
+      wrap.innerHTML = list.slice(0, 8).map(p => {
+        const loc = [p.city, p.state].filter(Boolean).join(', ');
+        const glyph = (p.slug || p.name || '?').toString().slice(0, 2).toUpperCase();
+        const title = (p.name || 'Processor').replace(/</g,'&lt;');
+        const sub = loc ? `${loc}` : (p.slug || 'Pickup details at scheduling');
+        return `<button class="option" data-processor="${p.id}" data-processor-slug="${(p.slug||'').replace(/"/g,'&quot;')}"><span class="option-glyph">${glyph}</span><span class="option-text"><span class="option-title">${title}</span><span class="option-sub">${sub}</span></span><span class="option-price">Free</span></button>`;
+      }).join('');
+      wrap.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
+        wrap.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        // data-processor is now a real UUID, not a demo slug.
+        state.processor = btn.dataset.processor;
+        nextBtn.disabled = false;
+      }));
+    }
 
     function setStep(n) {
       state.step = n;
@@ -318,8 +347,8 @@
       ctxSub.textContent = a.producer;
       state.share = null; state.processor = null;
       shareWrap.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
-      sheet.querySelectorAll('.sheet-step[data-step="2"] .option').forEach(b => b.classList.remove('selected'));
       buildShareOptions();
+      renderProcessorOptions(); // async; fills step-2 from /api/processors
       setStep(1);
       backdrop.classList.add('open');
       sheet.classList.add('open');
@@ -412,8 +441,10 @@
               share_size,
               buyer_email: email,
               buyer_name: name,
-              processor_id: null, // future: real processor UUID
-              notes: state.processor ? ('Processor: ' + state.processor) : null
+              // state.processor is now a real UUID (or null if the producer
+              // didn't pick one / no processors are configured yet).
+              processor_id: state.processor || null,
+              notes: null
             })
           });
           const data = await r.json().catch(() => ({}));

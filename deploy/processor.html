@@ -307,6 +307,27 @@
 <script src="./po-shell.js"></script>
 <script src="./po-api.js"></script>
 <script>
+// Same Stripe Connect onboarding kickoff as farmer.html — POSTs to
+// /api/connect-onboarding and redirects to the Stripe-hosted onboarding URL.
+window.poStartConnect = async function(kind, id) {
+  if (!id) { alert('No plant selected.'); return; }
+  try {
+    const r = await fetch('/api/connect-onboarding', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind, id }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.url) {
+      alert('Could not start Stripe onboarding: ' + (data.error || ('HTTP ' + r.status)));
+      return;
+    }
+    window.location.href = data.url;
+  } catch (e) {
+    alert('Network error: ' + e.message);
+  }
+};
 (async () => {
   let me;
   try { me = await window.PO_API.me(); } catch { me = { user: null }; }
@@ -356,6 +377,23 @@
     document.getElementById('prStatCapacity').textContent = '—';
     document.getElementById('prStatRevenue').textContent = '—';
     if (sub) sub.textContent = `${plant.name} is connected. Once buyers pick you at checkout, drop-offs land here.`;
+
+    // ─── Stripe Connect onboarding nudge ──────────────────────
+    // Until the processor connects a Stripe account, payouts settle to the
+    // platform balance and we can't disburse the processor share. Show a
+    // single, dismissable prompt next to the greeting if not yet onboarded.
+    if (!plant.stripe_account_id) {
+      const nudge = document.createElement('div');
+      nudge.style.cssText = 'margin-top:14px;padding:14px 18px;background:rgba(213,156,31,0.12);border:1px solid rgba(213,156,31,0.35);border-radius:14px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;';
+      nudge.innerHTML = `<div style="font:600 13px/1.45 'Inter';color:var(--ink,#061b0e);max-width:520px;">
+        <strong style="font-weight:800;">Connect Stripe payouts</strong> — until your account is connected, processor fees settle to the platform balance instead of your bank.
+      </div>
+      <button id="prConnectBtn" style="font:700 12.5px/1 'Inter';padding:9px 16px;background:var(--ink,#061b0e);color:#fbf9f5;border-radius:999px;border:0;cursor:pointer;letter-spacing:.03em;">Connect Stripe →</button>`;
+      const greetHost = sub && sub.parentElement;
+      if (greetHost) greetHost.appendChild(nudge);
+      const btn = document.getElementById('prConnectBtn');
+      if (btn) btn.addEventListener('click', () => window.poStartConnect && window.poStartConnect('processor', plant.id));
+    }
 
     // ─── Real bookings queue ───────────────────────────────────
     try {

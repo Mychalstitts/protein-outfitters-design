@@ -66,25 +66,25 @@
     <div class="confirmed-hero">
       <div class="confirmed-mark">✓</div>
       <h1 class="confirmed-h1">Reserved.</h1>
-      <p class="confirmed-sub">We just held a quarter share of #2641 for you. Your receipt is on the way to your inbox, and your cut sheet builder is one tap away.</p>
+      <p class="confirmed-sub" id="confirmedSub">Your reservation is confirmed. Your receipt is on the way to your inbox, and your cut sheet builder is one tap away.</p>
     </div>
 
     <div class="summary-card">
       <div class="summary-head">
         <div>
           <p class="res-id">Reservation ID</p>
-          <p class="res-num">#PO-12048</p>
+          <p class="res-num" id="resNum">—</p>
         </div>
         <div>
           <p class="total-label">Total</p>
-          <p class="total-num">$1,638.00</p>
+          <p class="total-num" id="resTotal">—</p>
         </div>
       </div>
       <div class="product-block">
         <div class="product-block-img"></div>
         <div>
-          <h4>#2641 · Black Angus steer</h4>
-          <p>Quarter share · Northfield Pastures · Plant 04 (Bemidji, MN)<br>Drop-off May 28 · Estimated pickup week of June 11</p>
+          <h4 id="resAnimal">Loading reservation…</h4>
+          <p id="resMeta">We're pulling your details — one moment.</p>
         </div>
       </div>
     </div>
@@ -122,5 +122,50 @@
 
 <div id="po-shell-host"></div>
 <script src="./po-shell.js"></script>
+<script>
+  // Hydrate from ?reservation=<uuid> set in Stripe's success_url.
+  // Falls back to a generic confirmation if the lookup fails (logged in?
+  // user closed Stripe-hosted page early?) — we never block the user here.
+  (async function hydrateConfirmation() {
+    const params = new URLSearchParams(location.search);
+    const reservationId = params.get('reservation');
+    if (!reservationId) return; // No id → leave the generic placeholders.
+    try {
+      const r = await fetch('/api/reservations?id=' + encodeURIComponent(reservationId), { credentials: 'include' });
+      if (!r.ok) return;
+      const { reservation } = await r.json();
+      if (!reservation) return;
+      const fraction = reservation.share_size === 'whole' ? 'Whole animal'
+        : reservation.share_size === 'half' ? 'Half share'
+        : reservation.share_size === 'quarter' ? 'Quarter share'
+        : reservation.share_size === 'eighth' ? 'Eighth share' : 'Share';
+      const animalLabel = `${reservation.number ? '#' + reservation.number + ' · ' : ''}${reservation.breed || reservation.species || 'Animal'}`;
+      const total = reservation.total_estimate != null
+        ? '$' + Number(reservation.total_estimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : '—';
+      const procLine = reservation.processor_name
+        ? ` · ${reservation.processor_name}${reservation.processor_city ? ' (' + reservation.processor_city + ', ' + reservation.processor_state + ')' : ''}`
+        : '';
+      const dropoff = reservation.expected_finish_date
+        ? new Date(reservation.expected_finish_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+        : null;
+      const resNum = document.getElementById('resNum');
+      const resTotal = document.getElementById('resTotal');
+      const resAnimal = document.getElementById('resAnimal');
+      const resMeta = document.getElementById('resMeta');
+      const confirmedSub = document.getElementById('confirmedSub');
+      if (resNum) resNum.textContent = '#' + String(reservation.id).slice(0, 8).toUpperCase();
+      if (resTotal) resTotal.textContent = total;
+      if (resAnimal) resAnimal.textContent = animalLabel;
+      if (resMeta) {
+        resMeta.textContent = `${fraction} · ${reservation.farm_name || 'Farm'}${procLine}` +
+          (dropoff ? ` · Drop-off ${dropoff}` : '');
+      }
+      if (confirmedSub) {
+        confirmedSub.textContent = `We just held a ${fraction.toLowerCase()} of ${animalLabel} for you. Your receipt is on the way, and your cut sheet builder is one tap away.`;
+      }
+    } catch { /* network/auth error — leave placeholders */ }
+  })();
+</script>
 </body>
 </html>

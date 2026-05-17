@@ -14,7 +14,7 @@
 //     - 'ready'      fires C18.ready_for_pickup to buyer (dedupKey C18::<reservation_id>)
 //     - 'picked-up'  fires C19.delivered_complaint_window to buyer (dedupKey C19::<reservation_id>)
 //     - Both are idempotent on the email side via email_log.dedup_key.
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, isUuid } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'edge' };
@@ -51,6 +51,27 @@ export default async function handler(req) {
   if (req.method === 'GET') {
     const user = await currentUser(req);
     if (!user) return err(401, 'Sign in required');
+    // GET-by-id: /confirmed and /account hydrate from this. Scoped to the
+    // signed-in user (or admin) — never expose another buyer's reservation.
+    const url = new URL(req.url, 'https://www.proteinoutfitters.com');
+    const id = url.searchParams.get('id');
+    if (id) {
+      if (!isUuid(id)) return err(400, 'id must be a UUID');
+      const r = await sql`
+        SELECT r.*, l.species, l.breed, l.number, l.photos, l.expected_finish_date,
+               f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state,
+               p.slug as processor_slug, p.name as processor_name, p.city as processor_city, p.state as processor_state
+        FROM reservations r
+        JOIN listings l ON l.id = r.listing_id
+        JOIN farms f ON f.id = l.farm_id
+        LEFT JOIN processors p ON p.id = r.processor_id
+        WHERE r.id = ${id} LIMIT 1`;
+      if (!r[0]) return err(404, 'Reservation not found');
+      const row = r[0];
+      const owns = row.buyer_id === user.id || (row.buyer_email && row.buyer_email === user.email);
+      if (!owns && user.role !== 'admin') return err(403, 'Not yours');
+      return json({ reservation: row });
+    }
     const rows = await sql`
       SELECT r.*, l.species, l.breed, l.number, l.photos, l.expected_finish_date,
              f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state

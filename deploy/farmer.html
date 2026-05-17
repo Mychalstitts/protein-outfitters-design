@@ -316,6 +316,29 @@
 <script src="./po-shell.js"></script>
 <script src="./po-api.js"></script>
 <script>
+// Kick off Stripe Connect Express onboarding for the signed-in farmer's farm.
+// Called from the "Connect Stripe payouts" checklist item. Redirects to the
+// Stripe-hosted onboarding URL on success; bounces the user back to /account
+// when complete (return_url is configured server-side).
+window.poStartConnect = async function(kind, id) {
+  if (!id) { alert('No farm selected — create a farm first.'); return; }
+  try {
+    const r = await fetch('/api/connect-onboarding', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind, id }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.url) {
+      alert('Could not start Stripe onboarding: ' + (data.error || ('HTTP ' + r.status)));
+      return;
+    }
+    window.location.href = data.url;
+  } catch (e) {
+    alert('Network error: ' + e.message);
+  }
+};
 (async () => {
   const grid = document.getElementById('fmListingsGrid');
   const addLink = grid.querySelector('.fm-add-listing');
@@ -409,7 +432,7 @@
       { label: 'List at least one animal', done: allListings.length > 0,              link: '/list-animal',   weight: 25, ifMissing: 'No listings = no reservations' },
       { label: 'Add certifications',       done: (primaryFarm.certs || []).length > 0, link: '/credentials',   weight: 10, ifMissing: 'USDA Organic, Animal Welfare, etc.' },
       { label: 'Add production practices', done: (primaryFarm.practices || []).length > 0, link: '/credentials', weight: 10, ifMissing: 'Grass-fed, regenerative, heritage breeds' },
-      { label: 'Connect Stripe payouts',   done: !!primaryFarm.stripe_account_id,     link: '/account',       weight: 15, ifMissing: 'Get paid directly when buyers reserve' },
+      { label: 'Connect Stripe payouts',   done: !!primaryFarm.stripe_account_id,     link: `javascript:window.poStartConnect('farm','${primaryFarm.id}')`, weight: 15, ifMissing: 'Get paid directly when buyers reserve' },
     ];
     const earned = checks.reduce((s, c) => s + (c.done ? c.weight : 0), 0);
     const meter = document.getElementById('fmCompletionMeter');
