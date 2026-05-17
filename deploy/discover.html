@@ -205,6 +205,43 @@
     const FALLBACK_LISTINGS = [
       { id:'l1', name:'#118 · Half Black Angus', farm:'Northfield Pastures', farmSlug:'northfield-pastures', species:'cattle', practice:['grass-fed','regenerative'], certs:['organic','aga','amwa'], identity:['family'], priceLb:7.85, distance:42, ready:'2026-07-15', img:'/img/cattle-pasture.jpg', new:true, instant:true }
     ];
+
+    // ── User location for distance computation ──
+    // Cached in localStorage once granted so we don't re-prompt on every visit.
+    // Default falls back to Bemidji, MN (PO HQ) so distances still rank
+    // sensibly even before the user grants geolocation.
+    const DEFAULT_USER_LOC = { lat: 47.4736, lng: -94.8803 };
+    let USER_LOC = (() => {
+      try { return JSON.parse(localStorage.getItem('po_user_loc') || 'null') || DEFAULT_USER_LOC; }
+      catch { return DEFAULT_USER_LOC; }
+    })();
+    if ('geolocation' in navigator && !localStorage.getItem('po_user_loc')) {
+      navigator.geolocation.getCurrentPosition(
+        (p) => {
+          USER_LOC = { lat: p.coords.latitude, lng: p.coords.longitude };
+          localStorage.setItem('po_user_loc', JSON.stringify(USER_LOC));
+          // Recompute distances for already-loaded listings, then re-render.
+          for (const l of LISTINGS) {
+            if (l._farmLat != null && l._farmLng != null) {
+              l.distance = haversineMi(USER_LOC, { lat: l._farmLat, lng: l._farmLng }) ?? 999;
+            }
+          }
+          if (typeof render === 'function') render();
+        },
+        () => { /* denied or errored — silently keep default */ },
+        { maximumAge: 86400000, timeout: 5000 }
+      );
+    }
+    function haversineMi(a, b) {
+      if (!a || !b || a.lat == null || b.lat == null) return null;
+      const R = 3959; // miles
+      const dLat = (b.lat - a.lat) * Math.PI / 180;
+      const dLng = (b.lng - a.lng) * Math.PI / 180;
+      const lat1 = a.lat * Math.PI / 180, lat2 = b.lat * Math.PI / 180;
+      const x = Math.sin(dLat / 2) ** 2 + Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+      return Math.round(2 * R * Math.asin(Math.sqrt(x)));
+    }
+
     function listingFromRow(row) {
       const farmerRate = parseFloat(row.shares?.half?.price || row.shares?.whole?.price || row.shares?.quarter?.price || row.price_per_lb || 0);
       // Cumulative all-in price the buyer sees (farmer + processing + fees, hanging-weight basis)
@@ -221,7 +258,11 @@
         identity: row.farm_identity || [],
         priceLb: allInLb,                  // cumulative — what buyer sees on the card
         farmerRate: farmerRate,            // raw farmer rate (for filters / breakdown)
-        distance: 100, // TODO compute via zip
+        distance: (row.farm_lat != null && row.farm_lng != null)
+          ? (haversineMi(USER_LOC, { lat: Number(row.farm_lat), lng: Number(row.farm_lng) }) ?? 999)
+          : 999,
+        _farmLat: row.farm_lat != null ? Number(row.farm_lat) : null,
+        _farmLng: row.farm_lng != null ? Number(row.farm_lng) : null,
         ready: row.expected_finish_date,
         img: photo,
         new: (Date.now() - new Date(row.created_at).getTime()) < 7 * 86400000,
