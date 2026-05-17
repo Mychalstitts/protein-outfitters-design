@@ -4,7 +4,9 @@
 import { put } from '@vercel/blob';
 import { currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+// Stays on nodejs — @vercel/blob's put() fails the edge build on this Vercel
+// project (bisect 2026-05-17). Keep as-is until that's tracked down separately.
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   if (req.method !== 'POST') return err(405, 'POST only');
