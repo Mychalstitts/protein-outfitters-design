@@ -118,11 +118,21 @@ export default async function handler(req) {
       return err(409, 'Cut sheet already accepted by the processor — contact them to revise');
     }
 
+    // cuts + pills are JSONB columns; the Neon serverless driver passes raw
+    // JS arrays as Postgres TEXT[] which Postgres rejects with "invalid input
+    // syntax for type json". Stringify + explicit ::jsonb cast forces the
+    // right path. (Same trick we'll need anywhere we INSERT/UPDATE a JS array
+    // into JSONB.)
+    const cutsJson  = JSON.stringify(cuts);
+    const pillsJson = JSON.stringify(pills);
+
     let row;
     if (existing[0]) {
       row = await sql`
         UPDATE cut_sheets SET
-          species = ${species}, cuts = ${cuts}, pills = ${pills},
+          species = ${species},
+          cuts    = ${cutsJson}::jsonb,
+          pills   = ${pillsJson}::jsonb,
           quarter = ${quarter}, notes = ${notes},
           status = 'submitted', submitted_at = NOW(), updated_at = NOW()
         WHERE id = ${existing[0].id}
@@ -130,7 +140,9 @@ export default async function handler(req) {
     } else {
       row = await sql`
         INSERT INTO cut_sheets (reservation_id, buyer_id, processor_id, species, cuts, pills, quarter, notes, status)
-        VALUES (${reservation_id}, ${user.id}, ${r.processor_id}, ${species}, ${cuts}, ${pills}, ${quarter}, ${notes}, 'submitted')
+        VALUES (${reservation_id}, ${user.id}, ${r.processor_id}, ${species},
+                ${cutsJson}::jsonb, ${pillsJson}::jsonb,
+                ${quarter}, ${notes}, 'submitted')
         RETURNING *`;
     }
     const cut_sheet = row[0];
