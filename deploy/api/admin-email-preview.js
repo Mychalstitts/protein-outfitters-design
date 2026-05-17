@@ -11,7 +11,7 @@
 import { TEMPLATES, sendLifecycleEmail, listTemplates } from './_lib/email.js';
 import { currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
 // Sample contexts so previews aren't blank — use realistic-looking values.
 const SAMPLE_CTX = {

@@ -18,7 +18,7 @@
 import { sql, err, json } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
 // Helper: list reservations whose drop-off date is exactly N days out.
 async function reservationsAtDayOffset(daysOut) {

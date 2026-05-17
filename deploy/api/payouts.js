@@ -15,12 +15,12 @@
 import Stripe from 'stripe';
 import { sql, currentUser, json, err } from './_lib/db.js';
 
-// Stripe SDK requires Node runtime — Buffer/crypto.
-export const config = { runtime: 'nodejs' };
+// Edge runtime — Stripe SDK works with createFetchHttpClient() (no node:http).
+export const config = { runtime: 'edge' };
 
 export default async function handler(req) {
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured (STRIPE_SECRET_KEY missing)');
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
 
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
