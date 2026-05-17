@@ -116,6 +116,25 @@ export default async function handler(req) {
       )
       RETURNING *`;
 
+    // F7 payout-disbursed email — fires for producer payouts. The webhook
+    // path already emails on auto-Connect transfers; this mirrors it for
+    // manual transfers so producers get a notification either way.
+    if (wantedRole === 'producer' && farm_id) {
+      try {
+        const { sendLifecycleEmail } = await import('./_lib/email.js');
+        await sendLifecycleEmail('F7.payout_disbursed', {
+          to: user.email,
+          farmer_name: user.name,
+          payout_amount: amount_cents / 100,
+          animal_label: 'manual payout',
+          gross_amount: amount_cents / 100,
+          fees_amount: 0,
+          payout_id: payout.id,
+          dedupKey: `F7::manual::${payout.id}`,
+        });
+      } catch (e) { console.error('F7 manual-payout email failed:', e.message); }
+    }
+
     return json({ payout: rows[0], stripe: { id: payout.id, status: payout.status, arrival_date: payout.arrival_date } });
   }
 
