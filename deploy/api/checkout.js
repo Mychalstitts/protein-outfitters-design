@@ -11,10 +11,8 @@
 import Stripe from 'stripe';
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-// Edge runtime — same pattern as stripe-webhook.js. The Stripe SDK works on
-// edge when constructed with createFetchHttpClient() (no node:http needed).
-// Avoids the 10-12s nodejs cold-start cap that was timing out POST handlers.
-export const config = { runtime: 'edge' };
+// Stripe SDK uses Node Buffer/crypto — must run on Node runtime, not edge.
+export const config = { runtime: 'nodejs' };
 
 // Price/product IDs come from env vars. Defaults are LIVE — set test-mode IDs
 // in Vercel Preview/Development env to test with sk_test keys.
@@ -202,7 +200,7 @@ export default async function handler(req) {
   }
 
   // 2. Create Stripe Checkout Session
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const origin = req.headers.get('origin') || 'https://www.proteinoutfitters.com';
   const shareLabel = share_size === 'whole' ? 'Whole animal' : share_size === 'half' ? 'Half share' : share_size === 'quarter' ? 'Quarter share' : 'Eighth share';
   const animalLabel = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species} · ${listing.farm_name}`;
