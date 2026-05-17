@@ -67,7 +67,7 @@ export default async function handler(req) {
     if (!owns[0] && user.role !== 'admin') return err(403, 'Not your farm');
     let body;
     try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
-    const allowed = ['name','bio','story','city','state','zip','practices','certs','identity','cover_url','avatar_url','established_year'];
+    const allowed = ['name','bio','story','city','state','zip','practices','certs','identity','cover_url','avatar_url','established_year','credentials_docs'];
     for (const [k, v] of Object.entries(body)) {
       if (allowed.includes(k)) {
         await rawQuery(`UPDATE farms SET ${k} = $1, updated_at = NOW() WHERE slug = $2`, [v, slug]);

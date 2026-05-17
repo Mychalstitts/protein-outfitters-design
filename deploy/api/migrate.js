@@ -570,6 +570,13 @@ const SCHEMA_STATEMENTS = [
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION`,
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION`,
 
+  // credentials_docs — per-cert uploaded doc + metadata.
+  // Shape: { [cert_key]: { url, doc_number, issuer, issued, expires, uploaded_at } }
+  // Powers /credentials's "upload PDF" flow. Read-only on the public profile —
+  // we never expose document URLs publicly, just the credential names + status.
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS credentials_docs JSONB DEFAULT '{}'`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS credentials_docs JSONB DEFAULT '{}'`,
+
   `CREATE TABLE IF NOT EXISTS geocode_cache (
     query_key   TEXT PRIMARY KEY,         -- normalized lower-case "city, state, zip"
     lat         DOUBLE PRECISION NOT NULL,
