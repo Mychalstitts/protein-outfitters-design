@@ -23,20 +23,6 @@ async function fetchWithTimeout(url, init = {}) {
   }
 }
 
-// 8-second client-side timeout on every Google upstream call.
-// Without this, Places-API stalls just hang the whole serverless function
-// until Vercel's 10-second cold-start cap kills it (run-13/14 timeouts).
-const UPSTREAM_TIMEOUT_MS = 8000;
-async function fetchWithTimeout(url, init = {}) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(t);
-  }
-}
-
 const QUERIES = {
   farm: {
     beef:    ['cattle ranch', 'beef farm', 'grass-fed beef'],
