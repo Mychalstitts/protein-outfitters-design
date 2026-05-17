@@ -8,8 +8,7 @@
 //
 // Webhook `/api/stripe-webhook` flips the reservation to `deposit-paid` once
 // the buyer completes payment.
-// Stripe is loaded lazily inside the handler (see donate-to-fund.js) — top-level
-// `import Stripe from 'stripe'` bloats the edge bundle.
+import Stripe from 'stripe';
 import { sql, currentUser, err, json } from './_lib/db.js';
 
 // Edge runtime — same pattern as stripe-webhook.js. The Stripe SDK works on
@@ -203,7 +202,6 @@ export default async function handler(req) {
   }
 
   // 2. Create Stripe Checkout Session
-  const { default: Stripe } = await import('stripe');
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
   const origin = req.headers.get('origin') || 'https://www.proteinoutfitters.com';
   const shareLabel = share_size === 'whole' ? 'Whole animal' : share_size === 'half' ? 'Half share' : share_size === 'quarter' ? 'Quarter share' : 'Eighth share';
