@@ -20,7 +20,7 @@
 import { sql, err, json } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
 function authorized(req, url) {
   const authHeader = req.headers.get('authorization') || '';
