@@ -4,8 +4,7 @@
 import { put } from '@vercel/blob';
 import { currentUser, err, json } from './_lib/db.js';
 
-// Edge runtime — req.formData() + @vercel/blob put() are both Web-Standard.
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   if (req.method !== 'POST') return err(405, 'POST only');
