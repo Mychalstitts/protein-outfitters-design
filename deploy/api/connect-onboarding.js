@@ -14,7 +14,8 @@
 //
 // Env required: STRIPE_SECRET_KEY
 // Optional: STRIPE_CONNECT_RETURN_URL (defaults to https://www.proteinoutfitters.com/account)
-import Stripe from 'stripe';
+// Stripe loaded lazily inside the handler — top-level static import bloats the
+// edge bundle. Pattern matches donate-to-fund.js / checkout.js.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
 export const config = { runtime: 'edge' };
@@ -29,6 +30,7 @@ export default async function handler(req) {
   const kind = (req.method === 'GET' ? url.searchParams.get('kind') : null) || (await peekJson(req))?.kind;
   if (!ALLOWED_KINDS.includes(kind)) return err(400, 'kind must be "farm" or "processor"');
 
+  const { default: Stripe } = await import('stripe');
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');

@@ -12,7 +12,7 @@
 // `payout.failed` flips status (wired in stripe-webhook.js — caller should
 // register those events in the Stripe dashboard if not already).
 
-import Stripe from 'stripe';
+// Stripe loaded lazily inside the handler — see donate-to-fund.js / checkout.js.
 import { sql, currentUser, json, err } from './_lib/db.js';
 
 // Edge runtime — Stripe SDK works with createFetchHttpClient() (no node:http).
@@ -20,6 +20,7 @@ export const config = { runtime: 'edge' };
 
 export default async function handler(req) {
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured (STRIPE_SECRET_KEY missing)');
+  const { default: Stripe } = await import('stripe');
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
 
   const user = await currentUser(req);
