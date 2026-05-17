@@ -93,7 +93,7 @@
     <h2 class="po-h3" style="text-align: center; margin: 0 auto;">Three light touches over three weeks.</h2>
 
     <div class="next-grid">
-      <a href="/cut-sheet" class="next-card">
+      <a href="/cut-sheet" class="next-card" id="cutSheetLink">
         <span class="next-num">01 · This week</span>
         <h3 class="next-h">Build your cut sheet.</h3>
         <p class="next-p">Five minutes on your phone. Tell the processor exactly how you want every cut.</p>
@@ -129,6 +129,13 @@
   (async function hydrateConfirmation() {
     const params = new URLSearchParams(location.search);
     const reservationId = params.get('reservation');
+    // Wire the "Build your cut sheet" CTA to this reservation so the buyer
+    // doesn't get bounced to "pick an animal" when they tap it. Set as
+    // early as possible — before the API hydration even resolves.
+    if (reservationId) {
+      const cutLink = document.getElementById('cutSheetLink');
+      if (cutLink) cutLink.href = '/cut-sheet?reservation_id=' + encodeURIComponent(reservationId);
+    }
     if (!reservationId) return; // No id → leave the generic placeholders.
     try {
       const r = await fetch('/api/reservations?id=' + encodeURIComponent(reservationId), { credentials: 'include' });

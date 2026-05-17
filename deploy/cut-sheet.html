@@ -873,20 +873,53 @@
 
   // ===== Submit =====
   // Wires to POST /api/cut-sheets — saves the cut config + emails the processor.
-  // Requires ?reservation_id=<uuid> in the URL. If missing, prompts the buyer
-  // to reserve an animal first (the cut sheet is per-reservation, not generic).
+  //
+  // Reservation ID resolution, in order:
+  //   1. ?reservation_id=<uuid> (canonical)
+  //   2. ?id=<uuid>             (older account.html links)
+  //   3. ?reservation=<uuid>    (Stripe success_url param)
+  //   4. fetch /api/reservations: if signed-in buyer has exactly one active
+  //      reservation, use it. If multiple, send them to /account to pick.
+  //      If zero, prompt to reserve an animal.
+  async function resolveReservationId() {
+    const params = new URLSearchParams(location.search);
+    const fromUrl = params.get('reservation_id') || params.get('id') || params.get('reservation');
+    if (fromUrl) return { id: fromUrl };
+    try {
+      const r = await fetch('/api/reservations', { credentials: 'include' });
+      if (!r.ok) return { error: r.status === 401 ? 'sign_in' : 'fetch_failed' };
+      const { reservations = [] } = await r.json();
+      const active = reservations.filter(r => !['cancelled', 'refunded'].includes(r.status));
+      if (active.length === 1) return { id: active[0].id };
+      if (active.length > 1) return { error: 'multiple', count: active.length };
+      return { error: 'none' };
+    } catch (_) { return { error: 'fetch_failed' }; }
+  }
+
   document.getElementById('submitBtn').addEventListener('click', async () => {
     const btn = document.getElementById('submitBtn');
     const origText = btn.textContent;
     const origBg = btn.style.background;
 
-    const reservation_id = new URLSearchParams(location.search).get('reservation_id');
-    if (!reservation_id) {
+    const resolved = await resolveReservationId();
+    if (resolved.error) {
+      if (resolved.error === 'sign_in') {
+        window.PO_API.openAuth('Sign in to submit your cut sheet', 'buyer');
+        return;
+      }
+      if (resolved.error === 'multiple') {
+        btn.textContent = 'Pick a reservation →';
+        btn.style.background = '#f5e1ad';
+        setTimeout(() => { window.location.href = '/account'; }, 1200);
+        return;
+      }
+      // 'none' or 'fetch_failed'
       btn.textContent = 'Reserve an animal first →';
       btn.style.background = '#f5e1ad';
       setTimeout(() => { window.location.href = '/discover'; }, 1400);
       return;
     }
+    const reservation_id = resolved.id;
 
     // Read currently selected cuts + pills + species + quarter pick.
     const cuts = Array.from(document.querySelectorAll('input[data-cut]:checked')).map(i => i.dataset.cut);
