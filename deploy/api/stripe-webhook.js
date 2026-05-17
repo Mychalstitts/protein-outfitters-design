@@ -48,9 +48,9 @@ export default async function handler(req) {
         const session = event.data.object;
 
         // ── Donation Depot fund-contribution branch ──
-        // Marked via session.metadata.kind === 'donation_to_fund'.
-        if (session.metadata?.kind === 'donation_to_fund') {
-          const fundId = session.metadata?.donation_fund_id;
+        // Marked via session.metadata.kind === 'donation_fund' (matches donate-to-fund.js writer).
+        if (session.metadata?.kind === 'donation_fund') {
+          const fundId = session.metadata?.fund_id;
           if (fundId) {
             await sql`
               UPDATE donation_funds

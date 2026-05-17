@@ -300,6 +300,12 @@ const SCHEMA_STATEMENTS = [
   `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS stripe_transfer_group TEXT`,
   `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS application_fee_amount NUMERIC`,
 
+  // Pickup lifecycle (used by PATCH /api/reservations + C18/C19 emails).
+  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS final_hanging_weight NUMERIC(8,2)`,
+  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS pickup_window TEXT`,
+  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS ready_at TIMESTAMPTZ`,
+  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS picked_up_at TIMESTAMPTZ`,
+
   `CREATE INDEX IF NOT EXISTS farms_stripe_idx     ON farms(stripe_account_id)`,
   `CREATE INDEX IF NOT EXISTS processors_stripe_idx ON processors(stripe_account_id)`,
   `CREATE INDEX IF NOT EXISTS reservations_transfer_idx ON reservations(stripe_transfer_group)`,
