@@ -9,10 +9,14 @@
 // Stripe. Module-level imports stay tiny so the function boots fast.
 import { currentUser, err, json } from './_lib/db.js';
 
-// Stays on nodejs — @vercel/blob's put() failed the edge build on this
-// project specifically (bisect 2026-05-17, works on the secondary). Lazy
-// import buys us a fast boot without flipping the runtime.
-export const config = { runtime: 'nodejs' };
+// Flipped back to edge after 2026-05-17 diagnostic: nodejs functions hang
+// past 14s when invoked via the www.proteinoutfitters.com production alias
+// (they respond fine on the preview URL of the same deployment, so it's a
+// project-level routing issue we can't fix in code). Edge runtime sidesteps
+// it entirely. The earlier edge-build failure was caused by static-importing
+// @vercel/blob; with the lazy import the package isn't part of the entry
+// chunk and the build succeeds.
+export const config = { runtime: 'edge' };
 
 // PDFs added so /credentials can upload cert documents alongside images.
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
