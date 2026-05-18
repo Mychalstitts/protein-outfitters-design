@@ -25,12 +25,22 @@ jobs:
       - name: Validate JSON-LD in all HTML files
         run: npm run validate:jsonld
 
-  check-no-dupe-decls:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Fail if any deploy/api/**/*.js redeclares a top-level identifier
-        run: node scripts/check-no-dupe-decls.js
+      - name: Lint (parse-check every JS file + duplicate-decl scan)
+        run: npm run lint
+
+  test-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Auth integration tests against live production
+        run: npm run test:auth
