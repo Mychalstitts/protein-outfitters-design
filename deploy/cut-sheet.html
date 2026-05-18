@@ -395,37 +395,72 @@
               Z"/>
 
             <!-- ================== PRIMAL OVERLAYS (clipped to body) ================== -->
-            <!-- NOTE: Chuck starts at x=200 (after the head/neck) so the face stays the dark base body color -->
+            <!-- Refined butcher-chart anatomy: paths follow real carcass divisions.
+                 Cut lines lean slightly forward (more aft at top than at bottom — same
+                 angle a butcher actually saws through), and the brisket / plate / flank
+                 belt curves to follow the belly rather than sitting on a hard grid. -->
             <g clip-path="url(#cowClip)">
-              <!-- TOP ROW: chuck → rib → loin → sirloin → round (round extends down full height) -->
-              <rect class="primal has-cuts" data-primal="chuck"   x="200" y="100" width="100" height="118"/>
-              <rect class="primal has-cuts" data-primal="rib"     x="300" y="100" width=" 90" height="118"/>
-              <rect class="primal has-cuts" data-primal="loin"    x="390" y="100" width=" 90" height="118"/>
-              <rect class="primal"          data-primal="sirloin" x="480" y="100" width=" 60" height="118"/>
-              <rect class="primal has-cuts" data-primal="round"   x="540" y="100" width="120" height="180"/>
+              <!-- CHUCK — front shoulder + neck base. Front edge curves up where the
+                   shoulder meets the head; back edge leans forward (~6°). -->
+              <path class="primal has-cuts" data-primal="chuck"
+                    d="M 218,138 Q 226,118 252,112 L 312,110 Q 312,164 304,220
+                       L 222,222 Q 212,200 213,170 Q 214,150 218,138 Z"/>
 
-              <!-- BOTTOM ROW: brisket → plate → flank (round above already covers rear) -->
-              <rect class="primal has-cuts" data-primal="brisket" x="200" y="218" width="100" height="62"/>
-              <rect class="primal"          data-primal="plate"   x="300" y="218" width=" 90" height="62"/>
-              <rect class="primal"          data-primal="flank"   x="390" y="218" width="150" height="62"/>
+              <!-- RIB — narrow vertical strip. Both cut lines lean ~6° forward. -->
+              <path class="primal has-cuts" data-primal="rib"
+                    d="M 314,110 L 402,109 Q 402,165 394,220 L 306,221
+                       Q 312,164 314,110 Z"/>
 
-              <!-- LEGS — all four shanks share one region, clipped to leg shapes by cowClip -->
-              <rect class="primal has-cuts" data-primal="shank"   x="0"   y="270" width="760" height="110"/>
+              <!-- LOIN — back-strap, where the choice steaks live. Slight lean. -->
+              <path class="primal has-cuts" data-primal="loin"
+                    d="M 404,109 L 492,109 Q 492,164 488,220 L 396,221
+                       Q 402,164 404,109 Z"/>
+
+              <!-- SIRLOIN — short transitional strip between loin and round. -->
+              <path class="primal" data-primal="sirloin"
+                    d="M 494,109 L 542,110 Q 544,164 542,220 L 490,220
+                       Q 492,164 494,109 Z"/>
+
+              <!-- ROUND — hindquarter, full height. Soft curve along the rump. -->
+              <path class="primal has-cuts" data-primal="round"
+                    d="M 544,110 Q 600,110 626,124 Q 642,142 640,164 L 640,244
+                       Q 638,266 622,272 L 544,272 Q 544,220 544,165 Z"/>
+
+              <!-- BRISKET — chest, sweeps down following the body's lower curve
+                   toward the front leg. -->
+              <path class="primal has-cuts" data-primal="brisket"
+                    d="M 222,222 L 304,220 L 306,272 L 230,272
+                       Q 218,272 215,260 Q 216,242 222,222 Z"/>
+
+              <!-- PLATE — short plate under the rib. Mostly flat with a soft curve. -->
+              <path class="primal" data-primal="plate"
+                    d="M 306,221 L 394,220 L 396,272 L 308,272 L 306,221 Z"/>
+
+              <!-- FLANK — belly under loin/sirloin, hangs deeper toward the rear. -->
+              <path class="primal" data-primal="flank"
+                    d="M 396,221 L 542,220 L 542,272 L 398,272 L 396,221 Z"/>
+
+              <!-- SHANK — covers both front and rear leg areas; cowClip restricts to legs. -->
+              <rect class="primal has-cuts" data-primal="shank" x="0" y="270" width="760" height="110"/>
             </g>
 
             <!-- ================== CHALK DIVIDING LINES (clipped to body so they don't extend beyond) ================== -->
+            <!-- Match the new primal paths so cut lines sit ON the seams, not next to them. -->
             <g clip-path="url(#cowClip)">
-              <!-- Vertical: head/chuck, then between primals -->
-              <line class="chalk" x1="200" y1="100" x2="200" y2="280"/>
-              <line class="chalk" x1="300" y1="100" x2="300" y2="280"/>
-              <line class="chalk" x1="390" y1="100" x2="390" y2="280"/>
-              <line class="chalk" x1="480" y1="100" x2="480" y2="218"/>
-              <line class="chalk" x1="540" y1="100" x2="540" y2="280"/>
-              <!-- Horizontal forequarter/hindquarter belt and leg line -->
-              <line class="chalk" x1="200" y1="218" x2="540" y2="218"/>
-              <line class="chalk-soft" x1="160" y1="270" x2="640" y2="270"/>
-              <!-- Tenderloin curve hint inside loin region -->
-              <path class="chalk-soft" d="M 400,118 Q 435,160 475,135"/>
+              <!-- Chuck/rib cut — leans forward -->
+              <path class="chalk" d="M 312,110 Q 312,164 304,220"/>
+              <!-- Rib/loin cut -->
+              <path class="chalk" d="M 402,109 Q 402,165 394,220"/>
+              <!-- Loin/sirloin cut -->
+              <path class="chalk" d="M 492,109 Q 492,164 488,220"/>
+              <!-- Sirloin/round cut — at the hip socket, nearly vertical -->
+              <path class="chalk" d="M 542,110 Q 544,164 542,220"/>
+              <!-- Forequarter/hindquarter belt — gentle curve, deeper at brisket -->
+              <path class="chalk" d="M 218,228 Q 320,220 540,220"/>
+              <!-- Lower belly/leg line -->
+              <path class="chalk-soft" d="M 160,270 Q 380,278 640,270"/>
+              <!-- Tenderloin curve hint inside the loin region -->
+              <path class="chalk-soft" d="M 410,120 Q 445,165 482,138"/>
             </g>
 
             <!-- ================== HEAD DETAILS (drawn over body) ================== -->
