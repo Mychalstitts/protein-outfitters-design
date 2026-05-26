@@ -14,8 +14,7 @@
     ],
     "crons": [
           { "path": "/api/email-tick",                  "schedule": "0 14 * * *"   },
-          { "path": "/api/annual-donor-acknowledgment", "schedule": "0 15 15 1 *"  },
-          { "path": "/api/keep-warm",                   "schedule": "*/5 * * * *"  }
+          { "path": "/api/annual-donor-acknowledgment", "schedule": "0 15 15 1 *"  }
     ],
     "headers": [
           {
