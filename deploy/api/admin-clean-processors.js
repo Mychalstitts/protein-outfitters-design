@@ -16,7 +16,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const BRAND_BLOCK = /\b(tyson|cargill|jbs|hormel|smithfield|jack\s*link|jack\s*links|land\s*o\s*lakes|perdue|pilgrim|conagra|sara\s*lee|kraft|nestle|maple\s*leaf|seaboard|national\s*beef|swift|oscar\s*mayer|butterball|foster\s*farms|bumble\s*bee|del\s*monte|kerry\s|kettle\s|kenosha\s*beef|kemps|cliffstar|m\.?g\.?\s*waldbaum|papetti|michael\s*foods|aramark|sysco|us\s*foods|gordon\s*food|reser|hatfield|johnsonville|farmland|premium\s*standard|excel|ibp|monfort|wampler|vlasic|leprino|rich\s*products|advance\s*pierre|nestl[ée]|chick.fil.a)\b/i;
 

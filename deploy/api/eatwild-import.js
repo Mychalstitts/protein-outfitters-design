@@ -9,7 +9,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // 50 US state slugs as used in EatWild URLs
 const STATES = [

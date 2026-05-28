@@ -4,7 +4,7 @@
 //   DELETE → withdraw (sets status='withdrawn')
 import { sql, rawQuery, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   const url = new URL(req.url);

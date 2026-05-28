@@ -4,7 +4,7 @@
 //
 // ENV: GOOGLE_GEMINI_API_KEY  (set in Vercel project settings)
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const SYSTEM_PROMPT = `You parse natural-language meat marketplace queries into structured filters.
 

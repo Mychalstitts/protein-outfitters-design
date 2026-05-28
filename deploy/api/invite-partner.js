@@ -3,14 +3,10 @@
 // Auth: any signed-in user can invite (customer-driven viral loop).
 // Records the invite in `invites` table, updates discovered_partners status,
 // sends invite via Resend with personal link to claim a profile.
-//
-// runtime: 'edge' is required — nodejs cold-start was timing out at 10-12s
-// on Vercel (run-14 reproduction). Resend SDK is HTTP-only and works on edge.
-// The Resend import is lazy (inside the handler) so a missing/broken resend
-// install can't take the function down at module init.
+import { Resend } from 'resend';
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const FROM = process.env.RESEND_FROM || 'Protein Outfitters <hello@proteinoutfitters.com>';
 const SITE = 'https://www.proteinoutfitters.com';
@@ -118,7 +114,6 @@ export default async function handler(req) {
   let resendId = null, sendError = null;
   if (email) {
     try {
-      const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
       const r = await resend.emails.send({
         from: FROM,

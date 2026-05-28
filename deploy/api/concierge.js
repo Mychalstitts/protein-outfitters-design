@@ -4,7 +4,7 @@
 //
 // ENV: GOOGLE_GEMINI_API_KEY
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const SYSTEM = `You are the Protein Outfitters concierge — a friendly, knowledgeable assistant helping buyers navigate a marketplace where small farms sell whole, half, and quarter livestock direct to consumers.
 

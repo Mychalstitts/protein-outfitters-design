@@ -1,27 +1,42 @@
 // Shared DB + auth + utility helpers for serverless functions.
-import { neon, Pool } from '@neondatabase/serverless';
+//
+// 2026-05-28: migrated off `@neondatabase/serverless` to `postgres` (porsager)
+// after Neon hit its compute-time quota and the user moved to Supabase Pro.
+// This file is the only required change for the driver swap — the template
+// literal SQL syntax (sql`SELECT ... ${val}`) is identical between the two
+// libraries, so callers don't need any changes.
+//
+// IMPORTANT: porsager's `postgres` uses raw TCP, which Vercel's Edge runtime
+// doesn't support. Every API function in this repo must declare
+// `export const config = { runtime: 'nodejs' }` (not 'edge'). The mass-flip
+// is in commit history alongside this change.
+import postgres from 'postgres';
 
-export const sql = neon(process.env.DATABASE_URL);
+// Singleton — `postgres` handles pooling internally. Use Supabase's
+// transaction-mode pooler URL (port 6543) for serverless connections that
+// shouldn't hold long-lived sessions. The connection string lives in
+// DATABASE_URL on Vercel.
+export const sql = postgres(process.env.DATABASE_URL, {
+  ssl: 'require',
+  max: 4,                  // small pool per function instance
+  idle_timeout: 20,        // recycle idle clients after 20s
+  connect_timeout: 10,
+  prepare: false,          // pooler-friendly: avoid prepared statements with transaction pooler
+});
 
-// Pool exposes pool.query(text, params) for dynamic / multi-row work.
-let _pool;
+// Backwards-compat shim for the few callsites that used Pool/rawQuery.
+// porsager's `sql.unsafe(text, params)` accepts raw SQL + bind values and
+// returns rows directly, matching the shape pool.query(...).rows used to
+// produce.
 export function getPool() {
-  if (!_pool) _pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return _pool;
+  return {
+    query: async (text, params = []) => ({
+      rows: await sql.unsafe(text, params),
+    }),
+  };
 }
 export async function rawQuery(text, params = []) {
-  const pool = getPool();
-  const r = await pool.query(text, params);
-  return r.rows;
-}
-
-// ─── UUID validator ────────────────────────────────────────
-// Used at the edge of handlers that take a UUID query/body param,
-// so a non-UUID value produces a clean 400 instead of a Postgres
-// "invalid input syntax for type uuid" 500.
-const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
-export function isUuid(s) {
-  return typeof s === 'string' && UUID_RE.test(s);
+  return await sql.unsafe(text, params);
 }
 
 // ─── JSON response helper ──────────────────────────────────
@@ -98,4 +113,3 @@ export function slugify(s) {
     .replace(/\s+/g, '-')
     .slice(0, 60);
 }
-

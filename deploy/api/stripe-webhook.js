@@ -10,34 +10,24 @@
 //
 // Vercel hands us the raw body via req.text() — Stripe needs the raw bytes
 // to verify the signature, so we cannot run on edge runtime.
-//
-// NOTE on the config below: we previously set `api: { bodyParser: false }`
-// here, which is a Pages Router legacy hint that forced Vercel to deliver
-// req as a Node IncomingMessage (where req.headers is a plain object and
-// req.text doesn't exist). That broke this Web Standards handler with
-// `TypeError: req.headers.get is not a function`. With the hint omitted,
-// Vercel sees the single-arg handler returning Response and gives us a
-// Web Request — req.headers.get('stripe-signature') and req.text() both
-// work, and req.text() yields the raw body bytes Stripe needs to verify
-// the signature.
 import Stripe from 'stripe';
 import { sql } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs', api: { bodyParser: false } };
 
 export default async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   if (!process.env.STRIPE_SECRET_KEY) return new Response('Stripe not configured', { status: 500 });
   if (!process.env.STRIPE_WEBHOOK_SECRET) return new Response('Webhook secret missing', { status: 500 });
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const sig = req.headers.get('stripe-signature');
   const rawBody = await req.text();
 
   let event;
   try {
-    event = await stripe.webhooks.constructEventAsync(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET, undefined, Stripe.createSubtleCryptoProvider());
+    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (e) {
     return new Response(`Webhook signature mismatch: ${e.message}`, { status: 400 });
   }
@@ -48,9 +38,9 @@ export default async function handler(req) {
         const session = event.data.object;
 
         // ── Donation Depot fund-contribution branch ──
-        // Marked via session.metadata.kind === 'donation_fund' (matches donate-to-fund.js writer).
-        if (session.metadata?.kind === 'donation_fund') {
-          const fundId = session.metadata?.fund_id;
+        // Marked via session.metadata.kind === 'donation_to_fund'.
+        if (session.metadata?.kind === 'donation_to_fund') {
+          const fundId = session.metadata?.donation_fund_id;
           if (fundId) {
             await sql`
               UPDATE donation_funds
@@ -424,7 +414,7 @@ export default async function handler(req) {
           try {
             const u = await sql`SELECT email FROM users WHERE id = ${mapUserId}`;
             if (u[0]?.email) {
-              const ins = await sql`
+              await sql`
                 INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
                 VALUES (
                   ${String(u[0].email).toLowerCase()},
@@ -437,11 +427,7 @@ export default async function handler(req) {
                   ${isCanceled ? 'alert' : 'check'},
                   ${'notif::map_tier::' + sub.id + '::' + event.type}
                 )
-                ON CONFLICT (dedup_key) DO NOTHING
-                RETURNING id`;
-              if (ins[0]?.id) {
-                try { const { sendPushTo } = await import('./_lib/push.js'); await sendPushTo({ email: u[0].email }); } catch {}
-              }
+                ON CONFLICT (dedup_key) DO NOTHING`;
             }
           } catch (e) { console.error('map-tier notif failed:', e.message); }
 
@@ -514,7 +500,7 @@ export default async function handler(req) {
               await sql`UPDATE users SET map_tier_period_end = ${newEnd} WHERE id = ${mapUser[0].id}`;
             }
             if (mapUser[0].email) {
-              const ins2 = await sql`
+              await sql`
                 INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
                 VALUES (
                   ${String(mapUser[0].email).toLowerCase()},
@@ -525,11 +511,7 @@ export default async function handler(req) {
                   'receipt',
                   ${'notif::map_renew::' + invoice.id}
                 )
-                ON CONFLICT (dedup_key) DO NOTHING
-                RETURNING id`;
-              if (ins2[0]?.id) {
-                try { const { sendPushTo } = await import('./_lib/push.js'); await sendPushTo({ email: mapUser[0].email }); } catch {}
-              }
+                ON CONFLICT (dedup_key) DO NOTHING`;
             }
             console.log(`Map tier invoice.paid: user=${mapUser[0].id} period_end=${newEnd}`);
             // Don't break here — also fall through in case it's a multi-product invoice
@@ -556,7 +538,7 @@ export default async function handler(req) {
             if (to) {
               // Direct insert — there is no email template for this yet, the
               // notification is the user-facing artifact.
-              const ins3 = await sql`
+              await sql`
                 INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
                 VALUES (
                   ${String(to).toLowerCase()},
@@ -567,11 +549,7 @@ export default async function handler(req) {
                   'receipt',
                   ${'notif::invoice_paid::' + invoice.id}
                 )
-                ON CONFLICT (dedup_key) DO NOTHING
-                RETURNING id`;
-              if (ins3[0]?.id) {
-                try { const { sendPushTo } = await import('./_lib/push.js'); await sendPushTo({ email: to }); } catch {}
-              }
+                ON CONFLICT (dedup_key) DO NOTHING`;
             }
           }
         } catch (e) { console.error('invoice.paid notif failed:', e.message); }

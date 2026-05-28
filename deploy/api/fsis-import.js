@@ -11,7 +11,7 @@
 // Auth: any signed-in user during early ops. Tighten to admin role later.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Lazy schema bootstrap — runs once per cold start, idempotent.
 // Lets the import work even if the main /api/migrate hasn't been run.

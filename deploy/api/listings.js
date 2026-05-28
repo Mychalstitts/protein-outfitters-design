@@ -2,9 +2,8 @@
 //   GET  ?species=&practice=&certs=&priceMax=&distance=&zip=&q= → array of listings (with farm info)
 //   POST { ...listing } → create listing (auth + producer role required)
 import { sql, currentUser, err, json } from './_lib/db.js';
-import { geocodeSync } from './_lib/geocode.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   const url = new URL(req.url);
@@ -26,7 +25,7 @@ async function listListings(url) {
   let rows;
   if (species && species !== 'all') {
     rows = await sql`
-      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.lat as farm_lat, f.lng as farm_lng, f.identity as farm_identity,
+      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.identity as farm_identity,
              ROUND(rs.avg_rating::numeric, 1) as farm_avg_rating, rs.review_count as farm_review_count
       FROM listings l
       JOIN farms f ON f.id = l.farm_id
@@ -42,7 +41,7 @@ async function listListings(url) {
     `;
   } else {
     rows = await sql`
-      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.lat as farm_lat, f.lng as farm_lng, f.identity as farm_identity,
+      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.identity as farm_identity,
              ROUND(rs.avg_rating::numeric, 1) as farm_avg_rating, rs.review_count as farm_review_count
       FROM listings l
       JOIN farms f ON f.id = l.farm_id
@@ -58,28 +57,7 @@ async function listListings(url) {
     `;
   }
 
-  // Audit fix #6: drop listings with no real share price set.
-  // Producers can save a draft animal and forget to back-fill share prices —
-  // historically those leaked into /discover and /listing?id=… as $0/lb "Reserve"
-  // buttons, which the prior audit caught. Filter them out here so every
-  // consumer of /api/listings (homepage, /discover, /listing) sees the same
-  // safe set rather than depending on each page applying its own anyPrice>0 check.
-  const filtered = (rows || []).filter(row => {
-    const s = row.shares || {};
-    const half  = Number(s.half  && s.half.price)  || 0;
-    const whole = Number(s.whole && s.whole.price) || 0;
-    const qtr   = Number(s.quarter && s.quarter.price) || 0;
-    return (half + whole + qtr) > 0;
-  }).map(row => {
-    // Centroid fallback so /discover can compute distance even before the
-    // admin geocode backfill resolves precise lat/lng for new farms.
-    if (row.farm_lat == null || row.farm_lng == null) {
-      const c = geocodeSync({ city: row.farm_city, state: row.farm_state });
-      if (c) { row.farm_lat = c.lat; row.farm_lng = c.lng; }
-    }
-    return row;
-  });
-  return json({ listings: filtered });
+  return json({ listings: rows });
 }
 
 async function createListing(req) {

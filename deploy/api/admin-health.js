@@ -12,7 +12,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Env vars the platform expects, grouped by what they enable.
 const ENV_SPEC = [

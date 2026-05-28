@@ -10,7 +10,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const MPA_SOURCES = [
   'mamp','wamp','impa','imppa','pamp','aamp','oamp','kamp','nempa','ilmpa',

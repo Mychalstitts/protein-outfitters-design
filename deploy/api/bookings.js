@@ -11,9 +11,9 @@
 // Deposit policy (Trello "For Myke" decision pending — using sensible defaults):
 //   $100 flat OR 10% of estimated processing, whichever is greater, capped $300.
 
-import { sql, currentUser, err, json, isUuid } from './_lib/db.js';
+import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Generate a 6-digit zero-padded code that's not already in use.
 async function newCheckinCode() {
@@ -41,14 +41,10 @@ export default async function handler(req) {
   if (req.method === 'GET') {
     const id = url.searchParams.get('id');
     const listingId = url.searchParams.get('listing_id');
-    if (listingId && !isUuid(listingId)) return err(400, 'listing_id must be a UUID');
     const processorSlug = url.searchParams.get('processor_slug');
-    if (id && !isUuid(id)) return err(400, 'id must be a UUID');
-    if (listingId && !isUuid(listingId)) return err(400, 'listing_id must be a UUID');
     const user = await currentUser(req);
 
     if (id) {
-      if (!isUuid(id)) return err(400, 'id must be a UUID');
       const rows = await sql`
         SELECT b.*, l.number AS animal_number, l.breed, l.species,
                f.name AS farm_name, p.name AS processor_name, p.slug AS processor_slug,
@@ -111,8 +107,6 @@ export default async function handler(req) {
     if (!listing_id || !processor_id || !drop_off_date) {
       return err(400, 'listing_id, processor_id, drop_off_date all required');
     }
-    if (!isUuid(listing_id)) return err(400, 'listing_id must be a UUID');
-    if (!isUuid(processor_id)) return err(400, 'processor_id must be a UUID');
 
     // Verify caller owns the listing's farm
     const lrows = await sql`
@@ -186,100 +180,6 @@ export default async function handler(req) {
     await sql`INSERT INTO checkin_codes (code, booking_id) VALUES (${code}, ${booking.id})`;
 
     return json({ booking, deposit, code });
-  }
-
-  // ── PATCH /api/bookings?id=UUID ─────────────────────────
-  // Processor-ops daily workflow updates. Only the processor that owns the
-  // booking's processor_id (or an admin) may PATCH. Allowed transitions are
-  // additive: log hanging weight, start fabrication, mark ready, mark
-  // picked up, mark no-show.
-  if (req.method === 'PATCH') {
-    const id = url.searchParams.get('id');
-    if (!id || !isUuid(id)) return err(400, 'id (UUID) required');
-    const user = await currentUser(req);
-    if (!user) return err(401, 'Sign in required');
-
-    // Verify caller is the processor owning this booking (or admin).
-    const ownerRow = await sql`
-      SELECT b.id, b.status, b.processor_id, b.farm_id, b.listing_id, p.owner_id AS processor_owner
-      FROM bookings b
-      JOIN processors p ON p.id = b.processor_id
-      WHERE b.id = ${id} LIMIT 1`;
-    if (!ownerRow[0]) return err(404, 'Booking not found');
-    const booking = ownerRow[0];
-    if (booking.processor_owner !== user.id && user.role !== 'admin') {
-      return err(403, 'Only the assigned processor can update this booking');
-    }
-
-    let body;
-    try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
-
-    // Allow-listed fields. Each one updates with NOW() touch.
-    const ALLOWED_STATUS = new Set(['scheduled','checked-in','fabricating','ready','picked-up','no-show','cancelled']);
-    if ('hanging_weight_lbs' in body) {
-      const w = Number(body.hanging_weight_lbs);
-      if (!isFinite(w) || w <= 0 || w > 5000) return err(400, 'hanging_weight_lbs must be 0–5000');
-      await sql`UPDATE bookings SET hanging_weight_lbs = ${w}, updated_at = NOW() WHERE id = ${id}`;
-    }
-    if ('status' in body) {
-      if (!ALLOWED_STATUS.has(body.status)) return err(400, 'Invalid status');
-      // Auto-stamp the relevant timestamp column on each transition.
-      const stamps = {
-        'checked-in':  'checked_in_at',
-        'fabricating': 'fabrication_started_at',
-        'ready':       'ready_at',
-        'picked-up':   'picked_up_at',
-        'no-show':     'no_show_at'
-      };
-      const col = stamps[body.status];
-      if (col) {
-        // Use raw column name interpolation safely — switch on the allowlist key.
-        switch (col) {
-          case 'checked_in_at':         await sql`UPDATE bookings SET status = ${body.status}, checked_in_at = NOW(), checked_in_by = ${user.id}, updated_at = NOW() WHERE id = ${id}`; break;
-          case 'fabrication_started_at':await sql`UPDATE bookings SET status = ${body.status}, fabrication_started_at = NOW(), updated_at = NOW() WHERE id = ${id}`; break;
-          case 'ready_at':              await sql`UPDATE bookings SET status = ${body.status}, ready_at = NOW(), updated_at = NOW() WHERE id = ${id}`; break;
-          case 'picked_up_at':          await sql`UPDATE bookings SET status = ${body.status}, picked_up_at = NOW(), updated_at = NOW() WHERE id = ${id}`; break;
-          case 'no_show_at':            await sql`UPDATE bookings SET status = ${body.status}, no_show_at = NOW(), updated_at = NOW() WHERE id = ${id}`; break;
-        }
-      } else {
-        await sql`UPDATE bookings SET status = ${body.status}, updated_at = NOW() WHERE id = ${id}`;
-      }
-    }
-    if ('notes' in body) {
-      await sql`UPDATE bookings SET notes = ${String(body.notes || '').slice(0, 5000)}, updated_at = NOW() WHERE id = ${id}`;
-    }
-
-    // D1 — fire tax-letter-ready email when a donated animal's booking
-    // transitions to ready. That's when hanging weight is final and the
-    // PDF at /api/pdf/tax-letter has real data the donor can hand to a CPA.
-    if (body.status === 'ready') {
-      try {
-        const donation = await sql`
-          SELECT d.id AS donation_id, d.estimated_lb, d.fmv,
-                 u.email AS donor_email, u.name AS donor_name,
-                 l.number AS animal_number, l.breed, l.species
-          FROM donations d
-          JOIN listings l ON l.id = d.listing_id
-          JOIN users u ON u.id = d.donor_id
-          WHERE d.listing_id = ${booking.listing_id} LIMIT 1`;
-        if (donation[0]?.donor_email) {
-          const d = donation[0];
-          const { sendLifecycleEmail } = await import('./_lib/email.js');
-          await sendLifecycleEmail('D1.tax_letter_ready', {
-            to: d.donor_email,
-            donor_name: d.donor_name,
-            animal_label: `${d.animal_number ? d.animal_number + ' · ' : ''}${d.breed || d.species || 'donated animal'}`,
-            fmv: d.fmv,
-            hanging_weight: body.hanging_weight_lbs || null,
-            donation_id: d.donation_id,
-            dedupKey: `D1::${d.donation_id}::ready`,
-          });
-        }
-      } catch (e) { console.error('D1 send failed:', e.message); }
-    }
-
-    const fresh = await sql`SELECT * FROM bookings WHERE id = ${id} LIMIT 1`;
-    return json({ booking: fresh[0] });
   }
 
   return err(405, 'Method not allowed');

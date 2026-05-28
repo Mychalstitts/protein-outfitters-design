@@ -13,7 +13,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const SPECIES_TOKENS = /^(poultry|beef|pork|lamb|goat|bison|venison|chicken|turkey|duck|eggs|certified\s+organic|grass[\s-]?fed|pasture[\s-]?raised|all\s+natural)\b/i;
 const FARM_SHAPED = /\b(farm|ranch|acres|pastures?|meats?|co\b|llc|inc\b|family|brothers|sister|hill|creek|valley|prairie|stead|orchard|gardens?|fields?|barn|country)/i;

@@ -13,7 +13,7 @@
 
 import { sql, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const ALLOWED_ROLES = ['admin', 'producer', 'processor', 'buyer'];
 

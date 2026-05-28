@@ -14,23 +14,22 @@
 //
 // Env required: STRIPE_SECRET_KEY
 // Optional: STRIPE_CONNECT_RETURN_URL (defaults to https://www.proteinoutfitters.com/account)
-// Stripe loaded lazily inside the handler — same pattern as donate-to-fund.js.
+import Stripe from 'stripe';
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const ALLOWED_KINDS = ['farm', 'processor'];
 
 export default async function handler(req) {
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured');
 
-  // Edge passes an absolute req.url; the second arg is a harmless fallback.
+  // Node runtime: req.url is relative; URL() needs a base.
   const url = new URL(req.url, 'https://www.proteinoutfitters.com');
   const kind = (req.method === 'GET' ? url.searchParams.get('kind') : null) || (await peekJson(req))?.kind;
   if (!ALLOWED_KINDS.includes(kind)) return err(400, 'kind must be "farm" or "processor"');
 
-  const { default: Stripe } = await import('stripe');
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
 

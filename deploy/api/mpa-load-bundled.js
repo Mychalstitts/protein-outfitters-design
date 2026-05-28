@@ -7,7 +7,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Inline the same parser + ingest logic from mpa-bulk-import (imports across
 // edge files require careful bundling, so we duplicate the small parser here).

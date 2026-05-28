@@ -2,9 +2,9 @@
 //   GET ?subject_type=farm&subject_id=UUID → reviews about that farm/processor (only revealed)
 //   POST {reservation_id, subject_type, subject_id, rating, body} → submit review
 //   When both sides of a reservation have submitted, both get revealed_at = NOW().
-import { sql, currentUser, err, json, isUuid } from './_lib/db.js';
+import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   if (req.method === 'GET') {
@@ -12,7 +12,6 @@ export default async function handler(req) {
     const subject_type = url.searchParams.get('subject_type');
     const subject_id = url.searchParams.get('subject_id');
     if (!subject_type || !subject_id) return err(400, 'subject_type and subject_id required');
-    if (!isUuid(subject_id)) return err(400, 'subject_id must be a UUID');
     const rows = await sql`
       SELECT r.id, r.rating, r.body, r.submitted_at, r.revealed_at, u.name as reviewer_name, r.reviewer_role
       FROM reviews r
@@ -31,11 +30,7 @@ export default async function handler(req) {
     if (!body.reservation_id || !body.subject_type || !body.subject_id || !body.rating) {
       return err(400, 'reservation_id, subject_type, subject_id, rating required');
     }
-    if (!isUuid(body.reservation_id)) return err(400, 'reservation_id must be a UUID');
-    if (!isUuid(body.subject_id)) return err(400, 'subject_id must be a UUID');
 
-    if (!isUuid(body.reservation_id)) return err(400, 'reservation_id must be a UUID');
-    if (!isUuid(body.subject_id)) return err(400, 'subject_id must be a UUID');
     const reservRow = await sql`SELECT id, buyer_id FROM reservations WHERE id = ${body.reservation_id} LIMIT 1`;
     if (!reservRow[0]) return err(404, 'Reservation not found');
 

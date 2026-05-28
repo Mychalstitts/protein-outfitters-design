@@ -4,7 +4,7 @@
 // Requires MIGRATE_SECRET env var. Idempotent (CREATE TABLE IF NOT EXISTS).
 import { rawQuery, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const SCHEMA_STATEMENTS = [
   `CREATE EXTENSION IF NOT EXISTS "pgcrypto"`,
@@ -300,12 +300,6 @@ const SCHEMA_STATEMENTS = [
   `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS stripe_transfer_group TEXT`,
   `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS application_fee_amount NUMERIC`,
 
-  // Pickup lifecycle (used by PATCH /api/reservations + C18/C19 emails).
-  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS final_hanging_weight NUMERIC(8,2)`,
-  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS pickup_window TEXT`,
-  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS ready_at TIMESTAMPTZ`,
-  `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS picked_up_at TIMESTAMPTZ`,
-
   `CREATE INDEX IF NOT EXISTS farms_stripe_idx     ON farms(stripe_account_id)`,
   `CREATE INDEX IF NOT EXISTS processors_stripe_idx ON processors(stripe_account_id)`,
   `CREATE INDEX IF NOT EXISTS reservations_transfer_idx ON reservations(stripe_transfer_group)`,
@@ -570,13 +564,6 @@ const SCHEMA_STATEMENTS = [
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION`,
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION`,
 
-  // credentials_docs — per-cert uploaded doc + metadata.
-  // Shape: { [cert_key]: { url, doc_number, issuer, issued, expires, uploaded_at } }
-  // Powers /credentials's "upload PDF" flow. Read-only on the public profile —
-  // we never expose document URLs publicly, just the credential names + status.
-  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS credentials_docs JSONB DEFAULT '{}'`,
-  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS credentials_docs JSONB DEFAULT '{}'`,
-
   `CREATE TABLE IF NOT EXISTS geocode_cache (
     query_key   TEXT PRIMARY KEY,         -- normalized lower-case "city, state, zip"
     lat         DOUBLE PRECISION NOT NULL,
@@ -612,90 +599,7 @@ const SCHEMA_STATEMENTS = [
     created_at  TIMESTAMPTZ DEFAULT NOW(),
     last_seen_at TIMESTAMPTZ DEFAULT NOW()
   )`,
-  `CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON push_subscriptions(user_id)`,
-
-  // ── farm_follows ────────────────────────────────────────
-  // Buyer "follows" a farm. Surfaces in their account feed (new listings,
-  // status updates from that farm). The Follow button on farm-profile.html
-  // used to be a local-state toggle — this table makes it real.
-  `CREATE TABLE IF NOT EXISTS farm_follows (
-    user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    farm_id    UUID NOT NULL REFERENCES farms(id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    PRIMARY KEY (user_id, farm_id)
-  )`,
-  `CREATE INDEX IF NOT EXISTS farm_follows_user_idx ON farm_follows(user_id)`,
-  `CREATE INDEX IF NOT EXISTS farm_follows_farm_idx ON farm_follows(farm_id)`,
-
-  // ── cut_sheets ──────────────────────────────────────────
-  // Buyer's cut sheet for a specific reservation. Submitted by the buyer
-  // from /cut-sheet, then visible to the processor at /processor-ops →
-  // booking detail. Replaces the previous fake "Submit to Plant 04" button
-  // that just toggled UI text without saving.
-  `CREATE TABLE IF NOT EXISTS cut_sheets (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    reservation_id  UUID NOT NULL REFERENCES reservations(id) ON DELETE CASCADE,
-    buyer_id        UUID REFERENCES users(id) ON DELETE SET NULL,
-    processor_id    UUID REFERENCES processors(id) ON DELETE SET NULL,
-    species         TEXT NOT NULL,
-    cuts            JSONB NOT NULL DEFAULT '[]'::jsonb,
-    pills           JSONB NOT NULL DEFAULT '[]'::jsonb,
-    quarter         TEXT,
-    notes           TEXT,
-    status          TEXT NOT NULL DEFAULT 'submitted' CHECK (status IN ('draft','submitted','accepted','rejected')),
-    submitted_at    TIMESTAMPTZ DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ DEFAULT NOW()
-  )`,
-  `CREATE INDEX IF NOT EXISTS cut_sheets_reservation_idx ON cut_sheets(reservation_id)`,
-  `CREATE INDEX IF NOT EXISTS cut_sheets_processor_idx ON cut_sheets(processor_id)`,
-  `CREATE INDEX IF NOT EXISTS cut_sheets_buyer_idx ON cut_sheets(buyer_id)`,
-
-  // ── payouts ────────────────────────────────────────────
-  // History of producer/processor cash-outs initiated via Stripe Connect.
-  // The "Transfer to bank" button on /finance writes here + calls
-  // stripe.payouts.create() on the connected account.
-  `CREATE TABLE IF NOT EXISTS payouts (
-    id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id            UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    role               TEXT NOT NULL CHECK (role IN ('producer','processor')),
-    farm_id            UUID REFERENCES farms(id) ON DELETE SET NULL,
-    processor_id       UUID REFERENCES processors(id) ON DELETE SET NULL,
-    stripe_account_id  TEXT NOT NULL,
-    stripe_payout_id   TEXT UNIQUE,
-    amount_cents       INTEGER NOT NULL CHECK (amount_cents > 0),
-    currency           TEXT NOT NULL DEFAULT 'usd',
-    status             TEXT NOT NULL DEFAULT 'initiated' CHECK (status IN ('initiated','in_transit','paid','failed','canceled')),
-    arrival_estimate   TIMESTAMPTZ,
-    failure_reason     TEXT,
-    created_at         TIMESTAMPTZ DEFAULT NOW(),
-    updated_at         TIMESTAMPTZ DEFAULT NOW()
-  )`,
-  `CREATE INDEX IF NOT EXISTS payouts_user_idx ON payouts(user_id)`,
-  `CREATE INDEX IF NOT EXISTS payouts_status_idx ON payouts(status)`,
-
-  // ── bookings — extend with processor-ops workflow columns ──
-  // Adds the columns the processor's daily dashboard needs:
-  // hanging weight at intake, fabrication start, ready-for-pickup, completion.
-  // All ALTER ... ADD COLUMN IF NOT EXISTS so this is idempotent.
-  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS hanging_weight_lbs NUMERIC(8,2)`,
-  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS fabrication_started_at TIMESTAMPTZ`,
-  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ready_at TIMESTAMPTZ`,
-  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS picked_up_at TIMESTAMPTZ`,
-
-  // Expand status CHECK to include the workflow states. Drop the old check first,
-  // then add the new one (PG can't ALTER a check constraint in place).
-  // Run conditionally so re-running migrate is safe.
-  `DO $$ BEGIN
-     IF EXISTS (SELECT 1 FROM information_schema.constraint_column_usage
-                WHERE table_name = 'bookings' AND constraint_name = 'bookings_status_check')
-     THEN ALTER TABLE bookings DROP CONSTRAINT bookings_status_check;
-     END IF;
-   END $$`,
-  `DO $$ BEGIN
-     ALTER TABLE bookings ADD CONSTRAINT bookings_status_check
-       CHECK (status IN ('scheduled','checked-in','fabricating','ready','picked-up','no-show','cancelled','rejected'));
-   EXCEPTION WHEN duplicate_object THEN NULL;
-   END $$`
+  `CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON push_subscriptions(user_id)`
 ];
 
 const SEED_SQL = [

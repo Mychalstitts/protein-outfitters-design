@@ -21,7 +21,7 @@
 
 import { sql } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const SITE_ORIGIN = 'https://www.proteinoutfitters.com';
 // NOTE: og-image.svg is what the rest of the site uses today. SVG works in

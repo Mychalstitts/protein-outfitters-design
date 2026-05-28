@@ -6,22 +6,7 @@
 // Uses Places API (New) — set GOOGLE_MAPS_KEY in Vercel.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
-export const maxDuration = 30;
-
-// 8-second client-side timeout on every Google upstream call.
-// Without this, Places-API stalls just hang the whole serverless function
-// until Vercel's 10-second cold-start cap kills it (run-13/14 timeouts).
-const UPSTREAM_TIMEOUT_MS = 8000;
-async function fetchWithTimeout(url, init = {}) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(t);
-  }
-}
+export const config = { runtime: 'nodejs' };
 
 const QUERIES = {
   farm: {
@@ -39,7 +24,7 @@ const QUERIES = {
 };
 
 async function geocodeZip(zip, key) {
-  const r = await fetchWithTimeout(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(zip + ', USA')}&key=${key}`);
+  const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(zip + ', USA')}&key=${key}`);
   const data = await r.json();
   if (data.status !== 'OK' || !data.results?.[0]) return null;
   const loc = data.results[0].geometry.location;
@@ -54,7 +39,7 @@ async function placesTextSearch(query, lat, lng, radiusMeters, key) {
     maxResultCount: 20,
     includedType: undefined,
   };
-  const r = await fetchWithTimeout('https://places.googleapis.com/v1/places:searchText', {
+  const r = await fetch('https://places.googleapis.com/v1/places:searchText', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 // POST /api/auth/logout — clears session cookie + DB row
 import { sql, parseCookies, clearSessionCookie } from '../_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   const sessionId = parseCookies(req).po_session;

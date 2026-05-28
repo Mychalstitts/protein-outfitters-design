@@ -22,7 +22,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Reuse the strict CSV parser from fsis-import (handles quoted fields w/ embedded commas)
 function parseCSV(text) {

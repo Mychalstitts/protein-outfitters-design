@@ -9,7 +9,7 @@
 
 import { sql, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 function maskName(name) {
   if (!name) return 'Someone';

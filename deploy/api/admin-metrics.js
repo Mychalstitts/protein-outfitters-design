@@ -4,7 +4,7 @@
 // or even without the stripe npm package installed.
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Race a promise against a timeout so a hung upstream doesn't 504 the whole page.
 function withTimeout(promise, ms, label) {

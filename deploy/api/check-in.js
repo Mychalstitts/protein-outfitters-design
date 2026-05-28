@@ -11,7 +11,7 @@
 import { sql, currentUser, err, json } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');

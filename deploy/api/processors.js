@@ -5,7 +5,7 @@
 //   PATCH ?slug=... → update (owner only)
 import { sql, rawQuery, currentUser, err, json, slugify } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   const url = new URL(req.url);
@@ -55,7 +55,7 @@ export default async function handler(req) {
     if (!owns[0] && user.role !== 'admin') return err(403, 'Not your processor');
     let body;
     try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
-    const allowed = ['name','city','state','zip','inspection','capabilities','base_fees','per_lb_fees','schedule','date_overrides','cover_url','avatar_url','bio','certs','credentials_docs'];
+    const allowed = ['name','city','state','zip','inspection','capabilities','base_fees','per_lb_fees','schedule','date_overrides','cover_url','avatar_url','bio','certs'];
     for (const [k, v] of Object.entries(body)) {
       if (allowed.includes(k)) {
         await rawQuery(`UPDATE processors SET ${k} = $1, updated_at = NOW() WHERE slug = $2`, [v, slug]);

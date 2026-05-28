@@ -10,7 +10,7 @@
 
 import { sql, json, err } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   // Reject non-cron callers — Vercel cron sends Authorization: Bearer ${CRON_SECRET}

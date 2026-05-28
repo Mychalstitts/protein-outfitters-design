@@ -25,10 +25,7 @@
 import { sql, currentUser, err, json } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
-// runtime: 'edge' — nodejs cold-start was timing out at 10-12s on Vercel
-// (run-14 reproduction). Resend SDK is already lazy-imported inside the
-// handler and works on edge.
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const TIMELINE_PTS = { '0-3m': 25, '3-6m': 20, '6-12m': 15, '12+m': 10, 'exploring': 0 };
 const ROLE_PTS = {

@@ -18,7 +18,7 @@
 import { sql, currentUser, err, json } from './_lib/db.js';
 import { geocodeSync, MIDWEST_CENTROIDS } from './_lib/geocode.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Haversine distance in miles between two lat/lng points
 function distanceMi(a, b) {

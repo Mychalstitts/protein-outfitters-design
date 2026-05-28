@@ -2,7 +2,7 @@
 // Creates an auth_token, sends email via Resend (or returns link in dev).
 import { sql, err, json, randomToken } from '../_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   if (req.method !== 'POST') return err(405, 'POST only');

@@ -6,7 +6,7 @@
 // pipeline (stripe-webhook.js) can reward both sides on the first paid order.
 import { sql, randomToken, setSessionCookie } from '../_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Pull a referral code out of either the explicit ?ref= param, or whatever
 // `next` URL the user is bouncing to (e.g. /discover?ref=XYZ). Codes are

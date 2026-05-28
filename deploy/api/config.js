@@ -2,7 +2,7 @@
 //   GET → { mapsKey, ... }
 // Maps key is restricted by HTTP referrer (proteinoutfitters.com) in Google Cloud Console.
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler() {
   const body = {
