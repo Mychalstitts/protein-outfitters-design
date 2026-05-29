@@ -13,7 +13,7 @@
 // only own one record).
 import { sql, currentUser, json, err } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const VIEWS = new Set(['today', 'week', 'month', 'inbox', 'cooler', 'ready', 'earnings', 'stats']);
 
