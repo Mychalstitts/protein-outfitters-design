@@ -9,7 +9,7 @@
 // total follower count on the farm profile page.
 import { sql, currentUser, json, err, isUuid } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   const url = new URL(req.url);
