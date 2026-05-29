@@ -16,7 +16,22 @@ import postgres from 'postgres';
 // transaction-mode pooler URL (port 6543) for serverless connections that
 // shouldn't hold long-lived sessions. The connection string lives in
 // DATABASE_URL on Vercel.
-export const sql = postgres(process.env.DATABASE_URL, {
+//
+// 2026-05-28: parse DATABASE_URL with Node's URL constructor and pass
+// explicit options to `postgres`, rather than handing the URL string to
+// porsager's library. porsager's URL parser was mishandling Supabase's
+// dotted username format (`postgres.PROJECT_REF`) — the username was being
+// truncated at the dot, causing "password authentication failed for user
+// 'postgres'" even with a correct password. Node's URL parser handles the
+// dot correctly, and the options-object form bypasses porsager's parser
+// entirely.
+const _dbUrl = new URL(process.env.DATABASE_URL);
+export const sql = postgres({
+  host: _dbUrl.hostname,
+  port: Number(_dbUrl.port || 5432),
+  database: _dbUrl.pathname.slice(1) || 'postgres',
+  username: decodeURIComponent(_dbUrl.username),
+  password: decodeURIComponent(_dbUrl.password),
   ssl: 'require',
   max: 4,                  // small pool per function instance
   idle_timeout: 20,        // recycle idle clients after 20s
