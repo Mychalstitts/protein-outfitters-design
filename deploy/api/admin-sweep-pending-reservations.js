@@ -24,8 +24,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
-
+export const config = { runtime: 'nodejs' };
 // Physics-fixed capacity per share_size — one animal = 1 whole = 2 halves
 // = 4 quarters = 8 eighths. Used by `reconcile` to derive available from
 // reserved without trusting the existing JSON.
