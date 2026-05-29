@@ -12,7 +12,7 @@
 // the handler. (Found run 22.)
 import { sql, currentUser, json, err } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX = { name: 120, email: 200, phone: 40, zip: 20, avatar_url: 1000 };
