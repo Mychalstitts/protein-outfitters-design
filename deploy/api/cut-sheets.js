@@ -11,8 +11,7 @@
 
 import { sql, currentUser, json, err, isUuid } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
-
+export const config = { runtime: 'nodejs' };
 // Lightweight direct-Resend send. We don't go through sendLifecycleEmail()
 // because that requires a registered template and idempotency keys we don't
 // want here (a buyer revising a cut sheet should send a fresh notification).
