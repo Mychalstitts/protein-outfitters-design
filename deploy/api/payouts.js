@@ -15,7 +15,7 @@
 // Stripe loaded lazily inside the handler — same pattern as donate-to-fund.js.
 import { sql, currentUser, json, err } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured (STRIPE_SECRET_KEY missing)');
