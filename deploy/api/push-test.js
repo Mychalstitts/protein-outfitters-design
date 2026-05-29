@@ -11,8 +11,7 @@
 
 import { sql, currentUser, err, json } from './_lib/db.js';
 
-export const config = { runtime: 'edge' };
-
+export const config = { runtime: 'nodejs' };
 export default async function handler(req) {
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
