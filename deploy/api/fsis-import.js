@@ -221,7 +221,7 @@ export default async function handler(req) {
 
   // Optional offset/limit so the client can chunk through a large dataset.
   // Lets us stay under the 25s edge-runtime initial-response limit.
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const offset = parseInt(url.searchParams.get('offset') || '0', 10);
   const limit = parseInt(url.searchParams.get('limit') || '0', 10);
   const slice = limit > 0 ? filtered.slice(offset, offset + limit) : filtered;

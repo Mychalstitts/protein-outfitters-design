@@ -11,7 +11,7 @@ export const config = { runtime: 'nodejs' };
 const ALLOWED_DONATION_STATUSES = ['pledged','processing','delivered','receipted','cancelled'];
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   if (req.method === 'GET') {
     const user = await currentUser(req);

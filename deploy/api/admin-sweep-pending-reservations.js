@@ -34,7 +34,7 @@ const SHARE_CAPACITY = { whole: 1, half: 2, quarter: 4, eighth: 8 };
 const ACTIVE_STATUSES = ['pending', 'deposit-paid', 'paid', 'processing', 'ready', 'picked-up'];
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   // Auth: admin session OR ?secret=$MIGRATE_SECRET.
   const secret = url.searchParams.get('secret');

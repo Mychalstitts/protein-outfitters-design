@@ -18,7 +18,7 @@ export const config = { runtime: 'nodejs' };
 const ALLOWED_ROLES = ['admin', 'producer', 'processor', 'buyer'];
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const secret = url.searchParams.get('secret');
 
   if (!process.env.MIGRATE_SECRET) {

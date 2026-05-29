@@ -26,7 +26,7 @@ function extractRefCode(url, nextRaw) {
 }
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const token = url.searchParams.get('token');
   const next = url.searchParams.get('next') || '/account';
   const refCode = extractRefCode(url, next);

@@ -25,7 +25,7 @@ export default async function handler(req) {
 
   // Resolve the processor record this user owns. Admins can pass ?processor_id=
   // to scope to a specific plant; otherwise we use their own.
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const view = (url.searchParams.get('view') || 'today').toLowerCase();
   if (!VIEWS.has(view)) return err(400, 'Unknown view');
 

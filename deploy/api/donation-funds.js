@@ -23,7 +23,7 @@ async function computeBalance() {
 }
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   // ── GET: ledger or public summary ──
   if (req.method === 'GET') {

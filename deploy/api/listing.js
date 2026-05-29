@@ -7,7 +7,7 @@ import { sql, rawQuery, currentUser, err, json } from './_lib/db.js';
 export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const id = url.searchParams.get('id');
   if (!id) return err(400, 'id required');
   // UUID v4-ish guard so a bad ?id= doesn't blow up the SQL cast

@@ -225,7 +225,7 @@ function canSee(tier, layer) {
 export default async function handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
 
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const layer = url.searchParams.get('layer');
 
   const user = await currentUser(req).catch(() => null);

@@ -37,7 +37,7 @@ async function ensureUserCode(userId) {
 }
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   if (req.method === 'GET') {
     const lookup = url.searchParams.get('code');

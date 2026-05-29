@@ -107,7 +107,7 @@ export default async function handler(req) {
 
   try { await ensureSchema(); } catch (e) { return err(500, `Schema bootstrap failed: ${e.message}`); }
 
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const onlyState = (url.searchParams.get('state') || '').toUpperCase();
   const onlyProfile = (url.searchParams.get('profile') || '').toLowerCase();
   const maxPages = parseInt(url.searchParams.get('pages') || '1', 10);

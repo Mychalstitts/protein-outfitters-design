@@ -44,7 +44,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'lon
 
 async function _handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const donationId = url.searchParams.get('donation');
   if (!donationId) return err(400, 'donation id required');
 

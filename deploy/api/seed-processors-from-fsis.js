@@ -23,7 +23,7 @@ export default async function handler(req) {
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
 
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const states = (url.searchParams.get('states') || 'MN,WI,ND,SD,IA,IL').toUpperCase().split(',').map(s => s.trim()).filter(Boolean);
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '300', 10), 10000);
 

@@ -87,7 +87,7 @@ export default async function handler(req) {
   await ensureSchema();
 
   // Build absolute URL to /data/mpa_processors.csv on this same Vercel deployment
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const csvUrl = `${url.protocol}//${url.host}/data/mpa_processors.csv`;
   const r = await fetch(csvUrl, { cache: 'no-store' });
   if (!r.ok) return err(500, `failed to fetch ${csvUrl}: HTTP ${r.status}`);

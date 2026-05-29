@@ -12,7 +12,7 @@ import { sql, currentUser, json, err, isUuid } from './_lib/db.js';
 export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   // ── GET: is-following + total count ────────────────────
   if (req.method === 'GET') {

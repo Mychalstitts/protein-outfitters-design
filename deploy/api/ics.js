@@ -47,7 +47,7 @@ function toIcs(events) {
 }
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const reservationId = url.searchParams.get('reservation');
   const listingId = url.searchParams.get('listing');
 

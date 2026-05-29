@@ -13,7 +13,7 @@ import { backfillEntity } from './_lib/geocode.js';
 export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const secret = url.searchParams.get('secret');
   if (!process.env.MIGRATE_SECRET) return err(503, 'MIGRATE_SECRET env var not set');
   if (!secret || secret !== process.env.MIGRATE_SECRET) return err(401, 'Unauthorized');

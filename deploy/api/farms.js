@@ -7,7 +7,7 @@ import { sql, rawQuery, currentUser, err, json, slugify } from './_lib/db.js';
 export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   if (req.method === 'GET') {
     const slug = url.searchParams.get('slug');
     const owner = url.searchParams.get('owner');

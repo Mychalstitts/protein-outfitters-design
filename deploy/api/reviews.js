@@ -8,7 +8,7 @@ export const config = { runtime: 'nodejs' };
 
 export default async function handler(req) {
   if (req.method === 'GET') {
-    const url = new URL(req.url);
+    const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
     const subject_type = url.searchParams.get('subject_type');
     const subject_id = url.searchParams.get('subject_id');
     if (!subject_type || !subject_id) return err(400, 'subject_type and subject_id required');

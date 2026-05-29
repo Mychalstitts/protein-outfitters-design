@@ -646,7 +646,7 @@ const SEED_SQL = [
 ];
 
 export default async function handler(req) {
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const secret = url.searchParams.get('secret');
   if (!process.env.MIGRATE_SECRET || secret !== process.env.MIGRATE_SECRET) {
     return err(401, 'Unauthorized — set MIGRATE_SECRET env var and pass ?secret=...');

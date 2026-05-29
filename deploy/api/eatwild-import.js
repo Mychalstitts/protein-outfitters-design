@@ -176,7 +176,7 @@ export default async function handler(req) {
 
   try { await ensureSchema(); } catch (e) { return err(500, `Schema bootstrap failed: ${e.message}`); }
 
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const onlyState = (url.searchParams.get('state') || '').toLowerCase();
   const offset = parseInt(url.searchParams.get('offset') || '0', 10);
   const limit = parseInt(url.searchParams.get('limit') || '5', 10); // states per call

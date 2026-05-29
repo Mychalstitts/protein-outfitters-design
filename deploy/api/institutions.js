@@ -57,7 +57,7 @@ export default async function handler(req) {
     return err(500, `Schema init failed: ${e.message}`);
   }
 
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   // ───── GET: list institutions ─────
   if (req.method === 'GET') {

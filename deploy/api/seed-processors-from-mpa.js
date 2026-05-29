@@ -31,7 +31,7 @@ export default async function handler(req) {
   const user = await currentUser(req);
   if (!user || user.role !== 'admin') return err(403, 'Admin only');
 
-  const url = new URL(req.url);
+  const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const statesParam = url.searchParams.get('states') || 'ALL';
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '2000', 10), 10000);
   const states = statesParam.toUpperCase() === 'ALL'

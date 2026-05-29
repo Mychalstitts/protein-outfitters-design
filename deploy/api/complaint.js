@@ -90,7 +90,7 @@ export default async function handler(req) {
   if (req.method === 'GET') {
     const user = await currentUser(req);
     if (!user) return err(401, 'Sign in required');
-    const url = new URL(req.url);
+    const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
     const reservationId = url.searchParams.get('reservation_id');
     if (reservationId) {
       const rows = await sql`SELECT * FROM complaints WHERE reservation_id = ${reservationId} ORDER BY created_at DESC`;
