@@ -3,14 +3,14 @@
 //   GET  → all donations for current user (auth) or all if admin
 //   PATCH ?id=…  admin: status transition (pledged → processing → delivered → receipted)
 //                fires D1 (tax letter ready) when status flips to 'receipted'.
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs' };
 
 const ALLOWED_DONATION_STATUSES = ['pledged','processing','delivered','receipted','cancelled'];
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   if (req.method === 'GET') {
@@ -115,3 +115,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

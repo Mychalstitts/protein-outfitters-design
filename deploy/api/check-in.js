@@ -8,12 +8,12 @@
 //
 // Auth: must be signed-in user who owns the processor (or admin).
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
@@ -93,3 +93,5 @@ export default async function handler(req) {
     buyers_notified: notified,
   });
 }
+
+export default nodejsHandler(handler);

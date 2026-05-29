@@ -9,10 +9,10 @@
 // shows whatever's newest, so leave at least one fresh in-app notification
 // in the inbox before testing — or POST one ad-hoc via /api/notifications.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
-export default async function handler(req) {
+async function handler(req) {
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
   if (user.role !== 'admin') return err(403, 'Admin only');
@@ -40,3 +40,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

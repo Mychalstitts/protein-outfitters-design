@@ -4,6 +4,7 @@
 //
 // ENV: GOOGLE_GEMINI_API_KEY
 
+import { nodejsHandler } from './_lib/db.js';
 export const config = { runtime: 'nodejs' };
 
 const SYSTEM = `You are the Protein Outfitters concierge — a friendly, knowledgeable assistant helping buyers navigate a marketplace where small farms sell whole, half, and quarter livestock direct to consumers.
@@ -23,7 +24,7 @@ If you don't know something specific (live inventory counts, exact processor ava
 
 Keep responses under 180 words unless they're explicitly asking for a deep dive.`;
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   let body;
@@ -65,3 +66,5 @@ export default async function handler(req) {
     return Response.json({ reply: "Concierge ran into a snag. Try again?", _error: String(e).slice(0, 200) });
   }
 }
+
+export default nodejsHandler(handler);

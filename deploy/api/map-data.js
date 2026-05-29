@@ -15,7 +15,7 @@
 // the demand + opportunity layers are returned to everyone but the UI
 // only surfaces them to admins (so we don't leak strategic insight).
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { geocodeSync, MIDWEST_CENTROIDS } from './_lib/geocode.js';
 
 export const config = { runtime: 'nodejs' };
@@ -222,7 +222,7 @@ function canSee(tier, layer) {
   return false;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
 
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
@@ -277,3 +277,5 @@ export default async function handler(req) {
     return err(500, 'map-data failed: ' + (e.message || 'unknown').slice(0, 200));
   }
 }
+
+export default nodejsHandler(handler);

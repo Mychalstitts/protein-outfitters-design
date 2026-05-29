@@ -11,14 +11,14 @@
 //
 // POST. Admin only.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
 const SPECIES_TOKENS = /^(poultry|beef|pork|lamb|goat|bison|venison|chicken|turkey|duck|eggs|certified\s+organic|grass[\s-]?fed|pasture[\s-]?raised|all\s+natural)\b/i;
 const FARM_SHAPED = /\b(farm|ranch|acres|pastures?|meats?|co\b|llc|inc\b|family|brothers|sister|hill|creek|valley|prairie|stead|orchard|gardens?|fields?|barn|country)/i;
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
 
   const user = await currentUser(req);
@@ -79,3 +79,5 @@ export default async function handler(req) {
     errors,
   });
 }
+
+export default nodejsHandler(handler);

@@ -22,7 +22,7 @@
 //   - Email Mychal directly with the lead summary (HARDWARE_LEADS_EMAIL env, defaults to mychal@proteinoutfitters.com)
 //   - POST to HARDWARE_CRM_WEBHOOK_URL if set (HubSpot/Pipedrive/Salesforce/Zapier — generic JSON webhook)
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs' };
@@ -54,7 +54,7 @@ function temperatureFor(score) {
   return score >= 60 ? 'hot' : score >= 35 ? 'warm' : 'cold';
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'https://www.proteinoutfitters.com');
 
   // ── GET: admin lead list ──
@@ -205,3 +205,5 @@ ${b.notes ? `<p style="margin-top:16px;padding:12px 14px;background:#f5f1e8;bord
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

@@ -9,7 +9,7 @@
 // Open in Excel/Numbers/Sheets, Save As → CSV, then upload here.
 //
 // Auth: any signed-in user during early ops. Tighten to admin role later.
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -157,7 +157,7 @@ function activitiesMatch(actStr) {
   return /slaughter|processing|cut|wrap|grind/i.test(actStr);
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
 
   const user = await currentUser(req);
@@ -307,3 +307,5 @@ export default async function handler(req) {
     sample: filtered.slice(0, 3).map(r => ({ name: r.name, state: r.state, species: r._species }))
   });
 }
+
+export default nodejsHandler(handler);

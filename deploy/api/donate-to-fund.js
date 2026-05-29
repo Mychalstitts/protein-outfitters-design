@@ -10,7 +10,7 @@
 // for the tax acknowledgment letter mailing, but it's optional (anonymous gifts OK).
 
 import Stripe from 'stripe';
-import { sql, err, json } from './_lib/db.js';
+import { sql, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -18,7 +18,7 @@ const ALLOWED_AMOUNTS = [25, 50, 95, 200, 500, 770, 1000, 2500];
 const MIN = 5;
 const MAX = 50000;
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured');
 
@@ -84,3 +84,5 @@ export default async function handler(req) {
 
   return json({ url: session.url, fund_id: fundId, session_id: session.id });
 }
+
+export default nodejsHandler(handler);

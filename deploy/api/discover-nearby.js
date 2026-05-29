@@ -4,7 +4,7 @@
 // Returns candidate partners and (best-effort) inserts them into discovered_partners.
 //
 // Uses Places API (New) — set GOOGLE_MAPS_KEY in Vercel.
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -65,7 +65,7 @@ function extractStateZip(addressComponents = []) {
   return { state, zip };
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
   const key = process.env.GOOGLE_MAPS_KEY;
   if (!key) return err(500, 'GOOGLE_MAPS_KEY not configured');
@@ -149,3 +149,5 @@ export default async function handler(req) {
     errors
   });
 }
+
+export default nodejsHandler(handler);

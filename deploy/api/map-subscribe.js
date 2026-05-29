@@ -10,7 +10,7 @@
 // On checkout completion, the stripe-webhook handler should update users.map_tier.
 // (We add a `map_tier` column on first call if missing — idempotent ALTER.)
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' }; // Stripe SDK needs Node runtime
 
@@ -28,7 +28,7 @@ const TIER_DISPLAY = {
   hardware: { name: 'Hardware Insights', amount: '$199/mo' },
 };
 
-export default async function handler(req) {
+async function handler(req) {
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
 
@@ -95,3 +95,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

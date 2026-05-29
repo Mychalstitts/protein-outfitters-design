@@ -3,7 +3,7 @@
 //   POST  → create reservation (auth optional — uses email)
 //   PATCH ?id=… → status transition (processor/admin/buyer scoped)
 //                 fires the appropriate lifecycle email per transition.
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs' };
@@ -11,7 +11,7 @@ export const config = { runtime: 'nodejs' };
 const TERMINAL = new Set(['picked-up', 'cancelled', 'refunded']);
 const ALLOWED_STATUSES = ['pending','deposit-paid','paid','processing','ready','picked-up','cancelled','refunded'];
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   if (req.method === 'GET') {
@@ -230,3 +230,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

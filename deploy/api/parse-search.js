@@ -4,6 +4,7 @@
 //
 // ENV: GOOGLE_GEMINI_API_KEY  (set in Vercel project settings)
 
+import { nodejsHandler } from './_lib/db.js';
 export const config = { runtime: 'nodejs' };
 
 const SYSTEM_PROMPT = `You parse natural-language meat marketplace queries into structured filters.
@@ -34,7 +35,7 @@ Notes:
 
 Be conservative — only include fields the user explicitly requested.`;
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
@@ -76,3 +77,5 @@ export default async function handler(req) {
     return Response.json({ filters: {}, summary: [], _error: String(e).slice(0,200) }, { status: 200 });
   }
 }
+
+export default nodejsHandler(handler);

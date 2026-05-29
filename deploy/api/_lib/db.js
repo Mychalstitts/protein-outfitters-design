@@ -54,6 +54,98 @@ export async function rawQuery(text, params = []) {
   return await sql.unsafe(text, params);
 }
 
+// ─── Nodejs-runtime adapter for fetch-style handlers ──────
+//
+// 2026-05-28: Vercel's nodejs runtime expects the default-export signature
+// to be `(req, res) => void` — when a handler instead returns a Response,
+// Vercel logs `WARN: default export returned a 'Response'. ... returns are
+// ignored` and the function hangs until the 300s timeout. This wrapper
+// adapts a fetch-style handler (`async (req) => Response`) to Vercel's
+// nodejs (req, res) signature so we don't have to rewrite every endpoint.
+//
+// Usage at the bottom of any api/*.js file:
+//   export default nodejsHandler(handler);
+//
+// The wrapper:
+//   - Augments req with a fetch-style url (full URL) and .json()/.text()
+//   - Adds req.headers.get() if missing (Node uses plain object)
+//   - Awaits the handler, copies status/headers/body to the Node res
+//   - Catches uncaught errors → 500 JSON
+export function nodejsHandler(fetchHandler) {
+  return async function nodejsAdaptedHandler(req, res) {
+    try {
+      // Build the full URL — `new URL(req.url)` in handlers needs an
+      // absolute URL, which req.url is not in Node mode.
+      const host = req.headers?.host || 'www.proteinoutfitters.com';
+      const proto = req.headers?.['x-forwarded-proto'] || 'https';
+      const fullUrl = `${proto}://${host}${req.url || '/'}`;
+
+      // Add Headers.get() shim if Node headers are a plain object.
+      if (req.headers && typeof req.headers.get !== 'function') {
+        const _orig = req.headers;
+        req.headers.get = function (k) {
+          return _orig[String(k).toLowerCase()] ?? null;
+        };
+      }
+
+      // Lazy body readers — match the Web Standard Request API.
+      let _bodyPromise = null;
+      const _readBody = () => {
+        if (_bodyPromise) return _bodyPromise;
+        _bodyPromise = new Promise((resolve, reject) => {
+          let data = '';
+          req.on('data', (c) => { data += c; });
+          req.on('end', () => resolve(data));
+          req.on('error', reject);
+        });
+        return _bodyPromise;
+      };
+      req.text = async () => _readBody();
+      req.json = async () => {
+        const t = await _readBody();
+        return t ? JSON.parse(t) : null;
+      };
+
+      // Overwrite req.url with the absolute URL so `new URL(req.url)` works.
+      Object.defineProperty(req, 'url', {
+        value: fullUrl,
+        writable: true,
+        configurable: true,
+      });
+
+      const response = await fetchHandler(req);
+
+      // Handler returned nothing → 204
+      if (!response) {
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+
+      res.statusCode = response.status || 200;
+
+      // Copy headers — Response.headers is a Headers instance.
+      if (response.headers && typeof response.headers.forEach === 'function') {
+        response.headers.forEach((v, k) => res.setHeader(k, v));
+      } else if (response.headers) {
+        for (const k of Object.keys(response.headers)) {
+          res.setHeader(k, response.headers[k]);
+        }
+      }
+
+      const body = await response.text();
+      res.end(body);
+    } catch (e) {
+      console.error('[nodejsHandler] uncaught error:', e);
+      if (!res.headersSent) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+      }
+      res.end(JSON.stringify({ error: e?.message || String(e) }));
+    }
+  };
+}
+
 // ─── JSON response helper ──────────────────────────────────
 export function json(data, init = {}) {
   return new Response(JSON.stringify(data), {

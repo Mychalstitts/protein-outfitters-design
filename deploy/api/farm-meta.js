@@ -19,7 +19,7 @@
 // Wired in via vercel.json:
 //   { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" }
 
-import { sql } from './_lib/db.js';
+import { sql, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -90,7 +90,7 @@ function injectIntoHead(html, block) {
   return html.slice(0, idx) + block + html.slice(idx);
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, SITE_ORIGIN);
   const slug = url.searchParams.get('slug') || '';
 
@@ -129,3 +129,5 @@ export default async function handler(req) {
     }
   });
 }
+
+export default nodejsHandler(handler);

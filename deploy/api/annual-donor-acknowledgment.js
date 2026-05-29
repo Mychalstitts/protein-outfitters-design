@@ -17,7 +17,7 @@
 // Vercel cron config (vercel.json — schedule for January 15th of each year):
 //   { "path": "/api/annual-donor-acknowledgment", "schedule": "0 15 15 1 *" }
 
-import { sql, err, json } from './_lib/db.js';
+import { sql, err, json, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs' };
@@ -32,7 +32,7 @@ function authorized(req, url) {
   return false;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'https://www.proteinoutfitters.com');
   if (!authorized(req, url)) return err(401, 'Unauthorized');
   if (!['GET', 'POST'].includes(req.method)) return err(405, 'Method not allowed');
@@ -89,3 +89,5 @@ export default async function handler(req) {
     results,
   });
 }
+
+export default nodejsHandler(handler);

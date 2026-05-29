@@ -1,10 +1,10 @@
 // POST /api/auth/request-link — body: {email, role?}
 // Creates an auth_token, sends email via Resend (or returns link in dev).
-import { sql, err, json, randomToken } from '../_lib/db.js';
+import { sql, err, json, randomToken, nodejsHandler } from '../_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'POST only');
   let body;
   try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
@@ -75,3 +75,5 @@ function signInEmailHtml(link) {
     <p style="font-size:12px;margin-top:32px;padding-top:20px;border-top:1px solid #eee;opacity:.45">If you didn't request this, you can safely ignore this email.</p>
   </div></body></html>`;
 }
+
+export default nodejsHandler(handler);

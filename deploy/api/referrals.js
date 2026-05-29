@@ -8,7 +8,7 @@
 // is done by an admin sweep once the reservation pays/picks up. Reservation
 // linkage is optional so a code can be redeemed at signup before any reservation.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -36,7 +36,7 @@ async function ensureUserCode(userId) {
   throw new Error('Could not allocate referral code');
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   if (req.method === 'GET') {
@@ -101,3 +101,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

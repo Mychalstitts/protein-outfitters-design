@@ -16,7 +16,7 @@
 // the donor uses with their CPA. The charity does NOT assign a dollar value to
 // non-cash gifts — that's the donor's responsibility.
 
-import { sql, currentUser, err } from '../_lib/db.js';
+import { sql, currentUser, err, nodejsHandler } from '../_lib/db.js';
 import { pdfResponse, header, footer, paragraph, fieldGrid, BRAND } from '../_lib/pdf.js';
 
 // ⚠ KNOWN ISSUE (2026-05-17): nodejs functions hang past 14s when invoked
@@ -138,7 +138,7 @@ async function _handler(req) {
 }
 
 // Top-level guard — see deed-of-gift.js for rationale.
-export default async function handler(req) {
+async function handler(req) {
   try {
     return await _handler(req);
   } catch (e) {
@@ -149,3 +149,5 @@ export default async function handler(req) {
     );
   }
 }
+
+export default nodejsHandler(handler);

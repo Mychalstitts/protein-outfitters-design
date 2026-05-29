@@ -1,11 +1,11 @@
 // /api/listings
 //   GET  ?species=&practice=&certs=&priceMax=&distance=&zip=&q= → array of listings (with farm info)
 //   POST { ...listing } → create listing (auth + producer role required)
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   if (req.method === 'GET') {
@@ -107,3 +107,5 @@ async function createListing(req) {
   `;
   return json({ listing: rows[0] });
 }
+
+export default nodejsHandler(handler);

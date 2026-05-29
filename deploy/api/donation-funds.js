@@ -8,7 +8,7 @@
 //
 // Schema bootstrapped via /api/migrate.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -22,7 +22,7 @@ async function computeBalance() {
   return Number(inflow[0]?.total || 0) - Number(outflow[0]?.total || 0);
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   // ── GET: ledger or public summary ──
@@ -158,3 +158,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

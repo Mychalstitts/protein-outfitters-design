@@ -5,7 +5,7 @@
 //
 // POST ?states=MN,WI,ND,SD,IA,MI,IL,MT,NE&limit=300
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -25,7 +25,7 @@ function defaultBio(name, state, species) {
   return `${name} is a pasture-based farm in ${state || 'the Midwest'} producing ${sp}. Imported from the EatWild directory — claim this profile to add your own story, photos, and listings.`;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
 
   const user = await currentUser(req);
@@ -142,3 +142,5 @@ export default async function handler(req) {
     sample,
   });
 }
+
+export default nodejsHandler(handler);

@@ -11,13 +11,13 @@
 // Auth: signed-in processor, or admin. We resolve "your processor_id" by
 // looking up processors.owner_id = user.id (first match — most processors
 // only own one record).
-import { sql, currentUser, json, err } from './_lib/db.js';
+import { sql, currentUser, json, err, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
 const VIEWS = new Set(['today', 'week', 'month', 'inbox', 'cooler', 'ready', 'earnings', 'stats']);
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
 
   const user = await currentUser(req);
@@ -182,3 +182,5 @@ export default async function handler(req) {
 
 // Unused helper (kept for clarity — see explicit per-view queries above).
 function queueQuery() { return ''; }
+
+export default nodejsHandler(handler);

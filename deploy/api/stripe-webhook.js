@@ -11,12 +11,12 @@
 // Vercel hands us the raw body via req.text() — Stripe needs the raw bytes
 // to verify the signature, so we cannot run on edge runtime.
 import Stripe from 'stripe';
-import { sql } from './_lib/db.js';
+import { sql, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs', api: { bodyParser: false } };
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   if (!process.env.STRIPE_SECRET_KEY) return new Response('Stripe not configured', { status: 500 });
   if (!process.env.STRIPE_WEBHOOK_SECRET) return new Response('Webhook secret missing', { status: 500 });
@@ -563,3 +563,5 @@ export default async function handler(req) {
 
   return new Response(JSON.stringify({ received: true }), { status: 200, headers: { 'content-type': 'application/json' } });
 }
+
+export default nodejsHandler(handler);

@@ -18,11 +18,11 @@
 // GET → returns { vapid_public_key } so po-shell.js can subscribe without
 //        a separate config round-trip.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method === 'GET') {
     const key = process.env.VAPID_PUBLIC_KEY || '';
     return json({ vapid_public_key: key, configured: !!key });
@@ -57,3 +57,5 @@ export default async function handler(req) {
 
   return json({ ok: true, attached_user: !!user });
 }
+
+export default nodejsHandler(handler);

@@ -10,11 +10,11 @@
 // Notifications are written by /api/_lib/email.js whenever a lifecycle
 // email is sent, so the inbox always mirrors what we emailed the user.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
@@ -87,3 +87,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

@@ -11,11 +11,11 @@
 //
 // CORS-friendly, cached at the edge for 5 minutes.
 
-import { json } from './_lib/db.js';
+import { json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   const body = {
     clarity_project_id: process.env.CLARITY_PROJECT_ID || null,
     posthog_key: process.env.POSTHOG_PUBLIC_KEY || null,
@@ -30,3 +30,5 @@ export default async function handler(req) {
     },
   });
 }
+
+export default nodejsHandler(handler);

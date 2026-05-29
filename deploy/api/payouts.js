@@ -13,11 +13,11 @@
 // register those events in the Stripe dashboard if not already).
 
 // Stripe loaded lazily inside the handler — same pattern as donate-to-fund.js.
-import { sql, currentUser, json, err } from './_lib/db.js';
+import { sql, currentUser, json, err, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured (STRIPE_SECRET_KEY missing)');
   const { default: Stripe } = await import('stripe');
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
@@ -140,3 +140,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

@@ -2,7 +2,7 @@
 //   curl -X POST "https://www.proteinoutfitters.com/api/migrate?secret=$MIGRATE_SECRET"
 //
 // Requires MIGRATE_SECRET env var. Idempotent (CREATE TABLE IF NOT EXISTS).
-import { rawQuery, err, json } from './_lib/db.js';
+import { rawQuery, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -645,7 +645,7 @@ const SEED_SQL = [
    ON CONFLICT DO NOTHING`
 ];
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const secret = url.searchParams.get('secret');
   if (!process.env.MIGRATE_SECRET || secret !== process.env.MIGRATE_SECRET) {
@@ -694,3 +694,5 @@ export default async function handler(req) {
     seed: ranSeed,
   });
 }
+
+export default nodejsHandler(handler);

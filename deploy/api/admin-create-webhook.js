@@ -12,7 +12,7 @@
 //
 // MIGRATE_SECRET-gated so only the operator can run it.
 
-import { err, json } from './_lib/db.js';
+import { err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -31,7 +31,7 @@ const REQUIRED_EVENTS = [
   'invoice.paid',
 ];
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const secret = url.searchParams.get('secret');
 
@@ -113,3 +113,5 @@ export default async function handler(req) {
     next_step: 'Copy the `signing_secret` value above. In Vercel → Settings → Environment Variables, set `STRIPE_WEBHOOK_SECRET` to that value (mark sensitive). Then redeploy. After redeploy, /admin-health will show all 12 events subscribed.',
   });
 }
+
+export default nodejsHandler(handler);

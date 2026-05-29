@@ -9,7 +9,7 @@
 // Webhook `/api/stripe-webhook` flips the reservation to `deposit-paid` once
 // the buyer completes payment.
 import Stripe from 'stripe';
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 // Stripe SDK uses Node Buffer/crypto — must run on Node runtime, not edge.
 export const config = { runtime: 'nodejs' };
@@ -38,7 +38,7 @@ function computeDepositCents({ farmerPerLb, share_size, hangingWeight }) {
   return Math.round(deposit * 100);
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured (missing STRIPE_SECRET_KEY)');
 
@@ -274,3 +274,5 @@ export default async function handler(req) {
 
   return json({ url: session.url, reservation_id: reservationId, session_id: session.id });
 }
+
+export default nodejsHandler(handler);

@@ -11,7 +11,7 @@
 // Aggregates every donation for one donor across the requested calendar year
 // into a single IRS Pub 1771 acknowledgment with an itemized table.
 
-import { sql, currentUser, err } from '../_lib/db.js';
+import { sql, currentUser, err, nodejsHandler } from '../_lib/db.js';
 import { pdfResponse, header, footer, paragraph, fieldGrid, BRAND } from '../_lib/pdf.js';
 
 export const config = { runtime: 'nodejs' };
@@ -212,7 +212,7 @@ async function _handler(req) {
 }
 
 // Top-level guard — see deed-of-gift.js for rationale.
-export default async function handler(req) {
+async function handler(req) {
   try {
     return await _handler(req);
   } catch (e) {
@@ -223,3 +223,5 @@ export default async function handler(req) {
     );
   }
 }
+
+export default nodejsHandler(handler);

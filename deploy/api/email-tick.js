@@ -15,7 +15,7 @@
 // Vercel cron config (vercel.json):
 //   { "crons": [{ "path": "/api/email-tick?secret=...", "schedule": "0 14 * * *" }] }
 
-import { sql, err, json } from './_lib/db.js';
+import { sql, err, json, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs' };
@@ -79,7 +79,7 @@ async function processorBookingsAtDayOffset(daysOut) {
 const animalLabelOf = (r) => `${r.animal_number ? r.animal_number + ' · ' : ''}${r.breed || r.species || 'animal'}`;
 const fractionPretty = (s) => ({whole:'Whole animal', half:'Half share', quarter:'Quarter share', eighth:'Eighth share'}[s] || 'Share');
 
-export default async function handler(req) {
+async function handler(req) {
   // Vercel Node runtime delivers req.url as a relative path; URL() needs a base.
   // The host doesn't matter for query-string parsing.
   const url = new URL(req.url, 'https://www.proteinoutfitters.com');
@@ -219,3 +219,5 @@ export default async function handler(req) {
     sent: results,
   });
 }
+
+export default nodejsHandler(handler);

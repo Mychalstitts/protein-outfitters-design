@@ -9,7 +9,7 @@
 // the processor handling it OR an admin. We allow re-submission — the
 // buyer can update their cut sheet up until the processor accepts it.
 
-import { sql, currentUser, json, err, isUuid } from './_lib/db.js';
+import { sql, currentUser, json, err, isUuid, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 // Lightweight direct-Resend send. We don't go through sendLifecycleEmail()
@@ -44,7 +44,7 @@ async function notifyProcessor({ to, subject, html, reservation_id, processor_id
   }
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   // ─── GET ────────────────────────────────
@@ -208,3 +208,5 @@ function cutSheetEmailHtml({ processor_name, buyer_name, farm_name, reservation_
     </table>
   `;
 }
+
+export default nodejsHandler(handler);

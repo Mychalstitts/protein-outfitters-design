@@ -2,11 +2,11 @@
 //   GET   → single listing with farm details
 //   PATCH → update (auth + ownership)
 //   DELETE → withdraw (sets status='withdrawn')
-import { sql, rawQuery, currentUser, err, json } from './_lib/db.js';
+import { sql, rawQuery, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const id = url.searchParams.get('id');
   if (!id) return err(400, 'id required');
@@ -68,3 +68,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

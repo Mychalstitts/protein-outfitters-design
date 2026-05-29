@@ -10,7 +10,7 @@
 // Admin-only. Read-only — running migrations or rotating secrets happens
 // elsewhere. This is just the dashboard.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -171,7 +171,7 @@ async function checkResend() {
   }
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
   const user = await currentUser(req);
   if (!user || user.role !== 'admin') return err(403, 'Admin only');
@@ -240,3 +240,5 @@ export default async function handler(req) {
     generated_at: new Date().toISOString(),
   });
 }
+
+export default nodejsHandler(handler);

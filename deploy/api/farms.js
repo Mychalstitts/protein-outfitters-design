@@ -2,11 +2,11 @@
 //   GET   → all farms (or ?owner=me for current user)
 //   POST  → create new farm (auth required, role auto-upgrades to producer)
 //   GET ?slug=northfield-pastures → single farm
-import { sql, rawQuery, currentUser, err, json, slugify } from './_lib/db.js';
+import { sql, rawQuery, currentUser, err, json, slugify, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   if (req.method === 'GET') {
     const slug = url.searchParams.get('slug');
@@ -79,3 +79,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

@@ -10,14 +10,14 @@
 // which makes /api/me deploy as a default Node handler that hangs ~30s before
 // the edge code path resolves. Declare `runtime` inline and re-implement
 // the handler. (Found run 22.)
-import { sql, currentUser, json, err } from './_lib/db.js';
+import { sql, currentUser, json, err, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX = { name: 120, email: 200, phone: 40, zip: 20, avatar_url: 1000 };
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method === 'GET') {
     const u = await currentUser(req);
     return json({ user: u });
@@ -58,3 +58,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

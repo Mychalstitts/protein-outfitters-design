@@ -4,7 +4,7 @@
 // Records the invite in `invites` table, updates discovered_partners status,
 // sends invite via Resend with personal link to claim a profile.
 import { Resend } from 'resend';
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -57,7 +57,7 @@ function inviteHtml({ kind, partnerName, inviterName, inviterEmail, personalMess
 </body></html>`;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
   if (!process.env.RESEND_API_KEY) return err(500, 'Resend not configured');
 
@@ -146,3 +146,5 @@ export default async function handler(req) {
     claim_url: claimUrl
   });
 }
+
+export default nodejsHandler(handler);

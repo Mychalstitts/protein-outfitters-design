@@ -7,7 +7,7 @@
 //
 // Apollo API docs: https://apolloio.github.io/apollo-api-docs/
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -96,7 +96,7 @@ async function apolloSearchOrgs({ apiKey, keywords, state, page = 1, perPage = 2
   return r.json();
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST' && req.method !== 'GET') return err(405, 'Method not allowed');
 
   const user = await currentUser(req);
@@ -211,3 +211,5 @@ export default async function handler(req) {
     sample,
   });
 }
+
+export default nodejsHandler(handler);

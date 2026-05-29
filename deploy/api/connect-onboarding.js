@@ -15,13 +15,13 @@
 // Env required: STRIPE_SECRET_KEY
 // Optional: STRIPE_CONNECT_RETURN_URL (defaults to https://www.proteinoutfitters.com/account)
 import Stripe from 'stripe';
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
 const ALLOWED_KINDS = ['farm', 'processor'];
 
-export default async function handler(req) {
+async function handler(req) {
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured');
 
   // Node runtime: req.url is relative; URL() needs a base.
@@ -145,3 +145,5 @@ async function peekJson(req) {
   if (req.method !== 'POST') return null;
   try { return await req.clone().json(); } catch { return null; }
 }
+
+export default nodejsHandler(handler);

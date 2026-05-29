@@ -22,7 +22,7 @@
 //
 // Auth: admin session OR ?secret=$MIGRATE_SECRET.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 // Physics-fixed capacity per share_size — one animal = 1 whole = 2 halves
@@ -33,7 +33,7 @@ const SHARE_CAPACITY = { whole: 1, half: 2, quarter: 4, eighth: 8 };
 // Statuses that DO count against inventory (they hold a share).
 const ACTIVE_STATUSES = ['pending', 'deposit-paid', 'paid', 'processing', 'ready', 'picked-up'];
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   // Auth: admin session OR ?secret=$MIGRATE_SECRET.
@@ -159,3 +159,5 @@ export default async function handler(req) {
 
   return json({ swept_count: swept.length, failed_count: failed.length, swept, failed });
 }
+
+export default nodejsHandler(handler);

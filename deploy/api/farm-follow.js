@@ -7,11 +7,11 @@
 // Sign-in required for POST/DELETE. GET works anonymously and returns
 // { following: false, count } so unauthenticated visitors still see the
 // total follower count on the farm profile page.
-import { sql, currentUser, json, err, isUuid } from './_lib/db.js';
+import { sql, currentUser, json, err, isUuid, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   // ── GET: is-following + total count ────────────────────
@@ -67,3 +67,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

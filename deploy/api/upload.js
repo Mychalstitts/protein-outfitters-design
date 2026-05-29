@@ -2,11 +2,11 @@
 // Stores image in Vercel Blob, returns public URL. Auth required.
 // Requires BLOB_READ_WRITE_TOKEN env var (set automatically when Vercel Blob is enabled).
 import { put } from '@vercel/blob';
-import { currentUser, err, json } from './_lib/db.js';
+import { currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'POST only');
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
@@ -39,3 +39,5 @@ export default async function handler(req) {
     return err(500, String(e).slice(0, 300));
   }
 }
+
+export default nodejsHandler(handler);

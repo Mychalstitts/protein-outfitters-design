@@ -18,7 +18,7 @@
 //
 // The 'free' tier writes a row directly without touching Stripe.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -56,7 +56,7 @@ async function loadSubscription(processorId) {
   return rows[0] || null;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
   if (!['processor', 'admin'].includes(user.role)) return err(403, 'Processor account required');
@@ -189,3 +189,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

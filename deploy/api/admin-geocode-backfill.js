@@ -7,12 +7,12 @@
 // /api/map-data endpoint serves cached coords instantly with no Nominatim
 // calls on the request path.
 
-import { err, json } from './_lib/db.js';
+import { err, json, nodejsHandler } from './_lib/db.js';
 import { backfillEntity } from './_lib/geocode.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const secret = url.searchParams.get('secret');
   if (!process.env.MIGRATE_SECRET) return err(503, 'MIGRATE_SECRET env var not set');
@@ -23,3 +23,5 @@ export default async function handler(req) {
   const processors = await backfillEntity('processors');
   return json({ ok: true, farms, processors });
 }
+
+export default nodejsHandler(handler);

@@ -8,11 +8,11 @@
 // Vercel cron schedule (in vercel.json): every 5 minutes
 //   { "path": "/api/keep-warm", "schedule": "*/5 * * * *" }
 
-import { sql, json, err } from './_lib/db.js';
+import { sql, json, err, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   // Reject non-cron callers — Vercel cron sends Authorization: Bearer ${CRON_SECRET}
   const auth = req.headers.get('authorization') || '';
   const fromCron = process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
@@ -28,3 +28,5 @@ export default async function handler(req) {
     return err(500, 'keep-warm failed: ' + (e.message || '').slice(0, 120));
   }
 }
+
+export default nodejsHandler(handler);

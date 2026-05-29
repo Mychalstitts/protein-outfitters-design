@@ -4,7 +4,7 @@
 // `ref` (or `?ref=` embedded in `next`) is captured into users.referred_by_code
 // for newly created users. Triggers a referral_redemptions row so the credit
 // pipeline (stripe-webhook.js) can reward both sides on the first paid order.
-import { sql, randomToken, setSessionCookie } from '../_lib/db.js';
+import { sql, randomToken, setSessionCookie, nodejsHandler } from '../_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -25,7 +25,7 @@ function extractRefCode(url, nextRaw) {
   return null;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const token = url.searchParams.get('token');
   const next = url.searchParams.get('next') || '/account';
@@ -112,3 +112,5 @@ function errorPage(title, message) {
     headers: { 'Content-Type': 'text/html' }
   });
 }
+
+export default nodejsHandler(handler);

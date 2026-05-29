@@ -7,7 +7,7 @@
 // Pass ?state=minnesota for one state, no param for all 50.
 // Returns per-state inserted/updated counts.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -168,7 +168,7 @@ async function fetchState(stateSlug) {
   return r.text();
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST' && req.method !== 'GET') return err(405, 'Method not allowed');
 
   const user = await currentUser(req);
@@ -269,3 +269,5 @@ export default async function handler(req) {
     sample,
   });
 }
+
+export default nodejsHandler(handler);

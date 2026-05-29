@@ -8,7 +8,7 @@
 // (e-signature flow already in donation-flow.html); this endpoint produces
 // the file the donor and charity each retain a copy of.
 
-import { sql, currentUser, err } from '../_lib/db.js';
+import { sql, currentUser, err, nodejsHandler } from '../_lib/db.js';
 import { pdfResponse, header, footer, paragraph, fieldGrid, signatureBlock, BRAND } from '../_lib/pdf.js';
 
 export const config = { runtime: 'nodejs' };
@@ -126,7 +126,7 @@ async function _handler(req) {
 // Top-level guard — any thrown error becomes a structured 500 instead of
 // Vercel's generic FUNCTION_INVOCATION_FAILED page (which gave us no
 // debugging surface during the 2026-05 audit).
-export default async function handler(req) {
+async function handler(req) {
   try {
     return await _handler(req);
   } catch (e) {
@@ -137,3 +137,5 @@ export default async function handler(req) {
     );
   }
 }
+
+export default nodejsHandler(handler);

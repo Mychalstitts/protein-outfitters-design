@@ -7,7 +7,7 @@
 // Privacy: never returns full names. Uses first name + last initial + city.
 // Returns activities from the last 7 days, capped at 24 events.
 
-import { sql, json } from './_lib/db.js';
+import { sql, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -31,7 +31,7 @@ function fuzzyTime(dt) {
   return `${d}d ago`;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const layer = url.searchParams.get('layer'); // optional: 'reservations', 'farms', 'all'
   const includeStats = url.searchParams.get('stats') === '1';
@@ -123,3 +123,5 @@ export default async function handler(req) {
     },
   });
 }
+
+export default nodejsHandler(handler);

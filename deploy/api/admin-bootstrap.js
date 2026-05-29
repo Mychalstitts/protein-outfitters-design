@@ -11,13 +11,13 @@
 // can bootstrap themselves; no other path. Idempotent — calling it on a user
 // who's already that role is a no-op.
 
-import { sql, err, json } from './_lib/db.js';
+import { sql, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
 const ALLOWED_ROLES = ['admin', 'producer', 'processor', 'buyer'];
 
-export default async function handler(req) {
+async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const secret = url.searchParams.get('secret');
 
@@ -56,3 +56,5 @@ export default async function handler(req) {
     ON CONFLICT (email) DO UPDATE SET role = ${role}, updated_at = NOW()`;
   return json({ ok: true, email, role, created: true, message: `Pre-created ${email} as ${role}. Magic-link sign in to claim.` });
 }
+
+export default nodejsHandler(handler);

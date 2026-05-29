@@ -5,7 +5,7 @@
 //
 // POST. Admin only.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -78,7 +78,7 @@ async function ensureSchema() {
   )`;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
 
   const user = await currentUser(req);
@@ -190,3 +190,5 @@ export default async function handler(req) {
     errors,
   });
 }
+
+export default nodejsHandler(handler);

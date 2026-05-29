@@ -9,7 +9,7 @@
 // The "test send" path uses a unique dedup_key so it doesn't collide with real lifecycle sends.
 
 import { TEMPLATES, sendLifecycleEmail, listTemplates } from './_lib/email.js';
-import { currentUser, err, json } from './_lib/db.js';
+import { currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -124,7 +124,7 @@ function buildCtx(templateId, override = {}) {
   };
 }
 
-export default async function handler(req) {
+async function handler(req) {
   const user = await currentUser(req);
   if (!user || user.role !== 'admin') return err(403, 'Admin only');
 
@@ -174,3 +174,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

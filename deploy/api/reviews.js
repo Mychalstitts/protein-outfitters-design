@@ -2,11 +2,11 @@
 //   GET ?subject_type=farm&subject_id=UUID → reviews about that farm/processor (only revealed)
 //   POST {reservation_id, subject_type, subject_id, rating, body} → submit review
 //   When both sides of a reservation have submitted, both get revealed_at = NOW().
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req) {
+async function handler(req) {
   if (req.method === 'GET') {
     const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
     const subject_type = url.searchParams.get('subject_type');
@@ -57,3 +57,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);

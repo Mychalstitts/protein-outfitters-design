@@ -9,7 +9,7 @@
 // Complaints are auto-bootstrapped because they're rare enough we don't need
 // to lock down a migration cycle for them.
 
-import { sql, currentUser, err, json } from './_lib/db.js';
+import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs' };
@@ -34,7 +34,7 @@ async function ensureSchema() {
   await sql`CREATE INDEX IF NOT EXISTS complaints_status_idx ON complaints(status)`;
 }
 
-export default async function handler(req) {
+async function handler(req) {
   await ensureSchema().catch(() => {});
 
   if (req.method === 'POST') {
@@ -105,3 +105,5 @@ export default async function handler(req) {
 
   return err(405, 'Method not allowed');
 }
+
+export default nodejsHandler(handler);
