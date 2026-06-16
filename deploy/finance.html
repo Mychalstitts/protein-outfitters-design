@@ -157,7 +157,7 @@
             <span>Transfer to bank</span>
             <svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg>
           </button>
-          <button class="wallet-cta wallet-cta-secondary" onclick="document.querySelector('[data-pane=\'banks\']')?.scrollIntoView({behavior:'smooth'})">
+          <button class="wallet-cta wallet-cta-secondary" onclick="(function(){const t=document.querySelector('.fn-tab[data-pane=bank]');t?.click();document.querySelector('[data-pane=bank]')?.scrollIntoView({behavior:'smooth'});})()">
             <span>Schedule auto-transfer</span>
             <svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg>
           </button>

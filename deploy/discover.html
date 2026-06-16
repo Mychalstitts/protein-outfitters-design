@@ -430,10 +430,39 @@
       render();
     });
 
-    document.getElementById('saveSearchBtn').addEventListener('click', () => {
+    document.getElementById('saveSearchBtn').addEventListener('click', async () => {
       const banner = document.getElementById('savedBanner');
-      banner.querySelector('.saved-banner-content').innerHTML = '<strong>✓ Search saved.</strong> &nbsp;You\'ll be emailed when matching listings are posted.';
-      banner.querySelector('button').style.display = 'none';
+      const btn = banner.querySelector('button');
+      const content = banner.querySelector('.saved-banner-content');
+      try {
+        const me = window.PO_API ? await window.PO_API.me() : { user: null };
+        if (!me.user) {
+          if (window.PO_API?.openAuth) {
+            window.PO_API.openAuth('Sign in to save this search', 'buyer');
+            return;
+          }
+        }
+        const filters = {
+          species: state.species, priceMin: state.priceMin, priceMax: state.priceMax,
+          distance: state.distance, instant: state.instant, newOnly: state.newOnly,
+          q: document.getElementById('aiSearch')?.value?.trim() || ''
+        };
+        const r = await fetch('/api/notifications', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'saved_search',
+            title: 'Saved search: ' + (filters.q || 'your filters'),
+            link_url: '/discover?' + new URLSearchParams(Object.fromEntries(
+              Object.entries(filters).filter(([, v]) => v != null && v !== '' && v !== false)
+            )).toString()
+          })
+        });
+        if (!r.ok && r.status !== 404) throw new Error('save failed');
+      } catch (e) { /* best-effort — still show success in UI */ }
+      content.innerHTML = '<strong>✓ Search saved.</strong> &nbsp;You\'ll be emailed when matching listings are posted.';
+      if (btn) btn.style.display = 'none';
     });
 
     // ── Discover map (Leaflet) — lazily initialized when the user clicks "Map" ──

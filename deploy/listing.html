@@ -72,7 +72,7 @@
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
     <div class="po-nav-links"><a href="/discover" class="active">Reserve</a><a href="/#how">How it works</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
-    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button data-open-sheet data-animal="2641" data-name="#2641 · Black Angus steer" data-producer="Northfield Pastures · Bemidji, MN" data-photo="/img/angus.jpg" data-price-q="1395" data-price-h="2690" data-price-w="5180">Reserve</button></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button id="lgNavReserve" data-open-sheet disabled style="opacity:.55;cursor:wait">Reserve</button></div>
   </nav>
 </div>
 
@@ -121,7 +121,7 @@
         <div class="row"><span>Location</span><span id="lgFarmLoc">—</span></div>
         <div class="row"><span>Practices</span><span id="lgFarmPractices">—</span></div>
         <div class="row"><span>Established</span><span id="lgFarmEst">—</span></div>
-        <a id="lgFarmLink" href="#">View all listings →</a>
+        <a id="lgFarmLink" href="/producers">View all listings →</a>
       </div>
     </aside>
   </div>
@@ -257,9 +257,7 @@
         lgFarmLink.href = '/farm/' + l.farm_slug;
         lgFarmLink.removeAttribute('aria-disabled');
       } else {
-        lgFarmLink.href = '#';
-        lgFarmLink.setAttribute('aria-disabled', 'true');
-        lgFarmLink.addEventListener('click', e => e.preventDefault(), { once: true });
+        lgFarmLink.href = '/producers';
       }
     }
   }
@@ -333,8 +331,11 @@
   });
 
   // Also update the nav Reserve button
-  const navReserve = document.querySelector('.po-nav-actions button[data-open-sheet]');
+  const navReserve = document.getElementById('lgNavReserve');
   if (navReserve) {
+    navReserve.disabled = false;
+    navReserve.style.opacity = '';
+    navReserve.style.cursor = '';
     navReserve.dataset.animal = l.id;
     navReserve.dataset.name = `${l.number || ''} · ${l.breed || cap(l.species)}`;
     navReserve.dataset.producer = l.farm_name;

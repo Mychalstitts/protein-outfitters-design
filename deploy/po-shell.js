@@ -216,6 +216,17 @@
     injectGlobalShell();
   }
 
+  // Hide internal prototype chrome (page-tabs, role-bar) unless ?dev=1
+  function hidePrototypeChrome() {
+    if (new URLSearchParams(location.search).has('dev')) return;
+    document.querySelectorAll('.page-tabs, .role-bar').forEach(el => { el.style.display = 'none'; });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hidePrototypeChrome);
+  } else {
+    hidePrototypeChrome();
+  }
+
   // Inject footer + sheet into body (skip if the page already has its own)
   function inject() {
     const host = document.getElementById('po-shell-host');
