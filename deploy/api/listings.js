@@ -25,8 +25,7 @@ async function listListings(url) {
   let rows;
   if (species && species !== 'all') {
     rows = await sql`
-      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.identity as farm_identity,
-             ROUND(rs.avg_rating::numeric, 1) as farm_avg_rating, rs.review_count as farm_review_count
+      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.lat as farm_lat, f.lng as farm_lng, f.identity as farm_identity,             ROUND(rs.avg_rating::numeric, 1) as farm_avg_rating, rs.review_count as farm_review_count
       FROM listings l
       JOIN farms f ON f.id = l.farm_id
       LEFT JOIN (
@@ -41,8 +40,7 @@ async function listListings(url) {
     `;
   } else {
     rows = await sql`
-      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.identity as farm_identity,
-             ROUND(rs.avg_rating::numeric, 1) as farm_avg_rating, rs.review_count as farm_review_count
+      SELECT l.*, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state, f.zip as farm_zip, f.lat as farm_lat, f.lng as farm_lng, f.identity as farm_identity,             ROUND(rs.avg_rating::numeric, 1) as farm_avg_rating, rs.review_count as farm_review_count
       FROM listings l
       JOIN farms f ON f.id = l.farm_id
       LEFT JOIN (
