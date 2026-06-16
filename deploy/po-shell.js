@@ -72,7 +72,7 @@
     <div><h4>Marketplace</h4><ul><li><a href="/discover">Discover</a></li><li><a href="/producers">Producers</a></li><li><a href="/map">Farm map</a></li><li><a href="/hardware">Hardware</a></li></ul></div>
     <div><h4>For partners</h4><ul><li><a href="/farmer">Producer dashboard</a></li><li><a href="/processor">Processor portal</a></li><li><a href="/processor-saas">Processor pricing</a></li><li><a href="/donation-flow">Donation Depot</a></li></ul></div>
     <div><h4>Help &amp; policy</h4><ul><li><a href="/faq">FAQ</a></li><li><a href="/policies/refunds">Refund policy</a></li><li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li><li><a href="mailto:depot@proteinoutfitters.com">depot@proteinoutfitters.com</a></li></ul></div>
-    <div><h4>Company</h4><ul><li><a href="/account">Account</a></li><li><a href="/screens">All screens</a></li><li><a href="/brand">Brand</a></li><li><a href="/admin-overview">Admin</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="/account">Account</a></li><li><a href="/brand">Brand</a></li></ul></div>
   </div>
   <div class="po-foot-bottom"><span>© 2026 Protein Outfitters. All rights reserved.</span><span>Built in Bemidji, MN.</span></div>
 </footer>`;
@@ -216,14 +216,19 @@
     injectGlobalShell();
   }
 
-  // Inject footer + sheet into body
+  // Inject footer + sheet into body (skip if the page already has its own)
   function inject() {
     const host = document.getElementById('po-shell-host');
+    const hasFooter = !!document.querySelector('footer.po-foot');
+    const hasSheet = !!document.getElementById('sheet');
     if (host) {
-      host.insertAdjacentHTML('beforebegin', FOOTER_HTML);
-      host.insertAdjacentHTML('afterend', SHEET_HTML);
+      if (!hasFooter) host.insertAdjacentHTML('beforebegin', FOOTER_HTML);
+      if (!hasSheet) host.insertAdjacentHTML('afterend', SHEET_HTML);
     } else {
-      document.body.insertAdjacentHTML('beforeend', FOOTER_HTML + SHEET_HTML);
+      const parts = [];
+      if (!hasFooter) parts.push(FOOTER_HTML);
+      if (!hasSheet) parts.push(SHEET_HTML);
+      if (parts.length) document.body.insertAdjacentHTML('beforeend', parts.join(''));
     }
     wire();
   }
