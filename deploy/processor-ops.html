@@ -616,7 +616,7 @@ function showToast(msg) {
           <div class="booking-sub">Hog #88 · 12 min ago</div>
           <div class="booking-meta"><span class="pill">Needs reply</span></div>
         </div>
-        <button class="btn btn--secondary btn--sm" type="button" onclick="showToast('Reply composer opens')">Reply</button>
+        <button class="btn btn--secondary btn--sm" type="button" data-demo-act="reply">Reply</button>
       </div>
       <div class="booking">
         <span class="state-dot scheduled"></span>
@@ -625,7 +625,7 @@ function showToast(msg) {
           <div class="booking-sub">Steer #402 · 2 hr ago</div>
           <div class="booking-meta"><span class="pill pill--accent">Confirmed 9:00 AM</span></div>
         </div>
-        <button class="btn btn--ghost btn--sm" type="button" onclick="showToast('Thread archived')">Archive</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-demo-act="archive">Archive</button>
       </div>`,
   };
 
@@ -647,6 +647,7 @@ function showToast(msg) {
       const labels = { week: 'Week schedule · Outlook grid', month: 'Month view · capacity heatmap', inbox: 'Inbox · 2 threads' };
       originalEyebrow.textContent = labels[view] || view;
     }
+    wireDemoActions();
   }
 
   function wireDemoActions() {
@@ -672,6 +673,15 @@ function showToast(msg) {
           showToast('Pickup reminder sent to Sarah J.');
         } else if (act === 'call') {
           window.location.href = 'tel:+12185550199';
+        } else if (act === 'reply') {
+          const msg = prompt('Reply to Sarah J.:', 'Thanks — standard Family Pack cuts work.');
+          if (msg) { btn.textContent = 'Sent ✓'; btn.disabled = true; showToast('Reply sent to Sarah J.'); }
+        } else if (act === 'archive') {
+          const row = btn.closest('.booking');
+          if (row) row.style.opacity = '0.45';
+          btn.textContent = 'Archived';
+          btn.disabled = true;
+          showToast('Thread archived');
         }
       };
     });
@@ -861,8 +871,20 @@ function showToast(msg) {
           ${cs.notes ? '<span class="pill">Has notes</span>' : ''}
         </div>
       </div>
-      <button class="btn btn--secondary btn--sm">Open →</button>
+      <button class="btn btn--secondary btn--sm" data-open-cutsheet>Open →</button>
     `;
+    const openBtn = div.querySelector('[data-open-cutsheet]');
+    if (openBtn) {
+      openBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const rid = cs.reservation_id;
+        if (rid) {
+          window.location.href = '/cut-sheet?reservation=' + encodeURIComponent(rid);
+        } else {
+          showToast('Cut sheet detail — reservation ' + (cs.id || ''));
+        }
+      });
+    }
     return div;
   }
 

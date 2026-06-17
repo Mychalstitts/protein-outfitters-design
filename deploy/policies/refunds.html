@@ -183,11 +183,14 @@
   const fmt$ = n => '$' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
   let pool = { balance: 0, events: 0, reimbursed: 0, contribRate: 0.05 };
   try {
-    const r = await fetch('/api/admin-metrics', { credentials: 'include' });
+    const r = await fetch('/api/donation-funds?summary=public');
     if (r.ok) {
       const data = await r.json();
-      // Counts present on metrics endpoint will populate here once /api/pool is wired.
-      // Until then, show seed state.
+      if (Number(data.balance) > 0) {
+        pool.balance = data.balance;
+        pool.events = (data.fees_paid_count || 0) + (data.contributors_count || 0);
+        pool.reimbursed = data.fees_paid_total || 0;
+      }
     }
   } catch (e) { /* keep seed state */ }
   document.getElementById('poolBalance').textContent = pool.balance ? fmt$(pool.balance) : 'Seeding';

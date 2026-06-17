@@ -334,22 +334,22 @@ nav a:hover { opacity: 0.7; }
 </main>
 <!-- BottomNavBar (Mobile only) -->
 <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white/80 dark:bg-[#061b0e]/80 backdrop-blur-xl flex justify-around items-center px-4 pb-8 pt-4 z-50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
-<div class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2 hover:text-[#061b0e]">
+<a href="/discover" class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2 hover:text-[#061b0e] no-underline">
 <span class="material-symbols-outlined" data-icon="potted_plant">potted_plant</span>
 <span class="font-medium text-[10px] uppercase tracking-widest mt-1">Market</span>
-</div>
-<div class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2">
+</a>
+<a href="/map" class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2 no-underline">
 <span class="material-symbols-outlined" data-icon="map">map</span>
 <span class="font-medium text-[10px] uppercase tracking-widest mt-1">Map</span>
-</div>
-<div class="flex flex-col items-center justify-center bg-[#061b0e] dark:bg-[#fbf9f5] text-[#fbf9f5] dark:text-[#061b0e] rounded-full px-6 py-2 transition-all duration-300">
+</a>
+<a href="/site-visit" aria-current="page" class="flex flex-col items-center justify-center bg-[#061b0e] dark:bg-[#fbf9f5] text-[#fbf9f5] dark:text-[#061b0e] rounded-full px-6 py-2 transition-all duration-300 no-underline">
 <span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
 <span class="font-medium text-[10px] uppercase tracking-widest mt-1">Reports</span>
-</div>
-<div class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2">
+</a>
+<a href="/account" class="flex flex-col items-center justify-center text-[#061b0e]/50 dark:text-[#fbf9f5]/50 px-6 py-2 no-underline">
 <span class="material-symbols-outlined" data-icon="person">person</span>
 <span class="font-medium text-[10px] uppercase tracking-widest mt-1">Account</span>
-</div>
+</a>
 </nav>
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
@@ -379,7 +379,8 @@ nav a:hover { opacity: 0.7; }
     }
     if (downloadBtn) {
       downloadBtn.addEventListener('click', function () {
-        notify('Site visit PDF queued — opens in a new tab when ready');
+        window.print();
+        notify('Print dialog opened — save as PDF from your browser');
       });
     }
   })();

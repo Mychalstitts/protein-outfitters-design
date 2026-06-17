@@ -68,7 +68,13 @@
     const items = ids.map(id => byId.get(id)).filter(Boolean);
 
     if (!items.length) {
-      root.innerHTML = '<div class="cmp-empty"><h2>Pins expired</h2><p>Those processors are no longer in the directory. Clear and pick fresh ones.</p></div>';
+      document.getElementById('cmpActions').hidden = false;
+      document.getElementById('cmpSub').textContent = 'Pinned processors are no longer in the directory.';
+      root.innerHTML = '<div class="cmp-empty"><h2>Pins expired</h2><p>Those processors are no longer in the directory. Clear and pick fresh ones from the map.</p><div class="cmp-cta"><a class="primary" href="/map?layer=processors">Find processors</a></div></div>';
+      document.getElementById('cmpClear').addEventListener('click', () => {
+        localStorage.removeItem(KEY);
+        location.reload();
+      });
       return;
     }
 

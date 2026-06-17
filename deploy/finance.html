@@ -149,7 +149,7 @@
           </div>
           <p class="wallet-pending">
             <strong id="walletPending">$0.00</strong> pending — releases when buyer picks up<br>
-            <strong id="walletScheduled">$0.00</strong> scheduled to land in your bank Friday
+            <strong id="walletScheduled">$0.00</strong> <span id="walletScheduledNote">scheduled to land in your bank</span>
           </p>
         </div>
         <div class="wallet-actions">
@@ -466,28 +466,46 @@
     b.classList.add('active');
   }));
 
-  // Real wallet — pulls Stripe balance + DB reservation totals.
-  // Empty state: zeros if user is not signed in or has no payments yet.
-  (async function loadRealFinance(){
+  // Real wallet — pulls Connect balance from /api/payouts for the active role.
+  async function loadRealFinance() {
     const ZERO = '0.00';
     const setT = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     setT('walletAvail', ZERO);
     setT('walletPending', '$' + ZERO);
     setT('walletScheduled', '$' + ZERO);
     ['statWeek','statMonth','statYTD','statAvg'].forEach(id => setT(id, '$0'));
     try {
-      const r = await fetch('/api/admin-metrics', { credentials: 'include' });
+      const activeBtn = document.querySelector('.role-switch button.active');
+      const uiRole = activeBtn?.dataset.role || 'farmer';
+      const apiRole = uiRole === 'processor' ? 'processor' : 'producer';
+      const r = await fetch('/api/payouts?role=' + encodeURIComponent(apiRole), { credentials: 'include' });
+      if (r.status === 401) return;
       if (!r.ok) return;
       const data = await r.json();
-      const balUSD = (data.balance?.available || []).find(b => b.currency === 'usd')?.amount || 0;
-      const pendUSD = (data.balance?.pending || []).find(b => b.currency === 'usd')?.amount || 0;
-      const fmt = (n) => Number(n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      setT('walletAvail', fmt(balUSD));
-      setT('walletPending', '$' + fmt(pendUSD));
-      const ytd = data.counts?.paid_deposits_sum || 0;
-      setT('statYTD', '$' + Number(ytd).toLocaleString('en-US', { maximumFractionDigits: 0 }));
+      const bal = data.balance;
+      if (bal && bal.connected !== false && !bal.error) {
+        setT('walletAvail', fmt(bal.available || 0));
+        setT('walletPending', '$' + fmt(bal.pending || 0));
+        if (bal.scheduled_cents) {
+          const arrive = bal.scheduled_arrival
+            ? new Date(bal.scheduled_arrival).toLocaleDateString('en', { weekday: 'long', month: 'short', day: 'numeric' })
+            : 'soon';
+          setT('walletScheduled', '$' + fmt(bal.scheduled_cents / 100));
+          const note = document.getElementById('walletScheduledNote');
+          if (note) note.textContent = 'scheduled to land in your bank · ' + arrive;
+        }
+      }
+      const paidTotal = (data.payouts || [])
+        .filter(p => p.status === 'paid')
+        .reduce((s, p) => s + (Number(p.amount_cents) || 0), 0);
+      if (paidTotal) setT('statYTD', '$' + Math.round(paidTotal / 100).toLocaleString('en-US'));
     } catch (e) { /* leave zeros */ }
-  })();
+  }
+  loadRealFinance();
+  document.querySelectorAll('.role-switch button').forEach(b => {
+    b.addEventListener('click', () => setTimeout(loadRealFinance, 50));
+  });
 
   // Transfer to bank — real Stripe Connect payout from the user's available balance.
   // Replaces the previous fake "✓ Transfer initiated" text-toggle that never moved money.
@@ -501,9 +519,8 @@
     try {
       // Detect which connected account to debit. The "As farmer / As processor"
       // toggle on this page sets data-role on the active button.
-      const activeRoleBtn = document.querySelector('[data-role-toggle].active') ||
-                            document.querySelector('[data-role-toggle][aria-pressed="true"]');
-      const role = (activeRoleBtn && activeRoleBtn.dataset.role) || 'producer';
+      const activeRoleBtn = document.querySelector('.role-switch button.active');
+      const role = activeRoleBtn?.dataset.role === 'processor' ? 'processor' : 'producer';
       const result = await window.PO_API.transferToBank(role);
       const arrive = result?.stripe?.arrival_date
         ? new Date(result.stripe.arrival_date * 1000).toLocaleDateString('en', { month: 'short', day: 'numeric' })

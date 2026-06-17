@@ -24,6 +24,26 @@ If you don't know something specific (live inventory counts, exact processor ava
 
 Keep responses under 180 words unless they're explicitly asking for a deep dive.`;
 
+function fallbackReply(messages) {
+  const last = String(messages[messages.length - 1]?.content || '').toLowerCase();
+  if (last.includes('cut') || last.includes('ribeye') || last.includes('brisket')) {
+    return 'Cut sheets lock in how your share gets broken down — ribeyes, ground, roasts, the works. After you reserve on a listing, you\'ll get a cut-sheet link in your account. Not sure what to pick? A balanced "processor\'s choice" default works great for first-timers.';
+  }
+  if (last.includes('pickup') || last.includes('processor')) {
+    return 'Pickup happens at the USDA processor once your animal is cut and wrapped — usually 10–21 days after slaughter depending on dry-age. Your reservation confirmation shows the processor name, address, and pickup window. Browse processors on /map or compare side-by-side at /compare.';
+  }
+  if (last.includes('organic') || last.includes('grass') || last.includes('cert')) {
+    return 'Certifications vary by farm — USDA Organic, AGA grassfed, Animal Welfare Approved, and more show on each listing and farm profile. Filter on /discover or open a farm at /farm/{slug} to see exactly what that producer claims.';
+  }
+  if (last.includes('price') || last.includes('cost') || last.includes('how much')) {
+    return 'Pricing is per-pound hanging weight on each listing — a quarter beef might run $800–$1,400 all-in depending on the animal and farm. Tap any listing for the live price, deposit amount, and estimated take-home weight.';
+  }
+  if (last.includes('reserve') || last.includes('buy') || last.includes('fraction')) {
+    return 'Three taps: pick a listing on /discover, choose your fraction (whole, half, or quarter), and pay the deposit to lock the animal. We coordinate the processor and pickup — you fill out the cut sheet before harvest.';
+  }
+  return 'Browse live animals on /discover, compare processors on /map, or check /faq for deposits, pickup, and cut sheets. I can also help if you ask about cuts, certifications, or pricing.';
+}
+
 async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
@@ -33,10 +53,7 @@ async function handler(req) {
   if (!messages.length) return Response.json({ reply: "Ask me anything about livestock listings, cuts, or pickup." });
 
   if (!apiKey) {
-    return Response.json({
-      reply: "Concierge is offline (Gemini API key not configured). In the meantime, browse listings on /discover or message a farm directly via their profile page.",
-      _noKey: true
-    });
+    return Response.json({ reply: fallbackReply(messages), _noKey: true, _fallback: true });
   }
 
   try {
@@ -57,13 +74,16 @@ async function handler(req) {
       }
     );
     if (!r.ok) {
-      return Response.json({ reply: "Concierge is having trouble reaching the AI service. Try again in a moment.", _error: r.status });
+      return Response.json({ reply: fallbackReply(messages), _fallback: true, _error: r.status });
     }
     const data = await r.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Hmm, I didn't catch that — try rephrasing?";
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) {
+      return Response.json({ reply: fallbackReply(messages), _fallback: true });
+    }
     return Response.json({ reply });
   } catch (e) {
-    return Response.json({ reply: "Concierge ran into a snag. Try again?", _error: String(e).slice(0, 200) });
+    return Response.json({ reply: fallbackReply(messages), _fallback: true, _error: String(e).slice(0, 200) });
   }
 }
 

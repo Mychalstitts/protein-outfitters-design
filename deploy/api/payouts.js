@@ -25,8 +25,12 @@ async function handler(req) {
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
 
-  // ── GET — payout history ─────────────────────────────
+  // ── GET — payout history + optional Connect balance ──
   if (req.method === 'GET') {
+    const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
+    const wantedRole = url.searchParams.get('role')
+      || (user.role === 'processor' ? 'processor' : (user.role === 'producer' ? 'producer' : null));
+
     const rows = await sql`
       SELECT id, role, stripe_payout_id, amount_cents, currency, status,
              arrival_estimate, failure_reason, created_at, updated_at
@@ -34,7 +38,41 @@ async function handler(req) {
       WHERE user_id = ${user.id}
       ORDER BY created_at DESC
       LIMIT 50`;
-    return json({ payouts: rows });
+
+    let balance = null;
+    if (wantedRole === 'producer' || wantedRole === 'processor') {
+      let stripeAccountId = null;
+      if (wantedRole === 'producer') {
+        const farmRows = await sql`SELECT stripe_account_id FROM farms WHERE owner_id = ${user.id} AND stripe_account_id IS NOT NULL LIMIT 1`;
+        stripeAccountId = farmRows[0]?.stripe_account_id || null;
+      } else {
+        const procRows = await sql`SELECT stripe_account_id FROM processors WHERE owner_id = ${user.id} AND stripe_account_id IS NOT NULL LIMIT 1`;
+        stripeAccountId = procRows[0]?.stripe_account_id || null;
+      }
+      if (stripeAccountId) {
+        try {
+          const bal = await stripe.balance.retrieve({ stripeAccount: stripeAccountId });
+          const avail = bal.available?.find(b => b.currency === 'usd');
+          const pend = bal.pending?.find(b => b.currency === 'usd');
+          const scheduled = rows.find(p => p.status === 'in_transit');
+          balance = {
+            role: wantedRole,
+            available_cents: avail?.amount || 0,
+            pending_cents: pend?.amount || 0,
+            available: (avail?.amount || 0) / 100,
+            pending: (pend?.amount || 0) / 100,
+            scheduled_cents: scheduled?.amount_cents || 0,
+            scheduled_arrival: scheduled?.arrival_estimate || null,
+          };
+        } catch (e) {
+          balance = { role: wantedRole, error: e.message || 'balance_unavailable' };
+        }
+      } else {
+        balance = { role: wantedRole, connected: false };
+      }
+    }
+
+    return json({ payouts: rows, balance });
   }
 
   // ── POST — initiate a payout ─────────────────────────
