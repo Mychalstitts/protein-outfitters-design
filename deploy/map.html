@@ -425,7 +425,17 @@
   }
 
   function lookupMarker(layerName, lat, lng) {
-    return markerRegistry[layerName]?.get(markerKey(lat, lng)) || null;
+    const mapRef = markerRegistry[layerName];
+    if (!mapRef) return null;
+    const exact = mapRef.get(markerKey(lat, lng));
+    if (exact) return exact;
+    let found = null;
+    const eps = 0.001;
+    for (const [key, marker] of mapRef.entries()) {
+      const [kLat, kLng] = key.split(',').map(Number);
+      if (Math.abs(kLat - lat) < eps && Math.abs(kLng - lng) < eps) { found = marker; break; }
+    }
+    return found;
   }
 
   function openMarkerPopup(lat, lng, item) {
@@ -579,8 +589,8 @@
       if (li.dataset.link) { location.href = li.dataset.link; return; }
       const idx = parseInt(li.dataset.i, 10);
       const item = lastListItems[idx];
-      const lat = parseFloat(li.dataset.lat), lng = parseFloat(li.dataset.lng);
-      flyToAndOpenPopup(lat, lng, item);
+      if (!item || item.lat == null || item.lng == null) return;
+      flyToAndOpenPopup(item.lat, item.lng, item);
     }));
   }
 
