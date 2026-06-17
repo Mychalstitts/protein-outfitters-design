@@ -8,6 +8,7 @@ async function handler(req) {
   if (req.method !== 'POST') return err(405, 'POST only');
   let body;
   try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
+  if (!body || typeof body !== 'object') return err(400, 'JSON body required');
   const email = (body.email || '').trim().toLowerCase();
   const desiredRole = body.role; // optional 'producer' / 'processor' / 'buyer'
   if (!email || !email.includes('@')) return err(400, 'Valid email required');
