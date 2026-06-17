@@ -3,17 +3,21 @@
     "cleanUrls": true,
     "trailingSlash": false,
     "rewrites": [
-          { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" }
+          { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" },
+          { "source": "/p/:slug", "destination": "/api/processor-meta?slug=:slug" }
     ],
     "redirects": [
+          { "source": "/:path*", "has": [{ "type": "host", "value": "protein-outfitters-app1.vercel.app" }], "destination": "https://www.proteinoutfitters.com/:path*", "permanent": false },
+          { "source": "/:path*", "has": [{ "type": "host", "value": "protein-outfitters-design-3nci.vercel.app" }], "destination": "https://www.proteinoutfitters.com/:path*", "permanent": false },
+          { "source": "/:path*", "has": [{ "type": "host", "value": "protein-outfitters-design-ycmd.vercel.app" }], "destination": "https://www.proteinoutfitters.com/:path*", "permanent": false },
           { "source": "/produced",           "destination": "/producers",        "permanent": true  },
+          { "source": "/r/:code",            "destination": "/?ref=:code",       "permanent": false },
           { "source": "/find-processors",    "destination": "/map",              "permanent": false },
           { "source": "/find-processors/:path*", "destination": "/map",           "permanent": false },
           { "source": "/find-suppliers",     "destination": "/discover",         "permanent": false },
           { "source": "/find-suppliers/:path*", "destination": "/discover",      "permanent": false },
           { "source": "/admin/opportunities","destination": "/trends",           "permanent": false },
           { "source": "/saved",              "destination": "/account",          "permanent": false },
-          { "source": "/compare",            "destination": "/map",                "permanent": false },
           { "source": "/legal/privacy",      "destination": "/policies/privacy", "permanent": false },
           { "source": "/legal/terms",        "destination": "/policies/terms",   "permanent": false },
           { "source": "/privacy",            "destination": "/policies/privacy", "permanent": false },

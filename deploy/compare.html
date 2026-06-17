@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+  <title>Compare · Protein Outfitters</title>
+  <link rel="stylesheet" href="/theme.css" />
+  <link rel="stylesheet" href="/po-shell.css" />
+  <style>
+    .cmp-shell { max-width: 1200px; margin: 0 auto; padding: clamp(40px, 6vw, 72px) var(--shell-pad) 100px; }
+    .cmp-head { margin-bottom: 28px; }
+    .cmp-head h1 { margin: 0; font: 900 clamp(32px, 5vw, 48px)/1 'Inter'; letter-spacing: -.03em; }
+    .cmp-head p { margin: 10px 0 0; color: var(--ink-2); font-size: 15px; }
+    .cmp-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .cmp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .cmp-card { background: #fff; border-radius: 18px; padding: 20px; border: 1px solid rgba(6,27,14,.06); box-shadow: 0 4px 14px rgba(6,27,14,.04); }
+    .cmp-card h3 { margin: 0 0 6px; font: 800 18px/1.2 'Inter'; }
+    .cmp-card p { margin: 0 0 12px; font: 500 13px/1.45 'Inter'; color: var(--ink-2); }
+    .cmp-card .row { display: flex; justify-content: space-between; font: 600 12.5px/1.4 'Inter'; padding: 6px 0; border-top: 1px solid rgba(6,27,14,.06); }
+    .cmp-empty { text-align: center; padding: 60px 24px; background: #fff; border-radius: 20px; border: 1px solid rgba(6,27,14,.06); }
+    .cmp-empty h2 { margin: 0 0 10px; font: 800 26px/1.2 'Inter'; }
+    .cmp-empty p { margin: 0 0 20px; color: var(--ink-2); max-width: 42ch; margin-left: auto; margin-right: auto; }
+    .cmp-cta { display: inline-flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .cmp-cta a { padding: 11px 20px; border-radius: 999px; font: 700 13px/1 'Inter'; text-decoration: none; }
+    .cmp-cta .primary { background: var(--brand); color: #fbf9f5; }
+    .cmp-cta .ghost { background: rgba(6,27,14,.06); color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="cmp-shell">
+    <header class="cmp-head">
+      <h1>Side by side</h1>
+      <p id="cmpSub">Pin processors from the map to compare them here.</p>
+      <div class="cmp-actions" id="cmpActions" hidden>
+        <button class="btn-xl btn-xl--dark" id="cmpClear" type="button">Clear all</button>
+        <a class="btn-xl btn-xl--primary" href="/map" style="text-decoration:none;">Add more on map →</a>
+      </div>
+    </header>
+    <div id="cmpRoot"></div>
+  </div>
+  <div id="po-shell-host"></div>
+  <script src="/po-api.js"></script>
+  <script src="/po-shell.js"></script>
+  <script>
+  (async function () {
+    const KEY = 'po_compare_ids';
+    let ids = [];
+    try { ids = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch {}
+    const root = document.getElementById('cmpRoot');
+
+    if (!ids.length) {
+      root.innerHTML = `<div class="cmp-empty"><h2>Nothing to compare yet</h2><p>Pin processors from the map or a profile page using the Compare button. They show up here side-by-side.</p><div class="cmp-cta"><a class="primary" href="/map">Find processors</a><a class="ghost" href="/discover">Find farms</a></div></div>`;
+      return;
+    }
+
+    document.getElementById('cmpActions').hidden = false;
+    document.getElementById('cmpSub').textContent = ids.length + ' pinned — review services and locations before you submit a request.';
+
+    let processors = [];
+    try {
+      const r = await fetch('/api/processors', { credentials: 'include' });
+      const d = await r.json();
+      processors = d.processors || [];
+    } catch {}
+
+    const byId = new Map(processors.map(p => [p.id, p]));
+    const items = ids.map(id => byId.get(id)).filter(Boolean);
+
+    if (!items.length) {
+      root.innerHTML = '<div class="cmp-empty"><h2>Pins expired</h2><p>Those processors are no longer in the directory. Clear and pick fresh ones.</p></div>';
+      return;
+    }
+
+    root.innerHTML = '<div class="cmp-grid">' + items.map(p => {
+      const caps = p.capabilities || {};
+      const species = (caps.species || []).slice(0, 4).join(', ') || '—';
+      const services = (caps.services || []).slice(0, 4).join(', ') || 'Custom cuts';
+      const loc = [p.city, p.state].filter(Boolean).join(', ') || '—';
+      return `<article class="cmp-card">
+        <h3>${p.name}</h3>
+        <p>${loc}${p.inspection ? ' · ' + String(p.inspection).toUpperCase() : ''}</p>
+        <div class="row"><span>Species</span><span>${species}</span></div>
+        <div class="row"><span>Services</span><span>${services}</span></div>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+          <a class="btn-xl btn-xl--dark" style="padding:10px 16px;font-size:13px;text-decoration:none;" href="/p/${encodeURIComponent(p.slug)}">Profile</a>
+          <a class="btn-xl btn-xl--primary" style="padding:10px 16px;font-size:13px;text-decoration:none;" href="/map?layer=processors">Map</a>
+        </div>
+      </article>`;
+    }).join('') + '</div>';
+
+    document.getElementById('cmpClear').addEventListener('click', () => {
+      localStorage.removeItem(KEY);
+      location.reload();
+    });
+  })();
+  </script>
+</body>
+</html>

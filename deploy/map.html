@@ -48,6 +48,31 @@
   .map-top { background: var(--map-panel); padding: 14px 22px; display: flex; gap: 18px; align-items: center; border-bottom: 1px solid var(--map-line); }
   .map-top a { color: var(--map-text); text-decoration: none; font: 800 14px/1 'Inter'; letter-spacing: -0.01em; }
   .map-top .stats { margin-left: auto; display: flex; gap: 18px; font: 600 12px/1 'Inter'; color: var(--map-muted); flex-wrap: wrap; }
+  .map-search { display: flex; gap: 6px; align-items: center; margin-left: 8px; }
+  .map-search input {
+    width: min(160px, 28vw); padding: 7px 12px; border-radius: 999px;
+    border: 1px solid var(--map-line); background: var(--map-panel-2); color: var(--map-text);
+    font: 600 12.5px/1 'Inter';
+  }
+  .map-search button {
+    padding: 7px 12px; border-radius: 999px; border: 0; background: var(--po-green);
+    color: #061b0e; font: 800 11px/1 'Inter'; cursor: pointer;
+  }
+  .map-area-tools {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 800;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;
+  }
+  .map-area-tools button {
+    padding: 9px 16px; border-radius: 999px; border: 0; cursor: pointer;
+    background: rgba(15,29,24,.94); color: var(--map-text); font: 800 12px/1 'Inter';
+    box-shadow: 0 8px 22px rgba(0,0,0,.35); border: 1px solid var(--map-line);
+  }
+  .map-area-tools button.primary { background: var(--po-green); color: #061b0e; }
+  .map-area-tools label {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px;
+    background: rgba(15,29,24,.94); color: var(--map-muted); font: 600 11px/1 'Inter';
+    border: 1px solid var(--map-line);
+  }
   .map-top .stats strong { color: var(--po-green-bright); font-weight: 800; margin-right: 4px; }
   .map-top .tier-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(125,160,93,.15); border: 1px solid rgba(125,160,93,.3); font: 800 11px/1 'Inter'; letter-spacing: .04em; text-transform: uppercase; color: var(--po-green-bright); cursor: pointer; }
   .map-top .tier-pill.hardware { background: rgba(255,122,61,.15); border-color: rgba(255,122,61,.4); color: var(--po-orange); }
@@ -234,6 +259,10 @@
     <a href="/">PROTEIN OUTFITTERS</a>
     <span style="opacity:.4;">·</span>
     <span style="font-weight:600;color:var(--map-muted);">Atlas</span>
+    <form class="map-search" id="mapSearchForm">
+      <input id="mapSearchInput" name="q" type="search" placeholder="ZIP or city" autocomplete="off" />
+      <button type="submit">Go</button>
+    </form>
     <div class="stats" id="topStats"></div>
     <button class="tier-pill free" id="tierPill" type="button" title="Click to upgrade your map insights">FREE</button>
   </header>
@@ -275,6 +304,11 @@
 
     <div class="map-canvas">
       <div id="leafletMap"></div>
+      <div class="map-area-tools">
+        <button type="button" class="primary" id="searchThisArea">Search this area</button>
+        <label><input type="checkbox" id="searchAsMove" checked /> Search as I move</label>
+        <a href="/compare" style="padding:9px 16px;border-radius:999px;background:rgba(15,29,24,.94);color:var(--po-green-bright);font:800 12px/1 'Inter';text-decoration:none;border:1px solid var(--map-line);">Compare →</a>
+      </div>
       <div class="map-loading" id="mapLoading"><div class="spinner"></div></div>
       <div class="map-legend" id="mapLegend" style="display:none;"></div>
       <div class="roi-drawer" id="roiDrawer"></div>
@@ -376,7 +410,24 @@
   };
   let heatLayer = null;
   let currentLayer = 'farms';
+  let viewportFilter = false;
+  let searchAsMove = true;
   let DATA = { farms: [], processors: [], demand: [], opportunity: [], prospects: [], tier: 'free', is_admin: false, locked: { demand: true, opportunity: true, prospects: true } };
+
+  function inViewport(lat, lng) {
+    if (!viewportFilter) return true;
+    const b = map.getBounds();
+    return b.contains([lat, lng]);
+  }
+
+  function pinToCompare(id, label) {
+    const key = 'po_compare_ids';
+    let ids = [];
+    try { ids = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
+    if (!ids.includes(id)) ids.push(id);
+    localStorage.setItem(key, JSON.stringify(ids.slice(0, 4)));
+    showToast((label || 'Processor') + ' pinned to compare ✓');
+  }
 
   // ── Layer metadata ───────────────────────────────────────────
   const LAYER_META = {
@@ -422,7 +473,7 @@
 
     let items = [];
     if (currentLayer === 'farms') {
-      items = DATA.farms.map(f => ({
+      items = DATA.farms.filter(f => inViewport(f.lat, f.lng)).map(f => ({
         kind: 'farm',
         title: f.name,
         meta: `${f.city || ''}${f.state ? ', ' + f.state : ''}${f.listings_count ? ' · ' + f.listings_count + ' listing' + (f.listings_count === 1 ? '' : 's') : ''}`,
@@ -430,12 +481,12 @@
         lat: f.lat, lng: f.lng, link: f.slug ? '/farm/' + f.slug : null,
       }));
     } else if (currentLayer === 'processors') {
-      items = DATA.processors.map(p => ({
+      items = DATA.processors.filter(p => inViewport(p.lat, p.lng)).map(p => ({
         kind: 'processor',
         title: p.name,
         meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.inspection ? ' · ' + p.inspection.toUpperCase() : ''}`,
         pills: (p.species || []).slice(0, 3).map(t => ({ text: t, color: 'orange' })),
-        lat: p.lat, lng: p.lng, link: null,
+        lat: p.lat, lng: p.lng, link: p.slug ? '/p/' + p.slug : null,
       }));
     } else if (currentLayer === 'demand') {
       items = DATA.demand.slice(0, 60).map(d => ({
@@ -480,6 +531,7 @@
 
     // Click → fly to + open popup
     el.querySelectorAll('.list-item').forEach(li => li.addEventListener('click', () => {
+      if (li.dataset.link) { location.href = li.dataset.link; return; }
       const lat = parseFloat(li.dataset.lat), lng = parseFloat(li.dataset.lng);
       if (!isNaN(lat) && !isNaN(lng)) map.flyTo([lat, lng], 12, { duration: .9 });
     }));
@@ -508,7 +560,13 @@
         <h4>${escapeHtml(p.name)}</h4>
         <p>${escapeHtml(p.city || '')}${p.state ? ', ' + escapeHtml(p.state) : ''}</p>
         ${p.inspection ? `<p>Inspection: <strong>${escapeHtml(p.inspection.toUpperCase())}</strong></p>` : ''}
-        ${(p.species && p.species.length) ? `<p>Species: ${p.species.map(escapeHtml).join(', ')}</p>` : ''}`);
+        ${(p.species && p.species.length) ? `<p>Species: ${p.species.map(escapeHtml).join(', ')}</p>` : ''}
+        ${p.slug ? `<a class="cta" href="/p/${encodeURIComponent(p.slug)}">View profile →</a>` : ''}
+        <button class="cta" style="margin-left:6px;border:0;cursor:pointer;" type="button" data-compare-id="${escapeHtml(p.id)}">+ Compare</button>`);
+      m.on('popupopen', () => {
+        const btn = m.getPopup()?.getElement()?.querySelector('[data-compare-id]');
+        if (btn) btn.onclick = () => pinToCompare(btn.getAttribute('data-compare-id'), p.name);
+      });
       layers.processors.addLayer(m);
     }
   }
@@ -742,6 +800,44 @@
     }
   };
 
+  window.poPinCompare = pinToCompare;
+
+  document.getElementById('searchThisArea').addEventListener('click', () => {
+    viewportFilter = true;
+    renderSideList();
+    const n = document.querySelectorAll('#sideList .list-item').length;
+    showToast(n ? `Showing ${n} in this view` : 'Nothing in this view — zoom out or pan');
+  });
+  document.getElementById('searchAsMove').addEventListener('change', e => {
+    searchAsMove = e.target.checked;
+    if (searchAsMove) { viewportFilter = true; renderSideList(); }
+  });
+  map.on('moveend', () => { if (searchAsMove) { viewportFilter = true; renderSideList(); } });
+
+  document.getElementById('mapSearchForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const q = document.getElementById('mapSearchInput').value.trim();
+    if (!q) return;
+    try {
+      const r = await fetch('/api/discover-nearby?zip=' + encodeURIComponent(q.replace(/\D/g, '').slice(0, 5) || q) + '&kind=processor&radius=120');
+      if (r.ok) {
+        const d = await r.json();
+        const first = (d.results || d.candidates || [])[0];
+        if (first && first.lat != null && first.lng != null) {
+          map.flyTo([first.lat, first.lng], 9, { duration: .8 });
+          viewportFilter = true;
+          renderSideList();
+          return;
+        }
+      }
+    } catch {}
+    // Midwest fallback centroids for common state abbreviations
+    const stateCentroids = { mn: [46.4, -94.6], wi: [44.5, -89.5], ia: [42.0, -93.5], nd: [47.5, -100.5], sd: [44.4, -100.2] };
+    const abbr = q.toLowerCase().slice(0, 2);
+    if (stateCentroids[abbr]) map.flyTo(stateCentroids[abbr], 6, { duration: .8 });
+    else showToast('Try a 5-digit ZIP');
+  });
+
   // ── Load + go ────────────────────────────────────────────────
   async function load() {
     try {
@@ -755,11 +851,16 @@
       renderOpportunity();
       renderProspects();
       paintStats();
-      setLayer('farms');
+      const url = new URL(location.href);
+      const layer = url.searchParams.get('layer');
+      const lat = parseFloat(url.searchParams.get('lat'));
+      const lng = parseFloat(url.searchParams.get('lng'));
+      if (!isNaN(lat) && !isNaN(lng)) map.setView([lat, lng], 10);
+      setLayer(layer && layers[layer] ? layer : 'farms');
+      if (layer === 'processors') viewportFilter = true;
       document.getElementById('mapLoading').classList.add('hide');
 
       // Surface success after Stripe checkout return
-      const url = new URL(location.href);
       if (url.searchParams.get('subscribed')) {
         showToast(`✓ ${url.searchParams.get('subscribed') === 'hardware' ? 'Hardware Insights' : 'Pro'} activated`, 3000);
         url.searchParams.delete('subscribed');

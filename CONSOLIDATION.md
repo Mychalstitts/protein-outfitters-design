@@ -61,21 +61,23 @@ This document tracks every Protein Outfitters codebase and Vercel project so wor
 
 ## What was merged (June 17, 2026)
 
-1. **Homepage directory hub** from `protein-outfitters-app` — three-path entry (processors, producers, hardware/opportunities) plus live animal listings below.
-2. **Route redirects** in `deploy/vercel.json` so old app URLs resolve on the canonical domain.
-3. **`supabase/`** — migrations, edge functions, seed from `protein-outfitters-storefront`.
-4. **`docs/`** — launch runbooks, processor onboarding, compliance specs from storefront.
+1. **Homepage directory hub** from `protein-outfitters-app` — three-path entry (processors, producers, supply intel) plus live animal listings below.
+2. **Route redirects** — `/find-processors`, `/find-suppliers`, `/admin/opportunities`, `/saved`, `/r/:code` → canonical pages.
+3. **Host redirects** — `protein-outfitters-app1.vercel.app`, `protein-outfitters-design-3nci`, `protein-outfitters-design-ycmd` → `www.proteinoutfitters.com` (in `deploy/vercel.json`).
+4. **Processor profiles** — `/p/:slug` via `processor-profile.html` + `api/processor-meta.js` (OG tags, request CTA, compare pin).
+5. **Map upgrade** — ZIP search, “Search this area”, viewport-filtered sidebar, processor profile links, compare pins.
+6. **Compare page** — `/compare` reads `localStorage` pins from map/profiles.
+7. **`supabase/`** — migrations, edge functions, seed from storefront.
+8. **`docs/`** — launch runbooks and platform specs from storefront.
 
 ---
 
 ## Next consolidation steps (priority order)
 
-1. **Vercel dashboard** — point only `protein-outfitters-design` at `www.proteinoutfitters.com`; add 301 redirects from `protein-outfitters-app1.vercel.app` and duplicate design projects.
-2. **Map upgrade** — port `useViewportData`, `SearchThisArea`, and cluster pins from `protein-outfitters-app` into `deploy/map.html`.
-3. **Processor profiles** — add `/p/[slug]` equivalent (extend `processor.html` or `farm-meta` API).
-4. **Referral landing** — `/r/:code` rewrite → capture ref + redirect home.
-5. **Mobile** — move `protein-outfitters-app/app/apps/mobile` to `mobile/` in this repo.
-6. **Archive** — mark `protein-outfitters-app`, `protein-outfitters-storefront`, `PO2` read-only with README pointing here.
+1. **Vercel dashboard** — confirm only `protein-outfitters-design` owns `www.proteinoutfitters.com` (host redirects are in repo; delete duplicate projects when ready).
+2. **Mobile** — move `protein-outfitters-app/app/apps/mobile` to `mobile/` in this repo.
+3. **Archive sibling repos** — add `ARCHIVED.md` pointing here; set read-only on GitHub.
+4. **Saved favorites** — wire account page to persisted farm/processor follows.
 
 ---
 

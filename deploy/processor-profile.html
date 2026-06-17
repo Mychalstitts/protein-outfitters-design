@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Processor · Protein Outfitters</title>
+  <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+  <link rel="stylesheet" href="/theme.css" />
+  <link rel="stylesheet" href="/po-shell.css" />
+  <style>
+    body { background: var(--bg); }
+    .pp-cover { height: 280px; background: linear-gradient(135deg, #2a1f14, #061b0e); background-size: cover; background-position: center; position: relative; }
+    .pp-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.5)); }
+    .pp-shell { max-width: 1100px; margin: -56px auto 0; padding: 0 var(--shell-pad) 80px; position: relative; z-index: 2; }
+    .pp-id { display: grid; grid-template-columns: 88px 1fr auto; gap: 20px; align-items: center; background: #fff; border-radius: 22px; padding: 22px; box-shadow: 0 8px 28px rgba(6,27,14,.1); }
+    @media (max-width: 640px) { .pp-id { grid-template-columns: 72px 1fr; } .pp-actions { grid-column: 1 / -1; } }
+    .pp-avatar { width: 88px; height: 88px; border-radius: 18px; background: linear-gradient(135deg, #b48a5a, #8a6840); display: grid; place-items: center; color: #fbf9f5; font: 800 28px/1 'Inter', system-ui, sans-serif; }
+    .pp-id h1 { margin: 0; font: 800 30px/1.1 'Inter', system-ui, sans-serif; letter-spacing: -.02em; color: var(--ink); }
+    .pp-id p { margin: 4px 0 0; color: var(--ink-2); font: 500 14px/1.4 'Inter', system-ui, sans-serif; }
+    .pp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pp-btn { border: 0; padding: 10px 18px; border-radius: 999px; font: 700 13px/1 'Inter', system-ui, sans-serif; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+    .pp-btn--primary { background: var(--brand); color: #fbf9f5; }
+    .pp-btn--ghost { background: rgba(6,27,14,.06); color: var(--ink); }
+    .pp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 20px; }
+    .pp-stat { background: #fff; border-radius: 14px; padding: 16px 18px; border: 1px solid rgba(6,27,14,.06); }
+    .pp-stat .num { font: 800 22px/1 'Inter'; color: var(--ink); }
+    .pp-stat .lab { font: 600 11px/1.2 'Inter'; color: var(--ink-2); margin-top: 6px; text-transform: uppercase; letter-spacing: .06em; }
+    .pp-section { margin-top: 32px; }
+    .pp-section h2 { font: 800 24px/1.2 'Inter'; margin: 0 0 14px; color: var(--ink); }
+    .pp-bio { background: #fff; border-radius: 18px; padding: 24px; line-height: 1.6; font-size: 15px; color: var(--ink); }
+    .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .chip { padding: 7px 14px; border-radius: 999px; font: 700 12px/1 'Inter'; background: rgba(180,138,90,.14); color: #5a4020; border: 1px solid rgba(180,138,90,.28); }
+    .chip.inspection { background: rgba(125,160,93,.14); color: #2d4a18; border-color: rgba(125,160,93,.28); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="pp-cover" id="ppCover"></div>
+    <section class="pp-shell">
+      <div class="pp-id">
+        <div class="pp-avatar" id="ppAvatar">P</div>
+        <div>
+          <h1 id="ppName">Loading…</h1>
+          <p id="ppLoc">—</p>
+        </div>
+        <div class="pp-actions">
+          <button class="pp-btn pp-btn--primary" id="ppRequest">Submit a request</button>
+          <a class="pp-btn pp-btn--ghost" id="ppMap" href="/map">View on map</a>
+          <button class="pp-btn pp-btn--ghost" id="ppCompare">+ Compare</button>
+          <button class="pp-btn pp-btn--ghost" id="ppShare">Share</button>
+        </div>
+      </div>
+
+      <div class="pp-stats" id="ppStats"></div>
+
+      <section class="pp-section">
+        <h2>About this plant</h2>
+        <div class="pp-bio" id="ppBio">Loading…</div>
+      </section>
+
+      <section class="pp-section">
+        <h2>Services &amp; species</h2>
+        <div class="chip-grid" id="ppChips"></div>
+      </section>
+    </section>
+  </main>
+  <div id="po-shell-host"></div>
+  <script src="/po-api.js"></script>
+  <script src="/po-shell.js"></script>
+  <script>
+  (async () => {
+    const slug = (location.pathname.match(/\/p\/([^\/]+)/) || [])[1];
+    if (!slug) { location.replace('/map'); return; }
+
+    let data;
+    try {
+      const r = await fetch('/api/processors?slug=' + encodeURIComponent(slug), { credentials: 'include' });
+      if (!r.ok) throw new Error('not found');
+      data = await r.json();
+    } catch {
+      document.getElementById('ppName').textContent = 'Processor not found';
+      document.getElementById('ppBio').textContent = 'No processor with this profile exists yet. Browse the map to find inspected plants near you.';
+      return;
+    }
+
+    const p = data.processor;
+    document.title = p.name + ' · Protein Outfitters';
+
+    if (p.cover_url) document.getElementById('ppCover').style.backgroundImage = `url('${p.cover_url}')`;
+    if (p.avatar_url) {
+      document.getElementById('ppAvatar').style.backgroundImage = `url('${p.avatar_url}')`;
+      document.getElementById('ppAvatar').style.backgroundSize = 'cover';
+      document.getElementById('ppAvatar').textContent = '';
+    } else {
+      document.getElementById('ppAvatar').textContent = (p.name || 'P').charAt(0).toUpperCase();
+    }
+
+    document.getElementById('ppName').textContent = p.name;
+    const loc = [p.city, p.state].filter(Boolean).join(', ');
+    document.getElementById('ppLoc').textContent = loc + (p.inspection ? ' · ' + String(p.inspection).toUpperCase() + ' inspected' : '');
+    document.getElementById('ppBio').textContent = p.bio || 'This processor hasn\'t added a bio yet. You can still submit a custom processing request — we\'ll route it to the plant.';
+
+    const caps = p.capabilities || {};
+    const species = Array.isArray(caps.species) ? caps.species : [];
+    const services = Array.isArray(caps.services) ? caps.services : [];
+    const chips = [];
+    if (p.inspection) chips.push(`<span class="chip inspection">${String(p.inspection).toUpperCase()}</span>`);
+    species.forEach(s => chips.push(`<span class="chip">${s}</span>`));
+    services.forEach(s => chips.push(`<span class="chip">${s}</span>`));
+    document.getElementById('ppChips').innerHTML = chips.length ? chips.join('') : '<span class="chip">Custom processing</span>';
+
+    document.getElementById('ppStats').innerHTML = [
+      { num: species.length || '—', lab: 'Species handled' },
+      { num: services.length || '—', lab: 'Services listed' },
+      { num: p.zip || '—', lab: 'ZIP' },
+      { num: 'Open', lab: 'Accepting requests' },
+    ].map(s => `<div class="pp-stat"><div class="num">${s.num}</div><div class="lab">${s.lab}</div></div>`).join('');
+
+    if (p.lat && p.lng) {
+      document.getElementById('ppMap').href = `/map?lat=${p.lat}&lng=${p.lng}&layer=processors`;
+    }
+
+    document.getElementById('ppRequest').addEventListener('click', async () => {
+      let email = null, name = null;
+      try {
+        const me = await window.PO_API.me();
+        if (me.user) { email = me.user.email; name = me.user.name; }
+      } catch {}
+      if (!email) {
+        if (window.PO_API?.openAuth) {
+          window.PO_API.openAuth('Sign in to request ' + p.name, 'buyer');
+          return;
+        }
+        email = prompt('Your email so we can confirm your request:');
+        if (!email || !email.includes('@')) return;
+      }
+      try {
+        const r = await fetch('/api/invite-partner', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kind: 'processor',
+            name: p.name,
+            email: p.email || email,
+            message: 'Request submitted from processor profile /p/' + slug,
+          }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || 'Request failed');
+        alert('Request sent — ' + p.name + ' will hear from us shortly.');
+      } catch (e) {
+        alert('Could not send request: ' + (e.message || 'try again'));
+      }
+    });
+
+    document.getElementById('ppCompare').addEventListener('click', () => {
+      const key = 'po_compare_ids';
+      let ids = [];
+      try { ids = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
+      if (!ids.includes(p.id)) ids.push(p.id);
+      localStorage.setItem(key, JSON.stringify(ids.slice(0, 4)));
+      document.getElementById('ppCompare').textContent = '✓ Pinned';
+      setTimeout(() => { document.getElementById('ppCompare').textContent = '+ Compare'; }, 1600);
+    });
+
+    document.getElementById('ppShare').addEventListener('click', async () => {
+      if (window.poShare) await window.poShare({ title: p.name, url: location.href });
+      else {
+        await navigator.clipboard.writeText(location.href);
+        document.getElementById('ppShare').textContent = '✓ Copied';
+        setTimeout(() => { document.getElementById('ppShare').textContent = 'Share'; }, 1600);
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
