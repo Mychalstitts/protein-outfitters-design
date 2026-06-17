@@ -227,6 +227,8 @@
     hidePrototypeChrome();
   }
 
+  let _reserveWired = false;
+
   // Inject footer + sheet into body (skip if the page already has its own)
   function inject() {
     const host = document.getElementById('po-shell-host');
@@ -250,7 +252,8 @@
     const closeBtn = document.getElementById('sheetClose');
     const backBtn = document.getElementById('sheetBack');
     const nextBtn = document.getElementById('sheetNext');
-    if (!sheet) return;
+    if (!sheet || _reserveWired) return;
+    _reserveWired = true;
     const dots = sheet.querySelectorAll('.dot');
     const steps = sheet.querySelectorAll('.sheet-step');
     const ctxImg = document.getElementById('sheetContextImg');
@@ -355,61 +358,70 @@
       }
     }
 
+    function animalFromEl(el) {
+      if (!el) return null;
+      return {
+        id: el.dataset.animal,
+        name: el.dataset.name,
+        producer: el.dataset.producer,
+        photo: el.dataset.photo,
+        priceQ: Number(el.dataset.priceQ || 0),
+        priceH: Number(el.dataset.priceH || 0),
+        priceW: Number(el.dataset.priceW || 0)
+      };
+    }
+
     function open(a) {
-      if (!a) return;
+      if (!a || !a.id) return;
       state.animal = a;
-      ctxImg.style.backgroundImage = `url('${a.photo}')`;
-      ctxName.textContent = a.name;
-      ctxSub.textContent = a.producer;
+      if (ctxImg) ctxImg.style.backgroundImage = `url('${a.photo}')`;
+      if (ctxName) ctxName.textContent = a.name;
+      if (ctxSub) ctxSub.textContent = a.producer;
       state.share = null; state.processor = null;
-      shareWrap.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+      shareWrap?.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
       buildShareOptions();
       renderProcessorOptions(); // async; fills step-2 from /api/processors
       setStep(1);
-      backdrop.classList.add('open');
+      backdrop?.classList.add('open');
       sheet.classList.add('open');
       sheet.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
     }
 
     function close() {
-      backdrop.classList.remove('open');
+      backdrop?.classList.remove('open');
       sheet.classList.remove('open');
       sheet.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
     }
 
-    document.querySelectorAll('[data-open-sheet]').forEach(btn => btn.addEventListener('click', e => {
-      const c = e.currentTarget;
+    // Event delegation — homepage listings and other async UI inject
+    // [data-open-sheet] controls after po-shell.js runs. Per-element wiring
+    // misses those; a single document listener catches every current + future CTA.
+    document.addEventListener('click', e => {
+      const c = e.target.closest('[data-open-sheet]');
+      if (!c || c.disabled) return;
       if (c.dataset.animal) {
-        open({
-          id: c.dataset.animal,
-          name: c.dataset.name,
-          producer: c.dataset.producer,
-          photo: c.dataset.photo,
-          priceQ: Number(c.dataset.priceQ || 0),
-          priceH: Number(c.dataset.priceH || 0),
-          priceW: Number(c.dataset.priceW || 0)
-        });
-      } else {
-        const f = document.querySelector('[data-animal]');
-        if (f) open({
-          id: f.dataset.animal,
-          name: f.dataset.name,
-          producer: f.dataset.producer,
-          photo: f.dataset.photo,
-          priceQ: Number(f.dataset.priceQ || 0),
-          priceH: Number(f.dataset.priceH || 0),
-          priceW: Number(f.dataset.priceW || 0)
-        });
-        else window.location.href = '/discover';
+        e.preventDefault();
+        open(animalFromEl(c));
+        return;
       }
-    }));
+      const f = document.querySelector('[data-animal]');
+      if (f) {
+        e.preventDefault();
+        open(animalFromEl(f));
+        return;
+      }
+      e.preventDefault();
+      window.location.href = '/discover';
+    });
 
-    closeBtn.addEventListener('click', close);
-    backdrop.addEventListener('click', close);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
-    backBtn.addEventListener('click', () => { if (state.step > 1) setStep(state.step - 1); });
+    window.PO_SHELL = { open, close };
+
+    closeBtn?.addEventListener('click', close);
+    backdrop?.addEventListener('click', close);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && sheet.classList.contains('open')) close(); });
+    backBtn?.addEventListener('click', () => { if (state.step > 1) setStep(state.step - 1); });
     nextBtn.addEventListener('click', async () => {
       if (state.step < 3) { setStep(state.step + 1); return; }
       if (state.step === 3) {
@@ -477,8 +489,10 @@
         }
       }
     });
-    document.getElementById('payApple').addEventListener('click', () => nextBtn.click());
-    document.getElementById('payCard').addEventListener('click', () => nextBtn.click());
+    const payApple = document.getElementById('payApple');
+    const payCard = document.getElementById('payCard');
+    payApple?.addEventListener('click', () => nextBtn?.click());
+    payCard?.addEventListener('click', () => nextBtn?.click());
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inject);
