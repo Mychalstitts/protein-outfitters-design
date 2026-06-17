@@ -413,37 +413,30 @@
   let viewportFilter = false;
   let searchAsMove = true;
   let lastListItems = [];
+  const markerRegistry = { farms: new Map(), processors: new Map(), opportunity: new Map(), prospects: new Map() };
   let DATA = { farms: [], processors: [], demand: [], opportunity: [], prospects: [], tier: 'free', is_admin: false, locked: { demand: true, opportunity: true, prospects: true } };
 
-  function markerLayerFor(name) {
-    if (name === 'farms') return layers.farms;
-    if (name === 'processors') return layers.processors;
-    if (name === 'opportunity') return layers.opportunity;
-    if (name === 'prospects') return layers.prospects;
-    return null;
+  function markerKey(lat, lng) {
+    return Number(lat).toFixed(5) + ',' + Number(lng).toFixed(5);
   }
 
-  function findMarkerNear(lat, lng, layerGroup) {
-    if (!layerGroup || lat == null || lng == null) return null;
-    let found = null;
-    const eps = 0.0006;
-    layerGroup.eachLayer(m => {
-      if (found || !m.getLatLng) return;
-      const ll = m.getLatLng();
-      if (Math.abs(ll.lat - lat) < eps && Math.abs(ll.lng - lng) < eps) found = m;
-    });
-    return found;
+  function registerMarker(layerName, lat, lng, marker) {
+    markerRegistry[layerName]?.set(markerKey(lat, lng), marker);
+  }
+
+  function lookupMarker(layerName, lat, lng) {
+    return markerRegistry[layerName]?.get(markerKey(lat, lng)) || null;
   }
 
   function openMarkerPopup(lat, lng, item) {
     if (item?.opportunity) {
       openRoiDrawer(item.opportunity);
-      const m = findMarkerNear(lat, lng, layers.opportunity);
+      const m = lookupMarker('opportunity', lat, lng);
       if (m) m.openPopup();
       return;
     }
-    const lg = markerLayerFor(currentLayer);
-    const m = findMarkerNear(lat, lng, lg);
+    const lg = layers[currentLayer];
+    const m = lookupMarker(currentLayer, lat, lng);
     if (!m) return;
     if (lg && typeof lg.zoomToShowLayer === 'function') {
       lg.zoomToShowLayer(m, () => m.openPopup());
@@ -454,8 +447,15 @@
 
   function flyToAndOpenPopup(lat, lng, item) {
     if (isNaN(lat) || isNaN(lng)) return;
+    let opened = false;
+    const openOnce = () => {
+      if (opened) return;
+      opened = true;
+      openMarkerPopup(lat, lng, item);
+    };
+    map.once('moveend', openOnce);
     map.flyTo([lat, lng], 12, { duration: 0.9 });
-    map.once('moveend', () => openMarkerPopup(lat, lng, item));
+    setTimeout(openOnce, 1100);
   }
 
   function inViewport(lat, lng) {
@@ -587,6 +587,7 @@
   // ── Render markers ───────────────────────────────────────────
   function renderFarms() {
     layers.farms.clearLayers();
+    markerRegistry.farms.clear();
     for (const f of DATA.farms) {
       if (f.lat == null || f.lng == null) continue;
       const m = L.marker([f.lat, f.lng], { icon: avatarPin({ kind: 'farm', name: f.name, photoUrl: f.avatar_url, active: f.recent }) });
@@ -595,11 +596,13 @@
         <p>${escapeHtml(f.city || '')}${f.state ? ', ' + escapeHtml(f.state) : ''}</p>
         ${f.listings_count ? `<p>${f.listings_count} active listing${f.listings_count === 1 ? '' : 's'}</p>` : ''}
         ${f.slug ? `<a class="cta" href="/farm/${encodeURIComponent(f.slug)}">Visit profile →</a>` : ''}`);
+      registerMarker('farms', f.lat, f.lng, m);
       layers.farms.addLayer(m);
     }
   }
   function renderProcessors() {
     layers.processors.clearLayers();
+    markerRegistry.processors.clear();
     for (const p of DATA.processors) {
       if (p.lat == null || p.lng == null) continue;
       const m = L.marker([p.lat, p.lng], { icon: avatarPin({ kind: 'processor', name: p.name, active: p.recent }) });
@@ -614,6 +617,7 @@
         const btn = m.getPopup()?.getElement()?.querySelector('[data-compare-id]');
         if (btn) btn.onclick = () => pinToCompare(btn.getAttribute('data-compare-id'), p.name);
       });
+      registerMarker('processors', p.lat, p.lng, m);
       layers.processors.addLayer(m);
     }
   }
@@ -631,6 +635,7 @@
   }
   function renderOpportunity() {
     layers.opportunity.clearLayers();
+    markerRegistry.opportunity.clear();
     for (const o of DATA.opportunity) {
       if (!o.hardware_target) continue;
       if (o.lat == null || o.lng == null) continue;
@@ -641,11 +646,13 @@
         <p><strong>${o.user_count} buyer${o.user_count === 1 ? '' : 's'}</strong> in ZIP ${escapeHtml(o.zip)}</p>
         <p>${o.nearest_processor_miles == null ? 'No processor in our network nearby' : 'Nearest processor: <strong>' + o.nearest_processor_miles + ' mi away</strong>'}</p>
         <a class="cta orange" href="javascript:void(0)" onclick="window.poOpenROI && window.poOpenROI('${escapeHtml(o.zip)}')">See MHU payback math →</a>`);
+      registerMarker('opportunity', o.lat, o.lng, m);
       layers.opportunity.addLayer(m);
     }
   }
   function renderProspects() {
     layers.prospects.clearLayers();
+    markerRegistry.prospects.clear();
     for (const p of DATA.prospects) {
       if (p.lat == null || p.lng == null) continue;
       const isContacted = p.invite_status !== 'new';
@@ -656,6 +663,7 @@
         <p>Source: ${escapeHtml(p.source)} · Status: <strong>${escapeHtml(p.invite_status)}</strong></p>
         ${p.email ? `<p>Email: <code style="font-size:11px;color:var(--map-muted)">${escapeHtml(p.email)}</code></p>` : ''}
         <button class="cta" onclick="window.poInviteProspect('${escapeHtml(p.id)}', this)">${isContacted ? 'Re-send invite →' : 'Send recruiting email →'}</button>`);
+      registerMarker('prospects', p.lat, p.lng, m);
       layers.prospects.addLayer(m);
     }
   }
