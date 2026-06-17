@@ -822,9 +822,9 @@
       const r = await fetch('/api/discover-nearby?zip=' + encodeURIComponent(q.replace(/\D/g, '').slice(0, 5) || q) + '&kind=processor&radius=120');
       if (r.ok) {
         const d = await r.json();
-        const first = (d.results || d.candidates || [])[0];
-        if (first && first.lat != null && first.lng != null) {
-          map.flyTo([first.lat, first.lng], 9, { duration: .8 });
+        const pt = d.center || (d.candidates || [])[0];
+        if (pt && pt.lat != null && pt.lng != null) {
+          map.flyTo([pt.lat, pt.lng], 9, { duration: .8 });
           viewportFilter = true;
           renderSideList();
           return;
