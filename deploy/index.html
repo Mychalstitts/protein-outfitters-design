@@ -251,13 +251,56 @@ body { background: var(--bg); overflow-x: hidden; }
   margin: clamp(20px, 2vw, 28px) 0 0;
 }
 
-/* ---------- Reserve grid (slimmer, more cards visible per row) ---------- */
-.reserve-grid {
+/* ---------- Directory hub (from protein-outfitters-app) ---------- */
+.directory-hub {
   margin-top: clamp(36px, 4vw, 60px);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+}
+.cta-card {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: clamp(24px, 2.4vw, 36px);
+  border-radius: 20px;
+  background: var(--surface);
+  text-decoration: none; color: var(--ink);
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: transform .25s cubic-bezier(.2,.9,.3,1.2), box-shadow .25s;
+}
+.cta-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.09); }
+.cta-card .role {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+.cta-card.role-proc .role { color: #b48a5a; }
+.cta-card.role-sup  .role { color: #5a8ab4; }
+.cta-card.role-hw   .role { color: #b48a3a; }
+.cta-card h3 {
+  margin: 0;
+  font-size: clamp(22px, 1.9vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.cta-card p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.5; }
+.cta-card .arrow {
+  margin-top: auto; padding-top: 16px;
+  font-size: 14px; font-weight: 600; color: var(--brand);
+}
+
+/* ---------- Reserve grid (live animal listings) ---------- */
+.reserve-grid {
+  margin-top: clamp(28px, 3vw, 44px);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: clamp(16px, 1.6vw, 24px);
 }
+.listings-subhead {
+  margin-top: clamp(56px, 6vw, 88px);
+  padding-top: clamp(32px, 4vw, 48px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.listings-subhead .section-h2 { font-size: clamp(28px, 3.5vw, 48px); max-width: 28ch; }
 .product {
   background: #fff;
   border-radius: 20px;
@@ -754,12 +797,39 @@ body { background: var(--bg); overflow-x: hidden; }
   });
 </script>
 
-<!-- ============ RESERVE GRID ============ -->
+<!-- ============ DIRECTORY + LISTINGS ============ -->
 <section class="section" id="reserve">
   <div class="shell">
     <span class="section-eyebrow">Available now</span>
-    <h2 class="section-h2">Real animals.<br>Real farms.</h2>
-    <p class="section-lead">Every listing is one specific animal on a farm you can drive to. Pick a share, set your cuts, pick it up. We handle the rest.</p>
+    <h2 class="section-h2">Every farm.<br>Every processor.<br>One living map.</h2>
+    <p class="section-lead" id="directoryLead">USDA- and state-inspected meat processors and pasture-based farms across the Midwest and beyond. Browse the map, request the work, reserve your share.</p>
+
+    <div class="directory-hub">
+      <a href="/map" class="cta-card role-proc">
+        <span class="role">Find a processor</span>
+        <h3>Slaughter, custom cuts, smoking, sausage, game.</h3>
+        <p>Ranked by available headroom, distance from your farm, and the service you need. USDA &amp; state-inspected plants only.</p>
+        <span class="arrow">Open the map →</span>
+      </a>
+      <a href="/discover" class="cta-card role-sup">
+        <span class="role">Find a producer</span>
+        <h3>Pasture-based farms direct to your freezer.</h3>
+        <p>Search verified ranches by protein, breed, and miles from your ZIP. Reserve a share of a specific animal you can drive to.</p>
+        <span class="arrow">Browse farms →</span>
+      </a>
+      <a href="/trends" class="cta-card role-hw">
+        <span class="role">Supply chain intelligence</span>
+        <h3>Capacity gaps in the supply chain.</h3>
+        <p>Heat maps of underserved regions, surplus farms, and processor bottlenecks — for operators, investors, and county planners.</p>
+        <span class="arrow">View opportunities →</span>
+      </a>
+    </div>
+
+    <div class="listings-subhead">
+      <span class="section-eyebrow">Featured animals</span>
+      <h2 class="section-h2">Real animals.<br>Real farms.</h2>
+      <p class="section-lead">Every listing is one specific animal on a farm you can drive to. Pick a share, set your cuts, pick it up. We handle the rest.</p>
+    </div>
 
     <div class="reserve-grid" id="homeReserveGrid">
       <div class="product" style="grid-column:1/-1;text-align:center;padding:60px 20px;background:#fff;border-radius:18px;border:1px solid rgba(6,27,14,.06);">
@@ -829,8 +899,8 @@ body { background: var(--bg); overflow-x: hidden; }
         <div class="po-icon-tile sky" style="margin: 0 auto 14px;">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
-        <span class="trust-num">4 states</span>
-        <span class="trust-label">Minnesota · Wisconsin · North Dakota · South Dakota</span>
+        <span class="trust-num" id="trustGeoNum">24+ states</span>
+        <span class="trust-label" id="trustGeoLabel">Midwest, Plains, Mountain West — growing weekly</span>
       </div>
     </div>
   </div>
@@ -866,6 +936,32 @@ body { background: var(--bg); overflow-x: hidden; }
 <!-- Footer + reserve sheet injected by po-shell.js -->
 
 <script>
+// Directory stats from /api/map-data (processors + farms count)
+(async function loadDirectoryStats(){
+  try {
+    const r = await fetch('/api/map-data', { credentials: 'include' });
+    const data = await r.json();
+    const procs = (data.processors || []).length;
+    const farms = (data.farms || []).length;
+    if (procs || farms) {
+      const lead = document.getElementById('directoryLead');
+      if (lead) {
+        lead.textContent = `${procs.toLocaleString()} USDA- and state-inspected meat processors and ${farms.toLocaleString()} pasture-based farms on one living map. Browse, request the work, reserve your share.`;
+      }
+    }
+    const states = new Set();
+    (data.processors || []).concat(data.farms || []).forEach(p => {
+      if (p.state) states.add(p.state);
+    });
+    if (states.size >= 4) {
+      const n = document.getElementById('trustGeoNum');
+      const l = document.getElementById('trustGeoLabel');
+      if (n) n.textContent = states.size + ' states';
+      if (l) l.textContent = 'Active processors and farms across ' + states.size + ' states — growing weekly';
+    }
+  } catch { /* keep static copy */ }
+})();
+
 // Render homepage product cards from real /api/listings
 (async function loadHomeListings(){
   const grid = document.getElementById('homeReserveGrid');

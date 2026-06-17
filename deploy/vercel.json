@@ -6,11 +6,18 @@
           { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" }
     ],
     "redirects": [
-          { "source": "/produced",      "destination": "/producers",        "permanent": true  },
-          { "source": "/legal/privacy", "destination": "/policies/privacy", "permanent": false },
-          { "source": "/legal/terms",   "destination": "/policies/terms",   "permanent": false },
-          { "source": "/privacy",       "destination": "/policies/privacy", "permanent": false },
-          { "source": "/terms",         "destination": "/policies/terms",   "permanent": false }
+          { "source": "/produced",           "destination": "/producers",        "permanent": true  },
+          { "source": "/find-processors",    "destination": "/map",              "permanent": false },
+          { "source": "/find-processors/:path*", "destination": "/map",           "permanent": false },
+          { "source": "/find-suppliers",     "destination": "/discover",         "permanent": false },
+          { "source": "/find-suppliers/:path*", "destination": "/discover",      "permanent": false },
+          { "source": "/admin/opportunities","destination": "/trends",           "permanent": false },
+          { "source": "/saved",              "destination": "/account",          "permanent": false },
+          { "source": "/compare",            "destination": "/map",                "permanent": false },
+          { "source": "/legal/privacy",      "destination": "/policies/privacy", "permanent": false },
+          { "source": "/legal/terms",        "destination": "/policies/terms",   "permanent": false },
+          { "source": "/privacy",            "destination": "/policies/privacy", "permanent": false },
+          { "source": "/terms",              "destination": "/policies/terms",   "permanent": false }
     ],
     "crons": [
           { "path": "/api/email-tick",                  "schedule": "0 14 * * *"   },

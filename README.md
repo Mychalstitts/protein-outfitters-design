@@ -1,6 +1,8 @@
-# Protein Outfitters — Design Refresh
+# Protein Outfitters — Canonical Site
 
-Static prototype site deployed to Vercel. Imports a single shared design system (`theme.css`) used by every page.
+**This is the single source of truth** for [proteinoutfitters.com](https://www.proteinoutfitters.com).
+
+Static HTML/CSS/JS in `deploy/` plus Vercel serverless APIs. Other repos (`protein-outfitters-app`, `protein-outfitters-storefront`, `PO2`) are being merged here — see [`CONSOLIDATION.md`](./CONSOLIDATION.md) for the full map of Vercel projects, feature parity, and merge status.
 
 ## Pages
 
