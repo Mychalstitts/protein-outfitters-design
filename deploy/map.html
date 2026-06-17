@@ -438,34 +438,32 @@
     return found;
   }
 
-  function openMarkerPopup(lat, lng, item) {
-    if (item?.opportunity) {
+  function openMarkerPopup(item) {
+    if (!item || item.lat == null || item.lng == null) return;
+    if (item.opportunity) {
       openRoiDrawer(item.opportunity);
-      const m = lookupMarker('opportunity', lat, lng);
+      const m = item.marker || lookupMarker('opportunity', item.lat, item.lng);
       if (m) m.openPopup();
       return;
     }
-    const lg = layers[currentLayer];
-    const m = lookupMarker(currentLayer, lat, lng);
+    const m = item.marker || lookupMarker(currentLayer, item.lat, item.lng);
     if (!m) return;
-    if (lg && typeof lg.zoomToShowLayer === 'function') {
-      lg.zoomToShowLayer(m, () => m.openPopup());
-    } else {
-      m.openPopup();
-    }
+    const lg = layers[currentLayer];
+    const reveal = () => {
+      if (lg && typeof lg.zoomToShowLayer === 'function') {
+        lg.zoomToShowLayer(m, () => m.openPopup());
+      } else {
+        m.openPopup();
+      }
+    };
+    reveal();
   }
 
-  function flyToAndOpenPopup(lat, lng, item) {
-    if (isNaN(lat) || isNaN(lng)) return;
-    let opened = false;
-    const openOnce = () => {
-      if (opened) return;
-      opened = true;
-      openMarkerPopup(lat, lng, item);
-    };
-    map.once('moveend', openOnce);
-    map.flyTo([lat, lng], 12, { duration: 0.9 });
-    setTimeout(openOnce, 1100);
+  function flyToAndOpenPopup(item) {
+    if (!item || item.lat == null || item.lng == null) return;
+    map.flyTo([item.lat, item.lng], 12, { duration: 0.9 });
+    map.once('moveend', () => openMarkerPopup(item));
+    setTimeout(() => openMarkerPopup(item), 1200);
   }
 
   function inViewport(lat, lng) {
@@ -533,6 +531,7 @@
         meta: `${f.city || ''}${f.state ? ', ' + f.state : ''}${f.listings_count ? ' · ' + f.listings_count + ' listing' + (f.listings_count === 1 ? '' : 's') : ''}`,
         pills: (f.identity || []).slice(0, 2).map(t => ({ text: t.replace(/-/g, ' '), color: 'green' })),
         lat: f.lat, lng: f.lng, link: f.slug ? '/farm/' + f.slug : null,
+        marker: lookupMarker('farms', f.lat, f.lng),
       }));
     } else if (currentLayer === 'processors') {
       items = DATA.processors.filter(p => inViewport(p.lat, p.lng)).map(p => ({
@@ -541,6 +540,7 @@
         meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.inspection ? ' · ' + p.inspection.toUpperCase() : ''}`,
         pills: (p.species || []).slice(0, 3).map(t => ({ text: t, color: 'orange' })),
         lat: p.lat, lng: p.lng, link: p.slug ? '/p/' + p.slug : null,
+        marker: lookupMarker('processors', p.lat, p.lng),
       }));
     } else if (currentLayer === 'demand') {
       items = DATA.demand.slice(0, 60).map(d => ({
@@ -557,6 +557,7 @@
         meta: o.nearest_processor_miles == null ? 'No processor in our network' : `Nearest processor: ${o.nearest_processor_miles} mi away`,
         pills: [{ text: 'hardware target', color: 'red' }],
         lat: o.lat, lng: o.lng, link: null, opportunity: o,
+        marker: lookupMarker('opportunity', o.lat, o.lng),
       }));
     } else if (currentLayer === 'prospects') {
       items = (DATA.prospects || []).slice(0, 100).map(p => ({
@@ -565,6 +566,7 @@
         meta: `${p.kind === 'farm' ? '🌾' : '🔪'} ${p.city || ''}${p.state ? ', ' + p.state : ''} · ${p.source}`,
         pills: [{ text: p.invite_status, color: p.invite_status === 'sent' ? 'blue' : (p.invite_status === 'clicked' ? 'green' : 'gray') }],
         lat: p.lat, lng: p.lng, link: null, prospect_id: p.id,
+        marker: lookupMarker('prospects', p.lat, p.lng),
       }));
     }
 
@@ -589,8 +591,7 @@
       if (li.dataset.link) { location.href = li.dataset.link; return; }
       const idx = parseInt(li.dataset.i, 10);
       const item = lastListItems[idx];
-      if (!item || item.lat == null || item.lng == null) return;
-      flyToAndOpenPopup(item.lat, item.lng, item);
+      flyToAndOpenPopup(item);
     }));
   }
 
