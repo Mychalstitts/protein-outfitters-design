@@ -588,7 +588,6 @@
     lastListItems = items;
     // Click → fly to + open popup
     el.querySelectorAll('.list-item').forEach(li => li.addEventListener('click', () => {
-      if (li.dataset.link) { location.href = li.dataset.link; return; }
       const idx = parseInt(li.dataset.i, 10);
       const item = lastListItems[idx];
       flyToAndOpenPopup(item);
