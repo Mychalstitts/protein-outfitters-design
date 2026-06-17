@@ -827,8 +827,8 @@
           </div>
         </div>
         <div class="row gap-2">
-          <button class="btn btn--secondary btn--sm" onclick="showToast('Review form opens')">Review</button>
-          <button class="btn btn--primary btn--sm" onclick="showToast('Marked approved')">Approve</button>
+          <button class="btn btn--secondary btn--sm" data-admin-act="review-inst" data-inst-name="Park Rapids ISD #309" data-inst-meta="EIN 41-0987654 · 612 lunches/wk · walk-in freezer · self-pickup">Review</button>
+          <button class="btn btn--primary btn--sm" data-admin-act="approve-inst" data-inst-name="Park Rapids ISD #309">Approve</button>
         </div>
       </div>
       <div class="admin-row">
@@ -840,8 +840,8 @@
           </div>
         </div>
         <div class="row gap-2">
-          <button class="btn btn--secondary btn--sm" onclick="showToast('Review form opens')">Review</button>
-          <button class="btn btn--primary btn--sm" onclick="showToast('Marked approved')">Approve</button>
+          <button class="btn btn--secondary btn--sm" data-admin-act="review-inst" data-inst-name="Itasca County Mutual Aid" data-inst-meta="EIN 47-2233445 · 220 households/wk · cooler only · need delivery">Review</button>
+          <button class="btn btn--primary btn--sm" data-admin-act="approve-inst" data-inst-name="Itasca County Mutual Aid">Approve</button>
         </div>
       </div>
       <div class="admin-row">
@@ -853,8 +853,8 @@
           </div>
         </div>
         <div class="row gap-2">
-          <button class="btn btn--secondary btn--sm" onclick="showToast('Review form opens')">Review</button>
-          <button class="btn btn--primary btn--sm" onclick="showToast('Marked approved')">Approve</button>
+          <button class="btn btn--secondary btn--sm" data-admin-act="review-inst" data-inst-name="Red Lake Nation Veterans Program" data-inst-meta="Tribal authorization on file · 80 elders/wk · walk-in freezer · self-pickup">Review</button>
+          <button class="btn btn--primary btn--sm" data-admin-act="approve-inst" data-inst-name="Red Lake Nation Veterans Program">Approve</button>
         </div>
       </div>
     </div>
@@ -873,7 +873,7 @@
             <div class="meta">Sterling Trust · need $185 to fund kill fee · drop-off Jun 28</div>
           </div>
         </div>
-        <button class="btn btn--primary btn--sm" onclick="showToast('Allocate funding form opens')">Allocate</button>
+        <button class="btn btn--primary btn--sm" data-admin-act="allocate" data-donation-label="Hereford #339 · ¼ donation" data-amount="185">Allocate</button>
       </div>
 
       <h3 class="h3" style="margin-top: var(--s-5);">Awaiting processing (3)</h3>
@@ -885,7 +885,7 @@
             <div class="meta">Sterling Trust · funded · drop-off Thu Jun 21</div>
           </div>
         </div>
-        <button class="btn btn--secondary btn--sm" onclick="showToast('Donation detail view opens')">View</button>
+        <button class="btn btn--secondary btn--sm" data-admin-act="view-donation" data-donation-label="Angus Steer #402 · ¼ donation" data-donation-meta="Sterling Trust · funded · drop-off Thu Jun 21">View</button>
       </div>
       <div class="admin-row">
         <div class="admin-row-body">
@@ -895,7 +895,7 @@
             <div class="meta">Agri-Credit Union · funded · drop-off Jul 18</div>
           </div>
         </div>
-        <button class="btn btn--secondary btn--sm" onclick="showToast('Donation detail view opens')">View</button>
+        <button class="btn btn--secondary btn--sm" data-admin-act="view-donation" data-donation-label="Wagyu Cross #102 · ½ donation" data-donation-meta="Agri-Credit Union · funded · drop-off Jul 18">View</button>
       </div>
       <div class="admin-row">
         <div class="admin-row-body">
@@ -905,7 +905,7 @@
             <div class="meta">Heritage Pork · funded · drop-off Jun 14</div>
           </div>
         </div>
-        <button class="btn btn--secondary btn--sm" onclick="showToast('Donation detail view opens')">View</button>
+        <button class="btn btn--secondary btn--sm" data-admin-act="view-donation" data-donation-label="Berkshire Hog #88 · whole donation" data-donation-meta="Heritage Pork · funded · drop-off Jun 14">View</button>
       </div>
 
       <h3 class="h3" style="margin-top: var(--s-5);">Tax letters in queue (4)</h3>
@@ -917,7 +917,7 @@
             <div class="meta">North Star Sheep · 32 lbs distributed · letter generating</div>
           </div>
         </div>
-        <button class="btn btn--primary btn--sm" onclick="showToast('Tax letter PDF queued — opens in a new tab when ready')">Send letter</button>
+        <button class="btn btn--primary btn--sm" data-admin-act="send-letter" data-donation-label="Lamb #L20 · ½ donation">Send letter</button>
       </div>
 
       <h3 class="h3" style="margin-top: var(--s-5);">Distribution in progress (4)</h3>
@@ -929,7 +929,7 @@
             <div class="meta">→ Bemidji Food Shelf (60 lbs delivered May 1) · 78 lbs to schools queued</div>
           </div>
         </div>
-        <button class="btn btn--secondary btn--sm" onclick="showToast('Distribution tracker opens — partner deliveries by recipient')">Track</button>
+        <button class="btn btn--secondary btn--sm" data-admin-act="track" data-donation-label="Steer #380 · ¼ donation · 138 lbs" data-donation-meta="→ Bemidji Food Shelf (60 lbs delivered May 1) · 78 lbs to schools queued">Track</button>
       </div>
     </div>
   </div>
@@ -999,6 +999,17 @@
 
 <div class="toast" id="toast"></div>
 
+<div id="adminModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(6,27,14,.55);padding:24px;align-items:center;justify-content:center;">
+  <div style="background:#fbf9f5;border-radius:16px;max-width:520px;width:100%;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.25);">
+    <div class="row row--between mb-4">
+      <h3 class="h2" id="adminModalTitle" style="margin:0;">Details</h3>
+      <button type="button" class="btn btn--ghost btn--sm" id="adminModalClose">Close</button>
+    </div>
+    <div id="adminModalBody" class="body-sm"></div>
+    <div id="adminModalActions" class="row gap-2 mt-6" style="justify-content:flex-end;"></div>
+  </div>
+</div>
+
 <script>
 function showView(v) {
   const map = ['farmer','confirm','apply','institution','letter','admin','impact'];
@@ -1019,6 +1030,123 @@ function showToast(msg) {
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
 }
+
+function openAdminModal(title, bodyHtml, actionsHtml) {
+  const modal = document.getElementById('adminModal');
+  document.getElementById('adminModalTitle').textContent = title;
+  document.getElementById('adminModalBody').innerHTML = bodyHtml;
+  document.getElementById('adminModalActions').innerHTML = actionsHtml || '';
+  modal.style.display = 'flex';
+}
+function closeAdminModal() {
+  const modal = document.getElementById('adminModal');
+  if (modal) modal.style.display = 'none';
+}
+document.getElementById('adminModalClose')?.addEventListener('click', closeAdminModal);
+document.getElementById('adminModal')?.addEventListener('click', (ev) => {
+  if (ev.target.id === 'adminModal') closeAdminModal();
+});
+
+let adminUser = null;
+(async function loadAdminContext() {
+  try {
+    const r = await fetch('/api/auth/me', { credentials: 'include' });
+    const data = await r.json();
+    adminUser = data.user || null;
+  } catch {}
+})();
+
+document.querySelectorAll('[data-admin-act]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const act = btn.dataset.adminAct;
+    const row = btn.closest('.admin-row');
+
+    if (act === 'review-inst') {
+      openAdminModal(
+        'Review institution',
+        `<p><strong>${btn.dataset.instName}</strong></p><p>${btn.dataset.instMeta || ''}</p><p style="margin-top:12px;">Verify EIN, storage capacity, and weekly service volume before approval.</p>`,
+        `<button class="btn btn--primary btn--sm" onclick="closeAdminModal()">Looks good</button>`
+      );
+      return;
+    }
+
+    if (act === 'approve-inst') {
+      if (adminUser?.role === 'admin') {
+        try {
+          const pending = await fetch('/api/institutions?status=pending', { credentials: 'include' }).then(r => r.json());
+          const match = (pending.institutions || []).find(i => (i.legal_name || '').includes(btn.dataset.instName?.split(' ')[0] || ''));
+          if (match) {
+            await fetch('/api/institutions?id=' + encodeURIComponent(match.id), {
+              method: 'PATCH', credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'approved' }),
+            });
+          }
+        } catch {}
+      }
+      if (row) row.style.opacity = '0.45';
+      btn.disabled = true;
+      btn.textContent = 'Approved ✓';
+      showToast((btn.dataset.instName || 'Institution') + ' approved');
+      return;
+    }
+
+    if (act === 'allocate') {
+      const amt = Number(btn.dataset.amount) || 185;
+      openAdminModal(
+        'Allocate program funds',
+        `<p><strong>${btn.dataset.donationLabel}</strong></p><p>Kill fee shortfall: <strong>$${amt}</strong></p>`,
+        `<button class="btn btn--secondary btn--sm" onclick="closeAdminModal()">Cancel</button>
+         <button class="btn btn--primary btn--sm" id="adminAllocateConfirm">Allocate $${amt}</button>`
+      );
+      document.getElementById('adminAllocateConfirm')?.addEventListener('click', async () => {
+        if (adminUser?.role === 'admin') {
+          try {
+            await fetch('/api/donation-funds', {
+              method: 'PATCH', credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'allocate', amount: amt, notes: btn.dataset.donationLabel }),
+            });
+          } catch {}
+        }
+        closeAdminModal();
+        if (row) row.remove();
+        showToast('$' + amt + ' allocated from program fund');
+      }, { once: true });
+      return;
+    }
+
+    if (act === 'view-donation') {
+      openAdminModal(
+        btn.dataset.donationLabel || 'Donation',
+        `<p>${btn.dataset.donationMeta || ''}</p><ul style="margin:12px 0 0;padding-left:18px;line-height:1.6;"><li>Status: processing</li><li>Kill fee: funded</li><li>Recipient: matched to nearest approved institution</li></ul>`,
+        `<button class="btn btn--primary btn--sm" onclick="closeAdminModal()">Close</button>`
+      );
+      return;
+    }
+
+    if (act === 'send-letter') {
+      const id = prompt('Donation ID for tax letter (demo: any UUID):');
+      if (!id) return;
+      window.open('/api/pdf/tax-letter?donation=' + encodeURIComponent(id), '_blank');
+      btn.textContent = 'Queued ✓';
+      showToast('Tax letter PDF opened');
+      return;
+    }
+
+    if (act === 'track') {
+      openAdminModal(
+        'Distribution tracker',
+        `<p><strong>${btn.dataset.donationLabel}</strong></p><p>${btn.dataset.donationMeta || ''}</p>
+         <div style="margin-top:14px;display:grid;gap:8px;">
+           <div style="padding:10px 12px;background:#fff;border-radius:10px;">✓ Bemidji Food Shelf · 60 lbs delivered May 1</div>
+           <div style="padding:10px 12px;background:#fff;border-radius:10px;">⋯ Park Rapids ISD · 78 lbs queued for Jun 24</div>
+         </div>`,
+        `<button class="btn btn--primary btn--sm" onclick="closeAdminModal()">Done</button>`
+      );
+    }
+  });
+});
 
 // ─── Donation-to-fund Stripe checkout helpers ───
 async function donateToFund(amount) {

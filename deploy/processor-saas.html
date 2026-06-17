@@ -355,7 +355,7 @@
         </div>
         <div class="row gap-2">
           <button class="btn btn--secondary btn--sm" onclick="document.getElementById('compare-sheet').classList.add('is-open')">Change plan</button>
-          <button class="btn btn--apple-pay btn--sm" onclick="showToast('Redirecting to Stripe Customer Portal…')">Manage in Stripe</button>
+          <button class="btn btn--apple-pay btn--sm" onclick="openBillingPortal(this)">Manage in Stripe</button>
         </div>
       </div>
 
@@ -403,7 +403,7 @@
           <h4>Bought an MPU? Get 12 months free</h4>
           <p>Any Friesla MPU purchase ≥ $50k includes 12 months of Standard at no charge.</p>
         </div>
-        <button class="btn btn--primary btn--sm" onclick="showToast('Quote request form opens')">Talk to hardware</button>
+        <button class="btn btn--primary btn--sm" onclick="window.location.href='/hardware'">Talk to hardware</button>
       </div>
 
       <!-- Payment method -->
@@ -416,7 +416,7 @@
             <div class="body-sm text-faint">Expires 11/29</div>
           </div>
         </div>
-        <button class="btn btn--ghost btn--sm btn--block mt-4" onclick="showToast('Stripe Customer Portal opens')">Update card</button>
+        <button class="btn btn--ghost btn--sm btn--block mt-4" onclick="openBillingPortal(this)">Update card</button>
       </div>
 
       <!-- Tier features -->
@@ -464,7 +464,7 @@
       </table>
       <div class="row gap-3 mt-6">
         <button class="btn btn--secondary" style="flex:1;" onclick="document.getElementById('compare-sheet').classList.remove('is-open')">Stay on Standard</button>
-        <button class="btn btn--primary" style="flex:1;" onclick="showToast('Upgrade prorated to Premium · effective immediately')">Upgrade to Premium</button>
+        <button class="btn btn--primary" style="flex:1;" id="upgradePremiumBtn">Upgrade to Premium</button>
       </div>
     </div>
   </div>
@@ -497,6 +497,34 @@ function showToast(msg) {
   t.classList.add('is-visible');
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
+}
+
+async function openBillingPortal(btn) {
+  const original = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+  try {
+    const r = await fetch('/api/processor-subscription', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ portal: true }),
+    });
+    if (r.status === 401) {
+      showToast('Sign in as your processor account first');
+      if (window.PO_API?.openAuth) window.PO_API.openAuth('Sign in to manage billing', 'processor');
+      return;
+    }
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.portal_url) {
+      showToast(data.error || 'Billing portal unavailable — subscribe first');
+      return;
+    }
+    window.location.href = data.portal_url;
+  } catch (e) {
+    showToast('Network error — try again');
+  } finally {
+    if (btn) { btn.disabled = false; if (original) btn.textContent = original; }
+  }
 }
 
 // ─── Subscribe via Stripe Checkout (or free-tier write) ────────────
@@ -548,6 +576,13 @@ async function subscribeToTier(tier, btn) {
 document.querySelectorAll('.tier-cta[data-tier]').forEach(btn => {
   btn.addEventListener('click', () => subscribeToTier(btn.dataset.tier, btn));
 });
+document.getElementById('upgradePremiumBtn')?.addEventListener('click', function () {
+  subscribeToTier('premium', this);
+});
+
+if (new URLSearchParams(location.search).get('page') === 'billing') {
+  showPage('billing');
+}
 
 // If we came back from Stripe Checkout success, flash a toast
 if (new URLSearchParams(location.search).get('subscribed') === '1') {

@@ -83,6 +83,23 @@ async function handler(req) {
     const tier = String(body.tier || '').toLowerCase();
     const cadence = String(body.cadence || 'monthly').toLowerCase();
 
+    // ── Stripe Customer Portal (manage card, invoices, cancel) ──
+    if (body.portal) {
+      if (!process.env.STRIPE_SECRET_KEY) return err(503, 'Stripe not configured');
+      const existing = await loadSubscription(processor.id);
+      const customerId = existing?.stripe_customer_id;
+      if (!customerId) return err(404, 'No billing account yet — subscribe to a paid tier first');
+      const StripeModule = await import('stripe');
+      const Stripe = StripeModule.default || StripeModule;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const baseUrl = process.env.PUBLIC_BASE_URL || 'https://www.proteinoutfitters.com';
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: body.return_url || `${baseUrl}/processor-saas?page=billing`,
+      });
+      return json({ portal_url: session.url });
+    }
+
     if (!['free', 'standard', 'premium'].includes(tier)) return err(400, 'Invalid tier');
     if (tier !== 'free' && !['monthly', 'annual'].includes(cadence)) return err(400, 'Invalid cadence');
 

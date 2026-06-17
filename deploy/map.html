@@ -412,7 +412,51 @@
   let currentLayer = 'farms';
   let viewportFilter = false;
   let searchAsMove = true;
+  let lastListItems = [];
   let DATA = { farms: [], processors: [], demand: [], opportunity: [], prospects: [], tier: 'free', is_admin: false, locked: { demand: true, opportunity: true, prospects: true } };
+
+  function markerLayerFor(name) {
+    if (name === 'farms') return layers.farms;
+    if (name === 'processors') return layers.processors;
+    if (name === 'opportunity') return layers.opportunity;
+    if (name === 'prospects') return layers.prospects;
+    return null;
+  }
+
+  function findMarkerNear(lat, lng, layerGroup) {
+    if (!layerGroup || lat == null || lng == null) return null;
+    let found = null;
+    const eps = 0.0006;
+    layerGroup.eachLayer(m => {
+      if (found || !m.getLatLng) return;
+      const ll = m.getLatLng();
+      if (Math.abs(ll.lat - lat) < eps && Math.abs(ll.lng - lng) < eps) found = m;
+    });
+    return found;
+  }
+
+  function openMarkerPopup(lat, lng, item) {
+    if (item?.opportunity) {
+      openRoiDrawer(item.opportunity);
+      const m = findMarkerNear(lat, lng, layers.opportunity);
+      if (m) m.openPopup();
+      return;
+    }
+    const lg = markerLayerFor(currentLayer);
+    const m = findMarkerNear(lat, lng, lg);
+    if (!m) return;
+    if (lg && typeof lg.zoomToShowLayer === 'function') {
+      lg.zoomToShowLayer(m, () => m.openPopup());
+    } else {
+      m.openPopup();
+    }
+  }
+
+  function flyToAndOpenPopup(lat, lng, item) {
+    if (isNaN(lat) || isNaN(lng)) return;
+    map.flyTo([lat, lng], 12, { duration: 0.9 });
+    map.once('moveend', () => openMarkerPopup(lat, lng, item));
+  }
 
   function inViewport(lat, lng) {
     if (!viewportFilter) return true;
@@ -529,11 +573,14 @@
         </div>
       </div>`).join('');
 
+    lastListItems = items;
     // Click → fly to + open popup
     el.querySelectorAll('.list-item').forEach(li => li.addEventListener('click', () => {
       if (li.dataset.link) { location.href = li.dataset.link; return; }
+      const idx = parseInt(li.dataset.i, 10);
+      const item = lastListItems[idx];
       const lat = parseFloat(li.dataset.lat), lng = parseFloat(li.dataset.lng);
-      if (!isNaN(lat) && !isNaN(lng)) map.flyTo([lat, lng], 12, { duration: .9 });
+      flyToAndOpenPopup(lat, lng, item);
     }));
   }
 

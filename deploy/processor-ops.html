@@ -236,10 +236,10 @@ body { background: var(--surface-2); }
         <h2 class="display-md mt-2">Friday, June 21</h2>
       </div>
       <div class="proc-tabs">
-        <button type="button" class="active" aria-pressed="true" onclick="showToast('Today view active')">Today</button>
-        <button type="button" onclick="showToast('Week view: Outlook-style 7-day grid')">Week</button>
-        <button type="button" onclick="showToast('Month view: capacity heatmap')">Month</button>
-        <button type="button" onclick="showToast('Inbox: messages threaded per share.id')">Inbox</button>
+        <button type="button" class="active" aria-pressed="true" data-demo-view="today">Today</button>
+        <button type="button" data-demo-view="week">Week</button>
+        <button type="button" data-demo-view="month">Month</button>
+        <button type="button" data-demo-view="inbox">Inbox</button>
       </div>
     </header>
 
@@ -301,7 +301,7 @@ body { background: var(--surface-2); }
             <div class="label-sub">14-day target · check Jul 5</div>
           </div>
           <progress value="0" max="14"></progress>
-          <button type="button" class="btn btn--secondary btn--sm" onclick="showToast('Log weight: prompt → save to share #402')">Log wt</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-demo-act="logwt" data-animal="402">Log wt</button>
         </div>
         <div class="cooler-row">
           <div class="cooler-icon" style="background: linear-gradient(135deg,#7d6b5a,#a89485);">H</div>
@@ -310,7 +310,7 @@ body { background: var(--surface-2); }
             <div class="label-sub">Awaiting cut sheet on 1 buyer</div>
           </div>
           <progress value="7" max="7"></progress>
-          <button type="button" class="btn btn--primary btn--sm" onclick="showToast('Started fabrication for Hog #88')">Start fab</button>
+          <button type="button" class="btn btn--primary btn--sm" data-demo-act="startfab">Start fab</button>
         </div>
         <div class="cooler-row">
           <div class="cooler-icon" style="background: linear-gradient(135deg,#9d7d6b,#bea08b);">L</div>
@@ -334,7 +334,7 @@ body { background: var(--surface-2); }
             <div class="label-title">Hog #87 · Sarah J.</div>
             <div class="label-sub">Pickup window ends Friday · stored 2 days</div>
           </div>
-          <button class="btn btn--secondary btn--sm" onclick="showToast('Notification sent to Sarah')">Notify</button>
+          <button class="btn btn--secondary btn--sm" data-demo-act="notify">Notify</button>
         </div>
         <div class="cooler-row">
           <div class="cooler-icon" style="background: linear-gradient(135deg,#7d4c4c,#a86b6b);">B</div>
@@ -342,7 +342,7 @@ body { background: var(--surface-2); }
             <div class="label-title">Steer #401 · Mark R.</div>
             <div class="label-sub">Pickup window ends today · storage fee accrues tomorrow</div>
           </div>
-          <button type="button" class="btn btn--danger btn--sm" onclick="showToast('Calling Mark R. — opening dialer …')">Call</button>
+          <button type="button" class="btn btn--danger btn--sm" data-demo-act="call">Call</button>
         </div>
       </div>
     </section>
@@ -471,7 +471,7 @@ body { background: var(--surface-2); }
     <div class="rline"><span>Vet emergency / animal dies</span><strong>Full refund (with docs)</strong></div>
   </div>
 
-  <button class="btn btn--apple-pay btn--xl btn--block mt-6" onclick="showToast('Apple Pay sheet · $100 deposit captured')">Confirm with Apple Pay → $100</button>
+  <button class="btn btn--apple-pay btn--xl btn--block mt-6" id="demoApplePayBtn">Confirm with Apple Pay → $100</button>
   <p class="body-sm text-center text-faint mt-3">Held in platform escrow. Released automatically when Hilltop checks your animal in.</p>
 
   <div class="card mt-8 book-card">
@@ -576,6 +576,130 @@ function showToast(msg) {
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => t.classList.remove('is-visible'), 1700);
 }
+
+// Demo-mode tab switching + action buttons (live mode overrides tabs when signed in).
+(function wireDemoProcessorOps() {
+  const bookingsEl = document.getElementById('bookings');
+  const tabsEl = document.querySelector('.proc-tabs');
+  if (!bookingsEl || !tabsEl) return;
+
+  const coolerSections = Array.from(document.querySelectorAll('.proc-main > section')).slice(1);
+  const originalBookingsHtml = bookingsEl.innerHTML;
+  const originalEyebrow = bookingsEl.previousElementSibling;
+
+  const DEMO_VIEWS = {
+    today: null,
+    week: `
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;">
+        ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d, i) => `
+          <div style="background:#fff;border-radius:12px;padding:10px;min-height:92px;border:1px solid var(--hairline);">
+            <div style="font:700 11px/1 Inter;opacity:.55;">${d}</div>
+            ${i === 4 ? '<div style="margin-top:8px;font:700 12px/1.3 Inter;">3 drop-offs</div><div style="font:500 11px/1.4 Inter;opacity:.7;margin-top:4px;">9a · 1:30p · 3p</div>' : (i === 2 ? '<div style="margin-top:8px;font:500 12px/1.3 Inter;opacity:.7;">1 drop-off</div>' : '')}
+          </div>`).join('')}
+      </div>`,
+    month: `
+      <div style="background:#fff;border-radius:14px;padding:20px;">
+        <div style="font:800 15px/1.3 Inter;margin-bottom:12px;">June capacity heatmap</div>
+        <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;">
+          ${Array.from({ length: 28 }, (_, i) => {
+            const load = [0, 20, 40, 60, 80, 100][(i + 3) % 6];
+            const bg = load >= 80 ? '#ba1a1a22' : load >= 60 ? '#d57f3022' : load >= 40 ? '#4d645222' : '#061b0e08';
+            return `<div title="${load}% booked" style="aspect-ratio:1;border-radius:8px;background:${bg};display:flex;align-items:center;justify-content:center;font:700 11px/1 Inter;opacity:.8;">${i + 1}</div>`;
+          }).join('')}
+        </div>
+      </div>`,
+    inbox: `
+      <div class="booking">
+        <span class="state-dot active"></span>
+        <div>
+          <div class="booking-title">Sarah J. · cut sheet question</div>
+          <div class="booking-sub">Hog #88 · 12 min ago</div>
+          <div class="booking-meta"><span class="pill">Needs reply</span></div>
+        </div>
+        <button class="btn btn--secondary btn--sm" type="button" onclick="showToast('Reply composer opens')">Reply</button>
+      </div>
+      <div class="booking">
+        <span class="state-dot scheduled"></span>
+        <div>
+          <div class="booking-title">Sterling Trust · ETA update</div>
+          <div class="booking-sub">Steer #402 · 2 hr ago</div>
+          <div class="booking-meta"><span class="pill pill--accent">Confirmed 9:00 AM</span></div>
+        </div>
+        <button class="btn btn--ghost btn--sm" type="button" onclick="showToast('Thread archived')">Archive</button>
+      </div>`,
+  };
+
+  function setDemoView(view) {
+    tabsEl.querySelectorAll('button').forEach(btn => {
+      const active = btn.dataset.demoView === view;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    coolerSections.forEach(sec => { sec.style.display = view === 'today' ? '' : 'none'; });
+    if (view === 'today') {
+      bookingsEl.innerHTML = originalBookingsHtml;
+      if (originalEyebrow) originalEyebrow.textContent = 'Today\'s bookings · 3 scheduled';
+      wireDemoActions();
+      return;
+    }
+    bookingsEl.innerHTML = DEMO_VIEWS[view] || '';
+    if (originalEyebrow) {
+      const labels = { week: 'Week schedule · Outlook grid', month: 'Month view · capacity heatmap', inbox: 'Inbox · 2 threads' };
+      originalEyebrow.textContent = labels[view] || view;
+    }
+  }
+
+  function wireDemoActions() {
+    document.querySelectorAll('[data-demo-act]').forEach(btn => {
+      btn.onclick = (ev) => {
+        ev.stopPropagation();
+        const act = btn.dataset.demoAct;
+        const row = btn.closest('.cooler-row');
+        if (act === 'logwt') {
+          const w = prompt('Hanging weight in lbs:', '720');
+          if (w == null) return;
+          if (!/^\d+(\.\d+)?$/.test(w)) { showToast('Enter a valid weight'); return; }
+          showToast('Logged ' + w + ' lb for #' + (btn.dataset.animal || ''));
+          const prog = row && row.querySelector('progress');
+          if (prog) prog.value = 1;
+        } else if (act === 'startfab') {
+          btn.textContent = 'Fabricating…';
+          btn.disabled = true;
+          showToast('Fabrication started for Hog #88');
+        } else if (act === 'notify') {
+          btn.textContent = 'Sent ✓';
+          btn.disabled = true;
+          showToast('Pickup reminder sent to Sarah J.');
+        } else if (act === 'call') {
+          window.location.href = 'tel:+12185550199';
+        }
+      };
+    });
+  }
+
+  tabsEl.querySelectorAll('[data-demo-view]').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      setDemoView(btn.dataset.demoView);
+    });
+  });
+  wireDemoActions();
+
+  const applePayBtn = document.getElementById('demoApplePayBtn');
+  if (applePayBtn) {
+    applePayBtn.addEventListener('click', () => {
+      applePayBtn.disabled = true;
+      applePayBtn.textContent = 'Processing…';
+      setTimeout(() => {
+        applePayBtn.textContent = 'Deposit confirmed ✓';
+        showToast('$100 deposit captured · slot held');
+      }, 900);
+    });
+  }
+
+  // Let live mode replace tab handlers when it boots.
+  window.__poDemoProcTabs = { setDemoView, wireDemoActions };
+})();
 </script>
 <div id="po-shell-host"></div>
 <script src="./po-api.js"></script>
