@@ -282,6 +282,19 @@
       if (!farms.length) return;
       const grid = document.querySelector('.farm-grid');
       if (!grid) return;
+      // Lead with farms that have active inventory, then the rest A–Z, so the
+      // page opens with reservable farms instead of a wall of "0 listings".
+      farms.sort((a, b) => (Number(b.listings_count) || 0) - (Number(a.listings_count) || 0)
+        || String(a.name).localeCompare(String(b.name)));
+      // Deterministic, varied cover for farms with no uploaded photo — otherwise
+      // every imported farm rendered the same stock windmill image.
+      const FALLBACK_COVERS = ['/img/ranch.jpg','/img/hereford.jpg','/img/angus.jpg','/img/wagyu.jpg','/img/hog.jpg','/img/lamb.jpg','/img/venison.jpg','/img/poultry.jpg','/img/cattle-pasture.jpg'];
+      const coverFor = (f) => {
+        if (f.cover_url) return f.cover_url;
+        const s = String(f.slug || f.name || '');
+        let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        return FALLBACK_COVERS[h % FALLBACK_COVERS.length];
+      };
       // Build new cards
       grid.innerHTML = farms.map(f => {
         const tags = []
@@ -289,7 +302,7 @@
           .concat((f.practices || []).map(x => String(x).toLowerCase()))
           .concat([(f.state || '').toLowerCase()])
           .filter(Boolean).join(' ');
-        const cover = f.cover_url || '/img/ranch.jpg';
+        const cover = coverFor(f);
         const loc = [f.city, f.state].filter(Boolean).join(', ') || 'Northland';
         const inner = `
             <div class="farm-cover" style="background-image:url('${cover}')"></div>
