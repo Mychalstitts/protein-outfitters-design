@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Analytics · Admin · Protein Outfitters</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/po-shell.css" />
+<style>
+  body { background: var(--parchment, #fbf9f5); color: var(--ink, #061b0e); }
+  .an-shell { max-width: 1180px; margin: 0 auto; padding: clamp(28px,4vw,52px) var(--shell-pad,20px) 100px; }
+  .an-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+  .an-head h1 { font:900 clamp(28px,4vw,40px)/1.05 'Inter',system-ui,sans-serif; letter-spacing:-.03em; margin:0; }
+  .an-head a.back { font:700 13px/1 'Inter'; color:var(--accent-2,#2c6fa5); text-decoration:none; }
+  .an-sub { color:rgba(6,27,14,.6); font:500 15px/1.5 'Inter'; margin:0 0 26px; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:26px; }
+  .kpi { background:#fff; border:1px solid rgba(6,27,14,.08); border-radius:16px; padding:16px 18px; box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 14px rgba(0,0,0,.04); }
+  .kpi .lab { font:800 10.5px/1 'Inter'; letter-spacing:.12em; text-transform:uppercase; color:rgba(6,27,14,.5); margin:0 0 8px; }
+  .kpi .v { font:900 26px/1 'Inter'; letter-spacing:-.02em; }
+  .kpi .v small { font:600 13px/1 'Inter'; color:rgba(6,27,14,.5); }
+  .grid2 { display:grid; grid-template-columns:1fr; gap:18px; }
+  @media(min-width:820px){ .grid2 { grid-template-columns:1fr 1fr; } }
+  .panel { background:#fff; border:1px solid rgba(6,27,14,.08); border-radius:18px; padding:20px 22px; margin-bottom:18px; box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 14px rgba(0,0,0,.04); }
+  .panel h2 { font:800 16px/1.2 'Inter'; letter-spacing:-.01em; margin:0 0 4px; }
+  .panel .hint { font:500 12.5px/1.4 'Inter'; color:rgba(6,27,14,.55); margin:0 0 16px; }
+  /* horizontal bars */
+  .bar-row { display:grid; grid-template-columns:120px 1fr 56px; align-items:center; gap:10px; margin-bottom:9px; }
+  .bar-row .name { font:600 12.5px/1.3 'Inter'; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar-track { background:rgba(6,27,14,.06); border-radius:999px; height:14px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:999px; background:var(--proc,#2c9a52); }
+  .bar-fill.blue { background:var(--accent-2,#2c6fa5); }
+  .bar-fill.amber { background:#c97a2c; }
+  .bar-val { font:700 12px/1 'Inter'; text-align:right; color:rgba(6,27,14,.7); }
+  /* weekly columns */
+  .cols { display:flex; align-items:flex-end; gap:6px; height:130px; padding-top:6px; }
+  .col { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; min-width:0; }
+  .col .colbar { width:70%; max-width:30px; background:var(--proc,#2c9a52); border-radius:5px 5px 0 0; min-height:2px; }
+  .col .colcap { font:700 11px/1 'Inter'; color:rgba(6,27,14,.7); }
+  .col .collab { font:600 9.5px/1.1 'Inter'; color:rgba(6,27,14,.45); white-space:nowrap; }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; font:500 13px/1.4 'Inter'; padding:9px 6px; border-bottom:1px solid rgba(6,27,14,.06); }
+  th { font-weight:800; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:rgba(6,27,14,.5); }
+  td.num,th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .empty { text-align:center; padding:40px 20px; color:rgba(6,27,14,.55); font:500 14px/1.5 'Inter'; }
+  .gate { max-width:440px; margin:18vh auto; text-align:center; background:#fff; border-radius:18px; padding:40px 32px; box-shadow:0 8px 28px rgba(6,27,14,.08); }
+  .gate h1 { font:800 24px/1.2 'Inter'; margin:0 0 10px; }
+  .gate p { color:rgba(6,27,14,.7); font:500 14px/1.55 'Inter'; margin:0 0 20px; }
+  .gate a { display:inline-block; background:#061b0e; color:#fbf9f5; padding:11px 20px; border-radius:999px; font:700 13px/1 'Inter'; text-decoration:none; }
+</style>
+</head>
+<body>
+<div id="anRoot" class="an-shell" style="display:none;">
+  <div class="an-head">
+    <h1>Analytics</h1>
+    <a class="back" href="/admin-overview">← Admin overview</a>
+  </div>
+  <p class="an-sub">Marketplace health: supply, demand funnel, GMV, geography, and referral performance. GMV is estimate-based; deposits collected is real money taken.</p>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid2">
+    <div class="panel"><h2>Reservation funnel</h2><p class="hint">Where reservations sit across the lifecycle.</p><div id="funnel"></div></div>
+    <div class="panel"><h2>Active listings by species</h2><p class="hint">Supply mix on the marketplace right now.</p><div id="species"></div></div>
+  </div>
+
+  <div class="panel"><h2>Reservations per week</h2><p class="hint">Last 12 weeks · count + GMV.</p><div id="weekly"></div></div>
+
+  <div class="grid2">
+    <div class="panel"><h2>Reservations by state</h2><p class="hint">Where demand is landing.</p><div id="resState"></div></div>
+    <div class="panel"><h2>Farms by state</h2><p class="hint">Where supply is concentrated.</p><div id="farmState"></div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel"><h2>Referral program</h2><p class="hint">Codes, redemptions, and credit outstanding.</p><div id="referrals"></div></div>
+    <div class="panel"><h2>Top farms by GMV</h2><p class="hint">Estimate-based, non-cancelled reservations.</p><div id="topFarms"></div></div>
+  </div>
+</div>
+
+<div id="gate" class="gate" style="display:none;">
+  <h1>Admin access required</h1>
+  <p>This analytics dashboard is restricted to administrators. Sign in with an admin account to continue.</p>
+  <a href="/account">Go to sign in</a>
+</div>
+
+<div id="po-shell-host"></div>
+<script src="/po-shell.js"></script>
+<script>
+(async () => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const usd = n => '$' + Math.round(Number(n||0)).toLocaleString('en-US');
+  const usdc = c => '$' + (Number(c||0)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // ── Admin gate ──
+  let me = { user: null };
+  try { me = await (await fetch('/api/auth/me', { credentials:'include' })).json(); } catch {}
+  if (!me.user || me.user.role !== 'admin') { $('gate').style.display = 'block'; return; }
+  $('anRoot').style.display = 'block';
+
+  let d;
+  try { d = await (await fetch('/api/admin-analytics', { credentials:'include' })).json(); }
+  catch { $('anRoot').innerHTML = '<div class="empty">Could not load analytics.</div>'; return; }
+
+  // ── KPI tiles ──
+  const kpis = [
+    ['GMV (est.)', usd(d.gmv?.gmv_total), d.gmv?.reservations_counted + ' reservations'],
+    ['Deposits collected', usd(d.gmv?.deposits_collected), 'real money taken'],
+    ['Avg order', usd(d.gmv?.avg_order), 'per reservation'],
+    ['Deposit conversion', (d.funnel?.deposit_conversion ?? 0) + '%', 'non-cancelled → paid'],
+    ['Active listings', d.supply?.active_listings ?? 0, 'live now'],
+    ['Farms', d.supply?.farms ?? 0, d.supply?.processors + ' processors'],
+    ['Referral redemptions', d.referrals?.redemptions ?? 0, (d.referrals?.credited ?? 0) + ' credited'],
+    ['Credit outstanding', usdc(d.referrals?.credit_outstanding_cents), 'unspent referral credit'],
+  ];
+  $('kpis').innerHTML = kpis.map(([lab, v, sub]) =>
+    `<div class="kpi"><p class="lab">${esc(lab)}</p><div class="v">${esc(String(v))} <small>${esc(sub||'')}</small></div></div>`).join('');
+
+  // ── horizontal bar helper ──
+  const bars = (rows, colorClass) => {
+    if (!rows || !rows.length) return '<div class="empty">No data yet.</div>';
+    const max = Math.max(...rows.map(r => r.value), 1);
+    return rows.map(r => `
+      <div class="bar-row">
+        <span class="name" title="${esc(r.label)}">${esc(r.label)}</span>
+        <div class="bar-track"><div class="bar-fill ${colorClass||''}" style="width:${Math.max(2, Math.round(r.value/max*100))}%"></div></div>
+        <span class="bar-val">${esc(String(r.display ?? r.value))}</span>
+      </div>`).join('');
+  };
+
+  // Funnel — ordered lifecycle
+  const order = ['pending','deposit-paid','paid','processing','ready','picked-up','cancelled','refunded'];
+  const by = d.funnel?.by_status || {};
+  const funnelRows = order.filter(s => by[s]).map(s => ({ label: s.replace('-',' '), value: by[s].count, display: by[s].count }));
+  $('funnel').innerHTML = funnelRows.length ? bars(funnelRows, 'blue') : '<div class="empty">No reservations yet.</div>';
+
+  // Species
+  $('species').innerHTML = bars((d.supply?.listings_by_species||[]).map(s => ({ label: s.species, value: s.c, display: s.c })));
+
+  // Weekly columns
+  const wk = d.reservations_by_week || [];
+  if (!wk.length) { $('weekly').innerHTML = '<div class="empty">No reservations in the last 12 weeks.</div>'; }
+  else {
+    const maxC = Math.max(...wk.map(w => w.c), 1);
+    $('weekly').innerHTML = `<div class="cols">${wk.map(w => {
+      const label = new Date(w.week + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return `<div class="col" title="${esc(w.week)} · ${w.c} reservations · ${usd(w.gmv)}">
+        <span class="colcap">${w.c}</span>
+        <div class="colbar" style="height:${Math.max(4, Math.round(w.c/maxC*104))}px"></div>
+        <span class="collab">${esc(label)}</span></div>`;
+    }).join('')}</div>`;
+  }
+
+  // Geo
+  $('resState').innerHTML = bars((d.geo?.reservations_by_state||[]).map(s => ({ label: s.state, value: s.c, display: s.c })), 'blue');
+  $('farmState').innerHTML = bars((d.geo?.farms_by_state||[]).map(s => ({ label: s.state, value: s.c, display: s.c })), 'amber');
+
+  // Referrals
+  const ref = d.referrals || {};
+  $('referrals').innerHTML = `
+    <table>
+      <tr><td>Codes issued</td><td class="num">${ref.codes ?? 0}</td></tr>
+      <tr><td>Redemptions</td><td class="num">${ref.redemptions ?? 0}</td></tr>
+      <tr><td>Credited (rewarded)</td><td class="num">${ref.credited ?? 0}</td></tr>
+      <tr><td>Pending</td><td class="num">${ref.pending ?? 0}</td></tr>
+      <tr><td>Credit outstanding</td><td class="num">${usdc(ref.credit_outstanding_cents)}</td></tr>
+    </table>`;
+
+  // Top farms
+  const tf = d.top_farms || [];
+  $('topFarms').innerHTML = tf.length ? `
+    <table>
+      <thead><tr><th>Farm</th><th class="num">Reservations</th><th class="num">GMV</th></tr></thead>
+      <tbody>${tf.map(f => `<tr>
+        <td>${f.slug ? `<a href="/farm/${esc(f.slug)}" style="color:var(--accent-2,#2c6fa5);text-decoration:none;">${esc(f.farm)}</a>` : esc(f.farm)}</td>
+        <td class="num">${f.reservations}</td><td class="num">${usd(f.gmv)}</td></tr>`).join('')}</tbody>
+    </table>` : '<div class="empty">No reservations yet.</div>';
+
+  // Surface any partial query errors quietly for admins
+  if (d.errors && d.errors.length) {
+    const note = document.createElement('p');
+    note.className = 'an-sub';
+    note.style.cssText = 'margin-top:24px;color:#9a2b2d;';
+    note.textContent = 'Note: ' + d.errors.length + ' analytics section(s) degraded — ' + d.errors.join('; ');
+    $('anRoot').appendChild(note);
+  }
+})();
+</script>
+</body>
+</html>
