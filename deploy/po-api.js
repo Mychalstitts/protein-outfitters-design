@@ -22,7 +22,14 @@
   const api = {
     me: () => jsonFetch('/api/auth/me'),
     updateProfile: (patch) => jsonFetch('/api/auth/me', { method: 'PATCH', body: patch }),
-    requestLink: (email, role) => jsonFetch('/api/auth/request-link', { method: 'POST', body: { email, role } }),
+    requestLink: (email, role) => jsonFetch('/api/auth/request-link', { method: 'POST', body: {
+      email, role,
+      // Thread the captured referral code + current path through sign-in so the
+      // magic link carries ?ref= and /api/auth/verify can attribute the
+      // redemption (otherwise referral rewards never fire on email signup).
+      ref: (() => { try { return localStorage.getItem('po_ref_code') || undefined; } catch { return undefined; } })(),
+      next: (() => { try { const p = location.pathname + location.search; return (p && p !== '/') ? p : undefined; } catch { return undefined; } })(),
+    } }),
     logout: () => jsonFetch('/api/auth/logout', { method: 'POST' }),
 
     listings: (params = {}) => {

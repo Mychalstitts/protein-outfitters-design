@@ -9,6 +9,13 @@ async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
 
   if (req.method === 'GET') {
+    // Non-active statuses (draft / withdrawn) are moderation views — admin only,
+    // so unpublished or pulled listings aren't publicly enumerable.
+    const st = url.searchParams.get('status');
+    if (st && st !== 'active') {
+      const user = await currentUser(req);
+      if (!user || user.role !== 'admin') return err(403, 'Admin access required for non-active listings');
+    }
     return await listListings(url);
   }
   if (req.method === 'POST') {

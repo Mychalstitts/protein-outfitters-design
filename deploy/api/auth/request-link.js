@@ -13,6 +13,13 @@ async function handler(req) {
   const desiredRole = body.role; // optional 'producer' / 'processor' / 'buyer'
   if (!email || !email.includes('@')) return err(400, 'Valid email required');
 
+  // Optional: referral code + post-login return path, threaded into the magic
+  // link so /api/auth/verify can attribute the referral redemption on signup.
+  const refRaw = (body.ref || '').trim().toUpperCase();
+  const refCode = /^[A-Z2-9]{6}$/.test(refRaw) ? refRaw : null;
+  const nextRaw = typeof body.next === 'string' ? body.next : '';
+  const nextPath = (nextRaw.startsWith('/') && !nextRaw.startsWith('//')) ? nextRaw : null;
+
   const token = randomToken(32);
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 min
 
@@ -29,7 +36,10 @@ async function handler(req) {
   `;
 
   const origin = req.headers.get('origin') || 'https://www.proteinoutfitters.com';
-  const link = `${origin}/api/auth/verify?token=${token}`;
+  const linkParams = new URLSearchParams({ token });
+  if (nextPath) linkParams.set('next', nextPath);
+  if (refCode) linkParams.set('ref', refCode);
+  const link = `${origin}/api/auth/verify?${linkParams.toString()}`;
 
   // Try to send via Resend if configured
   const resendKey = process.env.RESEND_API_KEY;

@@ -242,18 +242,24 @@
   try { const r = await window.PO_API.reservations(); reservations = r.reservations || []; }
   catch { reservations = []; }
 
-  // Paint summary stats from real data
-  const active = reservations.filter(r => !['cancelled','refunded','picked-up'].includes(r.status));
+  // Paint summary stats from real data.
+  // Define activeNow / past / hasCutSheet up-front: they're referenced
+  // throughout this function (cut-sheet badge, sub-greeting, list render).
+  // Declaring them here fixes a temporal-dead-zone ReferenceError that used
+  // to throw at the cut-sheet badge and abort the entire reservations render.
+  const activeNow = reservations.filter(r => !['picked-up','cancelled','refunded'].includes(r.status));
+  const past = reservations.filter(r => ['picked-up','cancelled','refunded'].includes(r.status));
+  const hasCutSheet = r => !!(r && r.cut_sheet && (typeof r.cut_sheet !== 'object' || Object.keys(r.cut_sheet).length > 0));
   const totalSpend = reservations.reduce((s,r) => s + Number(r.total_estimate || 0), 0);
   const farmSet = new Set(reservations.map(r => r.farm_slug || r.farm_name).filter(Boolean));
   const setText = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
-  setText('acStatActive', active.length);
+  setText('acStatActive', activeNow.length);
   setText('acStatFarms', farmSet.size);
   setText('acStatSpend', totalSpend > 0 ? '$' + totalSpend.toLocaleString('en-US',{maximumFractionDigits:0}) : '$0');
   setText('acStatOrders', reservations.length);
 
   // Quick-action badges from real reservation state
-  const pendingCutSheets = activeNow.filter(r => r.cut_sheet_status !== 'submitted').length;
+  const pendingCutSheets = activeNow.filter(r => !hasCutSheet(r)).length;
   document.querySelectorAll('.qa-pip').forEach(pip => {
     if (pip.closest('a[href="/cut-sheet"]')) {
       if (pendingCutSheets > 0) { pip.textContent = pendingCutSheets + ' pending'; pip.style.display = ''; }
@@ -346,21 +352,19 @@
   } catch {}
 
   // Personalize sub-greeting based on next reservation
-  const next = active.sort((a,b) => new Date(a.expected_finish_date||0) - new Date(b.expected_finish_date||0))[0];
+  const next = activeNow.slice().sort((a,b) => new Date(a.expected_finish_date||0) - new Date(b.expected_finish_date||0))[0];
   const sub = document.getElementById('acGreetingSub');
   if (sub) {
     if (next) {
       const days = Math.max(0, Math.round((new Date(next.expected_finish_date) - Date.now()) / 86400000));
       const shareLabel = next.share_size === 'whole' ? 'whole animal' : next.share_size === 'half' ? 'half share' : next.share_size === 'quarter' ? 'quarter share' : 'eighth';
-      sub.innerHTML = `Your <strong>${shareLabel} of ${next.number || next.breed || 'your reservation'}</strong> drops${days ? ' in ' + days + ' day' + (days===1?'':'s') : ' soon'}. ${next.cut_sheet_status === 'submitted' ? 'Cut sheet is in.' : 'Cut sheet still needed.'}`;
+      sub.innerHTML = `Your <strong>${shareLabel} of ${next.number || next.breed || 'your reservation'}</strong> drops${days ? ' in ' + days + ' day' + (days===1?'':'s') : ' soon'}. ${hasCutSheet(next) ? 'Cut sheet is in.' : 'Cut sheet still needed.'}`;
     } else {
       sub.textContent = 'Welcome back. Browse new listings or check on your reservations below.';
     }
   }
 
-  // Split into active and past
-  const past = reservations.filter(r => ['picked-up','cancelled','refunded'].includes(r.status));
-  const activeNow = reservations.filter(r => !['picked-up','cancelled','refunded'].includes(r.status));
+  // (activeNow + past were computed up-front, above the summary stats)
 
   if (!reservations.length) {
     list.innerHTML = `<div style="text-align:center; padding:60px 20px;">

@@ -539,6 +539,25 @@ async function writeInAppNotification(templateId, ctx, subject, dedupKey) {
       await sendPushTo({ email: ctx.to });
     } catch (e) { /* swallow — push is opportunistic, never blocks email */ }
   }
+
+  // ─── Opportunistic transactional SMS ──────────────────────────────
+  // INERT until an SMS provider is configured (see ./sms.js) AND the caller
+  // passes a recipient phone via ctx.sms_to (the buyer/farmer/processor phone
+  // already on the reservation/booking). Limited to a few time-sensitive
+  // events so we never spam. Sends nothing today — no provider configured.
+  if (inserted[0]?.id && ctx.sms_to) {
+    try {
+      const { smsEnabled, sendSms } = await import('./sms.js');
+      const SMS_TEMPLATES = new Set([
+        'C16.animal_arrived', 'C18.ready_for_pickup', 'C4.balance_capture_warning',
+        'F4.dropoff_reminder', 'P1.new_booking', 'P3.checkin_reminder',
+      ]);
+      if (smsEnabled() && SMS_TEMPLATES.has(templateId)) {
+        const smsBody = `${title}${link ? ' — proteinoutfitters.com' + link : ''}`;
+        await sendSms({ to: ctx.sms_to, body: smsBody });
+      }
+    } catch (e) { /* SMS is opportunistic, never blocks email */ }
+  }
 }
 
 // Convenience: list available templates (used by /api/email-tick to log support).

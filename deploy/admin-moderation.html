@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Moderation · Admin · Protein Outfitters</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/po-shell.css" />
+<style>
+  body { background: var(--parchment, #fbf9f5); color: var(--ink, #061b0e); }
+  .mod-shell { max-width: 1100px; margin: 0 auto; padding: clamp(28px,4vw,52px) var(--shell-pad,20px) 100px; }
+  .mod-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:8px; }
+  .mod-head h1 { font:900 clamp(28px,4vw,40px)/1.05 'Inter',system-ui,sans-serif; letter-spacing:-.03em; margin:0; }
+  .mod-head a.back { font:700 13px/1 'Inter'; color:var(--accent-2,#2c6fa5); text-decoration:none; }
+  .mod-sub { color:rgba(6,27,14,.6); font:500 15px/1.5 'Inter'; margin:0 0 28px; }
+  .seg { display:inline-flex; background:#fff; border:1px solid rgba(6,27,14,.1); border-radius:999px; padding:3px; margin-bottom:22px; }
+  .seg button { border:0; background:transparent; padding:9px 18px; border-radius:999px; font:700 13px/1 'Inter'; color:var(--ink); cursor:pointer; opacity:.6; }
+  .seg button.active { background:var(--ink,#061b0e); color:#fbf9f5; opacity:1; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+  .card { background:#fff; border:1px solid rgba(6,27,14,.08); border-radius:16px; padding:16px 18px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 14px rgba(0,0,0,.04); }
+  .card.flag { border-color:rgba(193,53,55,.4); background:linear-gradient(0deg,rgba(193,53,55,.04),#fff); }
+  .row1 { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .row1 h3 { margin:0; font:800 16px/1.3 'Inter'; letter-spacing:-.01em; }
+  .meta { font:500 12.5px/1.5 'Inter'; color:rgba(6,27,14,.6); margin:3px 0 0; }
+  .detail { font:500 13.5px/1.5 'Inter'; color:rgba(6,27,14,.85); margin:10px 0 0; white-space:pre-wrap; }
+  .pill { font:800 10px/1 'Inter'; letter-spacing:.05em; text-transform:uppercase; padding:5px 9px; border-radius:999px; display:inline-block; }
+  .pill.open { background:rgba(220,165,74,.18); color:#8a6520; }
+  .pill.reviewing { background:rgba(44,111,165,.16); color:#1d4f7d; }
+  .pill.resolved { background:rgba(125,160,93,.2); color:#3f6b2a; }
+  .pill.dismissed,.pill.withdrawn { background:rgba(6,27,14,.08); color:#5a6271; }
+  .pill.active { background:rgba(125,160,93,.2); color:#3f6b2a; }
+  .pill.draft { background:rgba(220,165,74,.18); color:#8a6520; }
+  .pill.incomplete { background:rgba(193,53,55,.14); color:#9a2b2d; }
+  .acts { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .btn { border:0; border-radius:999px; padding:8px 14px; font:700 12.5px/1 'Inter'; cursor:pointer; }
+  .btn.primary { background:var(--proc,#2c9a52); color:#fff; }
+  .btn.review { background:rgba(44,111,165,.14); color:#1d4f7d; }
+  .btn.warn { background:rgba(201,122,44,.16); color:#8a4f14; }
+  .btn.danger { background:rgba(193,53,55,.12); color:#9a2b2d; }
+  .btn.ghost { background:rgba(6,27,14,.06); color:var(--ink); }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .empty { text-align:center; padding:46px 20px; color:rgba(6,27,14,.55); font:500 14px/1.5 'Inter'; background:#fff; border-radius:16px; }
+  .empty img { width:56px; height:56px; opacity:.8; display:block; margin:0 auto 14px; }
+  .gate { max-width:440px; margin:18vh auto; text-align:center; background:#fff; border-radius:18px; padding:40px 32px; box-shadow:0 8px 28px rgba(6,27,14,.08); }
+  .gate h1 { font:800 24px/1.2 'Inter'; margin:0 0 10px; }
+  .gate p { color:rgba(6,27,14,.7); font:500 14px/1.55 'Inter'; margin:0 0 20px; }
+  .gate a { display:inline-block; background:#061b0e; color:#fbf9f5; padding:11px 20px; border-radius:999px; font:700 13px/1 'Inter'; text-decoration:none; }
+  .count { font:700 13px/1 'Inter'; color:rgba(6,27,14,.55); margin-left:8px; }
+</style>
+</head>
+<body>
+<div id="modRoot" class="mod-shell" style="display:none;">
+  <div class="mod-head">
+    <h1>Moderation</h1>
+    <a class="back" href="/admin-overview">← Admin overview</a>
+  </div>
+  <p class="mod-sub">Triage quality complaints and review listings. All actions are logged to the database and notify the affected parties through the normal pipeline.</p>
+
+  <div class="seg" role="tablist">
+    <button id="tabComplaints" class="active" type="button">Complaints<span class="count" id="cComplaints"></span></button>
+    <button id="tabListings" type="button">Listings<span class="count" id="cListings"></span></button>
+  </div>
+
+  <section id="panelComplaints" class="panel active">
+    <div id="complaintsList"><div class="empty">Loading complaints…</div></div>
+  </section>
+
+  <section id="panelListings" class="panel">
+    <div id="listingsList"><div class="empty">Loading listings…</div></div>
+  </section>
+</div>
+
+<div id="gate" class="gate" style="display:none;">
+  <h1>Admin access required</h1>
+  <p>This moderation console is restricted to administrators. Sign in with an admin account to continue.</p>
+  <a href="/account">Go to sign in</a>
+</div>
+
+<div id="po-shell-host"></div>
+<script src="/po-shell.js"></script>
+<script>
+(async () => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  const money = c => '$' + (Number(c||0)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // ── Admin gate ──
+  let me = { user: null };
+  try { me = await (await fetch('/api/auth/me', { credentials:'include' })).json(); } catch {}
+  if (!me.user || me.user.role !== 'admin') { $('gate').style.display = 'block'; return; }
+  $('modRoot').style.display = 'block';
+
+  // ── Tabs ──
+  $('tabComplaints').addEventListener('click', () => switchTab('Complaints'));
+  $('tabListings').addEventListener('click', () => switchTab('Listings'));
+  function switchTab(which) {
+    $('tabComplaints').classList.toggle('active', which==='Complaints');
+    $('tabListings').classList.toggle('active', which==='Listings');
+    $('panelComplaints').classList.toggle('active', which==='Complaints');
+    $('panelListings').classList.toggle('active', which==='Listings');
+  }
+
+  // ─────────────── Complaints ───────────────
+  async function loadComplaints() {
+    const wrap = $('complaintsList');
+    let data;
+    try { data = await (await fetch('/api/complaint', { credentials:'include' })).json(); }
+    catch { wrap.innerHTML = '<div class="empty">Could not load complaints.</div>'; return; }
+    const items = data.complaints || [];
+    $('cComplaints').textContent = items.length ? items.length : '';
+    if (!items.length) {
+      wrap.innerHTML = '<div class="empty"><img src="/brand/logo-monogram.svg" alt=""/>No open complaints. All clear.</div>';
+      return;
+    }
+    wrap.innerHTML = items.map(c => {
+      const title = esc(c.summary || c.detail || 'Quality complaint');
+      const who = [c.buyer_name, c.buyer_email].filter(Boolean).map(esc).join(' · ');
+      return `<div class="card" data-id="${esc(c.id)}">
+        <div class="row1">
+          <div>
+            <h3>${title}</h3>
+            <p class="meta">${who || 'buyer'} · filed ${fmtDate(c.created_at)} · reservation ${esc((c.reservation_id||'').slice(0,8))}</p>
+          </div>
+          <span class="pill ${esc(c.status)}">${esc((c.status||'open').replace('_',' '))}</span>
+        </div>
+        ${c.detail && c.detail !== c.summary ? `<p class="detail">${esc(c.detail)}</p>` : ''}
+        ${c.resolution ? `<p class="detail"><strong>Resolution:</strong> ${esc(c.resolution)}${c.refund_cents ? ' · refund ' + money(c.refund_cents) : ''}</p>` : ''}
+        <div class="acts">
+          <button class="btn review" data-act="reviewing">Mark under review</button>
+          <button class="btn primary" data-act="resolved">Resolve…</button>
+          <button class="btn danger" data-act="dismissed">Dismiss…</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    wrap.querySelectorAll('.card').forEach(card => {
+      const id = card.dataset.id;
+      card.querySelectorAll('.acts .btn').forEach(btn => {
+        btn.addEventListener('click', () => resolveComplaint(id, btn.dataset.act, card));
+      });
+    });
+  }
+
+  async function resolveComplaint(id, status, card) {
+    const body = { status };
+    if (status === 'resolved' || status === 'dismissed') {
+      const note = prompt(status === 'resolved' ? 'Resolution note (what was done):' : 'Reason for dismissal:');
+      if (note === null) return;
+      body.resolution = note.trim();
+      if (status === 'resolved') {
+        const refund = prompt('Refund amount in USD (leave blank for none):', '');
+        if (refund && !isNaN(parseFloat(refund))) body.refund_cents = Math.round(parseFloat(refund) * 100);
+      }
+    }
+    card.querySelectorAll('.btn').forEach(b => b.disabled = true);
+    try {
+      const r = await fetch('/api/complaint?id=' + encodeURIComponent(id), {
+        method:'PATCH', credentials:'include',
+        headers:{'Content-Type':'application/json'}, body: JSON.stringify(body),
+      });
+      if (!r.ok) { const o = await r.json().catch(()=>({})); alert('Update failed: ' + (o.error || r.status)); card.querySelectorAll('.btn').forEach(b=>b.disabled=false); return; }
+      loadComplaints(); // refresh (resolved/denied drop off the open list)
+    } catch (e) { alert('Network error: ' + e.message); card.querySelectorAll('.btn').forEach(b=>b.disabled=false); }
+  }
+
+  // ─────────────── Listings ───────────────
+  const hasPrice = l => {
+    const s = l.shares || {};
+    const anyShare = ['quarter','half','whole','eighth'].some(k => Number(s?.[k]?.price) > 0);
+    return anyShare || Number(l.price_per_lb) > 0;
+  };
+
+  async function loadListings() {
+    const wrap = $('listingsList');
+    const fetchStatus = async st => {
+      try { const d = await (await fetch('/api/listings?status=' + st + '&limit=200', { credentials:'include' })).json(); return d.listings || []; }
+      catch { return []; }
+    };
+    const [active, draft, withdrawn] = await Promise.all([fetchStatus('active'), fetchStatus('draft'), fetchStatus('withdrawn')]);
+    const all = [...active, ...draft, ...withdrawn]
+      .sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+    $('cListings').textContent = all.length ? all.length : '';
+    if (!all.length) { wrap.innerHTML = '<div class="empty"><img src="/brand/logo-monogram.svg" alt=""/>No listings found.</div>'; return; }
+
+    wrap.innerHTML = all.map(l => {
+      const priced = hasPrice(l);
+      const incomplete = l.status === 'active' && !priced;
+      const name = esc(`${l.number ? l.number + ' · ' : ''}${l.breed || l.species || 'Listing'}`);
+      const farm = esc(l.farm_name || 'Unknown farm');
+      let acts = '';
+      if (l.status === 'active') {
+        acts = `<button class="btn warn" data-act="draft">Quarantine (→ draft)</button>
+                <button class="btn danger" data-act="withdrawn">Withdraw</button>`;
+      } else if (l.status === 'draft') {
+        acts = `<button class="btn primary" data-act="active" ${priced ? '' : 'disabled title="Set a price before publishing"'}>Restore (→ active)</button>
+                <button class="btn danger" data-act="withdrawn">Withdraw</button>`;
+      } else { // withdrawn
+        acts = `<button class="btn ghost" data-act="draft">Reinstate as draft</button>`;
+      }
+      return `<div class="card ${incomplete ? 'flag' : ''}" data-id="${esc(l.id)}">
+        <div class="row1">
+          <div>
+            <h3>${name}</h3>
+            <p class="meta">${farm} · ${priced ? 'priced' : '<strong style="color:#9a2b2d">no price set</strong>'} · listed ${fmtDate(l.created_at)}</p>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            <span class="pill ${esc(l.status)}">${esc(l.status)}</span>
+            ${incomplete ? '<span class="pill incomplete">incomplete</span>' : ''}
+          </div>
+        </div>
+        <div class="acts">
+          <a class="btn ghost" href="/listing?id=${esc(l.id)}" target="_blank" rel="noopener">View</a>
+          ${acts}
+        </div>
+      </div>`;
+    }).join('');
+
+    wrap.querySelectorAll('.card').forEach(card => {
+      const id = card.dataset.id;
+      card.querySelectorAll('.acts .btn[data-act]').forEach(btn => {
+        btn.addEventListener('click', () => moderateListing(id, btn.dataset.act, card));
+      });
+    });
+  }
+
+  async function moderateListing(id, status, card) {
+    const verb = status === 'draft' ? 'quarantine' : status === 'withdrawn' ? 'withdraw' : 'publish';
+    if (!confirm(`Confirm: ${verb} this listing? (status → ${status})`)) return;
+    card.querySelectorAll('.btn[data-act]').forEach(b => b.disabled = true);
+    try {
+      const r = await fetch('/api/listing?id=' + encodeURIComponent(id), {
+        method:'PATCH', credentials:'include',
+        headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status }),
+      });
+      if (!r.ok) { const o = await r.json().catch(()=>({})); alert('Update failed: ' + (o.error || r.status)); card.querySelectorAll('.btn').forEach(b=>b.disabled=false); return; }
+      loadListings();
+    } catch (e) { alert('Network error: ' + e.message); card.querySelectorAll('.btn').forEach(b=>b.disabled=false); }
+  }
+
+  loadComplaints();
+  loadListings();
+})();
+</script>
+</body>
+</html>
