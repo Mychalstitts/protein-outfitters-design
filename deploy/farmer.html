@@ -524,10 +524,34 @@ window.poStartConnect = async function(kind, id) {
     const reservedShares = ['whole','half','quarter'].reduce((s, k) => s + (l.shares?.[k]?.reserved || 0), 0);
     const fromPrice = l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || '—';
     const photo = (l.photos && l.photos[0]) || photoFor(l.species);
-    const needsBooking = !listingHasBooking[l.id];
-    const bookingCta = needsBooking
-      ? `<button onclick="event.stopPropagation();openBookingModal('${l.id}','${(l.number || '').replace(/'/g, "\\'")}','${(l.breed || l.species).replace(/'/g, "\\'")}','${l.expected_finish_date || ''}','${l.estimated_hanging_weight || ''}')" style="margin-top:8px;padding:6px 12px;background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;font:700 11px/1 'Inter';cursor:pointer;width:100%;">Book a processor →</button>`
-      : `<div style="margin-top:8px;padding:6px 12px;background:rgba(125,160,93,.10);color:#7da05d;border-radius:999px;font:700 11px/1.4 'Inter';text-align:center;">✓ Processor booked</div>`;
+    const availableShares = ['whole','half','quarter'].reduce((s, k) => s + (l.shares?.[k]?.available || 0), 0);
+    const fullySold = totShares > 0 && availableShares === 0;
+    const hasBooking = !!listingHasBooking[l.id];
+    // SRM deadline: bovines must generally be harvested before 30 months of age.
+    // If one is nearing that and still isn't fully sold, surface the farmer's
+    // options instead of the normal "waiting to sell" state.
+    const isBovine = ['cattle','bison','beef'].includes((l.species || '').toLowerCase());
+    const monthsOld = l.birth_date ? (Date.now() - new Date(l.birth_date).getTime()) / (1000 * 60 * 60 * 24 * 30.44) : null;
+    const approaching30 = isBovine && monthsOld != null && monthsOld >= 27;
+    const bookArgs = `'${l.id}','${(l.number || '').replace(/'/g, "\\'")}','${(l.breed || l.species).replace(/'/g, "\\'")}','${l.expected_finish_date || ''}','${l.estimated_hanging_weight || ''}'`;
+    // The farmer picks a processor only once the animal is fully sold.
+    let bookingCta;
+    if (hasBooking) {
+      bookingCta = `<div style="margin-top:8px;padding:6px 12px;background:rgba(125,160,93,.10);color:#7da05d;border-radius:999px;font:700 11px/1.4 'Inter';text-align:center;">✓ Processor booked</div>`;
+    } else if (fullySold) {
+      bookingCta = `<button onclick="event.stopPropagation();openBookingModal(${bookArgs})" style="margin-top:8px;padding:6px 12px;background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;font:700 11px/1 'Inter';cursor:pointer;width:100%;">Fully sold — book a processor →</button>`;
+    } else if (approaching30) {
+      const obtn = (label, onclick, bg, color) => `<button onclick="event.stopPropagation();${onclick}" style="padding:7px 10px;background:${bg};color:${color};border:0;border-radius:999px;font:700 11px/1 'Inter';cursor:pointer;width:100%;">${label}</button>`;
+      bookingCta = `<div style="margin-top:8px;padding:10px 12px;background:rgba(201,122,44,.10);border:1px solid rgba(201,122,44,.28);border-radius:12px;">
+        <div style="font:800 10.5px/1.3 'Inter';letter-spacing:.02em;color:#8a4f14;margin-bottom:7px;">⚠ ~${Math.round(monthsOld)} mo · ${reservedShares}/${totShares} sold · nearing 30-mo SRM</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          ${obtn('Buy remaining myself', `window.location='/listing?id=${l.id}'`, '#061b0e', '#fbf9f5')}
+          ${obtn('Donate this animal', `window.location='/donation-flow?listing=${l.id}'`, 'rgba(125,160,93,.18)', '#3f6b2a')}
+          ${obtn('Process anyway', `openBookingModal(${bookArgs})`, 'rgba(6,27,14,.06)', 'var(--ink,#061b0e)')}
+        </div></div>`;
+    } else {
+      bookingCta = `<div style="margin-top:8px;padding:6px 12px;background:rgba(6,27,14,.05);color:var(--ink-2,#5a6359);border-radius:999px;font:600 11px/1.4 'Inter';text-align:center;">${reservedShares}/${totShares || '?'} reserved · pick a processor once it's full</div>`;
+    }
     return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
       <div class="product-photo" style="background-image: url('${photo}');"><span class="product-tag">Reserving · ${reservedShares}/${totShares || '?'}</span></div>
       <div class="product-meta">
