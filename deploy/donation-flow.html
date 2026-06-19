@@ -1265,5 +1265,108 @@ async function submitInstitutionApply(ev) {
 </script>
 <div id="po-shell-host"></div>
 <script src="./po-shell.js"></script>
+<script>
+/* Farmer-initiated donation — real flow, activated by ?listing=<uuid> from the
+   farmer dashboard. Replaces the static mock with the actual animal, an auto
+   100%-ground / 1-lb cut sheet, a benefactor picker (approved institutions),
+   and a real POST /api/donations submission. */
+(function () {
+  const params = new URLSearchParams(location.search);
+  const listingId = params.get('listing') || params.get('listing_id');
+  if (!listingId) return;
+
+  let booted = false;
+  function boot() { if (!booted) { booted = true; init(); } }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  async function init() {
+    document.querySelectorAll('.role-bar, section[id^="view-"]').forEach(el => { el.style.display = 'none'; });
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
+
+    const host = document.createElement('section');
+    host.className = 'container container--narrow section';
+    host.id = 'farmerDonatePanel';
+    host.innerHTML = '<p class="body" style="text-align:center;opacity:.6;padding:48px 0;">Loading donation…</p>';
+    const anchor = document.querySelector('.role-bar') || document.body.firstElementChild;
+    document.body.insertBefore(host, anchor);
+
+    let listing = null, institutions = [];
+    try {
+      const [lr, ir] = await Promise.all([
+        fetch('/api/listing?id=' + encodeURIComponent(listingId), { credentials: 'include' }),
+        fetch('/api/institutions?status=approved', { credentials: 'include' }),
+      ]);
+      if (lr.ok) { const d = await lr.json(); listing = d.listing || d; }
+      if (ir.ok) { const d = await ir.json(); institutions = d.institutions || d || []; }
+    } catch {}
+
+    if (!listing || !listing.id) {
+      host.innerHTML = '<div class="card" style="padding:32px;text-align:center;"><h2 class="h2">Couldn’t load that animal</h2><p class="body-sm" style="margin-top:8px;">Head back to your dashboard and try again.</p><a class="btn btn--primary mt-6" href="/farmer">← Farmer dashboard</a></div>';
+      return;
+    }
+
+    const shares = listing.shares || {};
+    const cutsLb = { quarter: 110, half: 220, whole: 440 };
+    const unsoldLb = ['quarter', 'half', 'whole'].reduce((s, k) => s + (Number(shares[k]?.available) || 0) * cutsLb[k], 0);
+    const estLb = unsoldLb > 0 ? unsoldLb : Math.round((Number(listing.estimated_hanging_weight) || 700) * 0.65);
+    const perLb = Number(listing.price_per_lb) || Number(shares.quarter?.price) || Number(shares.half?.price) || 9;
+    const estFmv = Math.round(estLb * perLb);
+    const animalLabel = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species || 'animal'}`;
+    const benefactorOptions = institutions.length
+      ? institutions.map(i => `<option value="${esc(i.legal_name)}">${esc(i.legal_name)}${i.state ? ' · ' + esc(i.state) : ''}</option>`).join('')
+      : '<option value="">No approved benefactors yet</option>';
+
+    host.innerHTML = `
+      <span class="eyebrow">Donate an animal</span>
+      <h1 class="display-md mt-2">${esc(animalLabel)}</h1>
+      <p class="body">Give the unsold portion to a vetted 501(c)(3) food-bank partner. We pay the processor; you get a tax letter; the meat feeds people.</p>
+      <div class="card mt-6" style="padding:var(--s-6);">
+        <div class="confirm-row"><span class="eyebrow">Estimated take-home</span><strong>≈ ${estLb.toLocaleString()} lbs</strong><p>Pre-kill estimate. Your tax letter uses the actual hanging weight after processing.</p></div>
+        <div class="confirm-row" style="margin-top:14px;"><span class="eyebrow">Cut sheet (auto)</span><strong>100% ground beef · 1 lb packs</strong><p>Donated animals default to all-ground in 1-lb packages — easiest for food banks to store and distribute. Need something different? Note it below.</p><textarea id="donCutNote" rows="2" placeholder="Optional: special cut instructions" style="width:100%;margin-top:8px;padding:10px 12px;border:1px solid var(--hairline);border-radius:var(--r-2);font:inherit;background:var(--surface-2);"></textarea></div>
+        <div class="confirm-row" style="margin-top:14px;"><span class="eyebrow">Choose a benefactor</span><select id="donBenefactor" style="width:100%;margin-top:6px;padding:10px 12px;border:1px solid var(--hairline);border-radius:var(--r-2);font:inherit;background:#fff;">${benefactorOptions}</select></div>
+        <div class="confirm-row" style="margin-top:14px;"><span class="eyebrow">Estimated fair market value</span><div style="display:flex;align-items:center;gap:6px;margin-top:6px;"><span style="font-weight:800;">$</span><input id="donFmv" type="number" min="0" value="${estFmv}" style="width:150px;padding:10px 12px;border:1px solid var(--hairline);border-radius:var(--r-2);font:inherit;background:#fff;" /></div><p>≈ ${estLb.toLocaleString()} lbs × ${money(perLb)}/lb retail. Used on your tax receipt (informational).</p></div>
+        <div class="disclosure" style="margin-top:14px;"><strong>About the deduction:</strong> For raised livestock the IRS generally limits the deduction to your tax basis; some “wholesome food” donations qualify for up to 2× basis, capped at fair market value. Talk to your CPA.</div>
+        <label class="checkbox-row" style="margin-top:14px;"><input type="checkbox" id="donConfirm" /><span>I agree to transfer ownership of the donated portion and confirm the animal is healthy and fit for human consumption to the best of my knowledge.</span></label>
+        <button class="btn btn--primary btn--xl btn--block" id="donSubmit" style="margin-top:14px;">Confirm donation</button>
+        <p id="donStatus" class="text-faint text-center" style="font-size:12px;margin-top:8px;"></p>
+      </div>
+      <a class="btn btn--ghost btn--sm mt-4" href="/farmer">← Back to dashboard</a>`;
+
+    const submit = host.querySelector('#donSubmit');
+    submit.addEventListener('click', async () => {
+      const benefactor = host.querySelector('#donBenefactor').value;
+      const fmv = Number(host.querySelector('#donFmv').value) || estFmv;
+      const cutNote = host.querySelector('#donCutNote').value.trim();
+      const agreed = host.querySelector('#donConfirm').checked;
+      const status = host.querySelector('#donStatus');
+      if (!agreed) { status.textContent = 'Please confirm the transfer + health attestation.'; status.style.color = '#c25250'; return; }
+      if (!benefactor) { status.textContent = 'Pick a benefactor first.'; status.style.color = '#c25250'; return; }
+      submit.disabled = true; const orig = submit.textContent; submit.textContent = 'Donating…';
+      try {
+        const r = await fetch('/api/donations', {
+          method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            listing_id: listing.id, recipient_org: benefactor, estimated_lb: estLb, fmv,
+            notes: 'Auto cut sheet: 100% ground beef, 1 lb packs.' + (cutNote ? ' Farmer note: ' + cutNote : ''),
+          }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || !data.donation) { status.textContent = 'Could not record donation: ' + (data.error || ('HTTP ' + r.status)); status.style.color = '#c25250'; submit.disabled = false; submit.textContent = orig; return; }
+        const donId = data.donation.id;
+        host.innerHTML = `<div class="card" style="padding:40px 32px;text-align:center;">
+          <div style="font-size:42px;">🤝</div>
+          <h2 class="display-md mt-2">Donation recorded.</h2>
+          <p class="body" style="max-width:48ch;margin:8px auto 0;">${esc(animalLabel)} is pledged to <strong>${esc(benefactor)}</strong> with a 100%-ground cut sheet. We’ll handle processing and email your tax letter once it’s processed.</p>
+          <div class="row gap-2 mt-6" style="justify-content:center;">
+            <a class="btn btn--primary" href="/api/pdf/tax-letter?donation=${encodeURIComponent(donId)}" target="_blank" rel="noopener">Download tax letter</a>
+            <a class="btn btn--secondary" href="/farmer">Back to dashboard</a>
+          </div></div>`;
+      } catch (e) { status.textContent = 'Network error: ' + e.message; status.style.color = '#c25250'; submit.disabled = false; submit.textContent = orig; }
+    });
+  }
+})();
+</script>
 </body>
 </html>

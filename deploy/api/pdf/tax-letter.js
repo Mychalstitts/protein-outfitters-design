@@ -105,6 +105,7 @@ async function _handler(req) {
       ['Donated property', animalLabel],
       ['Hanging weight',  d.estimated_hanging_weight ? `${d.estimated_hanging_weight} lb` : (d.estimated_lb ? `${d.estimated_lb} lb (estimated take-home)` : '—')],
       ['Estimated FMV',    fmt$(d.fmv)],
+      ['Est. deduction (max)', d.fmv != null ? `${fmt$(d.fmv)} ceiling — generally limited to your tax basis (often less)` : '—'],
       ['Recipient',        d.recipient_org || 'Producer Partnership distribution network'],
       ['Charitable EIN',   CHARITY.ein],
     ]);
