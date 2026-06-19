@@ -1281,16 +1281,25 @@ async function submitInstitutionApply(ev) {
   else boot();
 
   async function init() {
-    document.querySelectorAll('.role-bar, section[id^="view-"]').forEach(el => { el.style.display = 'none'; });
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
 
     const host = document.createElement('section');
     host.className = 'container container--narrow section';
     host.id = 'farmerDonatePanel';
+    host.style.cssText = 'padding-top:24px;';
     host.innerHTML = '<p class="body" style="text-align:center;opacity:.6;padding:48px 0;">Loading donation…</p>';
-    const anchor = document.querySelector('.role-bar') || document.body.firstElementChild;
-    document.body.insertBefore(host, anchor);
+    document.body.appendChild(host);
+    // Hide the static depot content; keep the nav/header, scripts, shell, modals.
+    [...document.body.children].forEach(el => {
+      if (el === host) return;
+      const tag = el.tagName;
+      if (tag === 'SCRIPT' || tag === 'HEADER' || tag === 'NAV') return;
+      if (el.id === 'po-shell-host' || el.id === 'adminModal') return;
+      if (el.classList && (el.classList.contains('toast') || el.classList.contains('po-nav-wrap'))) return;
+      if (el.querySelector && el.querySelector('nav, .po-nav, .po-mark')) return;
+      el.style.display = 'none';
+    });
 
     let listing = null, institutions = [];
     try {
