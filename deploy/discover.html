@@ -59,6 +59,8 @@
     .fr-chip svg{ width: 12px; height: 12px; }
     .fr-chip:hover{ background: rgba(6,27,14,.1); transform: translateY(-1px); }
     .fr-chip.active{ background: var(--ink); color: var(--parchment); }
+    .fr-select{ width: 100%; background: #fff; border: 1px solid var(--filter-border); border-radius: 10px; padding: 10px 12px; font: 600 13.5px/1.2 var(--ff-sans); color: var(--ink); cursor: pointer; }
+    .fr-select:focus{ outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(6,27,14,.06); }
     .fr-range{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .fr-range input{ width: 100%; border: 1px solid var(--filter-border); border-radius: 8px; padding: 9px 12px; font: 500 13px/1 var(--ff-sans); color: var(--ink); background: #fff; }
     .fr-range input:focus{ outline: none; border-color: var(--ink); }
@@ -160,13 +162,13 @@
     <section class="discover-layout">
       <aside class="filter-rail">
         <div class="fr-header"><span class="fr-title">Filters</span><button class="fr-clear" id="clearFilters">Clear all</button></div>
-        <div class="fr-section"><h4>Species</h4><div class="fr-chips" data-group="species"><button class="fr-chip active" data-val="all">All</button><button class="fr-chip" data-val="cattle">Cattle</button><button class="fr-chip" data-val="hog">Hog</button><button class="fr-chip" data-val="lamb">Lamb</button><button class="fr-chip" data-val="poultry">Poultry</button><button class="fr-chip" data-val="bison">Bison</button></div></div>
-        <div class="fr-section"><h4>Production practice</h4><div class="fr-chips" data-group="practice"><button class="fr-chip" data-val="grass-fed">Grass-fed</button><button class="fr-chip" data-val="grain-finished">Grain-finished</button><button class="fr-chip" data-val="pasture-raised">Pasture-raised</button><button class="fr-chip" data-val="regenerative">Regenerative</button><button class="fr-chip" data-val="heritage">Heritage breed</button><button class="fr-chip" data-val="dry-aged">Dry-aged</button></div></div>
-        <div class="fr-section"><h4>Certifications</h4><div class="fr-chips" data-group="certs"><button class="fr-chip" data-val="organic">USDA Organic</button><button class="fr-chip" data-val="non-gmo">Non-GMO</button><button class="fr-chip" data-val="amwa">Animal Welfare</button><button class="fr-chip" data-val="aga">Grassfed AGA</button><button class="fr-chip" data-val="usda-insp">USDA Inspected</button><button class="fr-chip" data-val="state-insp">State Inspected</button></div></div>
-        <div class="fr-section"><h4>Producer identity</h4><div class="fr-chips" data-group="identity"><button class="fr-chip" data-val="veteran">Veteran-owned</button><button class="fr-chip" data-val="woman">Woman-owned</button><button class="fr-chip" data-val="bipoc">BIPOC-owned</button><button class="fr-chip" data-val="family">Family farm</button><button class="fr-chip" data-val="indigenous">Indigenous-led</button></div></div>
+        <div class="fr-section"><h4>Species</h4><select class="fr-select" id="fSpecies"><option value="all">All species</option><option value="cattle">Cattle</option><option value="hog">Hog</option><option value="lamb">Lamb</option><option value="poultry">Poultry</option><option value="bison">Bison</option></select></div>
+        <div class="fr-section"><h4>Production practice</h4><select class="fr-select" id="fPractice"><option value="">Any practice</option><option value="grass-fed">Grass-fed</option><option value="grain-finished">Grain-finished</option><option value="pasture-raised">Pasture-raised</option><option value="regenerative">Regenerative</option><option value="heritage">Heritage breed</option><option value="dry-aged">Dry-aged</option></select></div>
+        <div class="fr-section"><h4>Certifications</h4><select class="fr-select" id="fCerts"><option value="">Any certification</option><option value="organic">USDA Organic</option><option value="non-gmo">Non-GMO</option><option value="amwa">Animal Welfare</option><option value="aga">Grassfed AGA</option><option value="usda-insp">USDA Inspected</option><option value="state-insp">State Inspected</option></select></div>
+        <div class="fr-section"><h4>Producer identity</h4><select class="fr-select" id="fIdentity"><option value="">Any producer</option><option value="veteran">Veteran-owned</option><option value="woman">Woman-owned</option><option value="bipoc">BIPOC-owned</option><option value="family">Family farm</option><option value="indigenous">Indigenous-led</option></select></div>
         <div class="fr-section"><h4>Price · $/lb hanging weight</h4><div class="fr-range"><input id="priceMin" type="number" placeholder="Min" min="0" max="20" /><input id="priceMax" type="number" placeholder="Max" min="0" max="20" /></div></div>
         <div class="fr-section"><h4>Distance from <span id="zipDisplay">56601</span></h4><input id="distSlider" class="fr-slider" type="range" min="25" max="500" value="200" step="25" /><div class="fr-slider-label"><span>25 mi</span><span><strong id="distVal">200</strong> mi</span><span>500+ mi</span></div></div>
-        <div class="fr-section"><h4>Pickup window</h4><div class="fr-chips" data-group="window"><button class="fr-chip" data-val="this-month">This month</button><button class="fr-chip" data-val="3mo">Next 3 mo</button><button class="fr-chip" data-val="6mo">Next 6 mo</button></div></div>
+        <div class="fr-section"><h4>Pickup window</h4><select class="fr-select" id="fWindow"><option value="">Any time</option><option value="this-month">This month</option><option value="3mo">Next 3 months</option><option value="6mo">Next 6 months</option></select></div>
         <div class="fr-section"><div class="fr-toggle" id="instantBookToggle"><span>Instant Reserve only</span><span class="switch"></span></div></div>
         <div class="fr-section"><div class="fr-toggle" id="newOnlyToggle"><span>New listings (last 7 days)</span><span class="switch"></span></div></div>
       </aside>
@@ -396,23 +398,13 @@
       el.querySelector('svg').setAttribute('fill', state.saved.has(id)?'currentColor':'none');
     }
 
-    document.querySelectorAll('.fr-chips').forEach(group => {
-      const groupName = group.dataset.group;
-      group.addEventListener('click', e => {
-        const btn = e.target.closest('.fr-chip'); if (!btn) return;
-        const val = btn.dataset.val;
-        if (groupName === 'species') {
-          group.querySelectorAll('.fr-chip').forEach(c => c.classList.remove('active'));
-          btn.classList.add('active'); state.species = val;
-        } else if (groupName === 'window') {
-          group.querySelectorAll('.fr-chip').forEach(c => c.classList.remove('active'));
-          if (state.window === val) state.window = null;
-          else { btn.classList.add('active'); state.window = val; }
-        } else {
-          btn.classList.toggle('active');
-          const set = state[groupName];
-          if (set.has(val)) set.delete(val); else set.add(val);
-        }
+    // Dropdown filters → update state. The multi-value groups keep their Set
+    // shape (holding the one selected value) so applyFilters() is unchanged.
+    document.getElementById('fSpecies').addEventListener('change', e => { state.species = e.target.value || 'all'; render(); });
+    document.getElementById('fWindow').addEventListener('change', e => { state.window = e.target.value || null; render(); });
+    [['fPractice','practice'],['fCerts','certs'],['fIdentity','identity']].forEach(([id, key]) => {
+      document.getElementById(id).addEventListener('change', e => {
+        state[key] = e.target.value ? new Set([e.target.value]) : new Set();
         render();
       });
     });
@@ -428,8 +420,7 @@
       state.species='all'; state.practice.clear(); state.certs.clear(); state.identity.clear();
       state.priceMin=null; state.priceMax=null; state.distance=200; state.window=null;
       state.instant=false; state.newOnly=false;
-      document.querySelectorAll('.fr-chip').forEach(c => c.classList.remove('active'));
-      document.querySelector('[data-group="species"] [data-val="all"]').classList.add('active');
+      ['fSpecies','fPractice','fCerts','fIdentity','fWindow'].forEach(id => { const el = document.getElementById(id); if (el) el.value = id === 'fSpecies' ? 'all' : ''; });
       document.getElementById('priceMin').value=''; document.getElementById('priceMax').value='';
       document.getElementById('distSlider').value=200; document.getElementById('distVal').textContent=200;
       document.getElementById('instantBookToggle').classList.remove('on');
@@ -544,19 +535,19 @@
       const summary = parsed.summary || [];
       if (parsed.filters.species) {
         state.species = parsed.filters.species;
-        document.querySelectorAll('[data-group="species"] .fr-chip').forEach(c => c.classList.toggle('active', c.dataset.val === parsed.filters.species));
+        const el = document.getElementById('fSpecies'); if (el) el.value = parsed.filters.species;
       }
       if (parsed.filters.practice) {
         state.practice = new Set(parsed.filters.practice);
-        document.querySelectorAll('[data-group="practice"] .fr-chip').forEach(c => c.classList.toggle('active', state.practice.has(c.dataset.val)));
+        const el = document.getElementById('fPractice'); if (el) el.value = parsed.filters.practice[0] || '';
       }
       if (parsed.filters.certs) {
         state.certs = new Set(parsed.filters.certs);
-        document.querySelectorAll('[data-group="certs"] .fr-chip').forEach(c => c.classList.toggle('active', state.certs.has(c.dataset.val)));
+        const el = document.getElementById('fCerts'); if (el) el.value = parsed.filters.certs[0] || '';
       }
       if (parsed.filters.identity) {
         state.identity = new Set(parsed.filters.identity);
-        document.querySelectorAll('[data-group="identity"] .fr-chip').forEach(c => c.classList.toggle('active', state.identity.has(c.dataset.val)));
+        const el = document.getElementById('fIdentity'); if (el) el.value = parsed.filters.identity[0] || '';
       }
       if (parsed.filters.priceMax) { state.priceMax = parsed.filters.priceMax; document.getElementById('priceMax').value = parsed.filters.priceMax; }
       if (parsed.filters.priceMin) { state.priceMin = parsed.filters.priceMin; document.getElementById('priceMin').value = parsed.filters.priceMin; }
