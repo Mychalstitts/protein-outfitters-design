@@ -267,7 +267,7 @@ async function handler(req) {
       // Webhook-driven payout logic should: total amount → farmer share + processor share + platform retain.
       transfer_group: transferGroup,
     },
-    success_url: `${origin}/confirmed?session_id={CHECKOUT_SESSION_ID}&reservation=${reservationId}`,
+    success_url: `${origin}/cut-sheet?reservation=${reservationId}&paid=1`,
     cancel_url: `${origin}/listing?id=${listing_id}&cancelled=1`,
     automatic_tax: { enabled: false },
   });

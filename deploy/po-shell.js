@@ -82,20 +82,19 @@
 <aside class="sheet" id="sheet" aria-hidden="true" aria-label="Reserve">
   <div class="sheet-grip" aria-hidden="true"></div>
   <header class="sheet-head">
-    <div class="sheet-progress" aria-hidden="true"><span class="dot active" data-dot="1"></span><span class="dot" data-dot="2"></span><span class="dot" data-dot="3"></span></div>
+    <div class="sheet-progress" aria-hidden="true"><span class="dot active" data-dot="1"></span><span class="dot" data-dot="2"></span></div>
     <button class="sheet-close" id="sheetClose" aria-label="Close">✕</button>
   </header>
   <div class="sheet-body">
     <div class="sheet-context"><div class="sheet-context-img" id="sheetContextImg"></div><div class="sheet-context-text"><p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p><p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p></div></div>
     <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><div class="options" id="shareOptions"></div></section>
-    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Where will you pick up?</h3><div class="options" id="processorOptions"><div style="padding:14px;font:500 13px/1.4 var(--ff-sans);opacity:.6;">Loading processors…</div></div></section>
-    <section class="sheet-step" data-step="3" hidden><h3 class="sheet-q">Reserve it.</h3>
+    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Reserve it.</h3>
       <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Pay your deposit + fees today. Meat is settled at pickup based on actual hanging weight.</p>
       <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18.00</span></div><div class="summary-row total"><span>Reserve today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
       <div class="pay-stack"><button class="btn-pay btn-pay--apple" id="payApple"> Pay deposit</button><button class="btn-pay btn-pay--card" id="payCard">Reserve with card →</button></div>
-      <p style="font-size:12px;color:var(--ink-3);text-align:center;margin:14px 0 0;line-height:1.5;">Free cancellation up to 21 days before harvest. We'll email your cut sheet within 24 hours.</p>
+      <p style="font-size:12px;color:var(--ink-3);text-align:center;margin:14px 0 0;line-height:1.5;">Free cancellation up to 21 days before harvest. Next, you'll build your cut sheet.</p>
     </section>
-    <section class="sheet-step" data-step="4" hidden><div class="confirm"><div class="confirm-mark">✓</div><h3 id="confirmTitle">Reserved.</h3><p id="confirmBody">We just sent your reservation details and your cut sheet builder.</p></div></section>
+    <section class="sheet-step" data-step="3" hidden><div class="confirm"><div class="confirm-mark">✓</div><h3 id="confirmTitle">Reserved.</h3><p id="confirmBody">We just sent your reservation details and your cut sheet builder.</p></div></section>
   </div>
   <footer class="sheet-foot"><button class="sheet-back" id="sheetBack" disabled>← Back</button><button class="sheet-next" id="sheetNext" disabled>Continue →</button></footer>
 </aside>`;
@@ -329,16 +328,14 @@
       state.step = n;
       steps.forEach(s => { s.hidden = Number(s.dataset.step) !== n; });
       dots.forEach((d, i) => { d.classList.toggle('active', i === n - 1); d.classList.toggle('done', i < n - 1); });
-      backBtn.disabled = n === 1 || n === 4;
-      if (n === 4) { nextBtn.style.visibility = 'hidden'; backBtn.style.visibility = 'hidden'; }
+      backBtn.disabled = n === 1 || n === 3;
+      if (n === 3) { nextBtn.style.visibility = 'hidden'; backBtn.style.visibility = 'hidden'; }
       else {
         nextBtn.style.visibility = 'visible'; backBtn.style.visibility = 'visible';
-        if (n === 1) nextBtn.disabled = !state.share;
-        if (n === 2) nextBtn.disabled = !state.processor;
-        if (n === 3) { nextBtn.disabled = false; nextBtn.textContent = 'Reserve →'; }
-        else nextBtn.textContent = 'Continue →';
+        if (n === 1) { nextBtn.disabled = !state.share; nextBtn.textContent = 'Continue →'; }
+        if (n === 2) { nextBtn.disabled = false; nextBtn.textContent = 'Reserve →'; }
       }
-      if (n === 3 && state.share) {
+      if (n === 2 && state.share) {
         // Reservation deposit model: deposit is a flat 10% of estimated meat cost (capped 50–500),
         // plus processing fee + insurance. Meat balance is settled at pickup on actual hanging weight.
         const lbsBySize = { q: 110, h: 220, w: 440 };
@@ -380,7 +377,8 @@
       state.share = null; state.processor = null;
       shareWrap?.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
       buildShareOptions();
-      renderProcessorOptions(); // async; fills step-2 from /api/processors
+      // Processor is no longer chosen by the buyer — the farmer assigns it once
+      // the animal is fully sold. Reservations are created with processor=null.
       setStep(1);
       backdrop?.classList.add('open');
       sheet.classList.add('open');
@@ -423,8 +421,8 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && sheet.classList.contains('open')) close(); });
     backBtn?.addEventListener('click', () => { if (state.step > 1) setStep(state.step - 1); });
     nextBtn.addEventListener('click', async () => {
-      if (state.step < 3) { setStep(state.step + 1); return; }
-      if (state.step === 3) {
+      if (state.step === 1) { setStep(2); return; }
+      if (state.step === 2) {
         // Submit reservation to /api/reservations
         nextBtn.disabled = true;
         const origText = nextBtn.textContent;
