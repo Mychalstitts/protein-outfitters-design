@@ -11,7 +11,7 @@
 // Deposit policy (Trello "For Myke" decision pending — using sensible defaults):
 //   $100 flat OR 10% of estimated processing, whichever is greater, capped $300.
 
-import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
+import { sql, currentUser, err, json, isUuid, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -42,6 +42,8 @@ async function handler(req) {
     const id = url.searchParams.get('id');
     const listingId = url.searchParams.get('listing_id');
     const processorSlug = url.searchParams.get('processor_slug');
+    if (id && !isUuid(id)) return err(400, 'Invalid booking id');
+    if (listingId && !isUuid(listingId)) return err(400, 'Invalid listing_id');
     const user = await currentUser(req);
 
     if (id) {

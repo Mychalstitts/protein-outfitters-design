@@ -158,6 +158,14 @@ export function err(status, message, extra = {}) {
   return json({ error: message, ...extra }, { status });
 }
 
+// Validate a v1–v5 UUID. Guards endpoints that take an id from the query
+// string before it reaches Postgres — a malformed value would otherwise throw
+// at the DB layer and surface as a 500 instead of a clean 400.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function isUuid(s) {
+  return typeof s === 'string' && UUID_RE.test(s);
+}
+
 // ─── Cookie helpers ────────────────────────────────────────
 // Handle both runtimes: Edge (Web Fetch req with headers.get) and
 // Node.js (IncomingMessage with headers as plain object).

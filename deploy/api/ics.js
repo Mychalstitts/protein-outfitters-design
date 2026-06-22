@@ -1,6 +1,6 @@
 // /api/ics?reservation=UUID  → .ics file the user can import into any calendar app.
 // /api/ics?listing=UUID      → .ics for the listing's harvest date (producer-facing).
-import { sql, err, nodejsHandler } from './_lib/db.js';
+import { sql, err, isUuid, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -50,6 +50,8 @@ async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const reservationId = url.searchParams.get('reservation');
   const listingId = url.searchParams.get('listing');
+  if (reservationId && !isUuid(reservationId)) return err(400, 'Invalid reservation id');
+  if (listingId && !isUuid(listingId)) return err(400, 'Invalid listing id');
 
   let events = [];
   let filename = 'protein-outfitters.ics';
