@@ -327,46 +327,18 @@
     <section class="fn-section" data-pane="payouts" hidden>
       <div class="fn-section-head">
         <h2>Pending payouts</h2>
-        <p>$2,790 in escrow · releases on pickup</p>
+        <p id="payoutsPendingSummary">Loading…</p>
       </div>
-      <div class="card-block">
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2641 quarter · Alex P.</h4><p>Releases on pickup · ~June 11 · 14 days from drop-off</p></div>
-          <div class="stat-cell">$1,395.00<span class="sub">in escrow</span></div>
-          <span class="pill-status pending">Awaiting pickup</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2641 quarter · David K.</h4><p>Releases on pickup · ~June 11 · 14 days from drop-off</p></div>
-          <div class="stat-cell">$1,395.00<span class="sub">in escrow</span></div>
-          <span class="pill-status pending">Awaiting pickup</span>
-        </div>
+      <div class="card-block" id="payoutsPendingList">
+        <div class="row-l" style="opacity:.55;font:500 14px/1.5 'Inter';padding:20px;">Loading pending balance…</div>
       </div>
 
       <div class="fn-section-head" style="margin-top: 28px;">
         <h2>Recent transfers</h2>
-        <p>Last 5 to your bank</p>
+        <p id="payoutsRecentSummary">Last transfers to your bank</p>
       </div>
-      <div class="card-block">
-        <div class="row-l">
-          <div class="img-cell" style="background: var(--accent-soft); display: grid; place-items: center; color: var(--brand);"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
-          <div class="meta"><h4>Transfer to Wells Fargo ••4391</h4><p>May 1, 2026 · arrived next business day</p></div>
-          <div class="stat-cell">−$4,500.00</div>
-          <span class="pill-status released">Cleared</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background: var(--accent-soft); display: grid; place-items: center; color: var(--brand);"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
-          <div class="meta"><h4>Transfer to Wells Fargo ••4391</h4><p>April 15, 2026 · arrived next business day</p></div>
-          <div class="stat-cell">−$3,200.00</div>
-          <span class="pill-status released">Cleared</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background: var(--accent-soft); display: grid; place-items: center; color: var(--brand);"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
-          <div class="meta"><h4>Transfer to Wells Fargo ••4391</h4><p>March 28, 2026</p></div>
-          <div class="stat-cell">−$2,800.00</div>
-          <span class="pill-status released">Cleared</span>
-        </div>
+      <div class="card-block" id="payoutsRecentList">
+        <div class="row-l" style="opacity:.55;font:500 14px/1.5 'Inter';padding:20px;">Loading transfer history…</div>
       </div>
     </section>
 
@@ -500,7 +472,70 @@
         .filter(p => p.status === 'paid')
         .reduce((s, p) => s + (Number(p.amount_cents) || 0), 0);
       if (paidTotal) setT('statYTD', '$' + Math.round(paidTotal / 100).toLocaleString('en-US'));
+      renderPayoutsPane(data);
     } catch (e) { /* leave zeros */ }
+  }
+
+  function renderPayoutsPane(data) {
+    const fmtMoney = c => '$' + (Number(c || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    const bal = data?.balance || {};
+    const payouts = data?.payouts || [];
+    const pendingCents = bal.pending_cents || Math.round((bal.pending || 0) * 100);
+    const inTransit = payouts.filter(p => p.status === 'in_transit' || p.status === 'pending');
+    const paid = payouts.filter(p => p.status === 'paid').slice(0, 5);
+
+    const sumEl = document.getElementById('payoutsPendingSummary');
+    const pendList = document.getElementById('payoutsPendingList');
+    const recSum = document.getElementById('payoutsRecentSummary');
+    const recList = document.getElementById('payoutsRecentList');
+    if (!pendList || !recList) return;
+
+    if (bal.connected === false) {
+      if (sumEl) sumEl.textContent = 'Connect Stripe on /farmer or /processor to see payouts';
+      pendList.innerHTML = '<div class="row-l" style="opacity:.65;font:500 14px/1.5 \'Inter\';padding:20px;">No connected account yet. <a href="/farmer" style="color:var(--brand);font-weight:700;">Connect Stripe →</a></div>';
+      recList.innerHTML = '<div class="row-l" style="opacity:.65;font:500 14px/1.5 \'Inter\';padding:20px;">Transfer history appears after your first payout.</div>';
+      return;
+    }
+
+    if (sumEl) {
+      sumEl.textContent = pendingCents > 0
+        ? fmtMoney(pendingCents) + ' pending in Stripe · clears before transfer'
+        : 'No funds pending in Stripe right now';
+    }
+
+    if (inTransit.length) {
+      pendList.innerHTML = inTransit.map(p => `
+        <div class="row-l">
+          <div class="img-cell" style="background: var(--accent-soft); display: grid; place-items: center; color: var(--brand);"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
+          <div class="meta"><h4>Transfer in transit</h4><p>${p.arrival_estimate ? 'Arrives ' + fmtDate(p.arrival_estimate) : 'Processing'}</p></div>
+          <div class="stat-cell">${fmtMoney(p.amount_cents)}<span class="sub">in transit</span></div>
+          <span class="pill-status pending">${p.status === 'in_transit' ? 'In transit' : 'Pending'}</span>
+        </div>`).join('');
+    } else if (pendingCents > 0) {
+      pendList.innerHTML = `
+        <div class="row-l">
+          <div class="img-cell" style="background: var(--accent-soft); display: grid; place-items: center; color: var(--brand);"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
+          <div class="meta"><h4>Stripe pending balance</h4><p>Available to transfer once Stripe clears these funds (typically 2 business days).</p></div>
+          <div class="stat-cell">${fmtMoney(pendingCents)}<span class="sub">pending</span></div>
+          <span class="pill-status pending">Clearing</span>
+        </div>`;
+    } else {
+      pendList.innerHTML = '<div class="row-l" style="opacity:.65;font:500 14px/1.5 \'Inter\';padding:20px;">Nothing pending. Escrow from active reservations releases at pickup.</div>';
+    }
+
+    if (recSum) recSum.textContent = paid.length ? 'Last ' + paid.length + ' to your bank' : 'No transfers yet';
+    if (paid.length) {
+      recList.innerHTML = paid.map(p => `
+        <div class="row-l">
+          <div class="img-cell" style="background: var(--accent-soft); display: grid; place-items: center; color: var(--brand);"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
+          <div class="meta"><h4>Transfer to bank</h4><p>${fmtDate(p.arrival_estimate || p.created_at)}${p.arrival_estimate ? ' · arrived' : ''}</p></div>
+          <div class="stat-cell">−${fmtMoney(p.amount_cents)}</div>
+          <span class="pill-status released">Cleared</span>
+        </div>`).join('');
+    } else {
+      recList.innerHTML = '<div class="row-l" style="opacity:.65;font:500 14px/1.5 \'Inter\';padding:20px;">Use <strong>Transfer to bank</strong> on the Wallet tab when you have an available balance.</div>';
+    }
   }
   loadRealFinance();
   document.querySelectorAll('.role-switch button').forEach(b => {

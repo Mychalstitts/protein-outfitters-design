@@ -1476,7 +1476,7 @@ async function submitScheduleCall(ev) {
       body: JSON.stringify({
         full_name: (data.get('full_name') || '').trim(),
         email: (data.get('email') || '').trim(),
-        timeline: 'asap',
+        timeline: 'exploring',
         notes: 'Discovery call request · preferred times: ' + (data.get('preferred_times') || '').trim(),
         bundle_interest: 'discovery-call',
       }),

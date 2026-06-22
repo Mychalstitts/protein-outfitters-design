@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concierge · Protein Outfitters</title>
+<meta name="description" content="Ask the Protein Outfitters AI concierge about listings, cuts, certifications, and pickup logistics." />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/po-shell.css" />
+<style>
+  body { background: var(--parchment, #fbf9f5); color: var(--ink, #061b0e); min-height: 100vh; }
+  .cx-hero { max-width: 720px; margin: 0 auto; padding: clamp(48px,8vw,96px) 20px 120px; text-align: center; }
+  .cx-hero img { width: 72px; height: 72px; border-radius: 18px; box-shadow: 0 8px 24px rgba(6,27,14,.12); margin-bottom: 20px; }
+  .cx-hero h1 { font: 900 clamp(28px,5vw,40px)/1.05 'Inter',system-ui,sans-serif; letter-spacing: -.03em; margin: 0 0 12px; }
+  .cx-hero p { font: 500 16px/1.55 'Inter',system-ui,sans-serif; color: rgba(6,27,14,.65); margin: 0 0 24px; }
+  .cx-hero button { background: #061b0e; color: #fbf9f5; border: 0; border-radius: 999px; padding: 13px 24px; font: 700 14px/1 'Inter'; cursor: pointer; }
+  .cx-starters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 28px; }
+  .cx-starters button { background: #fff; border: 1px solid rgba(6,27,14,.1); border-radius: 999px; padding: 9px 14px; font: 600 12.5px/1 'Inter'; color: var(--ink); cursor: pointer; }
+</style>
+</head>
+<body>
+<section class="cx-hero">
+  <img src="/brand/logo-monogram.svg" alt="Protein Outfitters" />
+  <h1>Concierge</h1>
+  <p>Ask about freezer space, grass-fed vs grass-finished, veteran-owned listings, cut sheets, or pickup logistics. The chat panel opens automatically — or use the <strong>Ask AI</strong> button on any page.</p>
+  <button type="button" id="cxOpen">Open concierge chat</button>
+  <div class="cx-starters">
+    <button type="button" data-q="How much freezer space do I need for a half cow?">Freezer space for half cow</button>
+    <button type="button" data-q="What's the difference between grass-fed and grass-finished?">Grass-fed vs finished</button>
+    <button type="button" data-q="Find veteran-owned beef under $8 per lb near Bemidji">Veteran-owned beef</button>
+  </div>
+</section>
+<div id="po-shell-host"></div>
+<script src="/po-shell.js"></script>
+<script>
+(function () {
+  function openChat(prefill) {
+    const fab = document.getElementById('poFab');
+    const panel = document.getElementById('poConciergePanel');
+    const input = document.getElementById('pocInput');
+    if (!fab || !panel) { setTimeout(() => openChat(prefill), 200); return; }
+    panel.classList.add('open');
+    if (prefill && input) {
+      input.value = prefill;
+      input.focus();
+      document.getElementById('pocForm')?.requestSubmit();
+    }
+  }
+  document.getElementById('cxOpen')?.addEventListener('click', () => openChat());
+  document.querySelectorAll('.cx-starters button').forEach(b => {
+    b.addEventListener('click', () => openChat(b.dataset.q));
+  });
+  openChat();
+})();
+</script>
+</body>
+</html>
