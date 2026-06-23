@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<meta name="theme-color" content="#061b0e" />
 <title>Protein Outfitters — A whole animal, in three taps.</title>
 <meta name="description" content="Reserve a fraction of a real, named animal from a verified producer. Pick your cuts. We handle every step. Three taps." />
 <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
@@ -19,6 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="/img/hero-pasture.jpg" fetchpriority="high">
 <link rel="stylesheet" href="./theme.css">
 <link rel="stylesheet" href="./po-shell.css">
 
@@ -770,12 +772,11 @@ body { background: var(--bg); overflow-x: hidden; }
     </div>
 
     <!-- Airbnb-style natural-language search -->
-    <form class="hero-search" id="heroSearch" role="search" aria-label="Search the marketplace"
-      onsubmit="event.preventDefault(); var q=(this.q.value||'').trim(); window.location=q ? '/discover?q='+encodeURIComponent(q) : '/discover';">
+    <form class="hero-search" id="heroSearch" role="search" aria-label="Search farms and processors" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
       <span class="hero-search-icon" aria-hidden="true">
         <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
       </span>
-      <input name="q" type="search" autocomplete="off" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"' />
+      <input name="q" type="text" aria-label="Describe what you're looking for" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"' />
       <span class="hero-search-ai">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>
         AI
