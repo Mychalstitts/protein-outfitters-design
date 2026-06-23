@@ -532,8 +532,9 @@
     });
 
     window.runAISearch = async function runAISearch(q) {
-      if (!q.trim()) return;
-      const parsed = await parseQuery(q);
+      const query = (q || '').trim();
+      if (!query) return;
+      const parsed = await parseQuery(query);
       const summary = parsed.summary || [];
       if (parsed.filters.species) {
         state.species = parsed.filters.species;
@@ -563,8 +564,7 @@
         aiPT.innerHTML = `Couldn't parse anything specific. Try filters or rephrase.`;
         aiP.style.display = 'flex';
       }
-      const q = document.getElementById('aiSearch')?.value?.trim();
-      if (q) history.replaceState(null, '', '/discover?q=' + encodeURIComponent(q));
+      history.replaceState(null, '', '/discover?q=' + encodeURIComponent(query));
       render();
     }
 
