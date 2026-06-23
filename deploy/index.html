@@ -770,11 +770,12 @@ body { background: var(--bg); overflow-x: hidden; }
     </div>
 
     <!-- Airbnb-style natural-language search -->
-    <form class="hero-search" id="heroSearch" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
-      <span class="hero-search-icon">
+    <form class="hero-search" id="heroSearch" role="search" aria-label="Search the marketplace"
+      onsubmit="event.preventDefault(); var q=(this.q.value||'').trim(); window.location=q ? '/discover?q='+encodeURIComponent(q) : '/discover';">
+      <span class="hero-search-icon" aria-hidden="true">
         <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
       </span>
-      <input name="q" type="text" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"' />
+      <input name="q" type="search" autocomplete="off" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"' />
       <span class="hero-search-ai">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>
         AI

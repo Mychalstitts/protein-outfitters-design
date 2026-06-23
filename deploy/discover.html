@@ -142,18 +142,19 @@
 <body>
   <main>
     <div class="discover-search">
-      <div class="ds-bar">
+      <form class="ds-bar" id="discoverSearch" role="search" aria-label="Search listings"
+        onsubmit="event.preventDefault(); var q=(this.q.value||'').trim(); if(q){ history.replaceState(null,'','/discover?q='+encodeURIComponent(q)); runAISearch(q); } else { history.replaceState(null,'','/discover'); document.getElementById('aiParsed').style.display='none'; render(); }">
         <label class="ds-input-wrap">
           <svg class="ico-search" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
-          <input id="aiSearch" class="ds-input" type="text" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"'>
+          <input id="aiSearch" name="q" class="ds-input" type="search" autocomplete="off" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"'>
           <span class="ds-ai-badge"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>AI</span>
         </label>
-        <button class="ds-go-btn" id="goBtn">Search</button>
+        <button type="submit" class="ds-go-btn" id="goBtn">Search</button>
         <div class="ds-view-toggle">
           <button class="ds-view-btn active" data-view="grid"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Grid</button>
           <button class="ds-view-btn" data-view="map"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linejoin="round"/><circle cx="12" cy="10" r="3"/></svg>Map</button>
         </div>
-      </div>
+      </form>
       <div id="aiParsed" class="ai-parsed" style="display:none;">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>
         <span id="aiParsedText"></span>
@@ -530,7 +531,7 @@
       });
     });
 
-    async function runAISearch(q) {
+    window.runAISearch = async function runAISearch(q) {
       if (!q.trim()) return;
       const parsed = await parseQuery(q);
       const summary = parsed.summary || [];
@@ -562,10 +563,10 @@
         aiPT.innerHTML = `Couldn't parse anything specific. Try filters or rephrase.`;
         aiP.style.display = 'flex';
       }
+      const q = document.getElementById('aiSearch')?.value?.trim();
+      if (q) history.replaceState(null, '', '/discover?q=' + encodeURIComponent(q));
       render();
     }
-    document.getElementById('aiSearch').addEventListener('keydown', e => { if (e.key === 'Enter') runAISearch(e.target.value); });
-    document.getElementById('goBtn').addEventListener('click', () => runAISearch(document.getElementById('aiSearch').value));
 
     const params = new URLSearchParams(location.search);
     if (params.get('q')) {
