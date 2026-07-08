@@ -1166,3 +1166,16 @@
     captureReferral();
   }
 })();
+
+
+/* PO farm-tile image variety (deploy) - varies /producers farm covers so no two neighbours match; only swaps stock placeholder photos, never real uploads */
+;(function(){
+  var SCENIC=['cattle-pasture','ranch','angus','hereford','wagyu','hero-pasture','lamb','hog','poultry','venison'];
+  var STOCK={'cattle-pasture':1,'ranch':1,'angus':1,'hereford':1,'wagyu':1,'hero-pasture':1,'hog':1,'premium-pig':1,'lamb':1,'premium-sheep':1,'poultry':1,'venison':1,'premium-deer':1};
+  function bn(u){u=u||'';var k=u.indexOf('/img/');if(k<0)return null;var rest=u.slice(k+5);var dot=rest.indexOf('.');if(dot<1)return null;var name=rest.slice(0,dot);return /^[a-z0-9-]+$/i.test(name)?name:null;}
+  function cov(c){return c.querySelector('.farm-cover');}
+  function sweep(){var cards=document.querySelectorAll('.farm-card');if(!cards.length)return;var i=0,last=null;for(var n=0;n<cards.length;n++){var el=cov(cards[n]);if(!el)continue;var b=bn(el.style.backgroundImage);if(b===null||!(b in STOCK)){if(b)last=b;continue;}var ch=SCENIC[i%SCENIC.length];i++;if(ch===last){ch=SCENIC[i%SCENIC.length];i++;}if(String(el.style.backgroundImage).indexOf('/img/'+ch+'.jpg')<0){el.style.backgroundImage="url('/img/"+ch+".jpg')";}last=ch;}}
+  var t=false;function sched(){if(t)return;t=true;setTimeout(function(){t=false;sweep();},60);}
+  function boot(){sweep();if(!document.querySelector('.farm-card, .farm-grid'))return;try{new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].addedNodes&&m[i].addedNodes.length){sched();break;}}}).observe(document.body,{childList:true,subtree:true});}catch(e){}}
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);}else{boot();}
+})();
