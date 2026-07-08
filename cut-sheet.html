@@ -58,6 +58,17 @@
 .species-tab { background: transparent; border: 0; padding: 9px 16px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 999px; white-space: nowrap; transition: background .2s, color .2s; }
 .species-tab.active { background: var(--brand); color: #fbf9f5; }
 
+/* New artistic chalkboard diagram styles (for the generated cut charts) */
+.diagram-wrap { position: relative; width: 100%; max-width: 820px; margin: 0 auto; }
+.diagram-art { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+.diagram-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.diagram-overlay .primal { cursor: pointer; pointer-events: all; fill: transparent; transition: fill .2s ease; }
+.diagram-overlay .primal:hover { fill: rgba(125,160,93,0.22); }
+.diagram-overlay .primal.has-cuts { fill: rgba(220,165,74,0.35); }
+
+.cow-wrap:has(.diagram-art) { background: #1f2a24; padding: 12px; }
+.cow-wrap:has(.diagram-art)::before { display: none; }
+
 /* Section block */
 .cs-block { background: #fff; border-radius: 22px; padding: clamp(22px, 2.5vw, 32px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 18px; }
 .cs-block-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; gap: 16px; flex-wrap: wrap; }
@@ -204,13 +215,14 @@
       <h1 class="cs-h1">Tell the processor exactly how you want every cut.</h1>
       <p class="cs-lead">Answer the four big questions first. Tap the cow to drill into any section. We auto-save as you go. <span style="background:var(--accent-soft);color:var(--brand);padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;">AI Assist coming soon</span></p>
 
-      <!-- Species switcher -->
+      <!-- Species switcher (now powered by beautiful new chalkboard cut charts in /img/cut-charts/) -->
       <div class="species-tabs">
         <button class="species-tab active" data-species="beef">Beef</button>
         <button class="species-tab" data-species="pork">Pork</button>
         <button class="species-tab" data-species="lamb">Lamb</button>
+        <button class="species-tab" data-species="goat">Goat</button>
         <button class="species-tab" data-species="venison">Venison</button>
-        <button class="species-tab" data-species="poultry">Poultry</button>
+        <button class="species-tab" data-species="bison">Bison</button>
       </div>
 
       <!-- Quarter toggle (beef only) -->
@@ -296,110 +308,39 @@
         </div>
       </div>
 
-      <!-- ============ COW DIAGRAM ============ -->
+      <!-- ============ ARTISTIC CHALKBOARD CUT CHART (new beautiful generated art) -->
       <div class="cow-block">
         <div class="cs-block-head">
           <h3>The animal · tap a section to dive in</h3>
-          <p>Green = cuts kept · gray = mostly ground</p>
+          <p>Highlighted = cuts you’re keeping · tap any region</p>
         </div>
         <div class="cow-wrap">
-          <svg class="cow-svg" viewBox="0 0 760 360" role="img" aria-label="Beef primal cuts diagram">
-            <!-- Cow body silhouette -->
-            <path class="body" d="M 110 230
-              C 100 215 95 195 100 175
-              C 105 155 122 140 145 138
-              C 155 125 165 118 178 116
-              C 195 115 205 124 210 138
-              L 615 138
-              C 622 130 632 122 645 122
-              C 650 130 645 145 638 154
-              C 645 162 656 168 658 178
-              L 658 200
-              L 670 215 L 678 245 L 670 250 L 660 240
-              L 658 240
-              L 655 280 L 650 320 L 645 340 L 633 340 L 632 285 L 622 280
-              L 525 280
-              L 524 320 L 520 340 L 508 340 L 506 285
-              L 248 285
-              L 248 320 L 244 340 L 232 340 L 230 285
-              L 222 280
-              L 218 280
-              L 175 280 L 170 285 L 168 320 L 156 340 L 144 340 L 143 285 L 138 280
-              L 130 280 Z"/>
+          <!-- Hybrid: gorgeous generated chalkboard art + interactive overlay -->
+          <div class="diagram-wrap" id="diagramWrap" data-species="beef">
+            <img class="diagram-art" id="diagramArt"
+                 src="./img/cut-charts/beef.jpg"
+                 alt="Artistic chalkboard beef primal cut chart — side view of steer with labeled sections">
+            <svg class="diagram-overlay" id="diagramOverlay" viewBox="0 0 1408 704" preserveAspectRatio="xMidYMid meet">
+              <!-- Beef primal hit zones (large, forgiving) -->
+              <rect class="primal" data-primal="chuck"   x="120"  y="160" width="220" height="210"/>
+              <rect class="primal" data-primal="brisket" x="130"  y="370" width="200" height="140"/>
+              <rect class="primal" data-primal="rib"     x="360"  y="150" width="170" height="200"/>
+              <rect class="primal" data-primal="plate"   x="370"  y="360" width="160" height="130"/>
+              <rect class="primal" data-primal="loin"    x="540"  y="145" width="170" height="195"/>
+              <rect class="primal" data-primal="flank"   x="540"  y="350" width="180" height="130"/>
+              <rect class="primal" data-primal="sirloin" x="720"  y="150" width="110" height="180"/>
+              <rect class="primal" data-primal="round"   x="840"  y="160" width="220" height="200"/>
+              <rect class="primal" data-primal="shank"   x="150"  y="520" width="1050" height="160"/>
+            </svg>
+          </div>
 
-            <!-- Belly cutout (so primals don't paint over the legs/belly area) — handled by primals -->
-
-            <!-- ================== PRIMALS ================== -->
-
-            <!-- CHUCK (front shoulder) -->
-            <path class="primal has-cuts" data-primal="chuck"
-              d="M 175 145 L 285 145 L 285 235 L 220 240 L 175 240 Z"/>
-
-            <!-- RIB (top middle) -->
-            <path class="primal has-cuts" data-primal="rib"
-              d="M 285 145 L 380 145 L 380 220 L 285 220 Z"/>
-
-            <!-- LOIN (top, behind rib) -->
-            <path class="primal has-cuts" data-primal="loin"
-              d="M 380 145 L 480 145 L 480 215 L 380 215 Z"/>
-
-            <!-- SIRLOIN (top rear) -->
-            <path class="primal" data-primal="sirloin"
-              d="M 480 145 L 555 145 L 555 215 L 480 215 Z"/>
-
-            <!-- ROUND (rear) -->
-            <path class="primal" data-primal="round"
-              d="M 555 145 L 640 150 L 645 200 L 632 240 L 555 240 Z"/>
-
-            <!-- BRISKET / PLATE (lower front) -->
-            <path class="primal has-cuts" data-primal="brisket"
-              d="M 175 240 L 220 240 L 285 235 L 285 275 L 175 275 Z"/>
-
-            <!-- FLANK (lower middle) -->
-            <path class="primal" data-primal="flank"
-              d="M 285 220 L 380 220 L 380 275 L 285 275 Z"/>
-
-            <!-- PLATE/SHORT RIBS (between brisket and flank — already covered) -->
-            <!-- Bottom of loin/round: short plate -->
-            <path class="primal" data-primal="plate"
-              d="M 380 215 L 555 215 L 555 275 L 380 275 Z"/>
-
-            <!-- SHANK (legs) -->
-            <path class="primal has-cuts" data-primal="shank"
-              d="M 138 280 L 175 280 L 170 285 L 168 320 L 156 340 L 144 340 L 143 285 Z
-                 M 222 280 L 248 285 L 248 320 L 244 340 L 232 340 L 230 285 Z
-                 M 506 285 L 525 280 L 524 320 L 520 340 L 508 340 Z
-                 M 622 280 L 658 240 L 660 240 L 670 250 L 655 280 L 645 340 L 633 340 L 632 285 Z" />
-
-            <!-- ================== LABELS ================== -->
-            <text class="label label-on-dark" x="230" y="195">CHUCK</text>
-            <text class="count" x="230" y="210" fill="#9ab0a1">3 cuts</text>
-
-            <text class="label label-on-dark" x="332" y="185">RIB</text>
-            <text class="count" x="332" y="200" fill="#9ab0a1">2 cuts</text>
-
-            <text class="label label-on-dark" x="430" y="185">LOIN</text>
-            <text class="count" x="430" y="200" fill="#9ab0a1">3 cuts</text>
-
-            <text class="label label-on-dark" x="517" y="185">SIRLOIN</text>
-
-            <text class="label label-on-dark" x="595" y="195">ROUND</text>
-
-            <text class="label label-on-dark" x="230" y="260">BRISKET</text>
-
-            <text class="label label-on-dark" x="332" y="252">FLANK</text>
-
-            <text class="label label-on-dark" x="467" y="252">PLATE / SHORT RIB</text>
-
-            <text class="label label-on-dark" x="158" y="315">SHANK</text>
-            <text class="label label-on-dark" x="595" y="315">SHANK</text>
-          </svg>
-
+          <!-- Legend -->
           <div class="cow-legend">
-            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #cfe9d3;"></span>Cuts kept</span>
-            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #4d6452;"></span>Mostly ground</span>
-            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background: #f5e1ad;"></span>Hover</span>
-            <span style="margin-left:auto; font-style: italic;">Click any region to set its cuts.</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#dca54a;"></span>Steak / smoker cuts kept</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#7da05d;"></span>Round / lean roasts</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#b04a3a;"></span>Chuck / slow-cook</span>
+            <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#5a6b62;"></span>Mostly ground</span>
+            <span style="margin-left:auto; font-style: italic; font-weight:600;">Tap any chalk region</span>
           </div>
         </div>
       </div>
@@ -603,7 +544,7 @@
       const right = s.querySelector('.right');
       if (right) right.textContent = on + ' cut' + (on === 1 ? '' : 's') + ' on';
       // Mirror to cow diagram
-      const cowRegion = document.querySelector(`.cow-svg .primal[data-primal="${s.dataset.primal}"]`);
+      const cowRegion = document.querySelector(`.cow-svg .primal[data-primal="${s.dataset.primal}"], .diagram-overlay .primal[data-primal="${s.dataset.primal}"]`);
       if (cowRegion) {
         cowRegion.classList.toggle('has-cuts', on > 0);
         cowRegion.classList.toggle('empty', on === 0);
@@ -684,15 +625,37 @@
   // ===== Pill toggles =====
   document.querySelectorAll('.pill-toggle').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
 
-  // ===== Species switcher =====
+  // ===== Species switcher (now with real artistic chalkboard charts) =====
+  const DIAGRAM_MAP = {
+    beef:     { img: './img/cut-charts/beef.jpg',    label: 'Beef' },
+    pork:     { img: './img/cut-charts/pork.jpg',    label: 'Pork' },
+    lamb:     { img: './img/cut-charts/sheep.jpg',   label: 'Lamb' },
+    goat:     { img: './img/cut-charts/goat.jpg',    label: 'Goat' },
+    venison:  { img: './img/cut-charts/venison.jpg', label: 'Venison' },
+    bison:    { img: './img/cut-charts/bison.jpg',   label: 'Bison' },
+    poultry:  { img: './img/cut-charts/beef.jpg',    label: 'Poultry (demo)' }
+  };
+
   document.querySelectorAll('.species-tab').forEach(t => t.addEventListener('click', () => {
     document.querySelectorAll('.species-tab').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
     const sp = t.dataset.species;
-    document.getElementById('quarterToggle').style.display = sp === 'beef' ? 'flex' : 'none';
-    document.getElementById('meterMsg').textContent = sp === 'beef'
-      ? 'Trim from primary cuts auto-routes to ground.'
-      : `${sp.charAt(0).toUpperCase()+sp.slice(1)} cut sheet — coming soon. Beef defaults shown.`;
+    const cfg = DIAGRAM_MAP[sp] || DIAGRAM_MAP.beef;
+
+    const art = document.getElementById('diagramArt');
+    const wrap = document.getElementById('diagramWrap');
+    if (art) art.src = cfg.img;
+    if (wrap) wrap.dataset.species = sp;
+
+    const qt = document.getElementById('quarterToggle');
+    if (qt) qt.style.display = sp === 'beef' ? 'flex' : 'none';
+
+    const msg = document.getElementById('meterMsg');
+    if (msg) {
+      msg.textContent = sp === 'beef'
+        ? 'Trim from primary cuts auto-routes to ground.'
+        : `${cfg.label} cut chart — full interactive cuts coming soon. Beef defaults shown.`;
+    }
   }));
 
   // ===== Quarter toggle =====
@@ -711,7 +674,7 @@
   }));
 
   // ===== Cow diagram click → scroll to + flash sub-primal =====
-  document.querySelectorAll('.cow-svg .primal').forEach(p => p.addEventListener('click', () => {
+  document.querySelectorAll('.cow-svg .primal, .diagram-overlay .primal').forEach(p => p.addEventListener('click', () => {
     const primal = p.dataset.primal;
     const target = document.getElementById('subp-' + primal);
     if (target) {
