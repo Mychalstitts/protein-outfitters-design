@@ -1192,6 +1192,6 @@
     }
   }
   var t=false;function sched(){if(t)return;t=true;setTimeout(function(){t=false;sweep();},60);}
-  function boot(){sweep();if(!document.querySelector('.farm-cover, .product-photo'))return;try{new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].addedNodes&&m[i].addedNodes.length){sched();break;}}}).observe(document.body,{childList:true,subtree:true});}catch(e){}}
+  function boot(){sweep();try{new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].addedNodes&&m[i].addedNodes.length){sched();break;}}}).observe(document.body,{childList:true,subtree:true});}catch(e){}}
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);}else{boot();}
 })();
