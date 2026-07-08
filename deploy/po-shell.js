@@ -1168,14 +1168,30 @@
 })();
 
 
-/* PO farm-tile image variety (deploy) - varies /producers farm covers so no two neighbours match; only swaps stock placeholder photos, never real uploads */
+/* PO tile image variety v2 (deploy) - varies farm covers + homepage animal tiles; animal tiles keep their species (inferred from current image); only swaps stock placeholders, never real uploads; repairs premium-deer 404 */
 ;(function(){
   var SCENIC=['cattle-pasture','ranch','angus','hereford','wagyu','hero-pasture','lamb','hog','poultry','venison'];
-  var STOCK={'cattle-pasture':1,'ranch':1,'angus':1,'hereford':1,'wagyu':1,'hero-pasture':1,'hog':1,'premium-pig':1,'lamb':1,'premium-sheep':1,'poultry':1,'venison':1,'premium-deer':1};
-  function bn(u){u=u||'';var k=u.indexOf('/img/');if(k<0)return null;var rest=u.slice(k+5);var dot=rest.indexOf('.');if(dot<1)return null;var name=rest.slice(0,dot);return /^[a-z0-9-]+$/i.test(name)?name:null;}
-  function cov(c){return c.querySelector('.farm-cover');}
-  function sweep(){var cards=document.querySelectorAll('.farm-card');if(!cards.length)return;var i=0,last=null;for(var n=0;n<cards.length;n++){var el=cov(cards[n]);if(!el)continue;var b=bn(el.style.backgroundImage);if(b===null||!(b in STOCK)){if(b)last=b;continue;}var ch=SCENIC[i%SCENIC.length];i++;if(ch===last){ch=SCENIC[i%SCENIC.length];i++;}if(String(el.style.backgroundImage).indexOf('/img/'+ch+'.jpg')<0){el.style.backgroundImage="url('/img/"+ch+".jpg')";}last=ch;}}
+  var SPECIES={'cattle-pasture':'cattle','ranch':'cattle','angus':'cattle','hereford':'cattle','wagyu':'cattle','hero-pasture':'cattle','hog':'hog','premium-pig':'hog','lamb':'lamb','premium-sheep':'lamb','poultry':'poultry','venison':'venison','premium-deer':'venison'};
+  var POOLS={cattle:['cattle-pasture','angus','hereford','wagyu','ranch','hero-pasture'],hog:['hog','premium-pig'],lamb:['lamb','premium-sheep'],poultry:['poultry'],venison:['venison']};
+  function bn(u){u=u||'';var k=u.indexOf('/img/');if(k<0)return null;var rest=u.slice(k+5);var d=rest.indexOf('.');if(d<1)return null;var name=rest.slice(0,d);return /^[a-z0-9-]+$/i.test(name)?name:null;}
+  function info(node){var isImg=node.tagName==='IMG';var url=isImg?node.getAttribute('src'):(node.style&&node.style.backgroundImage)||'';return {isImg:isImg,base:bn(url)};}
+  function setImg(node,d,name){var u='/img/'+name+'.jpg';if(d.isImg){if(node.getAttribute('src')!==u)node.setAttribute('src',u);}else if(String(node.style.backgroundImage).indexOf(u)<0){node.style.backgroundImage="url('"+u+"')";}}
+  function sweep(){
+    var nodes=document.querySelectorAll('.farm-cover, .product-photo');
+    if(!nodes.length)return;
+    var ctr=Object.create(null),last=null;
+    for(var n=0;n<nodes.length;n++){
+      var node=nodes[n],d=info(node);
+      if(d.base===null||!(d.base in SPECIES)){if(d.base)last=d.base;continue;}
+      var isFarm=node.classList.contains('farm-cover'),pool,key;
+      if(isFarm){pool=SCENIC;key='scenic';}else{key=SPECIES[d.base];pool=POOLS[key]||SCENIC;}
+      if(pool.length===1){setImg(node,d,pool[0]);last=pool[0];continue;}
+      var i=(ctr[key]=(ctr[key]||0))%pool.length,ch=pool[i];ctr[key]++;
+      if(ch===last){ch=pool[(i+1)%pool.length];ctr[key]++;}
+      setImg(node,d,ch);last=ch;
+    }
+  }
   var t=false;function sched(){if(t)return;t=true;setTimeout(function(){t=false;sweep();},60);}
-  function boot(){sweep();if(!document.querySelector('.farm-card, .farm-grid'))return;try{new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].addedNodes&&m[i].addedNodes.length){sched();break;}}}).observe(document.body,{childList:true,subtree:true});}catch(e){}}
+  function boot(){sweep();if(!document.querySelector('.farm-cover, .product-photo'))return;try{new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].addedNodes&&m[i].addedNodes.length){sched();break;}}}).observe(document.body,{childList:true,subtree:true});}catch(e){}}
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);}else{boot();}
 })();
