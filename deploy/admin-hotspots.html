@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hardware hotspots · Protein Outfitters</title>
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<link rel="stylesheet" href="./theme.css" />
+<link rel="stylesheet" href="./po-shell.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+  body { background: #fbf9f5; color: var(--ink); }
+  .hs-shell { max-width: 1280px; margin: 0 auto; padding: 28px var(--shell-pad) 80px; }
+  .hs-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom: 20px; }
+  .hs-head h1 { font: 900 clamp(34px, 4vw, 52px)/1.02 var(--ff-sans); letter-spacing:-0.025em; margin: 0; }
+  .hs-head .eyebrow { font: 800 12px/1 var(--ff-sans); letter-spacing:.18em; text-transform:uppercase; color: var(--ink-2); margin: 0 0 8px; }
+  .hs-head p { font: 500 15px/1.5 var(--ff-sans); color: var(--ink-2); margin: 6px 0 0; max-width: 640px; }
+
+  .hs-controls { display:flex; align-items:center; gap:10px; }
+  .hs-controls label { font: 700 12px/1 var(--ff-sans); letter-spacing:.06em; text-transform:uppercase; color: var(--ink-2); }
+  .hs-controls select { font: 700 14px/1 var(--ff-sans); padding: 10px 14px; border-radius: 12px; border: 1.5px solid rgba(6,27,14,.18); background:#fff; color: var(--ink); cursor:pointer; }
+
+  .hs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .hs-stat { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
+  .hs-stat .lab { font: 700 10.5px/1.2 var(--ff-sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 7px; }
+  .hs-stat .v { font: 900 clamp(24px, 2.6vw, 34px)/1 var(--ff-sans); letter-spacing: -0.02em; }
+  .hs-stat .v small { font-size: .5em; font-weight: 600; opacity: .55; margin-left: 4px; }
+
+  .hs-cols { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 960px) { .hs-cols { grid-template-columns: 1fr; } }
+
+  .hs-map-card { background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
+  #hsMap { width: 100%; height: 620px; }
+  .leaflet-container { font-family: 'Inter', system-ui, sans-serif; }
+  .leaflet-popup-content { font: 500 13px/1.45 'Inter'; }
+  .leaflet-popup-content h4 { font: 800 14px/1.2 'Inter'; margin: 0 0 8px; }
+  .hs-pop-row { display:flex; justify-content:space-between; gap: 18px; padding: 2px 0; }
+  .hs-pop-row span { color: #5a6359; }
+  .hs-pop-row strong { font-weight: 800; }
+
+  .hs-list-card { background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
+  .hs-list-card h2 { font: 800 18px/1.2 var(--ff-sans); margin: 0 0 6px; letter-spacing: -0.01em; }
+  .hs-list-card h2 small { font: 600 12px/1 var(--ff-sans); color: var(--ink-2); margin-left: 6px; }
+  .hs-list { max-height: 520px; overflow-y: auto; margin-top: 8px; }
+  .hs-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px 8px; border-top: 1px solid rgba(6,27,14,.06); align-items: center; border-radius: 10px; cursor: pointer; }
+  .hs-row:hover, .hs-row.active { background: rgba(6,27,14,.045); }
+  .hs-row:first-child { border-top: 0; }
+  .hs-row h4 { margin: 0; font: 700 14px/1.3 var(--ff-sans); }
+  .hs-row p { margin: 3px 0 0; font: 500 12px/1.4 var(--ff-sans); color: var(--ink-2); }
+  .hs-score { font: 900 15px/1 var(--ff-sans); color: #fbf9f5; border-radius: 999px; padding: 8px 12px; min-width: 46px; text-align: center; }
+
+  .hs-note { font: 500 12.5px/1.6 var(--ff-sans); color: var(--ink-2); margin-top: 14px; }
+  .empty { padding: 32px 12px; text-align: center; color: var(--ink-2); font: 500 14px/1.5 var(--ff-sans); }
+  .empty img { width: 56px; height: 56px; border-radius: 12px; display: block; margin: 0 auto 12px; opacity: .55; }
+  .needs-auth { background: #fff; padding: 60px 24px; border-radius: 18px; text-align: center; }
+  .needs-auth img { width: 64px; height: 64px; border-radius: 14px; margin: 0 auto 14px; }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/admin-overview">Overview</a>
+      <a href="/admin-health">Health</a>
+      <a href="/admin-analytics">Analytics</a>
+      <a href="/admin-hotspots" style="font-weight:800">Hotspots</a>
+      <a href="/admin-moderation">Moderation</a>
+      <a href="/admin">Disputes</a>
+      <a href="/admin-email">Email QA</a>
+      <a href="/map">Map</a>
+    </div>
+    <div class="po-nav-actions">
+      <a href="/account" class="signin">Sign in</a>
+      <button class="reserve" data-open-sheet>Reserve</button>
+    </div>
+  </nav>
+</div>
+
+<main class="hs-shell">
+  <div class="hs-head">
+    <div>
+      <p class="eyebrow">Hardware opportunity hotspots</p>
+      <h1>Where should the next unit go?</h1>
+      <p>Market areas with buyer demand and farmer supply but thin processing capacity.
+         A processor who buys PO hardware inside a hotspot inherits built-in demand from day one.</p>
+    </div>
+    <div class="hs-controls">
+      <label for="hsRadius">Market radius</label>
+      <select id="hsRadius">
+        <option value="25">25 miles</option>
+        <option value="50" selected>50 miles</option>
+        <option value="100">100 miles</option>
+      </select>
+    </div>
+  </div>
+  <div id="hsContent">
+    <div class="empty"><img src="/brand/logo-monogram.svg" alt="" />Loading hotspots…</div>
+  </div>
+</main>
+
+<script src="./po-api.js"></script>
+<script src="./po-shell.js"></script>
+<script>
+(function () {
+  const root = document.getElementById('hsContent');
+  const radiusSel = document.getElementById('hsRadius');
+  let map = null, circleLayer = null, selectedRank = null, lastData = null;
+
+  // Opportunity score (0–100) → heat color, amber to deep red.
+  const scoreColor = (s) => {
+    const hue = Math.max(0, 42 - (s / 100) * 42);
+    return `hsl(${hue}, 88%, 44%)`;
+  };
+
+  function authWall(title, body, showSignIn) {
+    root.innerHTML = `<div class="needs-auth"><img src="/brand/logo-monogram.svg" alt="">
+      <h3 style="margin:0 0 8px;font:800 18px/1.3 Inter;">${title}</h3>
+      <p style="font:500 14px/1.5 Inter;color:#666;">${body}</p>
+      ${showSignIn ? `<button onclick="window.PO_API.openAuth('Sign in', 'admin')" style="margin-top:14px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 Inter;cursor:pointer">Sign in</button>` : ''}
+    </div>`;
+  }
+
+  async function load() {
+    const radius = radiusSel.value;
+    let res;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 12000);
+      res = await fetch(`/api/admin-hotspots?radius_miles=${radius}`, { credentials: 'include', signal: ctrl.signal });
+      clearTimeout(t);
+    } catch (e) {
+      authWall('Hotspots API timed out', e.name === 'AbortError' ? 'The hotspot endpoint took longer than 12 seconds — refresh in a minute.' : e.message, false);
+      return;
+    }
+    if (res.status === 401) return authWall('Sign in to see hotspots', 'Hardware hotspot mapping requires a signed-in admin account.', true);
+    if (res.status === 403) return authWall('Admin only', 'This view is restricted to platform admins.', false);
+    if (!res.ok) {
+      const t = await res.text().catch(() => '');
+      return authWall('Error', t.slice(0, 300), false);
+    }
+    lastData = await res.json();
+    render();
+  }
+
+  function render() {
+    const data = lastData;
+    const t = data.totals || {};
+    const hs = data.hotspots || [];
+    selectedRank = null;
+
+    root.innerHTML = `
+      <div class="hs-grid">
+        <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${t.buyers || 0}<small>${t.buyers_geocoded || 0} mapped</small></div></div>
+        <div class="hs-stat"><p class="lab">Reservations</p><div class="v">${t.reservations || 0}<small>demand</small></div></div>
+        <div class="hs-stat"><p class="lab">Farms</p><div class="v">${t.farms || 0}<small>${t.farms_geocoded || 0} mapped</small></div></div>
+        <div class="hs-stat"><p class="lab">Active listings</p><div class="v">${t.listings || 0}<small>supply</small></div></div>
+        <div class="hs-stat"><p class="lab">Processors</p><div class="v">${t.processors || 0}<small>${t.processors_geocoded || 0} mapped</small></div></div>
+        <div class="hs-stat"><p class="lab">Hardware leads</p><div class="v">${t.hardware_leads || 0}<small>via /hardware</small></div></div>
+      </div>
+      <div class="hs-cols">
+        <div class="hs-map-card"><div id="hsMap"></div></div>
+        <div class="hs-list-card">
+          <h2>Ranked opportunities<small>${hs.length} market area${hs.length === 1 ? '' : 's'}</small></h2>
+          <div class="hs-list" id="hsList"></div>
+          <p class="hs-note">Score = √(demand × supply) ÷ (1 + processors within radius), normalized to the
+            top area. Demand: buyer ×1, reservation ×3 (placed at the reserved farm). Supply: farm ×2,
+            active listing ×1. An area needs <em>both</em> demand and supply to rank.</p>
+        </div>
+      </div>`;
+
+    // Map
+    map = L.map('hsMap', { scrollWheelZoom: true }).setView([44.5, -93.5], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18,
+    }).addTo(map);
+    circleLayer = L.layerGroup().addTo(map);
+
+    const radiusMeters = (data.radius_miles || 50) * 1609.34;
+    const circles = {};
+    hs.forEach((h) => {
+      const color = scoreColor(h.opportunity_score);
+      const c = L.circle([h.lat, h.lng], {
+        radius: radiusMeters,
+        color, fillColor: color,
+        fillOpacity: 0.22 + 0.3 * (h.opportunity_score / 100),
+        weight: 2,
+      }).addTo(circleLayer);
+      c.bindPopup(`
+        <h4>#${h.rank} ${h.label || 'Market area'} — score ${h.opportunity_score}</h4>
+        <div class="hs-pop-row"><span>Buyers</span><strong>${h.metrics.buyers}</strong></div>
+        <div class="hs-pop-row"><span>Reservations</span><strong>${h.metrics.reservations}</strong></div>
+        <div class="hs-pop-row"><span>Farms</span><strong>${h.metrics.farms}</strong></div>
+        <div class="hs-pop-row"><span>Active listings</span><strong>${h.metrics.listings}</strong></div>
+        <div class="hs-pop-row"><span>Processors in radius</span><strong>${h.capacity_count}</strong></div>
+        <div class="hs-pop-row"><span>Nearest processor</span><strong>${h.nearest_processor_miles == null ? '—' : h.nearest_processor_miles + ' mi'}</strong></div>`);
+      c.on('click', () => selectRow(h.rank, false));
+      circles[h.rank] = c;
+    });
+    if (hs.length) {
+      map.fitBounds(L.latLngBounds(hs.map(h => [h.lat, h.lng])).pad(0.4), { maxZoom: 8 });
+    }
+
+    // Ranked list
+    const list = document.getElementById('hsList');
+    list.innerHTML = hs.length ? hs.map(h => `
+      <div class="hs-row" data-rank="${h.rank}">
+        <div>
+          <h4>#${h.rank} ${h.label || 'Unnamed market area'}</h4>
+          <p>${h.metrics.buyers} buyer${h.metrics.buyers === 1 ? '' : 's'} · ${h.metrics.reservations} res ·
+             ${h.metrics.farms} farm${h.metrics.farms === 1 ? '' : 's'} ·
+             ${h.capacity_count} processor${h.capacity_count === 1 ? '' : 's'} in radius${
+               h.nearest_processor_miles != null ? ` · nearest ${h.nearest_processor_miles} mi` : ''}</p>
+        </div>
+        <div class="hs-score" style="background:${scoreColor(h.opportunity_score)}">${h.opportunity_score}</div>
+      </div>`).join('')
+      : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No hotspots yet.<br>
+          <span style="opacity:.7;font-size:12px;">Hotspots appear where geocoded buyers/reservations and farms
+          overlap. Run the geocode backfill if farms are missing coordinates.</span></div>`;
+
+    list.querySelectorAll('.hs-row').forEach(row => {
+      row.addEventListener('click', () => selectRow(Number(row.dataset.rank), true));
+    });
+
+    function selectRow(rank, fly) {
+      selectedRank = rank;
+      list.querySelectorAll('.hs-row').forEach(r =>
+        r.classList.toggle('active', Number(r.dataset.rank) === rank));
+      const h = hs.find(x => x.rank === rank);
+      if (h && fly) map.flyTo([h.lat, h.lng], 8, { duration: 0.8 });
+      if (circles[rank]) circles[rank].openPopup();
+    }
+  }
+
+  radiusSel.addEventListener('change', load);
+  load();
+})();
+</script>
+</body>
+</html>
