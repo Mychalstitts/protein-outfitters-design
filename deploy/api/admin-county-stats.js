@@ -21,13 +21,12 @@
 //   POST ?action=geocode-processors              → geocode up to 200 processors
 //         missing lat/lng (cache-first Nominatim via _lib/geocode).
 
+import zlib from 'zlib';
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { backfillEntity } from './_lib/geocode.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 60 };
 
-const TIGER = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/13/query';
-const ACS = 'https://api.census.gov/data/2023/acs/acs5';
 const NASS = 'https://quickstats.nass.usda.gov/api/api_GET/';
 const SQ_M_PER_SQ_MI = 2589988.11;
 
@@ -75,40 +74,100 @@ async function fetchJson(url, label) {
 }
 
 // ── Census: county centroids + land area + population ────────
+//
+// Uses Census Bureau STATIC FILES (www2.census.gov) — the api.census.gov
+// data API now requires an API key even for light use, but the published
+// Gazetteer (centroids/land area) and Population Estimates Program CSV
+// need no key at all.
+const GAZETTEER_ZIP = 'https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2024_Gazetteer/2024_Gaz_counties_national.zip';
+const PEP_CSV = 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/co-est2024-alldata.csv';
+
+async function fetchBuffer(url, label) {
+  const r = await fetch(url, { signal: AbortSignal.timeout(25000) });
+  if (!r.ok) throw new Error(`${label} HTTP ${r.status}`);
+  return Buffer.from(await r.arrayBuffer());
+}
+
+// Minimal ZIP extraction (first entry) via the End Of Central Directory
+// record — enough for single-file Census gazetteer archives.
+function unzipFirstEntry(buf) {
+  // EOCD signature 0x06054b50, scan from the end (comment can pad it).
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65558); i--) {
+    if (buf.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('ZIP: EOCD not found');
+  const cdOffset = buf.readUInt32LE(eocd + 16);
+  if (buf.readUInt32LE(cdOffset) !== 0x02014b50) throw new Error('ZIP: bad central directory');
+  const method = buf.readUInt16LE(cdOffset + 10);
+  const compSize = buf.readUInt32LE(cdOffset + 20);
+  const nameLen = buf.readUInt16LE(cdOffset + 28);
+  const extraLen = buf.readUInt16LE(cdOffset + 30);
+  const commentLen = buf.readUInt16LE(cdOffset + 32);
+  const localOffset = buf.readUInt32LE(cdOffset + 42);
+  void nameLen; void extraLen; void commentLen;
+  if (buf.readUInt32LE(localOffset) !== 0x04034b50) throw new Error('ZIP: bad local header');
+  const lNameLen = buf.readUInt16LE(localOffset + 26);
+  const lExtraLen = buf.readUInt16LE(localOffset + 28);
+  const dataStart = localOffset + 30 + lNameLen + lExtraLen;
+  const data = buf.subarray(dataStart, dataStart + compSize);
+  if (method === 0) return data.toString('utf8');
+  if (method === 8) return zlib.inflateRawSync(data).toString('utf8');
+  throw new Error(`ZIP: unsupported compression method ${method}`);
+}
+
+// Split one CSV line respecting double quotes.
+function csvSplit(line) {
+  const out = []; let cur = '', q = false;
+  for (const ch of line) {
+    if (ch === '"') q = !q;
+    else if (ch === ',' && !q) { out.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
 async function importCensus() {
   await ensureTable();
 
-  // 1) TIGERweb: one attribute query, no geometry (layer allows 100k records).
+  // 1) Gazetteer ZIP → tab-separated county rows with centroid + land area.
   const counties = {}; // fips → row
-  const u = new URL(TIGER);
-  u.searchParams.set('where', '1=1');
-  u.searchParams.set('outFields', 'GEOID,BASENAME,STATE,CENTLAT,CENTLON,AREALAND');
-  u.searchParams.set('returnGeometry', 'false');
-  u.searchParams.set('resultRecordCount', '4000');
-  u.searchParams.set('f', 'json');
-  const page = await fetchJson(u, 'TIGERweb');
-  for (const f of page.features || []) {
-    const a = f.attributes || {};
-    if (!a.GEOID) continue;
-    counties[a.GEOID] = {
-      fips: a.GEOID,
-      name: a.BASENAME || '',
-      state: FIPS_TO_STATE[a.STATE] || a.STATE || '',
-      lat: parseFloat(a.CENTLAT),
-      lng: parseFloat(a.CENTLON),
-      land_sq_mi: a.AREALAND ? a.AREALAND / SQ_M_PER_SQ_MI : null,
+  const gazTxt = unzipFirstEntry(await fetchBuffer(GAZETTEER_ZIP, 'Gazetteer'));
+  const gazLines = gazTxt.split('\n');
+  const gazHdr = gazLines[0].replace(/^﻿/, '').split('\t').map(s => s.trim());
+  const gi = Object.fromEntries(gazHdr.map((h, i) => [h, i]));
+  for (const line of gazLines.slice(1)) {
+    const p = line.split('\t').map(s => s.trim());
+    if (p.length < gazHdr.length) continue;
+    const fips = p[gi.GEOID];
+    if (!fips) continue;
+    counties[fips] = {
+      fips,
+      name: (p[gi.NAME] || '').replace(/ (County|Parish|Borough|Census Area)$/, ''),
+      state: p[gi.USPS] || '',
+      lat: parseFloat(p[gi.INTPTLAT]),
+      lng: parseFloat(p[gi.INTPTLONG]),
+      land_sq_mi: p[gi.ALAND] ? Number(p[gi.ALAND]) / SQ_M_PER_SQ_MI : null,
     };
   }
 
-  // 2) ACS 5-year population, all counties in one call.
-  const acs = await fetchJson(`${ACS}?get=B01003_001E&for=county:*`, 'ACS');
-  // Rows: [ ["B01003_001E","state","county"], ["10001","01","001"], ... ]
+  // 2) PEP county population estimates CSV (latin-1 for accented names).
+  const pepBuf = await fetchBuffer(PEP_CSV, 'PEP');
+  const pepLines = pepBuf.toString('latin1').split('\n');
+  const pepHdr = csvSplit(pepLines[0]).map(s => s.trim());
+  const pi = Object.fromEntries(pepHdr.map((h, i) => [h, i]));
+  const popCol = pepHdr.filter(h => /^POPESTIMATE\d{4}$/.test(h)).sort().pop();
+  if (!popCol) throw new Error('PEP: no POPESTIMATE column found');
   let matched = 0;
-  for (let i = 1; i < acs.length; i++) {
-    const [pop, st, co] = acs[i];
-    const row = counties[`${st}${co}`];
+  for (const line of pepLines.slice(1)) {
+    const p = csvSplit(line);
+    if (p.length < pepHdr.length) continue;
+    if (p[pi.COUNTY] === '000') continue; // state totals
+    const fips = p[pi.STATE].padStart(2, '0') + p[pi.COUNTY].padStart(3, '0');
+    const row = counties[fips];
     if (!row) continue;
-    row.population = parseInt(pop, 10) || 0;
+    row.population = parseInt(p[pi[popCol]], 10) || 0;
     row.pop_density = row.land_sq_mi ? row.population / row.land_sq_mi : null;
     matched++;
   }
@@ -199,6 +258,30 @@ async function importNass(stateAlpha) {
   return { state: stateAlpha, counties_updated: updated, species_rows: speciesCounts };
 }
 
+// ── Bundled livestock (2022 Census of Ag, shipped in /data) ───
+// One-click load with no API key: reads the site's own static bundle.
+// The NASS Quick Stats API path (import-nass) stays available for
+// refreshes once a NASS_API_KEY is configured.
+async function importLivestockBundled(host) {
+  await ensureTable();
+  const bundle = await fetchJson(`https://${host}/data/county_livestock_2022.json`, 'livestock bundle');
+  const entries = Object.entries(bundle.counties || {});
+  if (!entries.length) throw new Error('livestock bundle is empty');
+  let updated = 0;
+  for (let i = 0; i < entries.length; i += 300) {
+    const chunk = entries.slice(i, i + 300).map(([fips, v]) => ({
+      fips, cattle: v[0] || null, hogs: v[1] || null, sheep: v[2] || null, goats: v[3] || null,
+    }));
+    await sql`
+      INSERT INTO county_stats ${sql(chunk, 'fips', 'cattle', 'hogs', 'sheep', 'goats')}
+      ON CONFLICT (fips) DO UPDATE SET
+        cattle = EXCLUDED.cattle, hogs = EXCLUDED.hogs,
+        sheep = EXCLUDED.sheep, goats = EXCLUDED.goats, updated_at = NOW()`;
+    updated += chunk.length;
+  }
+  return { counties_loaded: updated, source: bundle.source || '2022 Census of Ag bundle' };
+}
+
 // ── Association processors bulk import ───────────────────────
 async function importAssociationProcessors(body) {
   const incoming = (body?.processors || []).filter(p => p?.name && p?.state);
@@ -267,6 +350,10 @@ async function handler(req) {
     if (action === 'status') return json(await status());
     if (req.method !== 'POST') return err(405, 'POST required for imports');
     if (action === 'import-census') return json(await importCensus());
+    if (action === 'import-livestock') {
+      const host = (req.headers?.get ? req.headers.get('host') : null) || 'www.proteinoutfitters.com';
+      return json(await importLivestockBundled(host));
+    }
     if (action === 'import-nass') {
       const state = (url.searchParams.get('state') || '').toUpperCase();
       if (!/^[A-Z]{2}$/.test(state)) return err(400, 'Pass ?state=XX (two-letter state code)');

@@ -411,10 +411,11 @@
         <button class="hs-btn" id="btnCensus">${cs.with_population > 3000 ? 'Re-import' : 'Import'}</button>
       </div>
       <div class="hs-data-row">
-        <div class="meta"><strong>Animal availability</strong> — ${livestockStates.length} / 50 states loaded
+        <div class="meta"><strong>Animal availability</strong> — ${fmt(cs.with_cattle)} counties loaded (${livestockStates.length} states)
           <div class="sub">USDA NASS 2022 Census of Ag, county inventory (cattle, hogs, sheep, goats).
-          ${s.nass_key_configured ? 'Key configured.' : '<b>NASS_API_KEY not set in Vercel</b> — get a free key at quickstats.nass.usda.gov/api.'}</div></div>
-        <button class="hs-btn" id="btnNass" ${!s.nass_key_configured || !cs.counties ? 'disabled' : ''}>${livestockStates.length >= 50 ? 'Re-import all' : (livestockStates.length ? 'Resume import' : 'Import all states')}</button>
+          Bundled 2022 data loads with one click${s.nass_key_configured ? '; NASS API key configured for refreshes.' : '. For future refreshes, add NASS_API_KEY in Vercel (free key: quickstats.nass.usda.gov/api).'}</div></div>
+        <button class="hs-btn" id="btnLivestock">${cs.with_cattle > 2000 ? 'Reload 2022 data' : 'Load 2022 data'}</button>
+        <button class="hs-btn secondary" id="btnNass" ${!s.nass_key_configured || !cs.counties ? 'disabled' : ''}>API refresh</button>
       </div>
       <div class="hs-data-row">
         <div class="meta"><strong>Association registries</strong> — ${fmt(pr.from_associations)} imported of 1,791 swept
@@ -434,6 +435,14 @@
       try { const r = await post('action=import-census'); log(`Census: ${r.counties} counties, ${r.population_matched} with population.`); }
       catch (err2) { log('Census import failed: ' + err2.message); }
       refreshDataStatus();
+    };
+
+    document.getElementById('btnLivestock').onclick = async (e) => {
+      busy(e.target, true, 'Loading…');
+      try { const r = await post('action=import-livestock'); log(`Livestock: ${r.counties_loaded} counties loaded from ${r.source}.`); }
+      catch (err2) { log('Livestock load failed: ' + err2.message); }
+      refreshDataStatus();
+      load();
     };
 
     document.getElementById('btnNass').onclick = async (e) => {
