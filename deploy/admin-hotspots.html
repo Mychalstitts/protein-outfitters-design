@@ -34,6 +34,13 @@
   .hs-legend .bar { width: 220px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #43a047, #9ccc65, #ffee58, #ffb300, #f4511e, #7f0000); }
   .hs-legend .labs { display:flex; justify-content:space-between; font: 700 10px/1 var(--ff-sans); letter-spacing:.05em; text-transform:uppercase; color: var(--ink-2); margin-top: 6px; }
 
+  #hsSearchArea { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 500;
+    font: 700 13px/1 var(--ff-sans); padding: 10px 18px; border-radius: 999px; border: 0;
+    background: #061b0e; color: #fbf9f5; cursor: pointer; box-shadow: 0 4px 14px rgba(6,27,14,.35); }
+  .hs-step { font: 800 13px/1 var(--ff-sans); width: 22px; height: 22px; border-radius: 999px;
+    border: 1.5px solid #061b0e; background: #fff; color: #061b0e; cursor: pointer; vertical-align: middle; margin: 0 3px; }
+  .hs-step[disabled] { opacity: .35; cursor: default; }
+
   .hs-pin { width: 30px; height: 30px; border-radius: 999px; background: #b71c1c; border: 2.5px solid #fff;
     color: #fff; font: 900 14px/25px var(--ff-sans); text-align: center; box-shadow: 0 2px 10px rgba(183,28,28,.55);
     cursor: pointer; }
@@ -201,7 +208,10 @@
   const zipInput = document.getElementById('hsZip');
   const zipGo = document.getElementById('hsZipGo');
   const zipClear = document.getElementById('hsZipClear');
-  let centerZip = null;
+  const FOCUS_RADII = [25, 50, 100, 200, 500];
+  let focusCenter = null;   // { zip } or { lat, lng }
+  let focusRadius = null;   // null = follow the market-area selector
+  let keepView = false;     // don't re-fly when only the focus radius changed
   const layerBoxes = [...document.querySelectorAll('#hsFilters input[data-layer]')];
   let map = null, circleLayer = null, heatLayer = null, pinLayer = null, lastData = null;
   let mode = 'heat';
@@ -262,7 +272,10 @@
     let qs = v === 'nationwide' ? 'scope=nationwide' : `radius_miles=${v}`;
     if (f.layers.length) qs += `&layers=${f.layers.join(',')}`;
     qs += `&capacity=${f.capacity}`;
-    if (centerZip) qs += `&center=${centerZip}`;
+    if (focusCenter) {
+      qs += `&center=${focusCenter.zip ? focusCenter.zip : focusCenter.lat.toFixed(5) + ',' + focusCenter.lng.toFixed(5)}`;
+      if (focusRadius) qs += `&focus_radius=${focusRadius}`;
+    }
     let res;
     try {
       const ctrl = new AbortController();
@@ -303,6 +316,7 @@
         <div>
           <div class="hs-map-card" style="position:relative;">
             <div id="hsMap"></div>
+            <button type="button" id="hsSearchArea" style="display:none;">Search this area</button>
             <div class="hs-legend">
               <div class="bar"></div>
               <div class="labs">${data.capacity_mode === 'none'
@@ -394,7 +408,8 @@
       map.fitBounds(L.latLngBounds(hs.map(h => [h.lat, h.lng])).pad(0.3), { maxZoom: 8 });
     }
 
-    // Zip-centered focus: dashed ring + marker, drawn above both layers.
+    // Focus (zip or clicked point): dashed ring + popup with a radius
+    // stepper so the zone can expand/shrink from the same center.
     const focus = data.focus;
     if (focus && !focus.error) {
       const fc = L.circle([focus.lat, focus.lng], {
@@ -402,9 +417,16 @@
         color: '#061b0e', fillColor: '#061b0e', fillOpacity: 0.05,
         weight: 2.5, dashArray: '8 6',
       }).addTo(map);
+      const title = focus.center_type === 'zip'
+        ? `Zip ${focus.zip}${focus.label ? ' · near ' + focus.label : ''}`
+        : `${focus.label ? 'Near ' + focus.label : 'This area'}`;
       const fPopup = `
-        <h4>Zip ${focus.zip}${focus.label ? ' · near ' + focus.label : ''} — score ${focus.opportunity_score}</h4>
-        <div class="hs-pop-row"><span>Market radius</span><strong>${focus.radius_miles} mi</strong></div>
+        <h4>${title} — score ${focus.opportunity_score}</h4>
+        <div class="hs-pop-row"><span>Zone</span><strong>
+          <button class="hs-step" onclick="window.__hsFocusStep(-1)" ${focus.radius_miles <= 25 ? 'disabled' : ''}>−</button>
+          ${focus.radius_miles} mi
+          <button class="hs-step" onclick="window.__hsFocusStep(1)" ${focus.radius_miles >= 500 ? 'disabled' : ''}>+</button>
+        </strong></div>
         <div class="hs-pop-row"><span>Population</span><strong>${fmt(focus.metrics.population)}</strong></div>
         <div class="hs-pop-row"><span>Livestock head</span><strong>${fmt(focus.metrics.livestock)}</strong></div>
         <div class="hs-pop-row"><span>Buyers · reservations</span><strong>${fmt(focus.metrics.buyers)} · ${fmt(focus.metrics.reservations)}</strong></div>
@@ -412,12 +434,42 @@
         <div class="hs-pop-row"><span>Processors in radius</span><strong>${fmt(focus.capacity_count)}</strong></div>
         <div class="hs-pop-row"><span>Nearest processor</span><strong>${focus.nearest_processor_miles == null ? '—' : focus.nearest_processor_miles + ' mi'}</strong></div>
         ${unitsHtml(focus.units)}`;
-      fc.bindPopup(fPopup);
-      map.setView([focus.lat, focus.lng], focus.radius_miles > 150 ? 5 : (focus.radius_miles > 60 ? 6 : 8));
+      fc.bindPopup(fPopup, { autoClose: false, closeOnClick: false });
+      if (!keepView) {
+        map.setView([focus.lat, focus.lng], focus.radius_miles > 150 ? 5 : (focus.radius_miles > 60 ? 6 : 8));
+      }
+      keepView = false;
       setTimeout(() => fc.openPopup(), 300);
     } else if (focus && focus.error) {
       L.popup().setLatLng(map.getCenter()).setContent(`<strong>${focus.error}</strong> (${focus.zip})`).openOn(map);
     }
+
+    // Click anywhere on the open map to analyze that exact spot (clicks on
+    // pins/circles are handled by their own layers and don't reach here).
+    map.on('click', (e) => {
+      focusCenter = { lat: e.latlng.lat, lng: e.latlng.lng };
+      if (!focusRadius) focusRadius = radiusSel.value === 'nationwide' ? 100 : Number(radiusSel.value);
+      zipInput.value = ''; zipClear.style.display = '';
+      keepView = true;
+      load();
+    });
+
+    // "Search this area" — appears after panning/zooming; scores the viewport.
+    const searchBtn = document.getElementById('hsSearchArea');
+    map.on('movestart', () => { if (searchBtn) searchBtn.style.display = ''; });
+    if (searchBtn) searchBtn.onclick = () => {
+      const c = map.getCenter();
+      const east = map.getBounds().getEast();
+      const halfWidthMi = Math.abs(east - c.lng) * 69.172 * Math.cos(c.lat * Math.PI / 180);
+      const target = halfWidthMi * 0.7; // ring comfortably inside the viewport
+      const r = FOCUS_RADII.reduce((best, x) => Math.abs(x - target) < Math.abs(best - target) ? x : best, FOCUS_RADII[1]);
+      focusCenter = { lat: c.lat, lng: c.lng };
+      focusRadius = r;
+      zipInput.value = ''; zipClear.style.display = '';
+      keepView = true;
+      searchBtn.style.display = 'none';
+      load();
+    };
 
     const list = document.getElementById('hsList');
     list.innerHTML = hs.length ? hs.map(h => `
@@ -589,15 +641,28 @@
   function goZip() {
     const z = (zipInput.value || '').trim();
     if (!/^\d{5}$/.test(z)) { zipInput.focus(); return; }
-    centerZip = z;
+    focusCenter = { zip: z };
+    focusRadius = null;
     zipClear.style.display = '';
     load();
   }
   zipGo.addEventListener('click', goZip);
   zipInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') goZip(); });
   zipClear.addEventListener('click', () => {
-    centerZip = null; zipInput.value = ''; zipClear.style.display = 'none'; load();
+    focusCenter = null; focusRadius = null; zipInput.value = ''; zipClear.style.display = 'none'; load();
   });
+
+  // Expand/shrink the focused zone from the same center (popup − / + buttons).
+  window.__hsFocusStep = function (dir) {
+    if (!focusCenter) return;
+    const cur = focusRadius || (radiusSel.value === 'nationwide' ? 100 : Number(radiusSel.value));
+    const i = FOCUS_RADII.indexOf(FOCUS_RADII.reduce((b, x) => Math.abs(x - cur) < Math.abs(b - cur) ? x : b, FOCUS_RADII[0]));
+    const next = FOCUS_RADII[Math.max(0, Math.min(FOCUS_RADII.length - 1, i + dir))];
+    if (next === cur) return;
+    focusRadius = next;
+    keepView = true;
+    load();
+  };
 
   radiusSel.addEventListener('change', load);
   lensSel.addEventListener('change', () => { applyLens(lensSel.value); load(); });

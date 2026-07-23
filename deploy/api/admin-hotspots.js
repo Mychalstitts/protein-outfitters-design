@@ -472,20 +472,32 @@ async function handler(req) {
       ? computeStateRanking(demand, supply, capacity, Math.max(maxHotspots, 51), requireBoth)
       : computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth);
 
-    // Zip-centered focus: score a market area centered exactly on the given
-    // zip, comparable to the ranked list (normalized against the same top).
+    // Focus analysis: score a market area centered on a zip OR an arbitrary
+    // clicked map point ("lat,lng"), comparable to the ranked list. The list
+    // only shows the top non-overlapping areas — focus lets any spot on the
+    // map be interrogated. focus_radius expands/shrinks the zone from that
+    // center independently of the main market-area selector.
     let focus = null;
-    const centerZip = (url.searchParams.get('center') || '').trim().slice(0, 5);
-    if (/^\d{5}$/.test(centerZip)) {
-      const g = await geocode({ zip: centerZip }).catch(() => null);
+    const centerRaw = (url.searchParams.get('center') || '').trim().slice(0, 40);
+    const centerZip = /^\d{5}$/.test(centerRaw) ? centerRaw : null;
+    let centerPoint = null;
+    const ptMatch = centerRaw.match(/^(-?\d{1,3}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)$/);
+    if (ptMatch) {
+      const la = parseFloat(ptMatch[1]), ln = parseFloat(ptMatch[2]);
+      if (la >= -90 && la <= 90 && ln >= -180 && ln <= 180) centerPoint = { lat: la, lng: ln };
+    }
+    if (centerZip || centerPoint) {
+      const g = centerPoint || await geocode({ zip: centerZip }).catch(() => null);
       if (g) {
-        const fRadius = scope === 'nationwide' ? 100 : radiusMiles;
+        let fRadius = Number(url.searchParams.get('focus_radius')) || (scope === 'nationwide' ? 100 : radiusMiles);
+        fRadius = Math.max(10, Math.min(fRadius, 500));
         const s = scoreAt(g.lat, g.lng, fRadius, demand, supply, capacity);
         const raw = rawScore(s._demand, s._supply, requireBoth);
         const fScore = raw / (1 + s.capacity_count);
         const denom = Math.max(top, fScore) || 1;
         focus = {
           zip: centerZip,
+          center_type: centerZip ? 'zip' : 'point',
           lat: Math.round(g.lat * 1e5) / 1e5,
           lng: Math.round(g.lng * 1e5) / 1e5,
           radius_miles: fRadius,
@@ -499,7 +511,7 @@ async function handler(req) {
           units: computeUnits(s.metrics, s.capacity_count),
         };
       } else {
-        focus = { zip: centerZip, error: 'Could not locate that zip code' };
+        focus = { zip: centerZip, center_type: 'zip', error: 'Could not locate that zip code' };
       }
     }
 
