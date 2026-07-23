@@ -38,6 +38,52 @@ import { geocode } from './_lib/geocode.js';
 
 export const config = { runtime: 'nodejs' };
 
+// ── PO Hardware unit economics ────────────────────────────────
+// PS1: 15 head per 7-hour shift, 5 shifts/week, 52 weeks → 3,900 head/yr.
+// One fed steer yields ~440 lb boneless beef (SDSU Extension); Americans eat
+// ~59 lb retail beef/person/yr (USDA ERS). So one PS1's annual output covers
+// the beef demand of ~29,000 people. Supply side: local cattle inventory ×
+// ~38% annual marketing rate = head available to process per year.
+// PS2/PS3 multiples are PLACEHOLDERS (2×/3× PS1) until real specs land.
+const PS1_HEAD_PER_SHIFT = 15;
+const SHIFTS_PER_WEEK = 5;
+const WEEKS_PER_YEAR = 52;
+const PS1_HEAD_PER_YEAR = PS1_HEAD_PER_SHIFT * SHIFTS_PER_WEEK * WEEKS_PER_YEAR; // 3,900
+const BONELESS_LB_PER_HEAD = 440;
+const PER_CAPITA_BEEF_LB = 59;
+const PEOPLE_PER_PS1 = Math.round(PS1_HEAD_PER_YEAR * BONELESS_LB_PER_HEAD / PER_CAPITA_BEEF_LB); // ~29,085
+const CATTLE_MARKETING_RATE = 0.38;   // share of standing inventory marketed per year
+const EXISTING_PLANT_PS1_EQUIV = 1;   // assume each existing processor ≈ one PS1 until real throughput data exists
+const PS2_MULTIPLE = 2;               // placeholder
+const PS3_MULTIPLE = 3;               // placeholder
+
+// Translate an area's population + cattle into PO hardware units.
+function computeUnits(metrics, capacityCount) {
+  const byPopulation = (metrics.population || 0) / PEOPLE_PER_PS1;
+  const byCattle = ((metrics.cattle || 0) * CATTLE_MARKETING_RATE) / PS1_HEAD_PER_YEAR;
+  const supported = Math.min(byPopulation, byCattle);
+  const net = Math.max(0, supported - capacityCount * EXISTING_PLANT_PS1_EQUIV);
+  const n = Math.round(net);
+  let config;
+  if (n <= 0) config = supported >= 1 ? 'Covered — add-on / kill-floor upgrade play' : 'Below one-unit demand';
+  else {
+    const parts = [];
+    let left = n;
+    const ps3 = Math.floor(left / PS3_MULTIPLE); if (ps3) { parts.push(`${ps3}× PS3`); left -= ps3 * PS3_MULTIPLE; }
+    const ps2 = Math.floor(left / PS2_MULTIPLE); if (ps2) { parts.push(`${ps2}× PS2`); left -= ps2 * PS2_MULTIPLE; }
+    if (left > 0) parts.push(`${left}× PS1`);
+    config = parts.join(' + ');
+  }
+  return {
+    ps1_by_population: Math.round(byPopulation * 10) / 10,
+    ps1_by_cattle: Math.round(byCattle * 10) / 10,
+    ps1_supported: Math.round(supported * 10) / 10,
+    net_ps1: Math.round(net * 10) / 10,
+    limited_by: byPopulation <= byCattle ? 'population' : 'cattle supply',
+    suggested_config: config,
+  };
+}
+
 // Weights — platform signals
 const W_BUYER = 1;
 const W_RESERVATION = 3;
@@ -163,7 +209,7 @@ async function loadPoints() {
         weight: Math.sqrt(head) / LIVESTOCK_DIVISOR,
         label, state: c.state,
         layer: 'livestock',
-        counts: { livestock: head },
+        counts: { livestock: head, cattle: c.cattle || 0 },
       });
     }
   }
@@ -193,7 +239,7 @@ async function loadPoints() {
 }
 
 const EMPTY_METRICS = () => ({
-  buyers: 0, reservations: 0, farms: 0, listings: 0, population: 0, livestock: 0,
+  buyers: 0, reservations: 0, farms: 0, listings: 0, population: 0, livestock: 0, cattle: 0,
 });
 
 function accumulate(metrics, counts) {
@@ -351,6 +397,7 @@ function finalize(kept) {
   kept.forEach((h, i) => {
     h.rank = i + 1;
     h.opportunity_score = Math.round((top ? 100 * h._score / top : 0) * 10) / 10;
+    h.units = computeUnits(h.metrics, h.capacity_count);
     delete h._score;
   });
   return { hotspots: kept, top };
@@ -449,6 +496,7 @@ async function handler(req) {
           capacity_count: s.capacity_count,
           nearest_processor_miles: s.nearest_processor_miles,
           metrics: s.metrics,
+          units: computeUnits(s.metrics, s.capacity_count),
         };
       } else {
         focus = { zip: centerZip, error: 'Could not locate that zip code' };
@@ -465,6 +513,18 @@ async function handler(req) {
       capacity_mode: capacityMode,
       focus,
       hotspots, heat, totals,
+      unit_economics: {
+        ps1_head_per_shift: PS1_HEAD_PER_SHIFT,
+        shifts_per_week: SHIFTS_PER_WEEK,
+        ps1_head_per_year: PS1_HEAD_PER_YEAR,
+        boneless_lb_per_head: BONELESS_LB_PER_HEAD,
+        per_capita_beef_lb: PER_CAPITA_BEEF_LB,
+        people_per_ps1: PEOPLE_PER_PS1,
+        cattle_marketing_rate: CATTLE_MARKETING_RATE,
+        existing_plant_ps1_equiv: EXISTING_PLANT_PS1_EQUIV,
+        ps2_multiple_placeholder: PS2_MULTIPLE,
+        ps3_multiple_placeholder: PS3_MULTIPLE,
+      },
     });
   } catch (e) {
     return err(500, 'admin-hotspots failed: ' + (e.message || 'unknown').slice(0, 200));

@@ -307,7 +307,12 @@
           <div class="hs-list" id="hsList"></div>
           <p class="hs-note">Score = √(demand × supply) ÷ (1 + processors in area), normalized to the top area.
             Demand: buyers ×1, reservations ×3, plus √population÷100. Supply: farms ×2, listings ×1,
-            plus √livestock-head÷100 (USDA 2022 Census of Ag). An area needs <em>both</em> demand and supply to rank.</p>
+            plus √livestock-head÷100 (USDA 2022 Census of Ag). An area needs <em>both</em> demand and supply to rank.
+            <br><br><b>Unit math:</b> one PS1 = 15 head/shift × 5 shifts/wk = 3,900 head/yr × ~440 lb boneless beef
+            ÷ 59 lb per-person beef consumption ≈ <b>one PS1 per ~29,000 people</b>. Supply ceiling = local cattle
+            × 38% annual marketing ÷ 3,900. "Supports" takes the lower of the two; "net" subtracts existing plants
+            at 1 PS1-equivalent each. PS2/PS3 sized at 2×/3× PS1 (placeholder specs). Processors with cut capability
+            but no kill floor are add-on/trailer prospects.</p>
         </div>
       </div>`;
 
@@ -324,6 +329,11 @@
     circleLayer = L.layerGroup();
     (mode === 'heat' ? heatLayer : circleLayer).addTo(map);
 
+    const unitsHtml = (u) => !u ? '' : `
+        <div class="hs-pop-row" style="border-top:1px solid rgba(6,27,14,.12);margin-top:6px;padding-top:6px;"><span>PS1 units this market supports</span><strong>${u.ps1_supported}</strong></div>
+        <div class="hs-pop-row"><span>Net after existing plants</span><strong>${u.net_ps1}</strong></div>
+        <div class="hs-pop-row"><span>Limited by</span><strong>${u.limited_by}</strong></div>
+        <div class="hs-pop-row"><span>Suggested</span><strong>${u.suggested_config}</strong></div>`;
     const popupHtml = (h) => `
         <h4>#${h.rank} ${h.label || 'Market area'} — score ${h.opportunity_score}</h4>
         <div class="hs-pop-row"><span>Population</span><strong>${fmt(h.metrics.population)}</strong></div>
@@ -332,7 +342,8 @@
         <div class="hs-pop-row"><span>Reservations</span><strong>${fmt(h.metrics.reservations)}</strong></div>
         <div class="hs-pop-row"><span>Farms · listings</span><strong>${fmt(h.metrics.farms)} · ${fmt(h.metrics.listings)}</strong></div>
         <div class="hs-pop-row"><span>Processors in area</span><strong>${fmt(h.capacity_count)}</strong></div>
-        <div class="hs-pop-row"><span>Nearest processor</span><strong>${h.nearest_processor_miles == null ? '—' : h.nearest_processor_miles + ' mi'}</strong></div>`;
+        <div class="hs-pop-row"><span>Nearest processor</span><strong>${h.nearest_processor_miles == null ? '—' : h.nearest_processor_miles + ' mi'}</strong></div>
+        ${unitsHtml(h.units)}`;
 
     const circles = {};
     const radiusMeters = (data.radius_miles || 100) * 1609.34;
@@ -368,7 +379,8 @@
         <div class="hs-pop-row"><span>Buyers · reservations</span><strong>${fmt(focus.metrics.buyers)} · ${fmt(focus.metrics.reservations)}</strong></div>
         <div class="hs-pop-row"><span>Farms · listings</span><strong>${fmt(focus.metrics.farms)} · ${fmt(focus.metrics.listings)}</strong></div>
         <div class="hs-pop-row"><span>Processors in radius</span><strong>${fmt(focus.capacity_count)}</strong></div>
-        <div class="hs-pop-row"><span>Nearest processor</span><strong>${focus.nearest_processor_miles == null ? '—' : focus.nearest_processor_miles + ' mi'}</strong></div>`;
+        <div class="hs-pop-row"><span>Nearest processor</span><strong>${focus.nearest_processor_miles == null ? '—' : focus.nearest_processor_miles + ' mi'}</strong></div>
+        ${unitsHtml(focus.units)}`;
       fc.bindPopup(fPopup);
       map.setView([focus.lat, focus.lng], focus.radius_miles > 150 ? 5 : (focus.radius_miles > 60 ? 6 : 8));
       setTimeout(() => fc.openPopup(), 300);
@@ -383,7 +395,8 @@
           <h4>#${h.rank} ${h.label || 'Unnamed market area'}</h4>
           <p>${(h.metrics.population/1e3).toFixed(0)}k people · ${fmt(h.metrics.livestock)} head ·
              ${fmt(h.capacity_count)} processor${h.capacity_count === 1 ? '' : 's'}${
-               h.nearest_processor_miles != null ? ` · nearest ${h.nearest_processor_miles} mi` : ''}</p>
+               h.nearest_processor_miles != null ? ` · nearest ${h.nearest_processor_miles} mi` : ''}${
+               h.units && h.units.net_ps1 > 0 ? ` · <b>fits ${h.units.suggested_config}</b>` : ''}</p>
         </div>
         <div class="hs-score" style="background:${scoreColor(h.opportunity_score)}">${h.opportunity_score}</div>
       </div>`).join('')
