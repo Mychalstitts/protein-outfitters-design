@@ -84,8 +84,10 @@ const PEP_CSV = 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2
 // Population-WEIGHTED county centers (where people actually live), so heat
 // and hotspot markers land on the metro, not the geometric middle of the
 // county (e.g. LA County's weighted center is downtown LA; its geometric
-// center is in the Angeles National Forest).
-const CENPOP_CSV = 'https://www2.census.gov/geo/docs/reference/cenpop2020/county/CenPop2020_Mean_CO.txt';
+// center is in the Angeles National Forest). Bundled in /data because
+// census.gov blocks non-browser fetches of the reference path — and the
+// 2020 centers are static until the 2030 census anyway.
+const CENPOP_BUNDLE = '/data/county_pop_centers_2020.json';
 
 async function fetchBuffer(url, label) {
   const r = await fetch(url, { signal: AbortSignal.timeout(25000) });
@@ -161,23 +163,19 @@ async function importCensus() {
   //    wherever available (CT's redrawn planning regions fall back to the
   //    gazetteer point).
   let weighted = 0;
+  let cenpopError = null;
   try {
-    const cenLines = (await fetchBuffer(CENPOP_CSV, 'CenPop')).toString('latin1').split('\n');
-    const cenHdr = csvSplit(cenLines[0]).map(s => s.trim());
-    const ci = Object.fromEntries(cenHdr.map((h, i) => [h, i]));
-    for (const line of cenLines.slice(1)) {
-      const p = csvSplit(line);
-      if (p.length < cenHdr.length) continue;
-      const fips = p[ci.STATEFP].padStart(2, '0') + p[ci.COUNTYFP].padStart(3, '0');
+    const host = importCensus._host || 'www.proteinoutfitters.com';
+    const cen = await fetchJson(`https://${host}${CENPOP_BUNDLE}`, 'CenPop bundle');
+    for (const [fips, ll] of Object.entries(cen.counties || {})) {
       const row = counties[fips];
-      if (!row) continue;
-      const lat = parseFloat(p[ci.LATITUDE]);
-      const lng = parseFloat(p[ci.LONGITUDE]);
+      if (!row || !Array.isArray(ll)) continue;
+      const [lat, lng] = ll;
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
         row.lat = lat; row.lng = lng; weighted++;
       }
     }
-  } catch { /* fall back to gazetteer internal points */ }
+  } catch (e) { cenpopError = e.message; }
 
   // 3) PEP county population estimates CSV (latin-1 for accented names).
   const pepBuf = await fetchBuffer(PEP_CSV, 'PEP');
@@ -218,7 +216,7 @@ async function importCensus() {
         pop_density = EXCLUDED.pop_density,
         updated_at = NOW()`;
   }
-  return { counties: all.length, population_matched: matched, population_weighted_centers: weighted };
+  return { counties: all.length, population_matched: matched, population_weighted_centers: weighted, cenpop_error: cenpopError };
 }
 
 // ── NASS: county livestock inventory for one state ───────────
@@ -376,7 +374,10 @@ async function handler(req) {
   try {
     if (action === 'status') return json(await status());
     if (req.method !== 'POST') return err(405, 'POST required for imports');
-    if (action === 'import-census') return json(await importCensus());
+    if (action === 'import-census') {
+      importCensus._host = (req.headers?.get ? req.headers.get('host') : null) || 'www.proteinoutfitters.com';
+      return json(await importCensus());
+    }
     if (action === 'import-livestock') {
       const host = (req.headers?.get ? req.headers.get('host') : null) || 'www.proteinoutfitters.com';
       return json(await importLivestockBundled(host));
