@@ -1,46 +1,45 @@
 // /api/admin-hotspots — hardware opportunity hotspot map data (admin only).
 //
-//   GET ?radius_miles=50&max_hotspots=25 → {
-//     radius_miles,
-//     hotspots: [{ rank, lat, lng, label, opportunity_score, demand_score,
-//                  supply_score, capacity_count, nearest_processor_miles,
-//                  metrics: { buyers, reservations, farms, listings } }],
-//     heat: [[lat, lng, intensity 0..1], ...],   // Snap-style heat layer:
-//              each demand/supply point weighted by how UNDER-served its
-//              location is (fewer processors nearby → hotter/darker red)
-//     totals: { buyers, buyers_geocoded, reservations, farms, farms_geocoded,
-//               listings, processors, processors_geocoded, hardware_leads },
-//   }
+//   GET ?radius_miles=50&max_hotspots=25        → radius-cluster hotspots
+//   GET ?scope=nationwide                       → state-level ranking
 //
-// A hotspot is a market area (default 50-mile radius) where customer demand
-// AND farmer supply are both present but processing capacity is thin. These
-// are the prime target markets for PO hardware: a processor who buys hardware
-// in a hotspot inherits built-in demand from day one.
+// A hotspot is a market area where DEMAND and ANIMAL SUPPLY are both present
+// but processing capacity is thin — the prime target markets for PO hardware:
+// a processor who buys hardware in a hotspot inherits built-in demand.
 //
-// Scoring per candidate area:
-//   demand  = buyers-in-area ×1 + active reservations ×3   (reservations are
-//             located at the farm of the reserved listing — proven demand at
-//             that geography; buyers are geocoded from their profile zip)
-//   supply  = farms ×2 + active listings ×1
-//   score   = sqrt(demand × supply) / (1 + processors within radius)
+// Scoring blends live platform activity with county-level market data
+// (imported via /api/admin-county-stats):
+//   demand  = buyers ×1 + reservations ×3            (platform, geocoded)
+//           + √(county population within area)/100    (market potential)
+//   supply  = farms ×2 + active listings ×1           (platform)
+//           + √(county livestock head within area)/100 (animal availability,
+//             USDA NASS: cattle + hogs + sheep + goats)
+//   score   = √(demand × supply) / (1 + processors within area)
 // The geometric mean means an area needs BOTH demand and supply to rank.
-// Candidates come from grid-binning activity; greedy non-max suppression
-// keeps returned hotspots non-overlapping; scores are normalized 0–100.
+// Capacity counts every geocoded processor in the DB — platform members,
+// FSIS/MPA imports, and association-registry imports alike.
 //
-// Geocoding is cache-first (geocode_cache); at most a handful of fresh
-// Nominatim lookups happen per request (new buyer zips only).
+// `heat` output drives the Snap-style gradient: every point's intensity is
+// its weight divided by (1 + processors nearby), so the map burns darkest
+// red where demand stacks up with nobody to process it.
 
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { geocode } from './_lib/geocode.js';
 
 export const config = { runtime: 'nodejs' };
 
-// Scoring weights — tune as the marketplace matures.
+// Weights — platform signals
 const W_BUYER = 1;
 const W_RESERVATION = 3;
 const W_FARM = 2;
 const W_LISTING = 1;
-const MAX_FRESH_GEOCODES = 8; // cap fresh Nominatim lookups per request
+// Market-data scaling: √(value)/DIVISOR keeps big metros/herds from drowning
+// out everything else. 1M people → 10 pts; 250k head → 5 pts.
+const POP_DIVISOR = 100;
+const LIVESTOCK_DIVISOR = 100;
+const MAX_FRESH_GEOCODES = 8;
+
+const RADIUS_CHOICES = [25, 50, 100, 200, 500];
 
 function distanceMi(aLat, aLng, bLat, bLng) {
   const R = 3959;
@@ -56,10 +55,11 @@ async function loadPoints() {
     buyers: 0, buyers_geocoded: 0, reservations: 0,
     farms: 0, farms_geocoded: 0, listings: 0,
     processors: 0, processors_geocoded: 0, hardware_leads: 0,
+    counties: 0, population: 0, livestock_head: 0,
   };
-  const demand = [];   // { lat, lng, weight, label, counts }
+  const demand = [];   // { lat, lng, weight, label, state, counts }
   const supply = [];
-  const capacity = [];
+  const capacity = []; // { lat, lng, state }
 
   // ── Supply: farms weighted by active listings ────────────────
   const farms = await sql`
@@ -77,6 +77,7 @@ async function loadPoints() {
       lat: f.lat, lng: f.lng,
       weight: W_FARM + W_LISTING * f.listings_count,
       label: f.city ? `${f.city}, ${f.state || ''}`.replace(/, $/, '') : null,
+      state: f.state || null,
       counts: { farms: 1, listings: f.listings_count },
     });
   }
@@ -95,6 +96,7 @@ async function loadPoints() {
       lat: f.lat, lng: f.lng,
       weight: W_RESERVATION,
       label: f.city ? `${f.city}, ${f.state || ''}`.replace(/, $/, '') : null,
+      state: f.state || null,
       counts: { reservations: 1 },
     });
   }
@@ -108,7 +110,6 @@ async function loadPoints() {
     totals.buyers++;
     const zip = String(b.zip).trim().slice(0, 5);
     if (!/^\d{5}$/.test(zip)) continue;
-    // Cache-first; allow only a few fresh Nominatim lookups per request.
     const cached = await sql`
       SELECT lat, lng FROM geocode_cache WHERE query_key = ${zip} LIMIT 1`;
     let g = cached[0] || null;
@@ -118,38 +119,72 @@ async function loadPoints() {
     }
     if (!g) continue;
     totals.buyers_geocoded++;
-    demand.push({
-      lat: g.lat, lng: g.lng,
-      weight: W_BUYER,
-      label: null,
-      counts: { buyers: 1 },
-    });
+    demand.push({ lat: g.lat, lng: g.lng, weight: W_BUYER, label: null, state: null, counts: { buyers: 1 } });
   }
 
-  // ── Capacity: every known processor ───────────────────────────
-  const processors = await sql`SELECT id, name, city, state, lat, lng FROM processors`;
+  // ── Market data: county population + livestock ────────────────
+  let countyRows = [];
+  try {
+    countyRows = await sql`
+      SELECT fips, name, state, lat, lng, population, cattle, hogs, sheep, goats
+      FROM county_stats WHERE lat IS NOT NULL AND lng IS NOT NULL`;
+  } catch { /* table not created yet — platform-only scoring */ }
+  for (const c of countyRows) {
+    totals.counties++;
+    const pop = c.population || 0;
+    const head = (c.cattle || 0) + (c.hogs || 0) + (c.sheep || 0) + (c.goats || 0);
+    totals.population += pop;
+    totals.livestock_head += head;
+    const label = c.name ? `${c.name} County, ${c.state}` : null;
+    if (pop > 0) {
+      demand.push({
+        lat: c.lat, lng: c.lng,
+        weight: Math.sqrt(pop) / POP_DIVISOR,
+        label, state: c.state,
+        counts: { population: pop },
+      });
+    }
+    if (head > 0) {
+      supply.push({
+        lat: c.lat, lng: c.lng,
+        weight: Math.sqrt(head) / LIVESTOCK_DIVISOR,
+        label, state: c.state,
+        counts: { livestock: head },
+      });
+    }
+  }
+
+  // ── Capacity: every geocoded processor ────────────────────────
+  const processors = await sql`SELECT id, state, lat, lng FROM processors`;
   for (const p of processors) {
     totals.processors++;
     if (p.lat == null || p.lng == null) continue;
     totals.processors_geocoded++;
-    capacity.push({ lat: p.lat, lng: p.lng, counts: { processors: 1 } });
+    capacity.push({ lat: p.lat, lng: p.lng, state: p.state || null });
   }
 
-  // ── Hardware leads (no geo yet — reported in totals only) ─────
   try {
     const hw = await sql`SELECT COUNT(*)::int AS c FROM hardware_leads`;
     totals.hardware_leads = hw[0]?.c || 0;
-  } catch { /* table may not exist in fresh envs */ }
+  } catch { /* optional table */ }
 
   return { demand, supply, capacity, totals };
 }
 
+const EMPTY_METRICS = () => ({
+  buyers: 0, reservations: 0, farms: 0, listings: 0, population: 0, livestock: 0,
+});
+
+function accumulate(metrics, counts) {
+  for (const k in counts) metrics[k] += counts[k];
+}
+
+// ── Radius-cluster hotspots ────────────────────────────────────
 function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
   const activity = demand.concat(supply);
   if (!activity.length) return [];
 
-  // 1) Candidate centers: coarse grid bins (~half the market radius).
-  const cellDeg = Math.max(radiusMiles / 2, 10) / 69; // ~69 miles per degree latitude
+  const cellDeg = Math.max(radiusMiles / 2, 10) / 69;
   const bins = new Map();
   for (const p of activity) {
     const key = `${Math.floor(p.lat / cellDeg)}:${Math.floor(p.lng / cellDeg)}`;
@@ -165,23 +200,22 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
     });
   }
 
-  // 2) Score every candidate against the full point sets within radius.
   const scored = [];
   for (const c of candidates) {
-    const metrics = { buyers: 0, reservations: 0, farms: 0, listings: 0 };
+    const metrics = EMPTY_METRICS();
     let demandScore = 0, supplyScore = 0, capacityCount = 0;
     const labels = new Map();
     for (const p of demand) {
       if (distanceMi(c.lat, c.lng, p.lat, p.lng) <= radiusMiles) {
         demandScore += p.weight;
-        for (const k in p.counts) metrics[k] += p.counts[k];
+        accumulate(metrics, p.counts);
         if (p.label) labels.set(p.label, (labels.get(p.label) || 0) + p.weight);
       }
     }
     for (const p of supply) {
       if (distanceMi(c.lat, c.lng, p.lat, p.lng) <= radiusMiles) {
         supplyScore += p.weight;
-        for (const k in p.counts) metrics[k] += p.counts[k];
+        accumulate(metrics, p.counts);
         if (p.label) labels.set(p.label, (labels.get(p.label) || 0) + p.weight);
       }
     }
@@ -192,7 +226,6 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
       if (d < nearestProcessor) nearestProcessor = d;
     }
 
-    // Geometric mean: a true hardware opportunity needs BOTH demand and supply.
     const raw = Math.sqrt(demandScore * supplyScore);
     if (raw <= 0) continue;
     let label = null, best = 0;
@@ -210,7 +243,6 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
     });
   }
 
-  // 3) Greedy non-max suppression: keep the best, drop overlapping candidates.
   scored.sort((a, b) => b._score - a._score);
   const kept = [];
   for (const cand of scored) {
@@ -219,8 +251,59 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
     }
     if (kept.length >= maxHotspots) break;
   }
+  return finalize(kept);
+}
 
-  // 4) Normalize scores to 0–100 for display.
+// ── Nationwide: rank whole states ──────────────────────────────
+function computeStateRanking(demand, supply, capacity, maxHotspots) {
+  const states = new Map(); // state → agg
+  const get = (st) => {
+    if (!states.has(st)) {
+      states.set(st, {
+        demand: 0, supply: 0, cap: 0, metrics: EMPTY_METRICS(),
+        latW: 0, lngW: 0, w: 0,
+      });
+    }
+    return states.get(st);
+  };
+  for (const p of demand) {
+    if (!p.state) continue;
+    const s = get(p.state);
+    s.demand += p.weight; accumulate(s.metrics, p.counts);
+    s.latW += p.lat * p.weight; s.lngW += p.lng * p.weight; s.w += p.weight;
+  }
+  for (const p of supply) {
+    if (!p.state) continue;
+    const s = get(p.state);
+    s.supply += p.weight; accumulate(s.metrics, p.counts);
+    s.latW += p.lat * p.weight; s.lngW += p.lng * p.weight; s.w += p.weight;
+  }
+  for (const p of capacity) {
+    if (!p.state) continue;
+    get(p.state).cap++;
+  }
+
+  const scored = [];
+  for (const [st, s] of states) {
+    const raw = Math.sqrt(s.demand * s.supply);
+    if (raw <= 0 || !s.w) continue;
+    scored.push({
+      lat: Math.round((s.latW / s.w) * 1e5) / 1e5,
+      lng: Math.round((s.lngW / s.w) * 1e5) / 1e5,
+      label: st,
+      demand_score: Math.round(s.demand * 10) / 10,
+      supply_score: Math.round(s.supply * 10) / 10,
+      capacity_count: s.cap,
+      nearest_processor_miles: null,
+      metrics: s.metrics,
+      _score: raw / (1 + s.cap),
+    });
+  }
+  scored.sort((a, b) => b._score - a._score);
+  return finalize(scored.slice(0, maxHotspots));
+}
+
+function finalize(kept) {
   const top = kept.length ? kept[0]._score : 1;
   kept.forEach((h, i) => {
     h.rank = i + 1;
@@ -230,11 +313,7 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
   return kept;
 }
 
-// Snap-style heat points: every demand/supply point, weighted by how
-// under-served its own location is. A reservation with zero processors
-// within the radius burns dark red; the same reservation next to a dozen
-// processors barely glows. Demand counts fully, supply at half weight —
-// the map is demand-led, but supply still warms an area.
+// ── Snap-style heat points ─────────────────────────────────────
 function buildHeat(demand, supply, capacity, radiusMiles) {
   const pts = [];
   let max = 0;
@@ -246,16 +325,18 @@ function buildHeat(demand, supply, capacity, radiusMiles) {
     const intensity = (p.weight * scale) / (1 + capNear);
     if (intensity <= 0) return;
     if (intensity > max) max = intensity;
-    pts.push({ lat: p.lat, lng: p.lng, intensity });
+    pts.push([p.lat, p.lng, intensity]);
   };
   for (const p of demand) push(p, 1);
   for (const p of supply) push(p, 0.5);
   if (!max) return [];
-  return pts.map(p => [
-    Math.round(p.lat * 1e5) / 1e5,
-    Math.round(p.lng * 1e5) / 1e5,
-    Math.round((p.intensity / max) * 1000) / 1000,
-  ]);
+  return pts
+    .map(([lat, lng, i]) => [
+      Math.round(lat * 1e5) / 1e5,
+      Math.round(lng * 1e5) / 1e5,
+      Math.round((i / max) * 1000) / 1000,
+    ])
+    .filter(p => p[2] > 0); // drop sub-0.001 points — invisible on the gradient anyway
 }
 
 async function handler(req) {
@@ -265,14 +346,22 @@ async function handler(req) {
   if (user.role !== 'admin') return err(403, 'Admin only');
 
   const url = new URL(req.url, 'https://' + (req.headers?.host || 'www.proteinoutfitters.com'));
-  const radiusMiles = Math.max(10, Math.min(Number(url.searchParams.get('radius_miles')) || 50, 250));
+  const scope = url.searchParams.get('scope') === 'nationwide' ? 'nationwide' : 'radius';
+  let radiusMiles = Number(url.searchParams.get('radius_miles')) || 50;
+  if (!RADIUS_CHOICES.includes(radiusMiles)) {
+    radiusMiles = Math.max(10, Math.min(radiusMiles, 500));
+  }
   const maxHotspots = Math.max(1, Math.min(Number(url.searchParams.get('max_hotspots')) || 25, 100));
 
   try {
     const { demand, supply, capacity, totals } = await loadPoints();
-    const hotspots = computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots);
-    const heat = buildHeat(demand, supply, capacity, radiusMiles);
-    return json({ radius_miles: radiusMiles, hotspots, heat, totals });
+    const hotspots = scope === 'nationwide'
+      ? computeStateRanking(demand, supply, capacity, Math.max(maxHotspots, 51))
+      : computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots);
+    // Heat damping radius: for nationwide use 100mi so the gradient still
+    // reads locally rather than one state-sized blob.
+    const heat = buildHeat(demand, supply, capacity, scope === 'nationwide' ? 100 : radiusMiles);
+    return json({ scope, radius_miles: scope === 'nationwide' ? null : radiusMiles, hotspots, heat, totals });
   } catch (e) {
     return err(500, 'admin-hotspots failed: ' + (e.message || 'unknown').slice(0, 200));
   }

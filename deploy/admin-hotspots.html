@@ -31,10 +31,10 @@
   .hs-legend .bar { width: 160px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #fed976, #feb24c, #fd8d3c, #f03b20, #bd0026, #67000d); }
   .hs-legend .labs { display:flex; justify-content:space-between; font: 700 10px/1 var(--ff-sans); letter-spacing:.05em; text-transform:uppercase; color: var(--ink-2); margin-top: 6px; }
 
-  .hs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .hs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
   .hs-stat { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
   .hs-stat .lab { font: 700 10.5px/1.2 var(--ff-sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 7px; }
-  .hs-stat .v { font: 900 clamp(24px, 2.6vw, 34px)/1 var(--ff-sans); letter-spacing: -0.02em; }
+  .hs-stat .v { font: 900 clamp(22px, 2.4vw, 32px)/1 var(--ff-sans); letter-spacing: -0.02em; }
   .hs-stat .v small { font-size: .5em; font-weight: 600; opacity: .55; margin-left: 4px; }
 
   .hs-cols { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; align-items: start; }
@@ -49,16 +49,27 @@
   .hs-pop-row span { color: #5a6359; }
   .hs-pop-row strong { font-weight: 800; }
 
-  .hs-list-card { background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
-  .hs-list-card h2 { font: 800 18px/1.2 var(--ff-sans); margin: 0 0 6px; letter-spacing: -0.01em; }
+  .hs-list-card, .hs-data-card { background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
+  .hs-list-card h2, .hs-data-card h2 { font: 800 18px/1.2 var(--ff-sans); margin: 0 0 6px; letter-spacing: -0.01em; }
   .hs-list-card h2 small { font: 600 12px/1 var(--ff-sans); color: var(--ink-2); margin-left: 6px; }
-  .hs-list { max-height: 520px; overflow-y: auto; margin-top: 8px; }
+  .hs-list { max-height: 440px; overflow-y: auto; margin-top: 8px; }
   .hs-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px 8px; border-top: 1px solid rgba(6,27,14,.06); align-items: center; border-radius: 10px; cursor: pointer; }
   .hs-row:hover, .hs-row.active { background: rgba(6,27,14,.045); }
   .hs-row:first-child { border-top: 0; }
   .hs-row h4 { margin: 0; font: 700 14px/1.3 var(--ff-sans); }
   .hs-row p { margin: 3px 0 0; font: 500 12px/1.4 var(--ff-sans); color: var(--ink-2); }
   .hs-score { font: 900 15px/1 var(--ff-sans); color: #fbf9f5; border-radius: 999px; padding: 8px 12px; min-width: 46px; text-align: center; }
+
+  .hs-data-card { margin-top: 20px; }
+  .hs-data-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding: 10px 0; border-top: 1px solid rgba(6,27,14,.06); }
+  .hs-data-row:first-of-type { border-top: 0; }
+  .hs-data-row .meta { font: 500 13px/1.4 var(--ff-sans); }
+  .hs-data-row .meta strong { font-weight: 800; }
+  .hs-data-row .meta .sub { color: var(--ink-2); font-size: 12px; }
+  .hs-btn { font: 700 12.5px/1 var(--ff-sans); padding: 9px 14px; border-radius: 999px; border: 1.5px solid #061b0e; background: #061b0e; color: #fbf9f5; cursor: pointer; white-space: nowrap; }
+  .hs-btn[disabled] { opacity: .5; cursor: default; }
+  .hs-btn.secondary { background: #fff; color: #061b0e; }
+  #hsDataLog { font: 500 12px/1.5 var(--ff-mono, monospace); color: var(--ink-2); background: #f4f1ea; border-radius: 10px; padding: 10px 12px; margin-top: 10px; max-height: 120px; overflow-y: auto; white-space: pre-wrap; display: none; }
 
   .hs-note { font: 500 12.5px/1.6 var(--ff-sans); color: var(--ink-2); margin-top: 14px; }
   .empty { padding: 32px 12px; text-align: center; color: var(--ink-2); font: 500 14px/1.5 var(--ff-sans); }
@@ -94,19 +105,23 @@
     <div>
       <p class="eyebrow">Hardware opportunity hotspots</p>
       <h1>Where should the next unit go?</h1>
-      <p>Market areas with buyer demand and farmer supply but thin processing capacity.
-         A processor who buys PO hardware inside a hotspot inherits built-in demand from day one.</p>
+      <p>Population, animal availability, and live platform demand vs. every known processor —
+         darkest red where people and livestock stack up with nobody nearby to process.
+         That's where PO hardware sells with built-in demand.</p>
     </div>
     <div class="hs-controls">
       <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
         <button type="button" data-mode="heat" class="on">Heatmap</button>
         <button type="button" data-mode="zones">Zones</button>
       </div>
-      <label for="hsRadius">Market radius</label>
+      <label for="hsRadius">Market area</label>
       <select id="hsRadius">
         <option value="25">25 miles</option>
         <option value="50" selected>50 miles</option>
         <option value="100">100 miles</option>
+        <option value="200">200 miles</option>
+        <option value="500">500 miles</option>
+        <option value="nationwide">Nationwide</option>
       </select>
     </div>
   </div>
@@ -122,12 +137,10 @@
   const root = document.getElementById('hsContent');
   const radiusSel = document.getElementById('hsRadius');
   const modeWrap = document.getElementById('hsMode');
-  let map = null, circleLayer = null, heatLayer = null, selectedRank = null, lastData = null;
-  let mode = 'heat'; // 'heat' (Snap-style gradient) | 'zones' (analysis circles)
-  let setMode = () => {}; // bound inside render() once layers exist
+  let map = null, circleLayer = null, heatLayer = null, lastData = null;
+  let mode = 'heat';
+  let setMode = () => {};
 
-  // Snap Map-style gradient: light red-orange for light activity, deep dark
-  // red where demand stacks up with no processors nearby.
   const HEAT_GRADIENT = {
     0.10: 'rgba(254,217,118,0.7)',
     0.30: '#feb24c',
@@ -136,12 +149,8 @@
     0.88: '#bd0026',
     1.00: '#67000d',
   };
-
-  // Opportunity score (0–100) → heat color, amber to deep red.
-  const scoreColor = (s) => {
-    const hue = Math.max(0, 42 - (s / 100) * 42);
-    return `hsl(${hue}, 88%, 44%)`;
-  };
+  const scoreColor = (s) => `hsl(${Math.max(0, 42 - (s / 100) * 42)}, 88%, 44%)`;
+  const fmt = (n) => Number(n || 0).toLocaleString('en-US');
 
   function authWall(title, body, showSignIn) {
     root.innerHTML = `<div class="needs-auth"><img src="/brand/logo-monogram.svg" alt="">
@@ -152,15 +161,16 @@
   }
 
   async function load() {
-    const radius = radiusSel.value;
+    const v = radiusSel.value;
+    const qs = v === 'nationwide' ? 'scope=nationwide' : `radius_miles=${v}`;
     let res;
     try {
       const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 12000);
-      res = await fetch(`/api/admin-hotspots?radius_miles=${radius}`, { credentials: 'include', signal: ctrl.signal });
+      const t = setTimeout(() => ctrl.abort(), 25000);
+      res = await fetch(`/api/admin-hotspots?${qs}`, { credentials: 'include', signal: ctrl.signal });
       clearTimeout(t);
     } catch (e) {
-      authWall('Hotspots API timed out', e.name === 'AbortError' ? 'The hotspot endpoint took longer than 12 seconds — refresh in a minute.' : e.message, false);
+      authWall('Hotspots API timed out', e.name === 'AbortError' ? 'The hotspot endpoint took longer than 25 seconds — refresh in a minute.' : e.message, false);
       return;
     }
     if (res.status === 401) return authWall('Sign in to see hotspots', 'Hardware hotspot mapping requires a signed-in admin account.', true);
@@ -171,71 +181,77 @@
     }
     lastData = await res.json();
     render();
+    refreshDataStatus();
   }
 
   function render() {
     const data = lastData;
     const t = data.totals || {};
     const hs = data.hotspots || [];
-    selectedRank = null;
+    const nationwide = data.scope === 'nationwide';
 
     root.innerHTML = `
       <div class="hs-grid">
-        <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${t.buyers || 0}<small>${t.buyers_geocoded || 0} mapped</small></div></div>
-        <div class="hs-stat"><p class="lab">Reservations</p><div class="v">${t.reservations || 0}<small>demand</small></div></div>
-        <div class="hs-stat"><p class="lab">Farms</p><div class="v">${t.farms || 0}<small>${t.farms_geocoded || 0} mapped</small></div></div>
-        <div class="hs-stat"><p class="lab">Active listings</p><div class="v">${t.listings || 0}<small>supply</small></div></div>
-        <div class="hs-stat"><p class="lab">Processors</p><div class="v">${t.processors || 0}<small>${t.processors_geocoded || 0} mapped</small></div></div>
-        <div class="hs-stat"><p class="lab">Hardware leads</p><div class="v">${t.hardware_leads || 0}<small>via /hardware</small></div></div>
+        <div class="hs-stat"><p class="lab">Population covered</p><div class="v">${t.population ? (t.population/1e6).toFixed(0) + 'M' : '—'}<small>${fmt(t.counties)} counties</small></div></div>
+        <div class="hs-stat"><p class="lab">Livestock head</p><div class="v">${t.livestock_head ? (t.livestock_head/1e6).toFixed(1) + 'M' : '—'}<small>cattle·hogs·sheep·goats</small></div></div>
+        <div class="hs-stat"><p class="lab">Processors</p><div class="v">${fmt(t.processors)}<small>${fmt(t.processors_geocoded)} mapped</small></div></div>
+        <div class="hs-stat"><p class="lab">Farms</p><div class="v">${fmt(t.farms)}<small>${fmt(t.listings)} listings</small></div></div>
+        <div class="hs-stat"><p class="lab">Buyers / Res.</p><div class="v">${fmt(t.buyers)}<small>${fmt(t.reservations)} reservations</small></div></div>
+        <div class="hs-stat"><p class="lab">Hardware leads</p><div class="v">${fmt(t.hardware_leads)}<small>via /hardware</small></div></div>
       </div>
       <div class="hs-cols">
-        <div class="hs-map-card" style="position:relative;">
-          <div id="hsMap"></div>
-          <div class="hs-legend">
-            <div class="bar"></div>
-            <div class="labs"><span>Covered</span><span>Needs a processor</span></div>
+        <div>
+          <div class="hs-map-card" style="position:relative;">
+            <div id="hsMap"></div>
+            <div class="hs-legend">
+              <div class="bar"></div>
+              <div class="labs"><span>Covered</span><span>Needs a processor</span></div>
+            </div>
+          </div>
+          <div class="hs-data-card">
+            <h2>Data sources</h2>
+            <div id="hsDataRows"><div class="empty" style="padding:14px;">Checking data status…</div></div>
+            <div id="hsDataLog"></div>
           </div>
         </div>
         <div class="hs-list-card">
-          <h2>Ranked opportunities<small>${hs.length} market area${hs.length === 1 ? '' : 's'}</small></h2>
+          <h2>${nationwide ? 'Ranked states' : 'Ranked opportunities'}<small>${hs.length} ${nationwide ? 'states' : 'market areas'}</small></h2>
           <div class="hs-list" id="hsList"></div>
-          <p class="hs-note">Score = √(demand × supply) ÷ (1 + processors within radius), normalized to the
-            top area. Demand: buyer ×1, reservation ×3 (placed at the reserved farm). Supply: farm ×2,
-            active listing ×1. An area needs <em>both</em> demand and supply to rank.</p>
+          <p class="hs-note">Score = √(demand × supply) ÷ (1 + processors in area), normalized to the top area.
+            Demand: buyers ×1, reservations ×3, plus √population÷100. Supply: farms ×2, listings ×1,
+            plus √livestock-head÷100 (USDA 2022 Census of Ag). An area needs <em>both</em> demand and supply to rank.</p>
         </div>
       </div>`;
 
-    // Map
-    map = L.map('hsMap', { scrollWheelZoom: true }).setView([44.5, -93.5], 5);
+    map = L.map('hsMap', { scrollWheelZoom: true }).setView([39.5, -96.5], 4);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18,
     }).addTo(map);
 
-    // Snap-style heat layer — intensity already encodes demand × processor
-    // shortage server-side, so the gradient reads directly as "how badly
-    // this area needs a processor".
-    heatLayer = L.heatLayer((data.heat || []).map(h => [h[0], h[1], h[2]]), {
-      radius: 42, blur: 30, maxZoom: 9, max: 1.0, minOpacity: 0.25,
+    heatLayer = L.heatLayer((data.heat || []), {
+      radius: 34, blur: 26, maxZoom: 9, max: 1.0, minOpacity: 0.2,
       gradient: HEAT_GRADIENT,
     });
     circleLayer = L.layerGroup();
     (mode === 'heat' ? heatLayer : circleLayer).addTo(map);
 
-    const radiusMeters = (data.radius_miles || 50) * 1609.34;
     const popupHtml = (h) => `
         <h4>#${h.rank} ${h.label || 'Market area'} — score ${h.opportunity_score}</h4>
-        <div class="hs-pop-row"><span>Buyers</span><strong>${h.metrics.buyers}</strong></div>
-        <div class="hs-pop-row"><span>Reservations</span><strong>${h.metrics.reservations}</strong></div>
-        <div class="hs-pop-row"><span>Farms</span><strong>${h.metrics.farms}</strong></div>
-        <div class="hs-pop-row"><span>Active listings</span><strong>${h.metrics.listings}</strong></div>
-        <div class="hs-pop-row"><span>Processors in radius</span><strong>${h.capacity_count}</strong></div>
+        <div class="hs-pop-row"><span>Population</span><strong>${fmt(h.metrics.population)}</strong></div>
+        <div class="hs-pop-row"><span>Livestock head</span><strong>${fmt(h.metrics.livestock)}</strong></div>
+        <div class="hs-pop-row"><span>Buyers</span><strong>${fmt(h.metrics.buyers)}</strong></div>
+        <div class="hs-pop-row"><span>Reservations</span><strong>${fmt(h.metrics.reservations)}</strong></div>
+        <div class="hs-pop-row"><span>Farms · listings</span><strong>${fmt(h.metrics.farms)} · ${fmt(h.metrics.listings)}</strong></div>
+        <div class="hs-pop-row"><span>Processors in area</span><strong>${fmt(h.capacity_count)}</strong></div>
         <div class="hs-pop-row"><span>Nearest processor</span><strong>${h.nearest_processor_miles == null ? '—' : h.nearest_processor_miles + ' mi'}</strong></div>`;
+
     const circles = {};
+    const radiusMeters = (data.radius_miles || 100) * 1609.34;
     hs.forEach((h) => {
       const color = scoreColor(h.opportunity_score);
       const c = L.circle([h.lat, h.lng], {
-        radius: radiusMeters,
+        radius: nationwide ? 120 * 1609.34 : radiusMeters,
         color, fillColor: color,
         fillOpacity: 0.22 + 0.3 * (h.opportunity_score / 100),
         weight: 2,
@@ -244,44 +260,36 @@
       c.on('click', () => selectRow(h.rank, false));
       circles[h.rank] = c;
     });
-    if (hs.length) {
-      map.fitBounds(L.latLngBounds(hs.map(h => [h.lat, h.lng])).pad(0.4), { maxZoom: 8 });
+    if (hs.length && !nationwide) {
+      map.fitBounds(L.latLngBounds(hs.map(h => [h.lat, h.lng])).pad(0.3), { maxZoom: 8 });
     }
 
-    // Ranked list
     const list = document.getElementById('hsList');
     list.innerHTML = hs.length ? hs.map(h => `
       <div class="hs-row" data-rank="${h.rank}">
         <div>
           <h4>#${h.rank} ${h.label || 'Unnamed market area'}</h4>
-          <p>${h.metrics.buyers} buyer${h.metrics.buyers === 1 ? '' : 's'} · ${h.metrics.reservations} res ·
-             ${h.metrics.farms} farm${h.metrics.farms === 1 ? '' : 's'} ·
-             ${h.capacity_count} processor${h.capacity_count === 1 ? '' : 's'} in radius${
+          <p>${(h.metrics.population/1e3).toFixed(0)}k people · ${fmt(h.metrics.livestock)} head ·
+             ${fmt(h.capacity_count)} processor${h.capacity_count === 1 ? '' : 's'}${
                h.nearest_processor_miles != null ? ` · nearest ${h.nearest_processor_miles} mi` : ''}</p>
         </div>
         <div class="hs-score" style="background:${scoreColor(h.opportunity_score)}">${h.opportunity_score}</div>
       </div>`).join('')
       : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No hotspots yet.<br>
-          <span style="opacity:.7;font-size:12px;">Hotspots appear where geocoded buyers/reservations and farms
-          overlap. Run the geocode backfill if farms are missing coordinates.</span></div>`;
+          <span style="opacity:.7;font-size:12px;">Import population + livestock data below, then refresh.</span></div>`;
 
     list.querySelectorAll('.hs-row').forEach(row => {
       row.addEventListener('click', () => selectRow(Number(row.dataset.rank), true));
     });
 
     function selectRow(rank, fly) {
-      selectedRank = rank;
       list.querySelectorAll('.hs-row').forEach(r =>
         r.classList.toggle('active', Number(r.dataset.rank) === rank));
       const h = hs.find(x => x.rank === rank);
       if (!h) return;
-      if (fly) map.flyTo([h.lat, h.lng], 8, { duration: 0.8 });
-      if (mode === 'zones' && circles[rank]) {
-        circles[rank].openPopup();
-      } else {
-        // Heat mode: circles aren't on the map, open a standalone popup.
-        L.popup().setLatLng([h.lat, h.lng]).setContent(popupHtml(h)).openOn(map);
-      }
+      if (fly) map.flyTo([h.lat, h.lng], nationwide ? 6 : 8, { duration: 0.8 });
+      if (mode === 'zones' && circles[rank]) circles[rank].openPopup();
+      else L.popup().setLatLng([h.lat, h.lng]).setContent(popupHtml(h)).openOn(map);
     }
 
     setMode = function (next) {
@@ -291,6 +299,125 @@
         b.classList.toggle('on', b.dataset.mode === mode));
       if (mode === 'heat') { map.removeLayer(circleLayer); heatLayer.addTo(map); }
       else { map.removeLayer(heatLayer); circleLayer.addTo(map); }
+    };
+  }
+
+  // ── Data sources panel ────────────────────────────────────────
+  const ALL_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+  const logEl = () => document.getElementById('hsDataLog');
+  function log(msg) {
+    const el = logEl(); if (!el) return;
+    el.style.display = 'block';
+    el.textContent += (el.textContent ? '\n' : '') + msg;
+    el.scrollTop = el.scrollHeight;
+  }
+  async function post(qs) {
+    const r = await fetch(`/api/admin-county-stats?${qs}`, { method: 'POST', credentials: 'include' });
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+    return body;
+  }
+
+  async function refreshDataStatus() {
+    const rowsEl = document.getElementById('hsDataRows');
+    if (!rowsEl) return;
+    let s;
+    try {
+      const r = await fetch('/api/admin-county-stats?action=status', { credentials: 'include' });
+      s = await r.json();
+      if (!r.ok) throw new Error(s.error || 'status failed');
+    } catch (e) {
+      rowsEl.innerHTML = `<div class="empty" style="padding:14px;">Data status unavailable: ${e.message}</div>`;
+      return;
+    }
+    const cs = s.county_stats || {}, pr = s.processors || {};
+    const livestockStates = s.livestock_states || [];
+    rowsEl.innerHTML = `
+      <div class="hs-data-row">
+        <div class="meta"><strong>Population density</strong> — ${fmt(cs.with_population)} / ${fmt(cs.counties)} counties
+          <div class="sub">US Census (TIGERweb centroids + ACS 5-year). One click, ~30s.</div></div>
+        <button class="hs-btn" id="btnCensus">${cs.with_population > 3000 ? 'Re-import' : 'Import'}</button>
+      </div>
+      <div class="hs-data-row">
+        <div class="meta"><strong>Animal availability</strong> — ${livestockStates.length} / 50 states loaded
+          <div class="sub">USDA NASS 2022 Census of Ag, county inventory (cattle, hogs, sheep, goats).
+          ${s.nass_key_configured ? 'Key configured.' : '<b>NASS_API_KEY not set in Vercel</b> — get a free key at quickstats.nass.usda.gov/api.'}</div></div>
+        <button class="hs-btn" id="btnNass" ${!s.nass_key_configured || !cs.counties ? 'disabled' : ''}>${livestockStates.length >= 50 ? 'Re-import all' : (livestockStates.length ? 'Resume import' : 'Import all states')}</button>
+      </div>
+      <div class="hs-data-row">
+        <div class="meta"><strong>Association registries</strong> — ${fmt(pr.from_associations)} imported of 1,791 swept
+          <div class="sub">AAMP + state association / state-registry sweep (42 states extracted; gated ones flagged in /data/state_processor_associations.json).</div></div>
+        <button class="hs-btn" id="btnAssoc">Import</button>
+      </div>
+      <div class="hs-data-row">
+        <div class="meta"><strong>Processor geocoding</strong> — ${fmt(pr.geocoded)} / ${fmt(pr.processors)} mapped
+          <div class="sub">Cache-first Nominatim, 200 per click (rate-limited upstream).</div></div>
+        <button class="hs-btn secondary" id="btnGeo" ${pr.geocoded >= pr.processors ? 'disabled' : ''}>Geocode 200</button>
+      </div>`;
+
+    const busy = (btn, on, label) => { btn.disabled = on; if (label) btn.textContent = label; };
+
+    document.getElementById('btnCensus').onclick = async (e) => {
+      busy(e.target, true, 'Importing…');
+      try { const r = await post('action=import-census'); log(`Census: ${r.counties} counties, ${r.population_matched} with population.`); }
+      catch (err2) { log('Census import failed: ' + err2.message); }
+      refreshDataStatus();
+    };
+
+    document.getElementById('btnNass').onclick = async (e) => {
+      const done = new Set(livestockStates);
+      const todo = ALL_STATES.filter(st => !done.has(st));
+      busy(e.target, true);
+      for (let i = 0; i < todo.length; i++) {
+        const st = todo[i];
+        e.target.textContent = `${st} (${i + 1}/${todo.length})…`;
+        try { const r = await post(`action=import-nass&state=${st}`); log(`NASS ${st}: ${r.counties_updated} counties updated.`); }
+        catch (err2) { log(`NASS ${st} failed: ${err2.message}`); if (/NASS_API_KEY/.test(err2.message)) break; }
+      }
+      refreshDataStatus();
+      load();
+    };
+
+    document.getElementById('btnAssoc').onclick = async (e) => {
+      busy(e.target, true, 'Importing…');
+      try {
+        const csv = await (await fetch('/data/association_processors.csv')).text();
+        const lines = csv.split('\n').slice(1).filter(Boolean);
+        const parse = (line) => {
+          const out = []; let cur = '', q = false;
+          for (const ch of line) {
+            if (ch === '"') q = !q;
+            else if (ch === ',' && !q) { out.push(cur); cur = ''; }
+            else cur += ch;
+          }
+          out.push(cur); return out;
+        };
+        const procs = lines.map(l => {
+          const [name, city, state, phone, website, source] = parse(l);
+          return { name, city, state, phone, website, source };
+        });
+        let inserted = 0, skipped = 0;
+        for (let i = 0; i < procs.length; i += 250) {
+          const r = await fetch('/api/admin-county-stats?action=import-association-processors', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ processors: procs.slice(i, i + 250) }),
+          });
+          const body = await r.json();
+          if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+          inserted += body.inserted; skipped += body.skipped_duplicates;
+          e.target.textContent = `${Math.min(i + 250, procs.length)}/${procs.length}…`;
+        }
+        log(`Associations: ${inserted} new processors imported, ${skipped} already known. Now geocode them below.`);
+      } catch (err2) { log('Association import failed: ' + err2.message); }
+      refreshDataStatus();
+    };
+
+    document.getElementById('btnGeo').onclick = async (e) => {
+      busy(e.target, true, 'Geocoding…');
+      try { const r = await post('action=geocode-processors'); log(`Geocoded ${r.resolved} processors (${r.failed} failed) of ${r.scanned} scanned.`); }
+      catch (err2) { log('Geocoding failed: ' + err2.message); }
+      refreshDataStatus();
     };
   }
 

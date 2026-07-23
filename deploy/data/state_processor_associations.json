@@ -1,0 +1,363 @@
+{
+ "generated": "2026-07-22",
+ "note": "AAMP + state association / state registry sweep. access: open=extracted, gated=login required, pdf=unparseable file, blocked=dynamic/refused, none-found=no org.",
+ "registries": {
+  "MN": {
+   "org_name": "Minnesota Association of Meat Processors (MAMP)",
+   "org_url": "https://www.mamponline.com/",
+   "directory_url": "https://www.mamponline.com/membership/directory/",
+   "access": "open",
+   "notes": "Public Operators List (102 listings) with contact person, phone, address; some listings include website. WebFetch got HTTP 403 but a direct browser-UA fetch succeeded. A separate Suppliers list also exists on the same page."
+  },
+  "WI": {
+   "org_name": "Wisconsin Association of Meat Processors (WAMP)",
+   "org_url": "https://wi-amp.com/",
+   "directory_url": "https://wi-amp.com/membership/operators/",
+   "access": "open",
+   "notes": "Public Operators Directory with 134 listings (name, city, phone, service categories) on a single page; per-listing detail pages exist. The separate wi-amp.com/members area is password-protected; a Suppliers directory also exists."
+  },
+  "IA": {
+   "org_name": "Iowa Meat Processors Association (IMPA)",
+   "org_url": "https://www.iowameatprocessors.org/",
+   "directory_url": "https://www.iowameatprocessors.org/impa-processor-members",
+   "access": "open",
+   "notes": "'Find Your Local Provider' page lists ~75 processor members with address, phone, email and 'Visit website' links (link URLs not captured). Single page, no login."
+  },
+  "ND": {
+   "org_name": "North Dakota Association of Meat Processors (NDAMP)",
+   "org_url": "https://ndamp.org/",
+   "directory_url": "https://www.ndda.nd.gov/divisions/livestock-industries/meat-inspection/north-dakota-meat-processors",
+   "access": "open",
+   "notes": "NDAMP's own directory (https://ndamp.org/directory/) is members-only (login required), i.e. gated. Entries here come from the second source: ND Dept of Agriculture licensed meat plant list (state/selected/federal slaughter & processing plus custom-exempt plants; 108 establishments, no phones published)."
+  },
+  "SD": {
+   "org_name": "South Dakota Association of Meat Processors (SDAMP)",
+   "org_url": "https://sdamp.org/",
+   "directory_url": "https://sdamp.org/member-directory/",
+   "access": "open",
+   "notes": "Public member-directory page lists 32 member names only - no city, phone, or links - and visibly mixes supplier members (e.g. Reiser, Handtmann, Walton's) with processors under 'Our Processor Members'. Alternate site sdamponline.com/general-7 was unreachable (connection reset, robots blocked)."
+  },
+  "NE": {
+   "org_name": "Nebraska Association of Meat Processors (NAMP)",
+   "org_url": "https://www.namponline.com/",
+   "directory_url": "https://nda.nebraska.gov/publications/promotion/food_meat_directory",
+   "access": "open",
+   "notes": "NAMP has no public member directory (its Operators page is membership-benefits text only). Entries here come from the second source: Nebraska Dept of Agriculture Food & Meat Directory (self-listed promotional directory of 268 NE food businesses), filtered to 67 meat-related entries; may include some distributors/retailers."
+  },
+  "MI": {
+   "org_name": "Michigan Meat Association",
+   "org_url": "https://www.michiganmeatassociation.org/",
+   "directory_url": "https://www.michiganmeatassociation.org/members-only",
+   "access": "gated",
+   "notes": "No public member directory; site exposes only 'Become a Member' and a members-only login area (Wix). MDARD's meat processing resources page (michigan.gov/mdard/food-dairy/industry-resources/meat-processing-regulations-and-resources) links regulatory info but no public establishment list was found within budget."
+  },
+  "MT": {
+   "org_name": "Montana Meat Processors Association (MMPA)",
+   "org_url": "https://www.mtmmpa.com/",
+   "directory_url": "https://www.mtmmpa.com/mmpa-members",
+   "access": "open",
+   "notes": "Public members page: 48 member businesses with city and (often) website; no phone numbers published. Includes some out-of-state members (ID, OR, WA, WY, ND) recorded with their own state codes. Central Wyoming College listed Riverton (recorded as WY)."
+  },
+  "IL": {
+   "org_name": "Illinois Association of Meat Processors (IAMP)",
+   "org_url": "https://ilmeat.com/",
+   "directory_url": "https://ilmeat.com/membership/plant-members/",
+   "access": "open",
+   "notes": "Public Plant Members directory with 86 listings (name, city, phone, service categories) on one page; a separate Suppliers Members directory exists. Legacy domain illinoismeatprocessors.com redirects to ilmeat.com."
+  },
+  "TX": {
+   "org_name": "Texas Association of Meat Processors (TAMP)",
+   "org_url": "http://www.txmeatprocessors.org/",
+   "directory_url": "https://www.dshs.texas.gov/sites/default/files/meat/files/msa-establishments-by-grant-type-1-30-2026.xlsx",
+   "access": "open",
+   "notes": "TAMP (AAMP affiliate) publishes no public member roster on its site. Processors extracted from the Texas DSHS Meat Safety Assurance establishments-by-grant-type spreadsheet (state list, dated 1-30-2026), state-inspected 'Grant of Inspection' sheet; list truncated at 150 of ~194 inspected establishments (custom-exempt and voluntary sheets not included). Landing page: https://www.dshs.texas.gov/meat-safety/inspections-exemptions-meat-safety"
+  },
+  "OK": {
+   "org_name": "Oklahoma-Texas Meat Processors Association (OTMPA)",
+   "org_url": "https://otmpa.org/",
+   "directory_url": "https://ag.ok.gov/wp-content/uploads/2021/10/Meat-and-Poultry-Establishment.xlsx",
+   "access": "open",
+   "notes": "OTMPA (AAMP affiliate for OK, joint with TX) has no member directory on its site. Processors extracted from Oklahoma Dept of Agriculture, Food & Forestry (ODAFF) Meat and Poultry Establishment spreadsheet (state-inspected, custom-exempt, and Talmadge-Aiken sheets; file dated ~2021, may be stale). ODAFF food safety page: https://ag.ok.gov/divisions/food-safety/"
+  },
+  "KS": {
+   "org_name": "Kansas Meat Processors Association (KMPA)",
+   "org_url": "https://www.kmpaonline.org/",
+   "directory_url": "https://www.kmpaonline.org/members-only",
+   "access": "gated",
+   "notes": "KMPA site has no public member roster; directory sits behind a Members Only section. Second source exists: Kansas Dept of Agriculture Meat & Poultry Inspection program page (https://www.agriculture.ks.gov/divisions-programs/meat-poultry-inspection) links to Inspected Slaughter/Processing Facilities (.../home/showpublisheddocument/15500/...) and Custom Exempt Facilities (.../15498/...) documents, but both downloads returned Akamai 403 Access Denied from this environment."
+  },
+  "MO": {
+   "org_name": "Missouri Association of Meat Processors (MAMP)",
+   "org_url": "https://www.mamp.co/",
+   "directory_url": "https://www.mamp.co/find-a-processor",
+   "access": "open",
+   "notes": "MAMP Find a Processor page links a public XLSX ('Operators Processors as of May 8 2026', https://www.mamp.co/_files/ugd/c17b4e_3db0b09813be4ebaa261d9e4192355e4.xlsx) plus a PDF map. All 125 operator-member rows extracted; a few members are out-of-state (state field kept as listed)."
+  },
+  "AR": {
+   "org_name": "Arkansas Cattlemen's Association (no dedicated AR meat processors association found; not an AAMP affiliate state)",
+   "org_url": "https://www.arbeef.org/",
+   "directory_url": "https://www.arbeef.org/processing-plant-directory",
+   "access": "open",
+   "notes": "No Arkansas meat processors association exists (AAMP lists no AR affiliate). Best public registry is the Arkansas Cattlemen's Association Processing Plant Directory, organized by 9 areas; 48 listed facilities extracted (mix of custom and USDA plants)."
+  },
+  "LA": {
+   "org_name": "Louisiana Meat Processors Association (LAMPA)",
+   "org_url": "https://lampa.biz/",
+   "directory_url": "https://assets.ctfassets.net/pc5e1rlgfrov/55ftWyyyK1aKWji8VvwkXB/bd2541fdcb9e9b53308478000d417226/red-meat-slaughter-plants.pdf",
+   "access": "open",
+   "notes": "LAMPA (lampa.biz, also louisianameatprocessors.org per AAMP) publishes no member directory. Processors extracted from Louisiana Dept of Agriculture & Forestry (LDAF) 'State Inspected Red Meat Slaughter Plants' PDF (15 plants, dated 3/7/2023); LDAF meat/poultry page: https://www.ldaf.la.gov/food/selling/meat-poultry"
+  },
+  "CO": {
+   "org_name": "Colorado Association of Meat Processors",
+   "org_url": "https://www.facebook.com/ColoradoAssociationofMeatProcessors/",
+   "directory_url": "https://data.colorado.gov/widgets/j7n8-rm2z",
+   "access": "open",
+   "notes": "CO association (AAMP affiliate, Lake George CO, 719-748-5450) has no website or public roster - Facebook page only. Processors extracted from Colorado Information Marketplace 'Custom Meat Processors' open dataset (CDA-licensed custom processors, API https://data.colorado.gov/resource/j7n8-rm2z.json). Caution: dataset appears last refreshed ~2018 (all license_expires_on = 2018-12-31); no phone numbers in dataset."
+  },
+  "WY": {
+   "org_name": "Wyoming Meat Processors Association",
+   "org_url": "http://www.wympa.com/",
+   "directory_url": "https://wyoleg.gov/InterimCommittee/2023/S37-2023092003-02WDAMeatFlyer.pdf",
+   "access": "open",
+   "notes": "WMPA (Riverton WY) website wympa.com no longer resolves (DNS failure) - association appears inactive online. Processors extracted from Wyoming Dept of Agriculture 'Slaughter Operations in Wyoming' flyer (county-by-county list of custom, state-inspected, and USDA plants, current as of Summer 2023). WDA meat program page: https://agriculture.wy.gov/meat-poultry (its own 'statecustomplants' PDF contains only compliance forms, no list)."
+  },
+  "NM": {
+   "org_name": "New Mexico Association of Meat Processors (NMAMP)",
+   "org_url": "https://www.nmamp.info/",
+   "directory_url": "https://www.nmamp.info/members",
+   "access": "gated",
+   "notes": "NMAMP is a cooperative formed in 2024 (not an AAMP affiliate). Its Members page shows only a contact form and Join Us button - no public roster. No state plant list found either: NM Livestock Board regained state meat inspection authority via the 2024 Meat Inspection Act but publishes no processor directory yet. Contact: nmampcooperative@gmail.com, 575-554-2168."
+  },
+  "FL": {
+   "org_name": "Southeastern Meat Association (SEMA) - AAMP state affiliate for Florida (regional Southeast association headquartered in FL)",
+   "org_url": "https://www.southeasternmeat.com/",
+   "directory_url": "https://www.southeasternmeat.com/member-area-login/member-list-login",
+   "access": "gated",
+   "notes": "Member list requires login. ~300 member companies claimed. Contact: Rochelle Sapp, Exec Director, (910) 240-3210, info@southeasternmeat.com. FL has no state meat inspection program."
+  },
+  "GA": {
+   "org_name": "Georgia Cattlemen's Association - Processing Plant Directory",
+   "org_url": "https://www.georgiacattlemen.org/",
+   "directory_url": "https://www.georgiacattlemen.org/programs-and-resources/processing-plant-directory",
+   "access": "open",
+   "notes": "59 plants extracted. GA Dept of Ag licensed meat plants PDF is a scanned image (unparseable)."
+  },
+  "AL": {
+   "org_name": "Sweet Grown Alabama (ADAI branding program) - processor list",
+   "org_url": "https://www.sweetgrownalabama.org/",
+   "directory_url": "https://www.sweetgrownalabama.org/posts/2024/05/20/localprocessor",
+   "access": "open",
+   "notes": "Only 4 processors extractable. Auburn Extension custom slaughter directory PDF fetch failed."
+  },
+  "MS": {
+   "org_name": "Mississippi Dept of Agriculture & Commerce - Meat Inspection Division",
+   "org_url": "https://www.mdac.ms.gov/bureaus-departments/regulatory-services/meat-inspection/",
+   "directory_url": "https://agnet.mdac.ms.gov/website/map_MeatEstablishment",
+   "access": "open",
+   "notes": "60 inspected establishments extracted from MDAC map table. Division: (601) 359-1191."
+  },
+  "TN": {
+   "org_name": "Pick Tennessee Products - TN Dept of Agriculture meat processors directory",
+   "org_url": "https://www.picktnproducts.org/",
+   "directory_url": "https://www.picktnproducts.org/find-products/meatseafood/meatprocessors.html",
+   "access": "blocked",
+   "notes": "Dynamic search UI, no static listings extractable without JS."
+  },
+  "KY": {
+   "org_name": "Kentucky Association of Meat Processors (KAMP) - AAMP affiliate",
+   "org_url": "https://www.kymeatprocessors.org/",
+   "directory_url": "https://kaomp.wildapricot.org/Members",
+   "access": "gated",
+   "notes": "KAMP directory gated (Jennifer Hardin, (502) 641-6782). 31 processors extracted from KY Dept of Ag USDA FSIS Processors Directory PDF instead."
+  },
+  "SC": {
+   "org_name": "SC Meat-Poultry Inspection Department (SCMPID), Clemson University",
+   "org_url": "https://www.clemson.edu/public/lph/scmpid/",
+   "directory_url": "https://www.clemson.edu/public/lph/scmpid/establishments.html",
+   "access": "pdf",
+   "notes": "Establishment lists on clemson.box.com require JS Box viewer; unparseable. SCMPID: 803-788-8747."
+  },
+  "NC": {
+   "org_name": "North Carolina Meat Processors Association, Inc. (NCMPA) - AAMP affiliate",
+   "org_url": "https://www.ncmpa.com/",
+   "directory_url": "https://www.ncmpa.com/processor-members/",
+   "access": "open",
+   "notes": "23 public processor members extracted. Candace Cansler, (828) 465-4900."
+  },
+  "VA": {
+   "org_name": "Virginia Beef Industry Council - Virginia Processors 2024 directory",
+   "org_url": "https://www.vabeef.org/",
+   "directory_url": "https://www.vabeef.org/Media/VABeef/Docs/virginia-processors-2024.pdf",
+   "access": "open",
+   "notes": "28 processors extracted from PDF."
+  },
+  "WV": {
+   "org_name": "West Virginia Dept of Agriculture - Meat and Poultry Inspection Division",
+   "org_url": "https://agriculture.wv.gov/",
+   "directory_url": "https://agriculture.wv.gov/wp-content/uploads/Commercial-List.pdf",
+   "access": "open",
+   "notes": "29 entries from WVDA commercial list PDF (July 2025). Some phones lack area codes."
+  },
+  "NY": {
+   "org_name": "None (Cornell Small Farms / MeatSuite directory)",
+   "org_url": "https://smallfarms.cornell.edu/resources/slaughterhouse-map/",
+   "directory_url": "https://www.meatsuite.com/processor/",
+   "access": "blocked",
+   "notes": "MeatSuite is a zip-search DB, no static list. NYS Ag & Markets Article 5-A licenses, no public list."
+  },
+  "PA": {
+   "org_name": "Pennsylvania Association of Meat Processors (PAMP)",
+   "org_url": "https://pameatprocessors.org/",
+   "directory_url": "https://pameatprocessors.org/business-directory",
+   "access": "gated",
+   "notes": "Member directory password-protected; 4 legacy public listings extracted. 844-599-7267, PAMP@pameatprocessors.org."
+  },
+  "OH": {
+   "org_name": "Ohio Association of Meat Processors (OAMP)",
+   "org_url": "https://oamp.org/",
+   "directory_url": "https://oamp.org/membership-directory/",
+   "access": "blocked",
+   "notes": "Locatoraid zip locator, not scrapeable. ODA regulates ~272 state establishments. (740) 828-9900."
+  },
+  "IN": {
+   "org_name": "Indiana Meat Packers & Processors Association (IMPPA)",
+   "org_url": "https://imppa.org/",
+   "directory_url": "https://imppa.org/member-directory/",
+   "access": "open",
+   "notes": "Public directory; ~96 plant members extracted (some KY/MI/OH members). Second source: BOAH MPI establishments PDF."
+  },
+  "NJ": {
+   "org_name": "NJ Food Processors Association (no meat-specific assoc)",
+   "org_url": "https://www.njfoodprocessors.org/",
+   "directory_url": "https://njfpa.memberclicks.net/assets/docs/2025/membership%20list%20as%20of%206.13.2025.pdf",
+   "access": "open",
+   "notes": "Members are mostly non-meat; no processor entries recorded. NJ is USDA-only."
+  },
+  "CT": {
+   "org_name": "CT Dept of Agriculture / UConn regional slaughterhouse list",
+   "org_url": "https://portal.ct.gov/doag",
+   "directory_url": "https://portal.ct.gov/-/media/DOAG/Farm_to_School_images_/SLAUGHTERHOUSESUCONN2015pdf.pdf",
+   "access": "open",
+   "notes": "Regional PDF (2015 vintage) covering CT + nearby states."
+  },
+  "MA": {
+   "org_name": "None (MDAR/MDPH regulate; regional CT list covers MA)",
+   "org_url": "https://www.mass.gov/orgs/massachusetts-department-of-agricultural-resources",
+   "directory_url": "https://portal.ct.gov/-/media/DOAG/Farm_to_School_images_/SLAUGHTERHOUSESUCONN2015pdf.pdf",
+   "access": "open",
+   "notes": "Entries from regional CT DoAg PDF."
+  },
+  "VT": {
+   "org_name": "VT Sheep & Goat Association slaughter facilities list",
+   "org_url": "https://vtsheepandgoat.org/",
+   "directory_url": "https://vtsheepandgoat.org/vt-slaughter-facilities/",
+   "access": "open",
+   "notes": "VT runs state inspection (VAAFM). Fuller Feb-2026 Grand List PDF returned HTTP 409."
+  },
+  "NH": {
+   "org_name": "NH Farm Bureau USDA-inspected processor list",
+   "org_url": "https://www.nhfarmbureau.org/",
+   "directory_url": "https://www.nhfarmbureau.org/agriculture/usda-inspected-meat-processing-facilities/",
+   "access": "open",
+   "notes": "No state inspection program."
+  },
+  "ME": {
+   "org_name": "Maine DACF Red Meat & Poultry Inspection Program",
+   "org_url": "https://www.maine.gov/dacf/qar/inspection_programs/red_meat_poultry_inspection.shtml",
+   "directory_url": "https://www.maine.gov/dacf/qar/inspection_programs/documents/mmpi/State%20and%20USDA%20Inspected%20Establishments%202025.pdf",
+   "access": "open",
+   "notes": "Official 2025 establishments PDF parsed (33 entries). Custom establishments PDF also exists. (207) 287-3841."
+  },
+  "RI": {
+   "org_name": "None (RIRLA producer group; regional CT list covers RI)",
+   "org_url": "http://www.rirla.org/",
+   "directory_url": "https://portal.ct.gov/-/media/DOAG/Farm_to_School_images_/SLAUGHTERHOUSESUCONN2015pdf.pdf",
+   "access": "open",
+   "notes": "No state inspection program."
+  },
+  "MD": {
+   "org_name": "University of Maryland Extension facilities list",
+   "org_url": "https://extension.umd.edu/",
+   "directory_url": "https://extension.umd.edu/resource/slaughter-and-process-facilities-maryland",
+   "access": "open",
+   "notes": "58 facilities extracted from on-page tables. USDA-only state."
+  },
+  "DE": {
+   "org_name": "None found (Delmarva Chicken Assoc, DE Beef Advisory Board)",
+   "org_url": "https://www.dcachicken.com/",
+   "directory_url": "",
+   "access": "none-found",
+   "notes": "No processor registry found. USDA-only state."
+  },
+  "CA": {
+   "org_name": "California Association of Meat Processors (CAMP)",
+   "org_url": "https://calmeat.com/",
+   "directory_url": "https://calmeat.com/find-a-butcher",
+   "access": "open",
+   "notes": "Public Find A Butcher directory; 71 entries (few NV/SD members). (916) 223-1840."
+  },
+  "OR": {
+   "org_name": "Northwest Meat Processors Association (NWMPA)",
+   "org_url": "https://nwmpa.com/",
+   "directory_url": "https://nwmpa.com/membership/",
+   "access": "gated",
+   "notes": "Regional WA/OR/ID/UT affiliate; member login only. ODA/OSU lists exist but not fetched. (971) 267-5402."
+  },
+  "WA": {
+   "org_name": "Northwest Meat Processors Association (NWMPA)",
+   "org_url": "https://nwmpa.com/",
+   "directory_url": "https://agr.wa.gov/departments/business-and-marketing-support/small-farm/meat-and-poultry-assistance/directory",
+   "access": "gated",
+   "notes": "NWMPA gated; WSDA directory is dynamically rendered, not extractable."
+  },
+  "ID": {
+   "org_name": "NWMPA (assoc) / Idaho Preferred directory (source)",
+   "org_url": "https://nwmpa.com/",
+   "directory_url": "https://idahopreferred.com/meat-processors-directory/",
+   "access": "open",
+   "notes": "39 entries from Idaho Preferred (ISDA marketing program); no phones in source."
+  },
+  "NV": {
+   "org_name": "None found",
+   "org_url": "",
+   "directory_url": "",
+   "access": "none-found",
+   "notes": "NV joined state MPI program Nov 2025; no public roster. MeatInspection@agri.nv.gov / 775-710-1723."
+  },
+  "UT": {
+   "org_name": "NWMPA (UT processors joined 2023)",
+   "org_url": "https://nwmpa.com/",
+   "directory_url": "https://ag.utah.gov/animal-industry/meat-and-poultry-inspection/",
+   "access": "gated",
+   "notes": "UDAF embeds a Google Map of facilities; no extractable list."
+  },
+  "AZ": {
+   "org_name": "None found",
+   "org_url": "",
+   "directory_url": "https://agriculture.az.gov/animal-services/animal-services-inspections/meat-and-poultry-inspections",
+   "access": "none-found",
+   "notes": "AZ Dept of Ag page returned 403. 2014 custom-exempt roster PDF on nichemeatprocessing.org."
+  },
+  "AK": {
+   "org_name": "None found",
+   "org_url": "https://dnr.alaska.gov/ag/alaskagrown",
+   "directory_url": "",
+   "access": "none-found",
+   "notes": "Alaska Grown directory includes some meat packers; no clean registry."
+  },
+  "HI": {
+   "org_name": "Hawaii Dept of Agriculture ADD compilation",
+   "org_url": "https://dab.hawaii.gov/add/",
+   "directory_url": "https://dab.hawaii.gov/add/files/2026/04/MD-26-137-HI-AG-industry-associations.a.pdf",
+   "access": "open",
+   "notes": "4 slaughter/processing operations listed; not comprehensive."
+  },
+  "US": {
+   "org_name": "American Association of Meat Processors (AAMP)",
+   "org_url": "https://aamp.com/",
+   "directory_url": "https://aamp.com/Login.aspx",
+   "access": "gated",
+   "notes": "Membership directory is members-only. State affiliates page lists ~22 affiliate associations."
+  }
+ }
+}
