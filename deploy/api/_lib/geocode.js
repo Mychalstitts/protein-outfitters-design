@@ -213,27 +213,41 @@ export async function geocode({ city, state, zip }) {
   return null;
 }
 
-/** Backfill geocoding for any farms/processors missing lat/lng. */
+/** Backfill geocoding for any farms/processors missing lat/lng.
+ *
+ * Time-budgeted: stops cleanly ~35s in and reports partial progress, instead
+ * of being killed mid-batch by the serverless timeout. Adds a small delay
+ * between fresh Nominatim lookups (cache hits skip it) to respect the
+ * 1 req/sec upstream policy — hammering it just produces failures.
+ */
 export async function backfillEntity(table) {
   if (!['farms', 'processors'].includes(table)) throw new Error('Invalid table');
-  const sqlTbl = table === 'farms' ? sql`farms` : sql`processors`;
   // Fetch rows missing coords. Using string interpolation safe because table is whitelisted.
   const rows = table === 'farms'
     ? await sql`SELECT id, city, state, zip FROM farms WHERE lat IS NULL OR lng IS NULL LIMIT 200`
     : await sql`SELECT id, city, state, zip FROM processors WHERE lat IS NULL OR lng IS NULL LIMIT 200`;
+  const deadline = Date.now() + 35000;
   let resolved = 0;
   let failed = 0;
+  let scanned = 0;
   for (const row of rows) {
+    if (Date.now() > deadline) break;
+    scanned++;
+    const t0 = Date.now();
     const r = await geocode({ city: row.city, state: row.state, zip: row.zip });
-    if (!r) { failed++; continue; }
-    if (table === 'farms') {
-      await sql`UPDATE farms SET lat = ${r.lat}, lng = ${r.lng} WHERE id = ${row.id}`;
-    } else {
-      await sql`UPDATE processors SET lat = ${r.lat}, lng = ${r.lng} WHERE id = ${row.id}`;
+    const wasFresh = Date.now() - t0 > 300; // cache hits return in a few ms
+    if (!r) { failed++; }
+    else {
+      if (table === 'farms') {
+        await sql`UPDATE farms SET lat = ${r.lat}, lng = ${r.lng} WHERE id = ${row.id}`;
+      } else {
+        await sql`UPDATE processors SET lat = ${r.lat}, lng = ${r.lng} WHERE id = ${row.id}`;
+      }
+      resolved++;
     }
-    resolved++;
+    if (wasFresh) await new Promise(res => setTimeout(res, 1100));
   }
-  return { table, scanned: rows.length, resolved, failed };
+  return { table, scanned, remaining_in_batch: rows.length - scanned, resolved, failed };
 }
 
 /**

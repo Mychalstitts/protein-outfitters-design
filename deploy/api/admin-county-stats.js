@@ -24,12 +24,23 @@
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { backfillEntity } from './_lib/geocode.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'nodejs', maxDuration: 60 };
 
 const TIGER = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/13/query';
 const ACS = 'https://api.census.gov/data/2023/acs/acs5';
 const NASS = 'https://quickstats.nass.usda.gov/api/api_GET/';
 const SQ_M_PER_SQ_MI = 2589988.11;
+
+// The TIGERweb Counties layer carries state as a FIPS code (no STUSAB field).
+const FIPS_TO_STATE = {
+  '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT','10':'DE','11':'DC',
+  '12':'FL','13':'GA','15':'HI','16':'ID','17':'IL','18':'IN','19':'IA','20':'KS','21':'KY',
+  '22':'LA','23':'ME','24':'MD','25':'MA','26':'MI','27':'MN','28':'MS','29':'MO','30':'MT',
+  '31':'NE','32':'NV','33':'NH','34':'NJ','35':'NM','36':'NY','37':'NC','38':'ND','39':'OH',
+  '40':'OK','41':'OR','42':'PA','44':'RI','45':'SC','46':'SD','47':'TN','48':'TX','49':'UT',
+  '50':'VT','51':'VA','53':'WA','54':'WV','55':'WI','56':'WY','60':'AS','66':'GU','69':'MP',
+  '72':'PR','78':'VI',
+};
 
 async function ensureTable() {
   await sql`
@@ -53,39 +64,40 @@ async function ensureTable() {
 
 async function fetchJson(url, label) {
   const r = await fetch(url, { signal: AbortSignal.timeout(25000), headers: { 'Accept': 'application/json' } });
-  if (!r.ok) throw new Error(`${label} HTTP ${r.status}`);
-  return r.json();
+  const text = await r.text();
+  if (!r.ok) throw new Error(`${label} HTTP ${r.status}: ${text.slice(0, 120)}`);
+  let data;
+  try { data = JSON.parse(text); }
+  catch { throw new Error(`${label} returned non-JSON: ${text.slice(0, 120)}`); }
+  // ArcGIS reports errors inside a 200 response.
+  if (data && data.error) throw new Error(`${label} error: ${JSON.stringify(data.error).slice(0, 160)}`);
+  return data;
 }
 
 // ── Census: county centroids + land area + population ────────
 async function importCensus() {
   await ensureTable();
 
-  // 1) TIGERweb: paged attribute query, no geometry.
+  // 1) TIGERweb: one attribute query, no geometry (layer allows 100k records).
   const counties = {}; // fips → row
-  for (let offset = 0; offset < 4000; offset += 1000) {
-    const u = new URL(TIGER);
-    u.searchParams.set('where', '1=1');
-    u.searchParams.set('outFields', 'GEOID,BASENAME,STUSAB,CENTLAT,CENTLON,AREALAND');
-    u.searchParams.set('returnGeometry', 'false');
-    u.searchParams.set('resultOffset', String(offset));
-    u.searchParams.set('resultRecordCount', '1000');
-    u.searchParams.set('f', 'json');
-    const page = await fetchJson(u, 'TIGERweb');
-    const feats = page.features || [];
-    for (const f of feats) {
-      const a = f.attributes || {};
-      if (!a.GEOID) continue;
-      counties[a.GEOID] = {
-        fips: a.GEOID,
-        name: a.BASENAME || '',
-        state: a.STUSAB || '',
-        lat: parseFloat(a.CENTLAT),
-        lng: parseFloat(a.CENTLON),
-        land_sq_mi: a.AREALAND ? a.AREALAND / SQ_M_PER_SQ_MI : null,
-      };
-    }
-    if (feats.length < 1000) break;
+  const u = new URL(TIGER);
+  u.searchParams.set('where', '1=1');
+  u.searchParams.set('outFields', 'GEOID,BASENAME,STATE,CENTLAT,CENTLON,AREALAND');
+  u.searchParams.set('returnGeometry', 'false');
+  u.searchParams.set('resultRecordCount', '4000');
+  u.searchParams.set('f', 'json');
+  const page = await fetchJson(u, 'TIGERweb');
+  for (const f of page.features || []) {
+    const a = f.attributes || {};
+    if (!a.GEOID) continue;
+    counties[a.GEOID] = {
+      fips: a.GEOID,
+      name: a.BASENAME || '',
+      state: FIPS_TO_STATE[a.STATE] || a.STATE || '',
+      lat: parseFloat(a.CENTLAT),
+      lng: parseFloat(a.CENTLON),
+      land_sq_mi: a.AREALAND ? a.AREALAND / SQ_M_PER_SQ_MI : null,
+    };
   }
 
   // 2) ACS 5-year population, all counties in one call.
