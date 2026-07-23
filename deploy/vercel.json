@@ -3,44 +3,150 @@
     "cleanUrls": true,
     "trailingSlash": false,
     "rewrites": [
-          { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" },
-          { "source": "/p/:slug", "destination": "/api/processor-meta?slug=:slug" }
+        {
+            "source": "/farm/:slug",
+            "destination": "/api/farm-meta?slug=:slug"
+        },
+        {
+            "source": "/p/:slug",
+            "destination": "/api/processor-meta?slug=:slug"
+        }
     ],
     "redirects": [
-          { "source": "/:path*", "has": [{ "type": "host", "value": "protein-outfitters-app1.vercel.app" }], "destination": "https://www.proteinoutfitters.com/:path*", "permanent": false },
-          { "source": "/:path*", "has": [{ "type": "host", "value": "protein-outfitters-design-3nci.vercel.app" }], "destination": "https://www.proteinoutfitters.com/:path*", "permanent": false },
-          { "source": "/:path*", "has": [{ "type": "host", "value": "protein-outfitters-design-ycmd.vercel.app" }], "destination": "https://www.proteinoutfitters.com/:path*", "permanent": false },
-          { "source": "/produced",           "destination": "/producers",        "permanent": true  },
-          { "source": "/r/:code",            "destination": "/?ref=:code",       "permanent": false },
-          { "source": "/find-processors",    "destination": "/map",              "permanent": false },
-          { "source": "/find-processors/:path*", "destination": "/map",           "permanent": false },
-          { "source": "/find-suppliers",     "destination": "/discover",         "permanent": false },
-          { "source": "/find-suppliers/:path*", "destination": "/discover",      "permanent": false },
-          { "source": "/admin/opportunities","destination": "/trends",           "permanent": false },
-          { "source": "/saved",              "destination": "/account",          "permanent": false },
-          { "source": "/legal/privacy",      "destination": "/policies/privacy", "permanent": false },
-          { "source": "/legal/terms",        "destination": "/policies/terms",   "permanent": false },
-          { "source": "/privacy",            "destination": "/policies/privacy", "permanent": false },
-          { "source": "/terms",              "destination": "/policies/terms",   "permanent": false }
+        {
+            "source": "/:path*",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "protein-outfitters-app1.vercel.app"
+                }
+            ],
+            "destination": "https://www.proteinoutfitters.com/:path*",
+            "permanent": false
+        },
+        {
+            "source": "/:path*",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "protein-outfitters-design-3nci.vercel.app"
+                }
+            ],
+            "destination": "https://www.proteinoutfitters.com/:path*",
+            "permanent": false
+        },
+        {
+            "source": "/:path*",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "protein-outfitters-design-ycmd.vercel.app"
+                }
+            ],
+            "destination": "https://www.proteinoutfitters.com/:path*",
+            "permanent": false
+        },
+        {
+            "source": "/produced",
+            "destination": "/producers",
+            "permanent": true
+        },
+        {
+            "source": "/r/:code",
+            "destination": "/?ref=:code",
+            "permanent": false
+        },
+        {
+            "source": "/find-processors",
+            "destination": "/map",
+            "permanent": false
+        },
+        {
+            "source": "/find-processors/:path*",
+            "destination": "/map",
+            "permanent": false
+        },
+        {
+            "source": "/find-suppliers",
+            "destination": "/discover",
+            "permanent": false
+        },
+        {
+            "source": "/find-suppliers/:path*",
+            "destination": "/discover",
+            "permanent": false
+        },
+        {
+            "source": "/admin/opportunities",
+            "destination": "/trends",
+            "permanent": false
+        },
+        {
+            "source": "/saved",
+            "destination": "/account",
+            "permanent": false
+        },
+        {
+            "source": "/legal/privacy",
+            "destination": "/policies/privacy",
+            "permanent": false
+        },
+        {
+            "source": "/legal/terms",
+            "destination": "/policies/terms",
+            "permanent": false
+        },
+        {
+            "source": "/privacy",
+            "destination": "/policies/privacy",
+            "permanent": false
+        },
+        {
+            "source": "/terms",
+            "destination": "/policies/terms",
+            "permanent": false
+        }
     ],
     "crons": [
-          { "path": "/api/email-tick",                  "schedule": "0 14 * * *"   },
-          { "path": "/api/annual-donor-acknowledgment", "schedule": "0 15 15 1 *"  }
+        {
+            "path": "/api/email-tick",
+            "schedule": "0 14 * * *"
+        },
+        {
+            "path": "/api/annual-donor-acknowledgment",
+            "schedule": "0 15 15 1 *"
+        },
+        {
+            "path": "/api/cron-geocode",
+            "schedule": "30 14 * * *"
+        }
     ],
     "headers": [
-          {
-                  "source": "/(.*)",
-                  "headers": [
-                            { "key": "X-Frame-Options",        "value": "SAMEORIGIN" },
-                            { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" },
-                            { "key": "X-Content-Type-Options", "value": "nosniff" }
-                  ]
-          },
-          {
-                  "source": "/theme.css",
-                  "headers": [
-                            { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
-                  ]
-          }
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "X-Frame-Options",
+                    "value": "SAMEORIGIN"
+                },
+                {
+                    "key": "Referrer-Policy",
+                    "value": "strict-origin-when-cross-origin"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                }
+            ]
+        },
+        {
+            "source": "/theme.css",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=3600, must-revalidate"
+                }
+            ]
+        }
     ]
 }
