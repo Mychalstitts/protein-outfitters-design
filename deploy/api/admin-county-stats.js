@@ -81,6 +81,11 @@ async function fetchJson(url, label) {
 // need no key at all.
 const GAZETTEER_ZIP = 'https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2024_Gazetteer/2024_Gaz_counties_national.zip';
 const PEP_CSV = 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/co-est2024-alldata.csv';
+// Population-WEIGHTED county centers (where people actually live), so heat
+// and hotspot markers land on the metro, not the geometric middle of the
+// county (e.g. LA County's weighted center is downtown LA; its geometric
+// center is in the Angeles National Forest).
+const CENPOP_CSV = 'https://www2.census.gov/geo/docs/reference/cenpop2020/county/CenPop2020_Mean_CO.txt';
 
 async function fetchBuffer(url, label) {
   const r = await fetch(url, { signal: AbortSignal.timeout(25000) });
@@ -152,7 +157,29 @@ async function importCensus() {
     };
   }
 
-  // 2) PEP county population estimates CSV (latin-1 for accented names).
+  // 2) Population-weighted centers override the geometric internal points
+  //    wherever available (CT's redrawn planning regions fall back to the
+  //    gazetteer point).
+  let weighted = 0;
+  try {
+    const cenLines = (await fetchBuffer(CENPOP_CSV, 'CenPop')).toString('latin1').split('\n');
+    const cenHdr = csvSplit(cenLines[0]).map(s => s.trim());
+    const ci = Object.fromEntries(cenHdr.map((h, i) => [h, i]));
+    for (const line of cenLines.slice(1)) {
+      const p = csvSplit(line);
+      if (p.length < cenHdr.length) continue;
+      const fips = p[ci.STATEFP].padStart(2, '0') + p[ci.COUNTYFP].padStart(3, '0');
+      const row = counties[fips];
+      if (!row) continue;
+      const lat = parseFloat(p[ci.LATITUDE]);
+      const lng = parseFloat(p[ci.LONGITUDE]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        row.lat = lat; row.lng = lng; weighted++;
+      }
+    }
+  } catch { /* fall back to gazetteer internal points */ }
+
+  // 3) PEP county population estimates CSV (latin-1 for accented names).
   const pepBuf = await fetchBuffer(PEP_CSV, 'PEP');
   const pepLines = pepBuf.toString('latin1').split('\n');
   const pepHdr = csvSplit(pepLines[0]).map(s => s.trim());
@@ -172,7 +199,7 @@ async function importCensus() {
     matched++;
   }
 
-  // 3) Chunked upsert.
+  // 4) Chunked upsert.
   const all = Object.values(counties).filter(c => Number.isFinite(c.lat) && Number.isFinite(c.lng));
   for (let i = 0; i < all.length; i += 500) {
     const chunk = all.slice(i, i + 500).map(c => ({
@@ -191,7 +218,7 @@ async function importCensus() {
         pop_density = EXCLUDED.pop_density,
         updated_at = NOW()`;
   }
-  return { counties: all.length, population_matched: matched };
+  return { counties: all.length, population_matched: matched, population_weighted_centers: weighted };
 }
 
 // ── NASS: county livestock inventory for one state ───────────

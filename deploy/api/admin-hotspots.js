@@ -208,6 +208,45 @@ function rawScore(demandScore, supplyScore, requireBoth) {
   return requireBoth ? Math.sqrt(demandScore * supplyScore) : demandScore + supplyScore;
 }
 
+// Score one point against the full point sets within radius. Used for every
+// grid candidate and for zip-centered focus analysis.
+function scoreAt(lat, lng, radiusMiles, demand, supply, capacity) {
+  const metrics = EMPTY_METRICS();
+  let demandScore = 0, supplyScore = 0, capacityCount = 0;
+  const labels = new Map();
+  for (const p of demand) {
+    if (distanceMi(lat, lng, p.lat, p.lng) <= radiusMiles) {
+      demandScore += p.weight;
+      accumulate(metrics, p.counts);
+      if (p.label) labels.set(p.label, (labels.get(p.label) || 0) + p.weight);
+    }
+  }
+  for (const p of supply) {
+    if (distanceMi(lat, lng, p.lat, p.lng) <= radiusMiles) {
+      supplyScore += p.weight;
+      accumulate(metrics, p.counts);
+      if (p.label) labels.set(p.label, (labels.get(p.label) || 0) + p.weight);
+    }
+  }
+  let nearestProcessor = Infinity;
+  for (const p of capacity) {
+    const d = distanceMi(lat, lng, p.lat, p.lng);
+    if (d <= radiusMiles) capacityCount++;
+    if (d < nearestProcessor) nearestProcessor = d;
+  }
+  let label = null, best = 0;
+  for (const [k, v] of labels) if (v > best) { best = v; label = k; }
+  return {
+    label,
+    demand_score: Math.round(demandScore * 10) / 10,
+    supply_score: Math.round(supplyScore * 10) / 10,
+    capacity_count: capacityCount,
+    nearest_processor_miles: nearestProcessor === Infinity ? null : Math.round(nearestProcessor),
+    metrics,
+    _demand: demandScore, _supply: supplyScore,
+  };
+}
+
 // ── Radius-cluster hotspots ────────────────────────────────────
 function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth) {
   const activity = demand.concat(supply);
@@ -231,44 +270,19 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, req
 
   const scored = [];
   for (const c of candidates) {
-    const metrics = EMPTY_METRICS();
-    let demandScore = 0, supplyScore = 0, capacityCount = 0;
-    const labels = new Map();
-    for (const p of demand) {
-      if (distanceMi(c.lat, c.lng, p.lat, p.lng) <= radiusMiles) {
-        demandScore += p.weight;
-        accumulate(metrics, p.counts);
-        if (p.label) labels.set(p.label, (labels.get(p.label) || 0) + p.weight);
-      }
-    }
-    for (const p of supply) {
-      if (distanceMi(c.lat, c.lng, p.lat, p.lng) <= radiusMiles) {
-        supplyScore += p.weight;
-        accumulate(metrics, p.counts);
-        if (p.label) labels.set(p.label, (labels.get(p.label) || 0) + p.weight);
-      }
-    }
-    let nearestProcessor = Infinity;
-    for (const p of capacity) {
-      const d = distanceMi(c.lat, c.lng, p.lat, p.lng);
-      if (d <= radiusMiles) capacityCount++;
-      if (d < nearestProcessor) nearestProcessor = d;
-    }
-
-    const raw = rawScore(demandScore, supplyScore, requireBoth);
+    const s = scoreAt(c.lat, c.lng, radiusMiles, demand, supply, capacity);
+    const raw = rawScore(s._demand, s._supply, requireBoth);
     if (raw <= 0) continue;
-    let label = null, best = 0;
-    for (const [k, v] of labels) if (v > best) { best = v; label = k; }
     scored.push({
       lat: Math.round(c.lat * 1e5) / 1e5,
       lng: Math.round(c.lng * 1e5) / 1e5,
-      label,
-      demand_score: Math.round(demandScore * 10) / 10,
-      supply_score: Math.round(supplyScore * 10) / 10,
-      capacity_count: capacityCount,
-      nearest_processor_miles: nearestProcessor === Infinity ? null : Math.round(nearestProcessor),
-      metrics,
-      _score: raw / (1 + capacityCount),
+      label: s.label,
+      demand_score: s.demand_score,
+      supply_score: s.supply_score,
+      capacity_count: s.capacity_count,
+      nearest_processor_miles: s.nearest_processor_miles,
+      metrics: s.metrics,
+      _score: raw / (1 + s.capacity_count),
     });
   }
 
@@ -333,13 +347,13 @@ function computeStateRanking(demand, supply, capacity, maxHotspots, requireBoth)
 }
 
 function finalize(kept) {
-  const top = kept.length ? kept[0]._score : 1;
+  const top = kept.length ? kept[0]._score : 0;
   kept.forEach((h, i) => {
     h.rank = i + 1;
     h.opportunity_score = Math.round((top ? 100 * h._score / top : 0) * 10) / 10;
     delete h._score;
   });
-  return kept;
+  return { hotspots: kept, top };
 }
 
 // ── Snap-style heat points ─────────────────────────────────────
@@ -407,9 +421,40 @@ async function handler(req) {
     const requireBoth = [...layers].some(l => DEMAND_LAYERS.has(l))
                      && [...layers].some(l => SUPPLY_LAYERS.has(l));
 
-    const hotspots = scope === 'nationwide'
+    const { hotspots, top } = scope === 'nationwide'
       ? computeStateRanking(demand, supply, capacity, Math.max(maxHotspots, 51), requireBoth)
       : computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth);
+
+    // Zip-centered focus: score a market area centered exactly on the given
+    // zip, comparable to the ranked list (normalized against the same top).
+    let focus = null;
+    const centerZip = (url.searchParams.get('center') || '').trim().slice(0, 5);
+    if (/^\d{5}$/.test(centerZip)) {
+      const g = await geocode({ zip: centerZip }).catch(() => null);
+      if (g) {
+        const fRadius = scope === 'nationwide' ? 100 : radiusMiles;
+        const s = scoreAt(g.lat, g.lng, fRadius, demand, supply, capacity);
+        const raw = rawScore(s._demand, s._supply, requireBoth);
+        const fScore = raw / (1 + s.capacity_count);
+        const denom = Math.max(top, fScore) || 1;
+        focus = {
+          zip: centerZip,
+          lat: Math.round(g.lat * 1e5) / 1e5,
+          lng: Math.round(g.lng * 1e5) / 1e5,
+          radius_miles: fRadius,
+          label: s.label,
+          opportunity_score: Math.round((100 * fScore / denom) * 10) / 10,
+          demand_score: s.demand_score,
+          supply_score: s.supply_score,
+          capacity_count: s.capacity_count,
+          nearest_processor_miles: s.nearest_processor_miles,
+          metrics: s.metrics,
+        };
+      } else {
+        focus = { zip: centerZip, error: 'Could not locate that zip code' };
+      }
+    }
+
     // Heat damping radius: for nationwide use 100mi so the gradient still
     // reads locally rather than one state-sized blob.
     const heat = buildHeat(demand, supply, capacity, scope === 'nationwide' ? 100 : radiusMiles);
@@ -418,6 +463,7 @@ async function handler(req) {
       radius_miles: scope === 'nationwide' ? null : radiusMiles,
       layers: [...layers],
       capacity_mode: capacityMode,
+      focus,
       hotspots, heat, totals,
     });
   } catch (e) {

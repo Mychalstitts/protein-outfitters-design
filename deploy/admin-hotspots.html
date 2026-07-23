@@ -26,9 +26,12 @@
   .hs-toggle { display:inline-flex; background:#fff; border:1.5px solid rgba(6,27,14,.18); border-radius: 999px; padding: 3px; }
   .hs-toggle button { font: 700 13px/1 var(--ff-sans); padding: 8px 16px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-2); cursor: pointer; }
   .hs-toggle button.on { background: #061b0e; color: #fbf9f5; }
+  .hs-controls input#hsZip { font: 700 14px/1 var(--ff-sans); padding: 10px 12px; border-radius: 12px; border: 1.5px solid rgba(6,27,14,.18); width: 96px; background: #fff; color: var(--ink); }
+  .hs-go { font: 700 13px/1 var(--ff-sans); padding: 10px 16px; border-radius: 999px; border: 1.5px solid #061b0e; background: #061b0e; color: #fbf9f5; cursor: pointer; }
+  .hs-go.secondary { background: #fff; color: #061b0e; }
 
   .hs-legend { position: absolute; bottom: 16px; left: 16px; z-index: 500; background: rgba(255,255,255,.92); border-radius: 12px; padding: 10px 14px; box-shadow: 0 2px 8px rgba(6,27,14,.12); }
-  .hs-legend .bar { width: 160px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #fed976, #feb24c, #fd8d3c, #f03b20, #bd0026, #67000d); }
+  .hs-legend .bar { width: 160px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #388e3c, #66bb6a, #d4e157, #fdd835, #fb8c00, #f4511e, #c62828); }
   .hs-legend .labs { display:flex; justify-content:space-between; font: 700 10px/1 var(--ff-sans); letter-spacing:.05em; text-transform:uppercase; color: var(--ink-2); margin-top: 6px; }
 
   .hs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
@@ -140,6 +143,10 @@
         <option value="500">500 miles</option>
         <option value="nationwide">Nationwide</option>
       </select>
+      <label for="hsZip">Center on zip</label>
+      <input id="hsZip" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="e.g. 56601" />
+      <button type="button" class="hs-go" id="hsZipGo">Go</button>
+      <button type="button" class="hs-go secondary" id="hsZipClear" style="display:none;">Clear</button>
     </div>
   </div>
   <details class="hs-filters" id="hsFilters">
@@ -181,6 +188,10 @@
   const modeWrap = document.getElementById('hsMode');
   const lensSel = document.getElementById('hsLens');
   const capSel = document.getElementById('hsCapacity');
+  const zipInput = document.getElementById('hsZip');
+  const zipGo = document.getElementById('hsZipGo');
+  const zipClear = document.getElementById('hsZipClear');
+  let centerZip = null;
   const layerBoxes = [...document.querySelectorAll('#hsFilters input[data-layer]')];
   let map = null, circleLayer = null, heatLayer = null, lastData = null;
   let mode = 'heat';
@@ -208,13 +219,17 @@
     return { layers, capacity: capSel.value };
   }
 
+  // Snap Map palette: cool green where activity is light or well covered,
+  // through yellow and orange, into red where demand stacks up with no
+  // processors. Stops are close together so the blend stays smooth.
   const HEAT_GRADIENT = {
-    0.10: 'rgba(254,217,118,0.7)',
-    0.30: '#feb24c',
-    0.50: '#fd8d3c',
-    0.70: '#f03b20',
-    0.88: '#bd0026',
-    1.00: '#67000d',
+    0.08: 'rgba(56,142,60,0.45)',
+    0.25: '#66bb6a',
+    0.42: '#d4e157',
+    0.56: '#fdd835',
+    0.70: '#fb8c00',
+    0.84: '#f4511e',
+    1.00: '#c62828',
   };
   const scoreColor = (s) => `hsl(${Math.max(0, 42 - (s / 100) * 42)}, 88%, 44%)`;
   const fmt = (n) => Number(n || 0).toLocaleString('en-US');
@@ -233,6 +248,7 @@
     let qs = v === 'nationwide' ? 'scope=nationwide' : `radius_miles=${v}`;
     if (f.layers.length) qs += `&layers=${f.layers.join(',')}`;
     qs += `&capacity=${f.capacity}`;
+    if (centerZip) qs += `&center=${centerZip}`;
     let res;
     try {
       const ctrl = new AbortController();
@@ -277,7 +293,7 @@
               <div class="bar"></div>
               <div class="labs">${data.capacity_mode === 'none'
                 ? '<span>Sparse</span><span>Dense</span>'
-                : '<span>Covered</span><span>Needs a processor</span>'}</div>
+                : '<span>Cool · covered</span><span>Hot · needs processing</span>'}</div>
             </div>
           </div>
           <div class="hs-data-card">
@@ -302,7 +318,7 @@
     }).addTo(map);
 
     heatLayer = L.heatLayer((data.heat || []), {
-      radius: 34, blur: 26, maxZoom: 9, max: 1.0, minOpacity: 0.2,
+      radius: 32, blur: 30, maxZoom: 9, max: 1.0, minOpacity: 0.12,
       gradient: HEAT_GRADIENT,
     });
     circleLayer = L.layerGroup();
@@ -334,6 +350,30 @@
     });
     if (hs.length && !nationwide) {
       map.fitBounds(L.latLngBounds(hs.map(h => [h.lat, h.lng])).pad(0.3), { maxZoom: 8 });
+    }
+
+    // Zip-centered focus: dashed ring + marker, drawn above both layers.
+    const focus = data.focus;
+    if (focus && !focus.error) {
+      const fc = L.circle([focus.lat, focus.lng], {
+        radius: focus.radius_miles * 1609.34,
+        color: '#061b0e', fillColor: '#061b0e', fillOpacity: 0.05,
+        weight: 2.5, dashArray: '8 6',
+      }).addTo(map);
+      const fPopup = `
+        <h4>Zip ${focus.zip}${focus.label ? ' · near ' + focus.label : ''} — score ${focus.opportunity_score}</h4>
+        <div class="hs-pop-row"><span>Market radius</span><strong>${focus.radius_miles} mi</strong></div>
+        <div class="hs-pop-row"><span>Population</span><strong>${fmt(focus.metrics.population)}</strong></div>
+        <div class="hs-pop-row"><span>Livestock head</span><strong>${fmt(focus.metrics.livestock)}</strong></div>
+        <div class="hs-pop-row"><span>Buyers · reservations</span><strong>${fmt(focus.metrics.buyers)} · ${fmt(focus.metrics.reservations)}</strong></div>
+        <div class="hs-pop-row"><span>Farms · listings</span><strong>${fmt(focus.metrics.farms)} · ${fmt(focus.metrics.listings)}</strong></div>
+        <div class="hs-pop-row"><span>Processors in radius</span><strong>${fmt(focus.capacity_count)}</strong></div>
+        <div class="hs-pop-row"><span>Nearest processor</span><strong>${focus.nearest_processor_miles == null ? '—' : focus.nearest_processor_miles + ' mi'}</strong></div>`;
+      fc.bindPopup(fPopup);
+      map.setView([focus.lat, focus.lng], focus.radius_miles > 150 ? 5 : (focus.radius_miles > 60 ? 6 : 8));
+      setTimeout(() => fc.openPopup(), 300);
+    } else if (focus && focus.error) {
+      L.popup().setLatLng(map.getCenter()).setContent(`<strong>${focus.error}</strong> (${focus.zip})`).openOn(map);
     }
 
     const list = document.getElementById('hsList');
@@ -501,6 +541,19 @@
       refreshDataStatus();
     };
   }
+
+  function goZip() {
+    const z = (zipInput.value || '').trim();
+    if (!/^\d{5}$/.test(z)) { zipInput.focus(); return; }
+    centerZip = z;
+    zipClear.style.display = '';
+    load();
+  }
+  zipGo.addEventListener('click', goZip);
+  zipInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') goZip(); });
+  zipClear.addEventListener('click', () => {
+    centerZip = null; zipInput.value = ''; zipClear.style.display = 'none'; load();
+  });
 
   radiusSel.addEventListener('change', load);
   lensSel.addEventListener('change', () => { applyLens(lensSel.value); load(); });
