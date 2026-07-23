@@ -4,7 +4,10 @@
 //     radius_miles,
 //     hotspots: [{ rank, lat, lng, label, opportunity_score, demand_score,
 //                  supply_score, capacity_count, nearest_processor_miles,
-//                  metrics: { buyers, reservations, farms, listings, processors } }],
+//                  metrics: { buyers, reservations, farms, listings } }],
+//     heat: [[lat, lng, intensity 0..1], ...],   // Snap-style heat layer:
+//              each demand/supply point weighted by how UNDER-served its
+//              location is (fewer processors nearby → hotter/darker red)
 //     totals: { buyers, buyers_geocoded, reservations, farms, farms_geocoded,
 //               listings, processors, processors_geocoded, hardware_leads },
 //   }
@@ -227,6 +230,34 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
   return kept;
 }
 
+// Snap-style heat points: every demand/supply point, weighted by how
+// under-served its own location is. A reservation with zero processors
+// within the radius burns dark red; the same reservation next to a dozen
+// processors barely glows. Demand counts fully, supply at half weight —
+// the map is demand-led, but supply still warms an area.
+function buildHeat(demand, supply, capacity, radiusMiles) {
+  const pts = [];
+  let max = 0;
+  const push = (p, scale) => {
+    let capNear = 0;
+    for (const c of capacity) {
+      if (distanceMi(p.lat, p.lng, c.lat, c.lng) <= radiusMiles) capNear++;
+    }
+    const intensity = (p.weight * scale) / (1 + capNear);
+    if (intensity <= 0) return;
+    if (intensity > max) max = intensity;
+    pts.push({ lat: p.lat, lng: p.lng, intensity });
+  };
+  for (const p of demand) push(p, 1);
+  for (const p of supply) push(p, 0.5);
+  if (!max) return [];
+  return pts.map(p => [
+    Math.round(p.lat * 1e5) / 1e5,
+    Math.round(p.lng * 1e5) / 1e5,
+    Math.round((p.intensity / max) * 1000) / 1000,
+  ]);
+}
+
 async function handler(req) {
   if (req.method !== 'GET') return err(405, 'Method not allowed');
   const user = await currentUser(req).catch(() => null);
@@ -240,7 +271,8 @@ async function handler(req) {
   try {
     const { demand, supply, capacity, totals } = await loadPoints();
     const hotspots = computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots);
-    return json({ radius_miles: radiusMiles, hotspots, totals });
+    const heat = buildHeat(demand, supply, capacity, radiusMiles);
+    return json({ radius_miles: radiusMiles, hotspots, heat, totals });
   } catch (e) {
     return err(500, 'admin-hotspots failed: ' + (e.message || 'unknown').slice(0, 200));
   }

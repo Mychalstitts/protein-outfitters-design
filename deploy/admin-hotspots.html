@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="./po-shell.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <style>
   body { background: #fbf9f5; color: var(--ink); }
   .hs-shell { max-width: 1280px; margin: 0 auto; padding: 28px var(--shell-pad) 80px; }
@@ -19,9 +20,16 @@
   .hs-head .eyebrow { font: 800 12px/1 var(--ff-sans); letter-spacing:.18em; text-transform:uppercase; color: var(--ink-2); margin: 0 0 8px; }
   .hs-head p { font: 500 15px/1.5 var(--ff-sans); color: var(--ink-2); margin: 6px 0 0; max-width: 640px; }
 
-  .hs-controls { display:flex; align-items:center; gap:10px; }
+  .hs-controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .hs-controls label { font: 700 12px/1 var(--ff-sans); letter-spacing:.06em; text-transform:uppercase; color: var(--ink-2); }
   .hs-controls select { font: 700 14px/1 var(--ff-sans); padding: 10px 14px; border-radius: 12px; border: 1.5px solid rgba(6,27,14,.18); background:#fff; color: var(--ink); cursor:pointer; }
+  .hs-toggle { display:inline-flex; background:#fff; border:1.5px solid rgba(6,27,14,.18); border-radius: 999px; padding: 3px; }
+  .hs-toggle button { font: 700 13px/1 var(--ff-sans); padding: 8px 16px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-2); cursor: pointer; }
+  .hs-toggle button.on { background: #061b0e; color: #fbf9f5; }
+
+  .hs-legend { position: absolute; bottom: 16px; left: 16px; z-index: 500; background: rgba(255,255,255,.92); border-radius: 12px; padding: 10px 14px; box-shadow: 0 2px 8px rgba(6,27,14,.12); }
+  .hs-legend .bar { width: 160px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #fed976, #feb24c, #fd8d3c, #f03b20, #bd0026, #67000d); }
+  .hs-legend .labs { display:flex; justify-content:space-between; font: 700 10px/1 var(--ff-sans); letter-spacing:.05em; text-transform:uppercase; color: var(--ink-2); margin-top: 6px; }
 
   .hs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
   .hs-stat { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
@@ -90,6 +98,10 @@
          A processor who buys PO hardware inside a hotspot inherits built-in demand from day one.</p>
     </div>
     <div class="hs-controls">
+      <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
+        <button type="button" data-mode="heat" class="on">Heatmap</button>
+        <button type="button" data-mode="zones">Zones</button>
+      </div>
       <label for="hsRadius">Market radius</label>
       <select id="hsRadius">
         <option value="25">25 miles</option>
@@ -109,7 +121,21 @@
 (function () {
   const root = document.getElementById('hsContent');
   const radiusSel = document.getElementById('hsRadius');
-  let map = null, circleLayer = null, selectedRank = null, lastData = null;
+  const modeWrap = document.getElementById('hsMode');
+  let map = null, circleLayer = null, heatLayer = null, selectedRank = null, lastData = null;
+  let mode = 'heat'; // 'heat' (Snap-style gradient) | 'zones' (analysis circles)
+  let setMode = () => {}; // bound inside render() once layers exist
+
+  // Snap Map-style gradient: light red-orange for light activity, deep dark
+  // red where demand stacks up with no processors nearby.
+  const HEAT_GRADIENT = {
+    0.10: 'rgba(254,217,118,0.7)',
+    0.30: '#feb24c',
+    0.50: '#fd8d3c',
+    0.70: '#f03b20',
+    0.88: '#bd0026',
+    1.00: '#67000d',
+  };
 
   // Opportunity score (0–100) → heat color, amber to deep red.
   const scoreColor = (s) => {
@@ -163,7 +189,13 @@
         <div class="hs-stat"><p class="lab">Hardware leads</p><div class="v">${t.hardware_leads || 0}<small>via /hardware</small></div></div>
       </div>
       <div class="hs-cols">
-        <div class="hs-map-card"><div id="hsMap"></div></div>
+        <div class="hs-map-card" style="position:relative;">
+          <div id="hsMap"></div>
+          <div class="hs-legend">
+            <div class="bar"></div>
+            <div class="labs"><span>Covered</span><span>Needs a processor</span></div>
+          </div>
+        </div>
         <div class="hs-list-card">
           <h2>Ranked opportunities<small>${hs.length} market area${hs.length === 1 ? '' : 's'}</small></h2>
           <div class="hs-list" id="hsList"></div>
@@ -179,9 +211,26 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18,
     }).addTo(map);
-    circleLayer = L.layerGroup().addTo(map);
+
+    // Snap-style heat layer — intensity already encodes demand × processor
+    // shortage server-side, so the gradient reads directly as "how badly
+    // this area needs a processor".
+    heatLayer = L.heatLayer((data.heat || []).map(h => [h[0], h[1], h[2]]), {
+      radius: 42, blur: 30, maxZoom: 9, max: 1.0, minOpacity: 0.25,
+      gradient: HEAT_GRADIENT,
+    });
+    circleLayer = L.layerGroup();
+    (mode === 'heat' ? heatLayer : circleLayer).addTo(map);
 
     const radiusMeters = (data.radius_miles || 50) * 1609.34;
+    const popupHtml = (h) => `
+        <h4>#${h.rank} ${h.label || 'Market area'} — score ${h.opportunity_score}</h4>
+        <div class="hs-pop-row"><span>Buyers</span><strong>${h.metrics.buyers}</strong></div>
+        <div class="hs-pop-row"><span>Reservations</span><strong>${h.metrics.reservations}</strong></div>
+        <div class="hs-pop-row"><span>Farms</span><strong>${h.metrics.farms}</strong></div>
+        <div class="hs-pop-row"><span>Active listings</span><strong>${h.metrics.listings}</strong></div>
+        <div class="hs-pop-row"><span>Processors in radius</span><strong>${h.capacity_count}</strong></div>
+        <div class="hs-pop-row"><span>Nearest processor</span><strong>${h.nearest_processor_miles == null ? '—' : h.nearest_processor_miles + ' mi'}</strong></div>`;
     const circles = {};
     hs.forEach((h) => {
       const color = scoreColor(h.opportunity_score);
@@ -191,14 +240,7 @@
         fillOpacity: 0.22 + 0.3 * (h.opportunity_score / 100),
         weight: 2,
       }).addTo(circleLayer);
-      c.bindPopup(`
-        <h4>#${h.rank} ${h.label || 'Market area'} — score ${h.opportunity_score}</h4>
-        <div class="hs-pop-row"><span>Buyers</span><strong>${h.metrics.buyers}</strong></div>
-        <div class="hs-pop-row"><span>Reservations</span><strong>${h.metrics.reservations}</strong></div>
-        <div class="hs-pop-row"><span>Farms</span><strong>${h.metrics.farms}</strong></div>
-        <div class="hs-pop-row"><span>Active listings</span><strong>${h.metrics.listings}</strong></div>
-        <div class="hs-pop-row"><span>Processors in radius</span><strong>${h.capacity_count}</strong></div>
-        <div class="hs-pop-row"><span>Nearest processor</span><strong>${h.nearest_processor_miles == null ? '—' : h.nearest_processor_miles + ' mi'}</strong></div>`);
+      c.bindPopup(popupHtml(h));
       c.on('click', () => selectRow(h.rank, false));
       circles[h.rank] = c;
     });
@@ -232,12 +274,31 @@
       list.querySelectorAll('.hs-row').forEach(r =>
         r.classList.toggle('active', Number(r.dataset.rank) === rank));
       const h = hs.find(x => x.rank === rank);
-      if (h && fly) map.flyTo([h.lat, h.lng], 8, { duration: 0.8 });
-      if (circles[rank]) circles[rank].openPopup();
+      if (!h) return;
+      if (fly) map.flyTo([h.lat, h.lng], 8, { duration: 0.8 });
+      if (mode === 'zones' && circles[rank]) {
+        circles[rank].openPopup();
+      } else {
+        // Heat mode: circles aren't on the map, open a standalone popup.
+        L.popup().setLatLng([h.lat, h.lng]).setContent(popupHtml(h)).openOn(map);
+      }
     }
+
+    setMode = function (next) {
+      if (next === mode) return;
+      mode = next;
+      modeWrap.querySelectorAll('button').forEach(b =>
+        b.classList.toggle('on', b.dataset.mode === mode));
+      if (mode === 'heat') { map.removeLayer(circleLayer); heatLayer.addTo(map); }
+      else { map.removeLayer(heatLayer); circleLayer.addTo(map); }
+    };
   }
 
   radiusSel.addEventListener('change', load);
+  modeWrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-mode]');
+    if (btn) setMode(btn.dataset.mode);
+  });
   load();
 })();
 </script>
