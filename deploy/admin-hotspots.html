@@ -71,6 +71,14 @@
   .hs-btn.secondary { background: #fff; color: #061b0e; }
   #hsDataLog { font: 500 12px/1.5 var(--ff-mono, monospace); color: var(--ink-2); background: #f4f1ea; border-radius: 10px; padding: 10px 12px; margin-top: 10px; max-height: 120px; overflow-y: auto; white-space: pre-wrap; display: none; }
 
+  .hs-filters { margin: -6px 0 18px; }
+  .hs-filters summary { font: 700 12.5px/1 var(--ff-sans); letter-spacing:.05em; text-transform:uppercase; color: var(--ink-2); cursor: pointer; padding: 6px 0; user-select: none; }
+  .hs-filters-body { display:flex; gap: 26px; flex-wrap: wrap; background:#fff; border-radius: 14px; padding: 14px 18px; margin-top: 8px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
+  .hs-filters .grp { display:flex; align-items:center; gap: 12px; flex-wrap: wrap; }
+  .hs-filters .grp-lab { font: 800 11px/1 var(--ff-sans); letter-spacing:.1em; text-transform:uppercase; color: var(--ink-2); }
+  .hs-filters label { font: 600 13px/1 var(--ff-sans); display:flex; align-items:center; gap: 6px; cursor:pointer; }
+  .hs-filters select { font: 700 13px/1 var(--ff-sans); padding: 8px 12px; border-radius: 10px; border: 1.5px solid rgba(6,27,14,.18); background:#fff; cursor:pointer; }
+
   .hs-note { font: 500 12.5px/1.6 var(--ff-sans); color: var(--ink-2); margin-top: 14px; }
   .empty { padding: 32px 12px; text-align: center; color: var(--ink-2); font: 500 14px/1.5 var(--ff-sans); }
   .empty img { width: 56px; height: 56px; border-radius: 12px; display: block; margin: 0 auto 12px; opacity: .55; }
@@ -114,6 +122,15 @@
         <button type="button" data-mode="heat" class="on">Heatmap</button>
         <button type="button" data-mode="zones">Zones</button>
       </div>
+      <label for="hsLens">Lens</label>
+      <select id="hsLens">
+        <option value="opportunity" selected>Hardware opportunity</option>
+        <option value="population">Population density</option>
+        <option value="farmdensity">Farm &amp; livestock density</option>
+        <option value="underserved">Underserved demand</option>
+        <option value="network">Platform network</option>
+        <option value="custom">Custom…</option>
+      </select>
       <label for="hsRadius">Market area</label>
       <select id="hsRadius">
         <option value="25">25 miles</option>
@@ -125,6 +142,31 @@
       </select>
     </div>
   </div>
+  <details class="hs-filters" id="hsFilters">
+    <summary>Layer &amp; competition filters</summary>
+    <div class="hs-filters-body">
+      <div class="grp">
+        <span class="grp-lab">Demand layers</span>
+        <label><input type="checkbox" data-layer="population" checked> Population</label>
+        <label><input type="checkbox" data-layer="buyers" checked> App buyers</label>
+        <label><input type="checkbox" data-layer="reservations" checked> Reservations</label>
+      </div>
+      <div class="grp">
+        <span class="grp-lab">Supply layers</span>
+        <label><input type="checkbox" data-layer="livestock" checked> Livestock inventory</label>
+        <label><input type="checkbox" data-layer="farms" checked> Farms &amp; listings</label>
+      </div>
+      <div class="grp">
+        <span class="grp-lab">Competition</span>
+        <select id="hsCapacity">
+          <option value="all" selected>All known processors</option>
+          <option value="non_registry">Exclude registry imports</option>
+          <option value="platform">PO members only</option>
+          <option value="none">No competition (pure density)</option>
+        </select>
+      </div>
+    </div>
+  </details>
   <div id="hsContent">
     <div class="empty"><img src="/brand/logo-monogram.svg" alt="" />Loading hotspots…</div>
   </div>
@@ -137,9 +179,34 @@
   const root = document.getElementById('hsContent');
   const radiusSel = document.getElementById('hsRadius');
   const modeWrap = document.getElementById('hsMode');
+  const lensSel = document.getElementById('hsLens');
+  const capSel = document.getElementById('hsCapacity');
+  const layerBoxes = [...document.querySelectorAll('#hsFilters input[data-layer]')];
   let map = null, circleLayer = null, heatLayer = null, lastData = null;
   let mode = 'heat';
   let setMode = () => {};
+
+  // Lens presets — each sets which layers feed the score and what counts as
+  // competition. "Custom…" leaves the checkboxes as the user set them.
+  const LENS_PRESETS = {
+    opportunity: { layers: ['population', 'livestock', 'farms', 'buyers', 'reservations'], capacity: 'all' },
+    population:  { layers: ['population'], capacity: 'none' },
+    farmdensity: { layers: ['livestock', 'farms'], capacity: 'none' },
+    underserved: { layers: ['population', 'buyers', 'reservations'], capacity: 'all' },
+    network:     { layers: ['buyers', 'reservations', 'farms'], capacity: 'platform' },
+  };
+
+  function applyLens(name) {
+    const p = LENS_PRESETS[name];
+    if (!p) return; // custom
+    layerBoxes.forEach(cb => { cb.checked = p.layers.includes(cb.dataset.layer); });
+    capSel.value = p.capacity;
+  }
+
+  function currentFilters() {
+    const layers = layerBoxes.filter(cb => cb.checked).map(cb => cb.dataset.layer);
+    return { layers, capacity: capSel.value };
+  }
 
   const HEAT_GRADIENT = {
     0.10: 'rgba(254,217,118,0.7)',
@@ -162,7 +229,10 @@
 
   async function load() {
     const v = radiusSel.value;
-    const qs = v === 'nationwide' ? 'scope=nationwide' : `radius_miles=${v}`;
+    const f = currentFilters();
+    let qs = v === 'nationwide' ? 'scope=nationwide' : `radius_miles=${v}`;
+    if (f.layers.length) qs += `&layers=${f.layers.join(',')}`;
+    qs += `&capacity=${f.capacity}`;
     let res;
     try {
       const ctrl = new AbortController();
@@ -205,7 +275,9 @@
             <div id="hsMap"></div>
             <div class="hs-legend">
               <div class="bar"></div>
-              <div class="labs"><span>Covered</span><span>Needs a processor</span></div>
+              <div class="labs">${data.capacity_mode === 'none'
+                ? '<span>Sparse</span><span>Dense</span>'
+                : '<span>Covered</span><span>Needs a processor</span>'}</div>
             </div>
           </div>
           <div class="hs-data-card">
@@ -422,6 +494,9 @@
   }
 
   radiusSel.addEventListener('change', load);
+  lensSel.addEventListener('change', () => { applyLens(lensSel.value); load(); });
+  layerBoxes.forEach(cb => cb.addEventListener('change', () => { lensSel.value = 'custom'; load(); }));
+  capSel.addEventListener('change', () => { lensSel.value = 'custom'; load(); });
   modeWrap.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-mode]');
     if (btn) setMode(btn.dataset.mode);

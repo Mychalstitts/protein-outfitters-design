@@ -2,6 +2,16 @@
 //
 //   GET ?radius_miles=50&max_hotspots=25        → radius-cluster hotspots
 //   GET ?scope=nationwide                       → state-level ranking
+//   GET ?layers=population,livestock,...        → which signals feed the score
+//         (any of: population, livestock, farms, buyers, reservations;
+//          default = all). Lets the map show pure population density, pure
+//          farm/livestock density, platform-only activity, etc.
+//   GET ?capacity=all|platform|non_registry|none → what counts as competition
+//         all          every geocoded processor (default)
+//         platform     PO member processors only (owner_id set)
+//         non_registry exclude association-registry sweep imports — some of
+//                      those plants aren't real competition for PO's model
+//         none         ignore capacity entirely (pure density view)
 //
 // A hotspot is a market area where DEMAND and ANIMAL SUPPLY are both present
 // but processing capacity is thin — the prime target markets for PO hardware:
@@ -78,6 +88,7 @@ async function loadPoints() {
       weight: W_FARM + W_LISTING * f.listings_count,
       label: f.city ? `${f.city}, ${f.state || ''}`.replace(/, $/, '') : null,
       state: f.state || null,
+      layer: 'farms',
       counts: { farms: 1, listings: f.listings_count },
     });
   }
@@ -97,6 +108,7 @@ async function loadPoints() {
       weight: W_RESERVATION,
       label: f.city ? `${f.city}, ${f.state || ''}`.replace(/, $/, '') : null,
       state: f.state || null,
+      layer: 'reservations',
       counts: { reservations: 1 },
     });
   }
@@ -119,7 +131,7 @@ async function loadPoints() {
     }
     if (!g) continue;
     totals.buyers_geocoded++;
-    demand.push({ lat: g.lat, lng: g.lng, weight: W_BUYER, label: null, state: null, counts: { buyers: 1 } });
+    demand.push({ lat: g.lat, lng: g.lng, weight: W_BUYER, label: null, state: null, layer: 'buyers', counts: { buyers: 1 } });
   }
 
   // ── Market data: county population + livestock ────────────────
@@ -141,6 +153,7 @@ async function loadPoints() {
         lat: c.lat, lng: c.lng,
         weight: Math.sqrt(pop) / POP_DIVISOR,
         label, state: c.state,
+        layer: 'population',
         counts: { population: pop },
       });
     }
@@ -149,18 +162,26 @@ async function loadPoints() {
         lat: c.lat, lng: c.lng,
         weight: Math.sqrt(head) / LIVESTOCK_DIVISOR,
         label, state: c.state,
+        layer: 'livestock',
         counts: { livestock: head },
       });
     }
   }
 
   // ── Capacity: every geocoded processor ────────────────────────
-  const processors = await sql`SELECT id, state, lat, lng FROM processors`;
+  const processors = await sql`
+    SELECT id, state, lat, lng, owner_id,
+           (bio ILIKE 'Imported from assoc%') AS from_registry
+    FROM processors`;
   for (const p of processors) {
     totals.processors++;
     if (p.lat == null || p.lng == null) continue;
     totals.processors_geocoded++;
-    capacity.push({ lat: p.lat, lng: p.lng, state: p.state || null });
+    capacity.push({
+      lat: p.lat, lng: p.lng, state: p.state || null,
+      platform: p.owner_id != null,
+      from_registry: Boolean(p.from_registry),
+    });
   }
 
   try {
@@ -179,8 +200,16 @@ function accumulate(metrics, counts) {
   for (const k in counts) metrics[k] += counts[k];
 }
 
+// score two sides into one raw value. When both demand and supply layers are
+// selected, geometric mean (both required). When the lens is one-sided —
+// e.g. pure population density or pure farm density — score on the sum so
+// the map still ranks areas instead of zeroing out.
+function rawScore(demandScore, supplyScore, requireBoth) {
+  return requireBoth ? Math.sqrt(demandScore * supplyScore) : demandScore + supplyScore;
+}
+
 // ── Radius-cluster hotspots ────────────────────────────────────
-function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
+function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth) {
   const activity = demand.concat(supply);
   if (!activity.length) return [];
 
@@ -226,7 +255,7 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
       if (d < nearestProcessor) nearestProcessor = d;
     }
 
-    const raw = Math.sqrt(demandScore * supplyScore);
+    const raw = rawScore(demandScore, supplyScore, requireBoth);
     if (raw <= 0) continue;
     let label = null, best = 0;
     for (const [k, v] of labels) if (v > best) { best = v; label = k; }
@@ -255,7 +284,7 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots) {
 }
 
 // ── Nationwide: rank whole states ──────────────────────────────
-function computeStateRanking(demand, supply, capacity, maxHotspots) {
+function computeStateRanking(demand, supply, capacity, maxHotspots, requireBoth) {
   const states = new Map(); // state → agg
   const get = (st) => {
     if (!states.has(st)) {
@@ -285,7 +314,7 @@ function computeStateRanking(demand, supply, capacity, maxHotspots) {
 
   const scored = [];
   for (const [st, s] of states) {
-    const raw = Math.sqrt(s.demand * s.supply);
+    const raw = rawScore(s.demand, s.supply, requireBoth);
     if (raw <= 0 || !s.w) continue;
     scored.push({
       lat: Math.round((s.latW / s.w) * 1e5) / 1e5,
@@ -353,15 +382,44 @@ async function handler(req) {
   }
   const maxHotspots = Math.max(1, Math.min(Number(url.searchParams.get('max_hotspots')) || 25, 100));
 
+  // Layer + competition filters
+  const ALL_LAYERS = ['population', 'livestock', 'farms', 'buyers', 'reservations'];
+  const DEMAND_LAYERS = new Set(['population', 'buyers', 'reservations']);
+  const SUPPLY_LAYERS = new Set(['livestock', 'farms']);
+  const layersParam = (url.searchParams.get('layers') || '').split(',').map(s => s.trim()).filter(Boolean);
+  const layers = new Set(layersParam.filter(l => ALL_LAYERS.includes(l)));
+  if (!layers.size) ALL_LAYERS.forEach(l => layers.add(l));
+  const capacityMode = ['all', 'platform', 'non_registry', 'none'].includes(url.searchParams.get('capacity'))
+    ? url.searchParams.get('capacity') : 'all';
+
   try {
-    const { demand, supply, capacity, totals } = await loadPoints();
+    const loaded = await loadPoints();
+    const demand = loaded.demand.filter(p => layers.has(p.layer));
+    const supply = loaded.supply.filter(p => layers.has(p.layer));
+    let capacity = loaded.capacity;
+    if (capacityMode === 'platform') capacity = capacity.filter(p => p.platform);
+    else if (capacityMode === 'non_registry') capacity = capacity.filter(p => !p.from_registry);
+    else if (capacityMode === 'none') capacity = [];
+    const totals = { ...loaded.totals, processors_counted: capacity.length };
+
+    // One-sided lenses (pure population / pure farm density) score on the
+    // selected side alone instead of requiring both.
+    const requireBoth = [...layers].some(l => DEMAND_LAYERS.has(l))
+                     && [...layers].some(l => SUPPLY_LAYERS.has(l));
+
     const hotspots = scope === 'nationwide'
-      ? computeStateRanking(demand, supply, capacity, Math.max(maxHotspots, 51))
-      : computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots);
+      ? computeStateRanking(demand, supply, capacity, Math.max(maxHotspots, 51), requireBoth)
+      : computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth);
     // Heat damping radius: for nationwide use 100mi so the gradient still
     // reads locally rather than one state-sized blob.
     const heat = buildHeat(demand, supply, capacity, scope === 'nationwide' ? 100 : radiusMiles);
-    return json({ scope, radius_miles: scope === 'nationwide' ? null : radiusMiles, hotspots, heat, totals });
+    return json({
+      scope,
+      radius_miles: scope === 'nationwide' ? null : radiusMiles,
+      layers: [...layers],
+      capacity_mode: capacityMode,
+      hotspots, heat, totals,
+    });
   } catch (e) {
     return err(500, 'admin-hotspots failed: ' + (e.message || 'unknown').slice(0, 200));
   }
