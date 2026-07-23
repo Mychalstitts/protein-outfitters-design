@@ -31,7 +31,7 @@
   .hs-go.secondary { background: #fff; color: #061b0e; }
 
   .hs-legend { position: absolute; bottom: 16px; left: 16px; z-index: 500; background: rgba(255,255,255,.92); border-radius: 12px; padding: 10px 14px; box-shadow: 0 2px 8px rgba(6,27,14,.12); }
-  .hs-legend .bar { width: 160px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #388e3c, #66bb6a, #d4e157, #fdd835, #fb8c00, #f4511e, #c62828); }
+  .hs-legend .bar { width: 220px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #43a047, #9ccc65, #ffee58, #ffb300, #f4511e, #7f0000); }
   .hs-legend .labs { display:flex; justify-content:space-between; font: 700 10px/1 var(--ff-sans); letter-spacing:.05em; text-transform:uppercase; color: var(--ink-2); margin-top: 6px; }
 
   .hs-pin { width: 30px; height: 30px; border-radius: 999px; background: #b71c1c; border: 2.5px solid #fff;
@@ -307,7 +307,7 @@
               <div class="bar"></div>
               <div class="labs">${data.capacity_mode === 'none'
                 ? '<span>Sparse</span><span>Dense</span>'
-                : '<span>Cool · covered</span><span>Hot · needs processing</span>'}</div>
+                : '<span>Covered</span><span>Sell here</span>'}</div>
             </div>
           </div>
           <div class="hs-data-card">
