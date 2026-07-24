@@ -5,16 +5,21 @@
 //          body: { tier: 'standard' | 'premium', cadence: 'monthly' | 'annual', success_url?, cancel_url? }
 //   DELETE → cancel at period end (sets cancel_at_period_end=true; doesn't terminate immediately)
 //
-// Pricing values come from Vercel env vars so the policy decision (final
-// tier prices) can land later without a code change:
+// Price resolution order:
 //
-//   STRIPE_PRICE_STANDARD_MONTHLY   — recurring price id, e.g. price_1NX...
-//   STRIPE_PRICE_STANDARD_ANNUAL    — same, annual cadence
-//   STRIPE_PRICE_PREMIUM_MONTHLY    — same, premium tier
-//   STRIPE_PRICE_PREMIUM_ANNUAL     — same, premium annual
+//   1. Vercel env var, if set — lets you pin an exact price id:
+//        STRIPE_PRICE_STANDARD_MONTHLY / _ANNUAL
+//        STRIPE_PRICE_PREMIUM_MONTHLY  / _ANNUAL
+//   2. Stripe lookup_key (the default). The live prices carry stable keys:
+//        po_processor_standard_monthly  $79/mo
+//        po_processor_standard_annual   $758/yr  ($63/mo, 20% off)
+//        po_processor_premium_monthly   $199/mo
+//        po_processor_premium_annual    $1,910/yr ($159/mo, 20% off)
 //
-// Until those are set, the endpoint returns a clear 503 "Pricing not yet
-// configured" — the page falls back to the toast UX it has today.
+// Lookup keys mean price changes are made in Stripe alone — repricing a tier
+// is "create new price, move the lookup_key, archive the old one", with no
+// deploy and no env var edit. These amounts must stay in sync with the tier
+// cards in /processor-saas.html.
 //
 // The 'free' tier writes a row directly without touching Stripe.
 
@@ -29,11 +34,24 @@ const PRICE_KEYS = {
   'premium.annual':   'STRIPE_PRICE_PREMIUM_ANNUAL',
 };
 
-function priceFor(tier, cadence) {
+const LOOKUP_KEYS = {
+  'standard.monthly': 'po_processor_standard_monthly',
+  'standard.annual':  'po_processor_standard_annual',
+  'premium.monthly':  'po_processor_premium_monthly',
+  'premium.annual':   'po_processor_premium_annual',
+};
+
+// Env var wins when present; otherwise resolve the price by its lookup_key
+// so Stripe stays the single source of truth for the actual amount.
+async function resolvePriceId(stripe, tier, cadence) {
   const key = `${tier}.${cadence}`;
   const envKey = PRICE_KEYS[key];
-  if (!envKey) return null;
-  return process.env[envKey] || null;
+  if (envKey && process.env[envKey]) return process.env[envKey];
+
+  const lookupKey = LOOKUP_KEYS[key];
+  if (!lookupKey) return null;
+  const found = await stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 });
+  return found.data[0]?.id || null;
 }
 
 async function loadProcessorForUser(userId) {
@@ -71,7 +89,7 @@ async function handler(req) {
     return json({
       subscription: sub,
       processor: { id: processor.id, slug: processor.slug, name: processor.name },
-      pricing_configured: Object.keys(PRICE_KEYS).every(k => !!process.env[PRICE_KEYS[k]]),
+      pricing_configured: !!process.env.STRIPE_SECRET_KEY,
     });
   }
 
@@ -121,10 +139,6 @@ async function handler(req) {
     }
 
     // ── Paid tier: build Stripe Checkout session ──
-    const priceId = priceFor(tier, cadence);
-    if (!priceId) {
-      return err(503, `Pricing not yet configured: set env var ${PRICE_KEYS[`${tier}.${cadence}`]} to the Stripe price id`);
-    }
     if (!process.env.STRIPE_SECRET_KEY) {
       return err(503, 'Stripe not configured: STRIPE_SECRET_KEY missing');
     }
@@ -132,6 +146,11 @@ async function handler(req) {
     const StripeModule = await import('stripe');
     const Stripe = StripeModule.default || StripeModule;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+    const priceId = await resolvePriceId(stripe, tier, cadence);
+    if (!priceId) {
+      return err(503, `Pricing not configured: no active Stripe price with lookup_key "${LOOKUP_KEYS[`${tier}.${cadence}`]}" (or set env var ${PRICE_KEYS[`${tier}.${cadence}`]})`);
+    }
 
     // Reuse existing customer if we already have one
     const existing = await loadSubscription(processor.id);
