@@ -798,78 +798,75 @@
     };
   }
 
-  // Navionics / topo elevation of opportunity:
-  // low = deep cool blues → mid teal/green slopes → amber high ground.
-  // Pure red is NOT in this terrain layer — summits (top 20) use a separate layer.
+  // Navionics / topo: stepped elevation bands (contour-like), low bleed.
+  // Hard color stops so depths don't smear into one mud color.
   const TERRAIN_GRADIENT = {
     0.00: 'rgba(8, 24, 40, 0)',
-    0.06: '#0a3d62',
-    0.16: '#1a5276',
-    0.28: '#148f77',
-    0.40: '#1e8449',
-    0.52: '#52be80',
-    0.62: '#f4d03f',
-    0.74: '#f5b041',
-    0.86: '#e67e22',
-    0.95: '#d35400',
-    1.00: '#ca6f1e',
+    0.12: '#0a3d62',   // floor
+    0.28: '#148f77',   // low
+    0.44: '#1e8449',   // mid-low
+    0.58: '#f4d03f',   // mid
+    0.72: '#f5b041',   // mid-high
+    0.86: '#e67e22',   // high (still not red)
+    1.00: '#d35400',
   };
-  // Summit peaks only — red is earned by top-20 rank, not raw density
+  // Tight red summit — only top-20; almost no soft halo
   const SUMMIT_GRADIENT = {
     0.00: 'rgba(0,0,0,0)',
-    0.35: 'rgba(255, 152, 0, 0.25)',
-    0.55: '#ff8a65',
-    0.72: '#ef5350',
+    0.50: 'rgba(229, 57, 53, 0)',
+    0.70: '#ef5350',
     0.88: '#e53935',
     1.00: '#7f0000',
   };
   const TOP_PEAK_COUNT = 20;
+  const ELEV_BANDS = 7; // discrete contour steps
   const scoreColor = (s) => {
     const t = Math.max(0, Math.min(100, s)) / 100;
     const h = 38 - t * 38;
     return `hsl(${h}, 92%, ${48 - t * 10}%)`;
   };
 
-  /** Compress nationwide field into terrain band (never pure red). */
+  function band(v, steps) {
+    const x = Math.max(0, Math.min(1, v));
+    return Math.round(x * steps) / steps;
+  }
+
+  /** Nationwide field → stepped elevation (never pure red). Drop weak floor. */
   function buildTerrainPts(rawHeat) {
-    return (rawHeat || []).map(p => {
+    const out = [];
+    for (const p of rawHeat || []) {
       const v = Math.max(0, Math.min(1, Number(p[2]) || 0));
-      // Elevation-like curve: lots of cool floor, gradual slopes
-      const elev = 0.06 + 0.80 * Math.pow(v, 1.05);
-      return [p[0], p[1], Math.min(0.88, elev)];
-    });
+      if (v < 0.12) continue; // kill low-intensity smear
+      // Steeper curve + banding = clearer contour steps, less mud
+      const elev = band(0.18 + 0.70 * Math.pow(v, 1.35), ELEV_BANDS);
+      if (elev < 0.14) continue;
+      out.push([p[0], p[1], Math.min(0.86, elev)]);
+    }
+    return out;
   }
 
   /**
-   * Mountain peaks for top-N ranked markets only.
-   * Core + rings = 3D foothills → summit (Navionics depth / topo peak feel).
+   * Tight mountain peaks for top-N only — small footprint, sharp core.
+   * Wide rings caused the "bleed" that washed out differentiation.
    */
   function buildSummitPts(markets) {
     const tops = (markets || []).slice(0, TOP_PEAK_COUNT);
     const pts = [];
     tops.forEach((h, i) => {
-      const rankBoost = 1 - i / (TOP_PEAK_COUNT + 5); // #1 tallest
-      const peak = 0.90 + 0.10 * rankBoost;
+      const rankBoost = 1 - i / (TOP_PEAK_COUNT + 5);
+      const peak = 0.92 + 0.08 * rankBoost;
       const lat = h.lat, lng = h.lng;
-      // Summit core
+      // Dense core (stack for brightness without wide blur)
       pts.push([lat, lng, peak]);
-      pts.push([lat, lng, peak * 0.95]);
-      // Shoulder rings (elevation steps)
-      const rings = [
-        { d: 0.12, m: 0.72 },
-        { d: 0.22, m: 0.52 },
-        { d: 0.34, m: 0.34 },
-        { d: 0.48, m: 0.20 },
-      ];
-      for (const { d, m } of rings) {
-        const iv = peak * m;
-        pts.push([lat + d, lng, iv]);
-        pts.push([lat - d, lng, iv]);
-        pts.push([lat, lng + d * 1.15, iv]);
-        pts.push([lat, lng - d * 1.15, iv]);
-        pts.push([lat + d * 0.7, lng + d * 0.7, iv * 0.9]);
-        pts.push([lat - d * 0.7, lng - d * 0.7, iv * 0.9]);
-      }
+      pts.push([lat, lng, peak]);
+      pts.push([lat, lng, peak * 0.98]);
+      // Single tight shoulder ring (~6–8 mi), not 30+ mi halos
+      const d = 0.08;
+      const shoulder = peak * 0.55;
+      pts.push([lat + d, lng, shoulder]);
+      pts.push([lat - d, lng, shoulder]);
+      pts.push([lat, lng + d, shoulder]);
+      pts.push([lat, lng - d, shoulder]);
     });
     return pts;
   }
@@ -963,14 +960,14 @@
         };
         HTMLCanvasElement.prototype._poHeatCtxPatched = true;
       }
-      // Base terrain — cool lows, warm slopes (no pure red)
+      // Tight radius/blur = Navionics-style cells, not a red fog bank
       heatLayer = L.heatLayer([], {
-        radius: 40, blur: 36, maxZoom: 6, max: 1.0, minOpacity: 0.22,
+        radius: 18, blur: 12, maxZoom: 8, max: 1.0, minOpacity: 0.12,
         gradient: TERRAIN_GRADIENT,
       });
-      // Summit peaks — red only for top-20 ranked opportunities
+      // Sharp summits — small, readable peaks only
       summitLayer = L.heatLayer([], {
-        radius: 28, blur: 22, maxZoom: 7, max: 1.0, minOpacity: 0.15,
+        radius: 14, blur: 8, maxZoom: 9, max: 1.0, minOpacity: 0.08,
         gradient: SUMMIT_GRADIENT,
       });
       heatLayer.addTo(map);
