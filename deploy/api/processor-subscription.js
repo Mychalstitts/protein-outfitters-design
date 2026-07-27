@@ -41,12 +41,26 @@ const LOOKUP_KEYS = {
   'premium.annual':   'po_processor_premium_annual',
 };
 
-// Env var wins when present; otherwise resolve the price by its lookup_key
-// so Stripe stays the single source of truth for the actual amount.
+// Env var wins when present — but only if it still points at a live price.
+// The four STRIPE_PRICE_* vars were set in May against prices that have since
+// been archived ($49/$149). A pinned-but-archived price is worse than no
+// pin at all: Stripe refuses it at Checkout and the Buy button dies with a
+// message no processor can act on. So verify, then fall back to the lookup
+// key, which always tracks whatever price currently carries it.
 async function resolvePriceId(stripe, tier, cadence) {
   const key = `${tier}.${cadence}`;
   const envKey = PRICE_KEYS[key];
-  if (envKey && process.env[envKey]) return process.env[envKey];
+  const pinned = envKey ? process.env[envKey] : null;
+
+  if (pinned) {
+    try {
+      const price = await stripe.prices.retrieve(pinned);
+      if (price && price.active && price.recurring) return price.id;
+      console.warn(`[processor-subscription] ${envKey} points at ${pinned}, which is not an active recurring price — falling back to lookup_key`);
+    } catch (e) {
+      console.warn(`[processor-subscription] ${envKey} = ${pinned} could not be retrieved (${e.message}) — falling back to lookup_key`);
+    }
+  }
 
   const lookupKey = LOOKUP_KEYS[key];
   if (!lookupKey) return null;
