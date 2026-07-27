@@ -571,13 +571,28 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, req
   }
 
   scored.sort((a, b) => b._score - a._score);
+  // Geographic diversity: don't let the top-25 collapse into only the Northeast.
+  // First pass: at most one winner per ~3° cell; second pass fills remaining slots.
   const minSep = Math.max(radiusMiles * SEPARATION_FRACTION, 15);
+  const diversifyDeg = 3;
+  const cellTaken = new Set();
   const kept = [];
+  const tryKeep = (cand, enforceCell) => {
+    if (kept.some(k => distanceMi(cand.lat, cand.lng, k.lat, k.lng) <= minSep)) return false;
+    const ck = `${Math.floor(cand.lat / diversifyDeg)}:${Math.floor(cand.lng / diversifyDeg)}`;
+    if (enforceCell && cellTaken.has(ck)) return false;
+    cellTaken.add(ck);
+    kept.push(cand);
+    return true;
+  };
   for (const cand of scored) {
-    if (kept.every(k => distanceMi(cand.lat, cand.lng, k.lat, k.lng) > minSep)) {
-      kept.push(cand);
-    }
     if (kept.length >= maxHotspots) break;
+    tryKeep(cand, true);
+  }
+  for (const cand of scored) {
+    if (kept.length >= maxHotspots) break;
+    if (kept.includes(cand)) continue;
+    tryKeep(cand, false);
   }
   return finalize(kept);
 }
@@ -651,13 +666,16 @@ function finalize(kept) {
 }
 
 // ── Snap-style heat points ─────────────────────────────────────
-// Burn brightest on demand (metros / buyers). Capacity damps intensity.
-// Supply hinterland is drawn dimly so cattle country is visible without
-// competing with city peaks for "sell here" red.
+// Continuous green→yellow→orange→red field (not discrete market bubbles).
+// Capacity damps intensity. Supply is hinterland (dimmer) so demand/metros
+// still read as peaks.
 //
-// Capacity is gridded (not O(points × plants)) so the endpoint stays under
-// the serverless budget when county_stats is fully loaded.
-const HEAT_MAX_POINTS = 3500;
+// IMPORTANT: never keep only the global top-N by intensity — that wiped the
+// West / Midwest / South when Northeast metros dominated. We stratify by
+// geography so every region of the US contributes heat points.
+const HEAT_MAX_POINTS = 6000;
+const HEAT_PER_REGION = 8;          // strongest points per ~1.5° cell
+const HEAT_REGION_DEG = 1.5;
 
 function buildHeat(demand, supply, capacity, radiusMiles) {
   const cellDeg = Math.max(radiusMiles / 2.5, 12) / 69;
@@ -679,30 +697,67 @@ function buildHeat(demand, supply, capacity, radiusMiles) {
   };
 
   const pts = [];
-  let max = 0;
+  let globalMax = 0;
   const push = (p, scale) => {
     const intensity = (p.weight * scale) / (1 + nearCap(p.lat, p.lng));
     if (intensity <= 0) return;
-    if (intensity > max) max = intensity;
+    if (intensity > globalMax) globalMax = intensity;
     pts.push([p.lat, p.lng, intensity]);
   };
   for (const p of demand) push(p, HEAT_DEMAND_SCALE);
   for (const p of supply) push(p, HEAT_SUPPLY_SCALE);
-  if (!max) return [];
+  if (!globalMax || !pts.length) return [];
 
-  // Keep the strongest peaks so the payload stays small and the client stays snappy.
-  let kept = pts;
-  if (kept.length > HEAT_MAX_POINTS) {
-    kept = kept.slice().sort((a, b) => b[2] - a[2]).slice(0, HEAT_MAX_POINTS);
-    max = kept[0][2] || max;
+  // Regional max — blend with global so CA/TX/Midwest show local heat even when
+  // absolute intensity is below Northeast metros.
+  const regionMax = new Map();
+  for (const [lat, lng, i] of pts) {
+    const rk = `${Math.floor(lat / HEAT_REGION_DEG)}:${Math.floor(lng / HEAT_REGION_DEG)}`;
+    regionMax.set(rk, Math.max(regionMax.get(rk) || 0, i));
   }
 
+  // Stratified keep: top HEAT_PER_REGION per region, then fill by intensity.
+  const byRegion = new Map();
+  for (const pt of pts) {
+    const rk = `${Math.floor(pt[0] / HEAT_REGION_DEG)}:${Math.floor(pt[1] / HEAT_REGION_DEG)}`;
+    if (!byRegion.has(rk)) byRegion.set(rk, []);
+    byRegion.get(rk).push(pt);
+  }
+  const kept = [];
+  for (const arr of byRegion.values()) {
+    arr.sort((a, b) => b[2] - a[2]);
+    for (let i = 0; i < Math.min(HEAT_PER_REGION, arr.length); i++) kept.push(arr[i]);
+  }
+  if (kept.length < HEAT_MAX_POINTS) {
+    const seen = new Set(kept.map(p => `${p[0]}:${p[1]}`));
+    const rest = pts.filter(p => !seen.has(`${p[0]}:${p[1]}`)).sort((a, b) => b[2] - a[2]);
+    for (const p of rest) {
+      if (kept.length >= HEAT_MAX_POINTS) break;
+      kept.push(p);
+    }
+  } else if (kept.length > HEAT_MAX_POINTS) {
+    // Prefer geographic coverage: already stratified — trim weakest globally.
+    kept.sort((a, b) => b[2] - a[2]);
+    kept.length = HEAT_MAX_POINTS;
+  }
+
+  // Display intensity: 55% global rank + 45% regional rank → Snap-like melt
+  // across the whole country, not one glowing Northeast blob.
   return kept
-    .map(([lat, lng, i]) => [
-      Math.round(lat * 1e5) / 1e5,
-      Math.round(lng * 1e5) / 1e5,
-      Math.round((i / max) * 1000) / 1000,
-    ])
+    .map(([lat, lng, i]) => {
+      const rk = `${Math.floor(lat / HEAT_REGION_DEG)}:${Math.floor(lng / HEAT_REGION_DEG)}`;
+      const rMax = regionMax.get(rk) || globalMax;
+      const g = i / globalMax;
+      const r = rMax > 0 ? i / rMax : 0;
+      const blended = 0.55 * g + 0.45 * r;
+      // Floor so cool regions still tint green instead of vanishing
+      const intensity = Math.max(0.06, Math.min(1, blended));
+      return [
+        Math.round(lat * 1e5) / 1e5,
+        Math.round(lng * 1e5) / 1e5,
+        Math.round(intensity * 1000) / 1000,
+      ];
+    })
     .filter(p => p[2] > 0);
 }
 

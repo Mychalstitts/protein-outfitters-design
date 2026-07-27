@@ -637,8 +637,8 @@
     </div>
     <div class="hs-controls">
       <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
-        <button type="button" data-mode="heat" class="on">Heat</button>
-        <button type="button" data-mode="zones">Zones</button>
+        <button type="button" data-mode="heat" class="on">Melt heat</button>
+        <button type="button" data-mode="zones">Market rings</button>
       </div>
       <label for="hsLens">Lens</label>
       <select id="hsLens">
@@ -693,9 +693,9 @@
   <button type="button" id="hsSearchArea">Search this area</button>
 
   <div class="hs-glass hs-legend">
-    <p class="title">Intensity</p>
+    <p class="title">Opportunity heat</p>
     <div class="bar"></div>
-    <div class="labs" id="hsLegendLabs"><span>Cool</span><span>Peak</span></div>
+    <div class="labs" id="hsLegendLabs"><span>Cooler</span><span>Hottest</span></div>
   </div>
 
   <aside class="hs-glass hs-rail" id="hsRail">
@@ -786,20 +786,23 @@
     };
   }
 
-  // Snap/Strava: cool field → hot peaks. Milder exponent so mid-tier markets
-  // still glow (1.85 was crushing almost everything to invisible on the map).
+  // Snap Map melt: continuous green → yellow → orange → red (no hard circles).
+  // Soft exponent so mid-tier markets still read; red reserved for true peaks.
   const HEAT_GRADIENT = {
-    0.00: 'rgba(20,40,28,0)',
-    0.08: 'rgba(46,125,50,0.45)',
-    0.22: '#2e7d32',
-    0.38: '#9ccc65',
-    0.52: '#ffee58',
-    0.66: '#ffb300',
-    0.80: '#f4511e',
-    0.92: '#e53935',
-    1.00: '#7f0000',
+    0.00: 'rgba(27,94,32,0)',
+    0.05: 'rgba(46,125,50,0.55)',
+    0.18: '#43a047',
+    0.32: '#8bc34a',
+    0.45: '#cddc39',
+    0.55: '#ffee58',
+    0.65: '#ffc107',
+    0.75: '#ff9800',
+    0.85: '#ff5722',
+    0.93: '#e53935',
+    1.00: '#b71c1c',
   };
-  const HEAT_EXPONENT = 1.15;
+  // Gentle curve — don't crush mid intensities to invisible green soup
+  const HEAT_EXPONENT = 0.85;
   const scoreColor = (s) => {
     const t = Math.max(0, Math.min(100, s)) / 100;
     // amber → deep red
@@ -885,12 +888,11 @@
 
     if (typeof L.heatLayer === 'function') {
       heatLayer = L.heatLayer([], {
-        // Larger blobs + higher minOpacity so heat reads at US zoom (z4–7)
-        radius: 48, blur: 32, maxZoom: 7, max: 1.0, minOpacity: 0.28,
+        // Wide soft blur = Snap-style melt at continental zoom
+        radius: 42, blur: 38, maxZoom: 6, max: 1.0, minOpacity: 0.35,
         gradient: HEAT_GRADIENT,
       });
       heatLayer.addTo(map);
-      // Quiet Canvas2D willReadFrequently warning when the plugin recreates ctx
       try {
         if (heatLayer._canvas) {
           const c = heatLayer._canvas;
@@ -902,6 +904,7 @@
       heatLayer = null;
       console.warn('leaflet.heat missing — heat mode unavailable');
     }
+    // Pins only — circles live in Zones mode so Heat stays a pure melt field
     pinLayer.addTo(map);
 
     map.on('click', (e) => {
@@ -997,7 +1000,7 @@
 
     document.getElementById('hsLegendLabs').innerHTML = data.capacity_mode === 'none'
       ? '<span>Sparse</span><span>Dense</span>'
-      : '<span>Covered</span><span>Sell here</span>';
+      : '<span>Cooler</span><span>Hottest</span>';
 
     const verBadge = document.getElementById('hsVerBadge');
     if (data.model === 'metro_first_v2') {
@@ -1029,12 +1032,16 @@
       <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${fmt(t.buyers)}<small>${fmt(t.reservations)} res.</small></div></div>
       <div class="hs-stat"><p class="lab">HW leads</p><div class="v">${fmt(t.hardware_leads)}<small>/hardware</small></div></div>`;
 
-    // Heat points — boost visibility; fall back to ranked markets as heat seeds
-    let heatPts = rawHeat.map(p => [p[0], p[1], Math.pow(Math.max(0.05, Number(p[2]) || 0), HEAT_EXPONENT)]);
+    // Continuous melt field — server already geo-stratified + blended.
+    // Apply gentle curve only (points are already 0–1).
+    let heatPts = rawHeat.map(p => {
+      const v = Math.max(0, Math.min(1, Number(p[2]) || 0));
+      return [p[0], p[1], Math.pow(Math.max(0.04, v), HEAT_EXPONENT)];
+    });
     if (heatPts.length < 8 && hs.length) {
       heatPts = hs.map(h => [
         h.lat, h.lng,
-        Math.pow(Math.max(0.15, (h.opportunity_score || 50) / 100), HEAT_EXPONENT),
+        Math.pow(Math.max(0.2, (h.opportunity_score || 50) / 100), HEAT_EXPONENT),
       ]);
     }
     if (heatLayer && typeof heatLayer.setLatLngs === 'function') {
@@ -1045,12 +1052,13 @@
     clearLayers();
 
     const radiusMeters = (data.radius_miles || 100) * 1609.34;
+    // Zones layer — discrete market rings (Zones mode only on the map)
     hs.forEach((h) => {
       const color = scoreColor(h.opportunity_score);
       const c = L.circle([h.lat, h.lng], {
         radius: nationwide ? 120 * 1609.34 : radiusMeters,
         color, fillColor: color,
-        fillOpacity: 0.18 + 0.28 * (h.opportunity_score / 100),
+        fillOpacity: 0.22 + 0.32 * (h.opportunity_score / 100),
         weight: 2,
       }).addTo(circleLayer);
       c.bindPopup(popupHtml(h));
@@ -1061,7 +1069,9 @@
       circles[h.rank] = c;
     });
 
-    hs.slice(0, 10).forEach((h) => {
+    // Small rank pins — top 5 only in heat mode so melt stays the hero
+    const pinCount = mode === 'heat' ? 5 : 10;
+    hs.slice(0, pinCount).forEach((h) => {
       const pin = L.marker([h.lat, h.lng], {
         icon: L.divIcon({
           className: '',
@@ -1076,40 +1086,33 @@
       });
     });
 
-    // Heat mode: heat + pins always; also keep faint zones so the map is never "empty dark"
+    // Heat = pure melt field + light pins. Zones = circles only.
     if (mode === 'heat') {
       if (heatLayer && !map.hasLayer(heatLayer)) heatLayer.addTo(map);
       if (!map.hasLayer(pinLayer)) pinLayer.addTo(map);
-      if (hs.length && !map.hasLayer(circleLayer)) {
-        // Soft underlay so ranked markets stay visible even if heat is sparse
-        circleLayer.eachLayer((lyr) => {
-          if (lyr.setStyle) lyr.setStyle({ fillOpacity: 0.08, weight: 1, opacity: 0.35 });
-        });
-        circleLayer.addTo(map);
-      } else if (!hs.length && map.hasLayer(circleLayer)) {
-        map.removeLayer(circleLayer);
-      }
-      if (!heatLayer && hs.length && !map.hasLayer(circleLayer)) circleLayer.addTo(map);
+      if (map.hasLayer(circleLayer)) map.removeLayer(circleLayer);
+      if (!heatLayer && hs.length) circleLayer.addTo(map); // fallback if plugin missing
     } else {
       if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
       if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
       if (!map.hasLayer(circleLayer)) circleLayer.addTo(map);
-      circleLayer.eachLayer((lyr) => {
-        if (lyr.setStyle) {
-          const sc = lyr.options && lyr.options.fillOpacity;
-          lyr.setStyle({ fillOpacity: 0.18 + 0.28 * 0.5, weight: 2, opacity: 1 });
-        }
-      });
     }
 
-    // Fit to markets, else heat points, else keep US view
+    // Continental US by default so West / Midwest / South stay in frame —
+    // never zoom into only the densest Northeast cluster.
     if (!keepView && !data.focus) {
-      if (hs.length && !nationwide) {
-        map.fitBounds(L.latLngBounds(hs.map(h => [h.lat, h.lng])).pad(0.25), { maxZoom: 7, animate: true });
-      } else if (heatPts.length > 2) {
+      const usBounds = L.latLngBounds([[24.5, -125], [49.5, -66.5]]);
+      if (heatPts.length > 20) {
         try {
-          map.fitBounds(L.latLngBounds(heatPts.map(p => [p[0], p[1]])).pad(0.15), { maxZoom: 6, animate: true });
-        } catch (_) {}
+          const hb = L.latLngBounds(heatPts.map(p => [p[0], p[1]]));
+          map.fitBounds(hb.extend(usBounds.getSouthWest()).extend(usBounds.getNorthEast()).pad(0.02), {
+            maxZoom: 5, animate: true,
+          });
+        } catch (_) {
+          map.fitBounds(usBounds, { animate: true });
+        }
+      } else {
+        map.fitBounds(usBounds, { animate: true });
       }
     }
     setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 100);
