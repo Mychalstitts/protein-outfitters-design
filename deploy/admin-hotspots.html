@@ -951,6 +951,18 @@
     pinLayer = L.layerGroup();
 
     if (typeof L.heatLayer === 'function') {
+      // leaflet.heat calls getImageData on every redraw — patch 2d getContext
+      // for this page so Chrome stops spamming willReadFrequently warnings.
+      if (!HTMLCanvasElement.prototype._poHeatCtxPatched) {
+        const _origGetContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+          if (type === '2d') {
+            attrs = Object.assign({ willReadFrequently: true }, attrs || {});
+          }
+          return _origGetContext.call(this, type, attrs);
+        };
+        HTMLCanvasElement.prototype._poHeatCtxPatched = true;
+      }
       // Base terrain — cool lows, warm slopes (no pure red)
       heatLayer = L.heatLayer([], {
         radius: 40, blur: 36, maxZoom: 6, max: 1.0, minOpacity: 0.22,
@@ -963,14 +975,6 @@
       });
       heatLayer.addTo(map);
       summitLayer.addTo(map);
-      [heatLayer, summitLayer].forEach((ly) => {
-        try {
-          if (ly._canvas) {
-            const ctx = ly._canvas.getContext('2d', { willReadFrequently: true });
-            if (ctx) ly._ctx = ctx;
-          }
-        } catch (_) { /* optional */ }
-      });
     } else {
       heatLayer = null;
       summitLayer = null;

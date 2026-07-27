@@ -881,19 +881,31 @@
     document.head.appendChild(m);
   }
   function ensureAppleMeta() {
-    if (document.querySelector('meta[name="apple-mobile-web-app-capable"]')) return;
-    const a = document.createElement('meta');
-    a.name = 'apple-mobile-web-app-capable';
-    a.content = 'yes';
-    document.head.appendChild(a);
-    const b = document.createElement('meta');
-    b.name = 'apple-mobile-web-app-status-bar-style';
-    b.content = 'black-translucent';
-    document.head.appendChild(b);
-    const c = document.createElement('meta');
-    c.name = 'apple-mobile-web-app-title';
-    c.content = 'Protein Outfitters';
-    document.head.appendChild(c);
+    // Prefer the non-deprecated standard; keep apple-* for older iOS.
+    if (!document.querySelector('meta[name="mobile-web-app-capable"]')) {
+      const m = document.createElement('meta');
+      m.name = 'mobile-web-app-capable';
+      m.content = 'yes';
+      document.head.appendChild(m);
+    }
+    if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+      const a = document.createElement('meta');
+      a.name = 'apple-mobile-web-app-capable';
+      a.content = 'yes';
+      document.head.appendChild(a);
+    }
+    if (!document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')) {
+      const b = document.createElement('meta');
+      b.name = 'apple-mobile-web-app-status-bar-style';
+      b.content = 'black-translucent';
+      document.head.appendChild(b);
+    }
+    if (!document.querySelector('meta[name="apple-mobile-web-app-title"]')) {
+      const c = document.createElement('meta');
+      c.name = 'apple-mobile-web-app-title';
+      c.content = 'Protein Outfitters';
+      document.head.appendChild(c);
+    }
   }
   ensureManifestLink();
   ensureThemeColor();
