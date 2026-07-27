@@ -2,3 +2,6 @@
 node_modules/
 package-lock.json
 .DS_Store
+
+# scratch: mount cannot delete files, moved here instead
+_to_delete/

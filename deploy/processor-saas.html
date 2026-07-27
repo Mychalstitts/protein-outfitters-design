@@ -68,6 +68,25 @@
 .tier-cta { margin-top: auto; }
 
 /* FAQ */
+.rm { padding-block: var(--s-16); }
+.rm-grid { display: grid; gap: var(--s-5); grid-template-columns: 1fr; margin-top: var(--s-8); }
+@media (min-width: 900px) { .rm-grid { grid-template-columns: repeat(3, 1fr); } }
+.rm-col { background: var(--surface); border-radius: var(--r-3); padding: var(--s-6); display: flex; flex-direction: column; gap: var(--s-3); border-top: 3px solid var(--surface-2); }
+.rm-col.is-live { border-top-color: #43a047; }
+.rm-col.is-building { border-top-color: #fb8c00; }
+.rm-col.is-next { border-top-color: rgba(0,0,0,0.14); }
+.rm-status { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.rm-status h3 { margin: 0; font-size: var(--text-md); font-weight: 800; letter-spacing: var(--tracking-snug); }
+.rm-when { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.rm-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: var(--text-sm); line-height: 1.5; }
+.rm-list li { padding-left: 22px; position: relative; }
+.rm-list li::before { position: absolute; left: 0; top: 0; font-weight: 800; }
+.rm-col.is-live .rm-list li::before { content: "\2713"; color: #43a047; }
+.rm-col.is-building .rm-list li::before { content: "\25D0"; color: #fb8c00; }
+.rm-col.is-next .rm-list li::before { content: "\25CB"; color: var(--ink-3); }
+.rm-tag { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); border: 1px solid rgba(0,0,0,0.12); border-radius: 999px; padding: 1px 7px; vertical-align: 1px; }
+.rm-note { margin-top: var(--s-6); font-size: var(--text-sm); color: var(--ink-2); text-align: center; }
+.soon { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; margin-left: 4px; }
 .faq { padding-block: var(--s-16); }
 .faq h2 { text-align: center; margin-bottom: var(--s-8); }
 .faq-grid { display: grid; gap: var(--s-4); grid-template-columns: 1fr; }
@@ -193,7 +212,7 @@
         <ul class="tier-features">
           <li>Up to 4 bookings/mo</li>
           <li>Marketplace listing</li>
-          <li>QR check-in (single source of truth)</li>
+          <li>Drop-off check-in codes (single source of truth)</li>
           <li>1 staff seat</li>
           <li>Email support</li>
         </ul>
@@ -214,8 +233,8 @@
           <li>Unlimited bookings</li>
           <li>Processor calendar — Today / Week / Month / Inbox</li>
           <li>Cut-sheet config (cuts, smoking, grinding, upcharges)</li>
-          <li>Automated customer communications (52 templates)</li>
-          <li>5 staff seats</li>
+          <li>Automated customer communications (20 lifecycle emails)</li>
+          <li>5 staff seats<span class="soon">Q4</span></li>
           <li>Phone support</li>
           <li>Custom branding on emails</li>
           <li>Dropoff deposit hold + auto-release</li>
@@ -234,10 +253,10 @@
         <p class="tier-byline">For multi-shift plants and chains. 40+ bookings/mo.</p>
         <ul class="tier-features">
           <li>Everything in Standard, plus:</li>
-          <li>Multi-location support</li>
-          <li>API access</li>
-          <li>Advanced analytics + CSV/Excel exports</li>
-          <li>25 staff seats</li>
+          <li>Multi-location support<span class="soon">Q4</span></li>
+          <li>API access<span class="soon">2027</span></li>
+          <li>Advanced analytics + CSV/Excel exports<span class="soon">Q4</span></li>
+          <li>25 staff seats<span class="soon">Q4</span></li>
           <li>Same-day support SLA</li>
           <li>Dedicated CSM (customer success manager)</li>
           <li>Early access to new features</li>
@@ -265,22 +284,81 @@
           </thead>
           <tbody>
             <tr><td>Bookings per month</td><td class="text-center">4</td><td class="text-center">Unlimited</td><td class="text-center">Unlimited</td></tr>
-            <tr><td>Staff seats</td><td class="text-center">1</td><td class="text-center">5</td><td class="text-center">25</td></tr>
+            <tr><td>Staff seats <span class="soon">Q4</span></td><td class="text-center">1</td><td class="text-center">5</td><td class="text-center">25</td></tr>
             <tr><td>Marketplace listing</td><td class="text-center check">✓</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>QR check-in</td><td class="text-center check">✓</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>Outlook-style queue view</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>Cut-sheet configurator</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
-            <tr><td>Automated customer comms (52 templates)</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
+            <tr><td>Automated customer comms (20 lifecycle emails)</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>Custom branding on emails</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>Dropoff deposit hold</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
-            <tr><td>Multi-location</td><td class="text-center x">—</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
-            <tr><td>API access</td><td class="text-center x">—</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
+            <tr><td>Multi-location <span class="soon">Q4</span></td><td class="text-center x">—</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
+            <tr><td>API access <span class="soon">2027</span></td><td class="text-center x">—</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
             <tr><td>Advanced analytics + exports</td><td class="text-center x">—</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
             <tr><td>Dedicated customer success manager</td><td class="text-center x">—</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
             <tr><td>Support</td><td class="text-center">Email</td><td class="text-center">Phone</td><td class="text-center">Same-day SLA</td></tr>
           </tbody>
         </table>
       </div>
+    </div>
+  </section>
+
+  <!-- Roadmap -->
+  <section class="rm">
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="eyebrow">Product roadmap</span>
+        <h2 class="display-md">What you get today, and what lands next.</h2>
+        <p class="text-faint" style="max-width: 60ch; margin: var(--s-3) auto 0; font-size: var(--text-sm);">
+          Everything in the first column is running in production right now — not a mockup, not a promise.
+          The rest is dated so you can hold us to it.
+        </p>
+      </div>
+
+      <div class="rm-grid">
+        <div class="rm-col is-live">
+          <div class="rm-status"><h3>Shipped</h3><span class="rm-when">Live today</span></div>
+          <ul class="rm-list">
+            <li>Booking intake that blocks double-bookings and suggests your next open date</li>
+            <li>Drop-off check-in by 6-digit code — releases the deposit and notifies every share buyer</li>
+            <li>Buyer cut sheets built against <em>your</em> cut list, smoking, grinding and upcharges</li>
+            <li>Stripe Connect payouts — live balance, transfer to your bank, 1099-K trail</li>
+            <li>Your plant's public profile on the marketplace map</li>
+            <li>20 automated customer emails across the reservation lifecycle</li>
+            <li>Notification inbox with web push</li>
+            <li>Self-serve billing — 14-day trial, Stripe portal, cancel anytime</li>
+          </ul>
+        </div>
+
+        <div class="rm-col is-building">
+          <div class="rm-status"><h3>Building</h3><span class="rm-when">Now → Sept 2026</span></div>
+          <ul class="rm-list">
+            <li>Floor workflow in one tap: log hanging weight → start fabrication → mark ready → picked up</li>
+            <li>Schedule and fee pages that load what you last saved</li>
+            <li>Your own daily capacity limit, per species</li>
+            <li>Accept or reject a cut sheet so the inbox actually clears</li>
+            <li>Credential documents that stick — inspection certs, PDFs included</li>
+          </ul>
+        </div>
+
+        <div class="rm-col is-next">
+          <div class="rm-status"><h3>Next</h3><span class="rm-when">Q4 2026 → 2027</span></div>
+          <ul class="rm-list">
+            <li>Staff seats you can invite and revoke<span class="rm-tag">Standard 5 · Premium 25</span></li>
+            <li>Multi-location for chains<span class="rm-tag">Premium</span></li>
+            <li>Analytics with CSV + Excel export<span class="rm-tag">Premium</span></li>
+            <li>Reply publicly to your reviews</li>
+            <li>Deposit holds and forfeits settled through Stripe</li>
+            <li>Public API<span class="rm-tag">Premium · 2027</span></li>
+            <li>Camera QR scanning at the dock<span class="rm-tag">2027</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="rm-note">
+        Features marked for a tier arrive in that tier at no extra cost if you're already on it.
+        We'll never move something you already pay for behind a higher tier.
+      </p>
     </div>
   </section>
 
@@ -456,7 +534,7 @@
           <tr><td>Staff seats</td><td class="text-center">5</td><td class="text-center">25</td></tr>
           <tr><td>Multi-location</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
           <tr><td>API access</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
-          <tr><td>Analytics + CSV exports</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
+          <tr><td>Analytics + CSV exports <span class="soon">Q4</span></td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
           <tr><td>Dedicated CSM</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
           <tr><td>Early access to new features</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
           <tr><td>Support SLA</td><td class="text-center">Phone</td><td class="text-center">Same-day</td></tr>
