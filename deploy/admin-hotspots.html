@@ -1164,6 +1164,28 @@
       return;
     }
 
+    // Fast auth probe — don't wait on the heavy heat job just to learn you're logged out.
+    try {
+      const meCtrl = new AbortController();
+      const meT = setTimeout(() => meCtrl.abort(), 8000);
+      const meRes = await fetch('/api/auth/me', { credentials: 'include', signal: meCtrl.signal });
+      clearTimeout(meT);
+      if (gen !== loadGen) return;
+      if (meRes.ok) {
+        const meBody = await meRes.json().catch(() => ({}));
+        const u = meBody.user || meBody;
+        if (!u || !u.id) {
+          return authWall('Sign in to see heat', 'Admin account required for market intelligence.', true);
+        }
+        if (u.role && u.role !== 'admin') {
+          return authWall('Admin only', 'Signed in as ' + (u.role || 'user') + ' — this map needs an admin account.', false);
+        }
+      }
+    } catch (e) {
+      // Probe failed — still try the heat API (may work if session cookie is fine).
+      console.warn('auth probe', e);
+    }
+
     const v = radiusSel.value;
     const f = currentFilters();
     let qs = v === 'nationwide' ? 'scope=nationwide' : `radius_miles=${v}`;
@@ -1174,10 +1196,11 @@
       if (focusRadius) qs += `&focus_radius=${focusRadius}`;
     }
 
+    loadingOverlay('Fetching market heat…');
     let res;
     try {
       const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 45000);
+      const t = setTimeout(() => ctrl.abort(), 55000);
       res = await fetch(`/api/admin-hotspots?${qs}`, { credentials: 'include', signal: ctrl.signal });
       clearTimeout(t);
     } catch (e) {
@@ -1186,7 +1209,7 @@
       authWall(
         e.name === 'AbortError' ? 'Still working — timed out' : 'Network error',
         e.name === 'AbortError'
-          ? 'The heat endpoint took longer than 45s. Hit Retry — a cold start can be slow the first time.'
+          ? 'The heat endpoint took longer than 55s. Hit Retry — first load after deploy can be a cold start.'
           : ((e && e.message) || 'Could not reach the API'),
         false,
       );
@@ -1206,7 +1229,7 @@
       lastData = await res.json();
       if (gen !== loadGen) return;
       renderData();
-      hideOverlay(); // belt-and-suspenders if renderData early-returned
+      hideOverlay();
       refreshDataStatus().catch((err) => console.warn('data status', err));
     } catch (e) {
       console.error(e);
