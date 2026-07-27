@@ -7,11 +7,20 @@
 //   GET   ?listing_id=...   list bookings for a listing  (farm owner or admin)
 //   GET   ?processor_slug=  list bookings for a processor (processor owner or admin)
 //   GET   ?id=...           single booking detail (any party can read)
+//   PATCH ?id=...           advance the animal through the plant (processor owner or admin)
+//     body: { status?, hanging_weight_lbs?, pickup_window?, processor_address? }
+//     status machine: scheduled → checked-in → fabricating → ready → picked-up
+//     (scheduled/checked-in/fabricating may also go to cancelled; scheduled → no-show)
+//     Each transition stamps its own timestamp column, drags the listing's
+//     reservations along with it, and fires the matching buyer email. Setting the
+//     status it already has is a no-op that returns 200 — the ops buttons are
+//     double-tapped on phones in cold rooms.
 //
 // Deposit policy (Trello "For Myke" decision pending — using sensible defaults):
 //   $100 flat OR 10% of estimated processing, whichever is greater, capped $300.
 
 import { sql, currentUser, err, json, isUuid, nodejsHandler } from './_lib/db.js';
+import { sendLifecycleEmail } from './_lib/email.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -182,6 +191,261 @@ async function handler(req) {
     await sql`INSERT INTO checkin_codes (code, booking_id) VALUES (${code}, ${booking.id})`;
 
     return json({ booking, deposit, code });
+  }
+
+
+  if (req.method === 'PATCH') {
+    const id = url.searchParams.get('id');
+    if (!id || !isUuid(id)) return err(400, 'Valid booking id required');
+    const user = await currentUser(req);
+    if (!user) return err(401, 'Sign in required');
+    let body;
+    try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
+
+    const rows = await sql`
+      SELECT b.*,
+             p.owner_id AS processor_owner_id, p.name AS processor_name,
+             p.address AS processor_address,
+             l.number AS animal_number, l.breed, l.species,
+             l.estimated_hanging_weight,
+             f.name AS farm_name,
+             fu.email AS farmer_email, fu.name AS farmer_name,
+             d.amount AS deposit_amount
+      FROM bookings b
+      JOIN processors p ON p.id = b.processor_id
+      JOIN listings l ON l.id = b.listing_id
+      JOIN farms f ON f.id = b.farm_id
+      LEFT JOIN users fu ON fu.id = f.owner_id
+      LEFT JOIN farmer_deposits d ON d.booking_id = b.id
+      WHERE b.id = ${id} LIMIT 1`;
+    const b = rows[0];
+    if (!b) return err(404, 'Booking not found');
+
+    // Only the plant holding the animal can move it through the plant.
+    const isAdmin = user.role === 'admin';
+    if (b.processor_owner_id !== user.id && !isAdmin) {
+      return err(403, 'Only the processor handling this animal can update the booking');
+    }
+
+    // ── Validate the weight before writing anything ──
+    let weight = null;
+    if (body.hanging_weight_lbs !== undefined && body.hanging_weight_lbs !== null && body.hanging_weight_lbs !== '') {
+      weight = Number(body.hanging_weight_lbs);
+      if (!isFinite(weight) || weight <= 0 || weight > 5000) {
+        return err(400, 'hanging_weight_lbs must be a number between 1 and 5000');
+      }
+    }
+
+    const newStatus = body.status ? String(body.status).trim() : null;
+    if (!newStatus && weight === null) return err(400, 'Pass status and/or hanging_weight_lbs');
+
+    // Validate the transition BEFORE any write, so a rejected request never
+    // leaves a partial one behind.
+    const TRANSITIONS = {
+      'scheduled':   ['checked-in', 'no-show', 'cancelled'],
+      'checked-in':  ['fabricating', 'cancelled'],
+      'fabricating': ['ready', 'cancelled'],
+      'ready':       ['picked-up'],
+      'picked-up':   [],
+      'no-show':     [],
+      'cancelled':   [],
+      'rejected':    [],
+    };
+    const sameStatus = newStatus && newStatus === b.status;
+    if (newStatus && !sameStatus) {
+      const legal = TRANSITIONS[b.status] || [];
+      if (!legal.includes(newStatus)) {
+        return err(409, legal.length
+          ? `Booking is '${b.status}' — it can only move to ${legal.map(x => `'${x}'`).join(' or ')}`
+          : `Booking is '${b.status}', which is final`);
+      }
+    }
+
+    // Weight is safe to write now: either there is no transition, or the
+    // transition is legal.
+    if (weight !== null) {
+      await sql`UPDATE bookings SET hanging_weight_lbs = ${weight}, updated_at = NOW() WHERE id = ${id}`;
+    }
+
+    // Weight-only, or the status it already has: nothing further to do.
+    if (!newStatus || sameStatus) {
+      const fresh0 = await sql`SELECT * FROM bookings WHERE id = ${id} LIMIT 1`;
+      return json({ booking: fresh0[0], unchanged: !!sameStatus });
+    }
+
+    // Every status write below is conditional on the status we read. Two
+    // operators tapping the same button at once (or one double-tapping a
+    // phone in a cold room) means the second UPDATE matches zero rows, and we
+    // return the current state instead of firing a second round of emails.
+    async function advance(setClause) {
+      const res = await setClause();
+      return res.count > 0;
+    }
+    const stillOurs = { value: true };
+
+    const animalLabel = `${b.animal_number ? b.animal_number + ' · ' : ''}${b.breed || b.species || 'animal'}`;
+    const hwLbs = weight !== null ? weight : (b.hanging_weight_lbs || null);
+    let buyersNotified = 0;
+
+    // ── checked-in ──────────────────────────────────────────────
+    // Mirrors /api/check-in (the code-entry path). Same dedup keys, so an animal
+    // checked in here and there never double-emails a buyer.
+    if (newStatus === 'checked-in') {
+      stillOurs.value = await advance(() => sql`
+        UPDATE bookings
+        SET status = 'checked-in', checked_in_at = NOW(), checked_in_by = ${user.id}, updated_at = NOW()
+        WHERE id = ${id} AND status = ${b.status}`);
+      if (stillOurs.value) {
+        await sql`UPDATE checkin_codes SET consumed_at = NOW(), consumed_by = ${user.id}
+                  WHERE booking_id = ${id} AND consumed_at IS NULL`;
+        await sql`UPDATE farmer_deposits SET status = 'released', released_at = NOW(), updated_at = NOW()
+                  WHERE booking_id = ${id} AND status = 'held'`;
+        // Scoped to THIS plant: one listing can carry bookings at two
+        // processors, and plant B must not move plant A's buyers.
+        await sql`
+          UPDATE reservations SET status = 'processing', updated_at = NOW()
+          WHERE listing_id = ${b.listing_id} AND status IN ('deposit-paid','paid')
+            AND (processor_id = ${b.processor_id} OR processor_id IS NULL)`;
+
+        const buyers = await sql`
+          SELECT id, buyer_email, buyer_name FROM reservations
+          WHERE listing_id = ${b.listing_id} AND status = 'processing'
+            AND (processor_id = ${b.processor_id} OR processor_id IS NULL)`;
+        for (const r of buyers) {
+          if (!r.buyer_email) continue;
+          try {
+            const out = await sendLifecycleEmail('C16.animal_arrived', {
+              to: r.buyer_email,
+              reservation_id: r.id,
+              buyer_name: r.buyer_name,
+              animal_label: animalLabel,
+              farm_name: b.farm_name,
+              processor_name: b.processor_name,
+              estimated_ready_days: 18,
+              dedupKey: `C16::${r.id}::${id}`,
+            });
+            if (out.sent) buyersNotified++;
+          } catch (e) { /* one bad address must not stall the line */ }
+        }
+      }
+    }
+
+    // ── fabricating ─────────────────────────────────────────────
+    if (newStatus === 'fabricating') {
+      stillOurs.value = await advance(() => sql`
+        UPDATE bookings
+        SET status = 'fabricating', fabrication_started_at = NOW(), updated_at = NOW()
+        WHERE id = ${id} AND status = ${b.status}`);
+    }
+
+    // ── ready ───────────────────────────────────────────────────
+    if (newStatus === 'ready') {
+      stillOurs.value = await advance(() => sql`
+        UPDATE bookings SET status = 'ready', ready_at = NOW(), updated_at = NOW()
+        WHERE id = ${id} AND status = ${b.status}`);
+      if (stillOurs.value) {
+        // Includes buyers who reserved AFTER the animal was checked in — they
+        // never passed through 'processing' and would otherwise never be told.
+        await sql`
+          UPDATE reservations SET status = 'ready', updated_at = NOW()
+          WHERE listing_id = ${b.listing_id} AND status IN ('processing','deposit-paid','paid')
+            AND (processor_id = ${b.processor_id} OR processor_id IS NULL)`;
+
+        const buyers = await sql`
+          SELECT id, buyer_email, buyer_name, share_size FROM reservations
+          WHERE listing_id = ${b.listing_id} AND status = 'ready'
+            AND (processor_id = ${b.processor_id} OR processor_id IS NULL)`;
+        for (const r of buyers) {
+          if (!r.buyer_email) continue;
+          try {
+            const out = await sendLifecycleEmail('C18.ready_for_pickup', {
+              to: r.buyer_email,
+              reservation_id: r.id,
+              buyer_name: r.buyer_name,
+              animal_label: animalLabel,
+              farm_name: b.farm_name,
+              processor_name: b.processor_name,
+              processor_address: body.processor_address || b.processor_address || null,
+              pickup_window: body.pickup_window || b.drop_off_window || null,
+              final_hw_lbs: hwLbs || b.estimated_hanging_weight,
+              final_cuts_lbs: hwLbs ? Math.round(hwLbs * 0.65) : null,
+              cooler_size_rec: r.share_size === 'whole' ? '120-quart'
+                              : r.share_size === 'half' ? '85-quart' : '48-quart',
+              // Same key /api/reservations uses, so whichever path marks it ready
+              // first wins and the buyer is told exactly once.
+              dedupKey: `C18::${r.id}`,
+            });
+            if (out.sent) buyersNotified++;
+          } catch (e) { /* keep going */ }
+        }
+      }
+    }
+
+    // ── picked-up ───────────────────────────────────────────────
+    // Closes out the BOOKING only. Buyers collect their shares individually —
+    // one buyer walking out with a quarter does not mean the other three did,
+    // and 'picked-up' is terminal on a reservation. Each share is closed from
+    // /api/reservations, which also fires that buyer's C19 complaint-window
+    // email at the right moment.
+    let openShares = [];
+    if (newStatus === 'picked-up') {
+      stillOurs.value = await advance(() => sql`
+        UPDATE bookings SET status = 'picked-up', picked_up_at = NOW(), updated_at = NOW()
+        WHERE id = ${id} AND status = ${b.status}`);
+      // Report the shares still sitting at 'ready' so the operator can close
+      // them out one buyer at a time through /api/reservations, which fires
+      // each buyer's own C19 complaint-window email at the right moment.
+      openShares = await sql`
+        SELECT id, buyer_name, buyer_email, share_size FROM reservations
+        WHERE listing_id = ${b.listing_id} AND status = 'ready'
+          AND (processor_id = ${b.processor_id} OR processor_id IS NULL)`;
+    }
+
+    // ── no-show ─────────────────────────────────────────────────
+    // Matches what the nightly sweep in /api/email-tick does when it finds a
+    // drop-off date in the past: forfeit the deposit AND tell the farmer why.
+    // Marking it here takes the booking out of that sweep's reach, so if this
+    // path stayed silent the farmer would simply never hear about it.
+    if (newStatus === 'no-show') {
+      stillOurs.value = await advance(() => sql`
+        UPDATE bookings SET status = 'no-show', no_show_at = NOW(), updated_at = NOW()
+        WHERE id = ${id} AND status = ${b.status}`);
+      if (stillOurs.value) {
+        await sql`UPDATE farmer_deposits SET status = 'forfeit', forfeit_at = NOW(), updated_at = NOW()
+                  WHERE booking_id = ${id} AND status = 'held'`;
+        if (b.farmer_email) {
+          try {
+            await sendLifecycleEmail('F11.no_show_flag', {
+              to: b.farmer_email,
+              farm_id: b.farm_id,
+              farmer_name: b.farmer_name,
+              animal_label: animalLabel,
+              drop_off_date: b.drop_off_date,
+              processor_name: b.processor_name,
+              deposit_amount: b.deposit_amount,
+              dedupKey: `F11::${id}`,
+            });
+          } catch (e) { /* the flag stands even if the email bounces */ }
+        }
+      }
+    }
+
+    // ── cancelled ───────────────────────────────────────────────
+    // A cancelled drop-off is a scheduling event between farm and plant. It
+    // deliberately does NOT cancel or refund the buyers' paid shares — that is
+    // a money decision, and it belongs to /api/reservations.
+    if (newStatus === 'cancelled') {
+      stillOurs.value = await advance(() => sql`
+        UPDATE bookings SET status = 'cancelled', updated_at = NOW()
+        WHERE id = ${id} AND status = ${b.status}`);
+      if (stillOurs.value) {
+        await sql`UPDATE farmer_deposits SET status = 'refunded', updated_at = NOW()
+                  WHERE booking_id = ${id} AND status = 'held'`;
+      }
+    }
+
+    const fresh = await sql`SELECT * FROM bookings WHERE id = ${id} LIMIT 1`;
+    return json({ booking: fresh[0], buyers_notified: buyersNotified, unchanged: !stillOurs.value, open_shares: openShares });
   }
 
   return err(405, 'Method not allowed');

@@ -4,6 +4,9 @@
 //       reservation, and emails the processor a "new cut sheet" notification.
 //   GET  ?reservation_id=UUID
 //     → { cut_sheet } for the signed-in buyer (or null if none yet)
+//   PATCH ?id=UUID { status: 'accepted'|'rejected', notes? }
+//     → processor (owner of cut_sheets.processor_id) accepts or rejects the
+//       sheet, clearing it out of their inbox. Returns { cut_sheet }.
 //
 // Auth: must own the reservation (reservations.buyer_id = user.id) OR be
 // the processor handling it OR an admin. We allow re-submission — the
@@ -169,6 +172,111 @@ async function handler(req) {
         }
       } catch (e) {
         console.warn('[cut-sheets] could not look up processor email:', e?.message);
+      }
+    }
+
+    return json({ cut_sheet });
+  }
+
+  // ─── PATCH ──────────────────────────────
+  // Processor accepts or rejects a submitted cut sheet. Until this existed the
+  // processor's inbox (/api/processor-ops?view=inbox filters status='submitted')
+  // never cleared.
+  if (req.method === 'PATCH') {
+    const user = await currentUser(req);
+    if (!user) return err(401, 'Sign in required');
+
+    const id = url.searchParams.get('id');
+    if (!id || !isUuid(id)) return err(400, 'id (UUID) required');
+
+    let body;
+    try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
+    if (!body || typeof body !== 'object') return err(400, 'Body must be a JSON object');
+
+    // The cut_sheets CHECK constraint allows draft|submitted|accepted|rejected;
+    // this endpoint only ever performs the processor's two decisions.
+    const status = typeof body.status === 'string' ? body.status.trim() : '';
+    if (status !== 'accepted' && status !== 'rejected') {
+      return err(400, "status must be 'accepted' or 'rejected'");
+    }
+    const notes = body.notes == null ? null : String(body.notes).slice(0, 2000);
+
+    const sheetRow = await sql`
+      SELECT cs.id, cs.reservation_id, cs.buyer_id, cs.processor_id, cs.status,
+             cs.submitted_at,
+             r.buyer_email AS reservation_buyer_email,
+             u.email       AS buyer_user_email,
+             p.name        AS processor_name
+      FROM cut_sheets cs
+      LEFT JOIN reservations r ON r.id = cs.reservation_id
+      LEFT JOIN users u        ON u.id = cs.buyer_id
+      LEFT JOIN processors p   ON p.id = cs.processor_id
+      WHERE cs.id = ${id} LIMIT 1`;
+    if (!sheetRow[0]) return err(404, 'Cut sheet not found');
+    const sheet = sheetRow[0];
+
+    // Auth: only the processor this sheet is assigned to (or an admin).
+    const isProcessor = await isProcessorOwner(user, sheet.processor_id);
+    if (!isProcessor && user.role !== 'admin') {
+      return err(403, 'Only the processor this cut sheet was sent to can accept or reject it');
+    }
+
+    // Transitions: only ever out of 'submitted'. Re-accepting an already
+    // accepted sheet is a no-op success so a double-tap in the inbox doesn't
+    // surface an error (and doesn't re-notify anyone).
+    if (sheet.status !== 'submitted') {
+      if (sheet.status === status) {
+        // Same decision again — a double-tap in the inbox, not an error. No
+        // re-notify. Accept and reject behave identically here.
+        const current = await sql`SELECT * FROM cut_sheets WHERE id = ${id} LIMIT 1`;
+        return json({ cut_sheet: current[0], unchanged: true });
+      }
+      return err(409, `Cut sheet is '${sheet.status}' — only a 'submitted' cut sheet can be ${status}`);
+    }
+
+    const updated = notes === null
+      ? await sql`
+          UPDATE cut_sheets
+          SET status = ${status}, updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *`
+      : await sql`
+          UPDATE cut_sheets
+          SET status = ${status}, notes = ${notes}, updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *`;
+    const cut_sheet = updated[0];
+
+    // On rejection the buyer has to go rebuild their sheet, so tell them.
+    // There is NO buyer-facing rejection template in the api/_lib/email.js
+    // registry (the C-series covers reservation/arrival/pickup/complaint only),
+    // and sendLifecycleEmail() silently no-ops on an unknown id — so instead we
+    // write the in-app notification row directly, the same way stripe-webhook.js
+    // does for events that have no lifecycle template. Best-effort: a failed
+    // notification must never fail the processor's decision.
+    if (status === 'rejected') {
+      const buyerEmail = sheet.buyer_user_email || sheet.reservation_buyer_email;
+      if (buyerEmail) {
+        try {
+          const reason = notes ? ` Reason: ${notes}` : '';
+          // Keyed to the submission being rejected, so a re-submitted sheet
+          // that gets rejected again produces a fresh notification.
+          const dedupKey = `notif::cut_sheet_rejected::${cut_sheet.id}::${sheet.submitted_at ? new Date(sheet.submitted_at).toISOString() : 'na'}`;
+          await sql`
+            INSERT INTO notifications (user_email, kind, title, body, link_url, icon, dedup_key)
+            VALUES (
+              ${String(buyerEmail).toLowerCase()},
+              'cut_sheet.rejected',
+              ${`${sheet.processor_name || 'Your processor'} sent your cut sheet back`},
+              ${`They couldn't run this cut sheet as written — open it, make the change, and resubmit.${reason}`},
+              ${`/cut-sheet?reservation=${sheet.reservation_id || ''}`},
+              'edit_note',
+              ${dedupKey}
+            )
+            ON CONFLICT (dedup_key) DO NOTHING`;
+        } catch (e) {
+          console.warn('[cut-sheets] rejection notification failed:', e?.message);
+        }
       }
     }
 

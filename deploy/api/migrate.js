@@ -599,7 +599,57 @@ const SCHEMA_STATEMENTS = [
     created_at  TIMESTAMPTZ DEFAULT NOW(),
     last_seen_at TIMESTAMPTZ DEFAULT NOW()
   )`,
-  `CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON push_subscriptions(user_id)`
+  `CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON push_subscriptions(user_id)`,
+
+  // ── Processor SaaS: plant-floor workflow (added 24 Jul 2026) ──────────────
+  // The original bookings CHECK stopped at 'checked-in', so an animal could be
+  // dropped off and then never move. Widen it to the full floor sequence that
+  // PATCH /api/bookings drives. Idempotent: drop then re-add.
+  `ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_status_check`,
+  `ALTER TABLE bookings ADD CONSTRAINT bookings_status_check
+     CHECK (status IN ('scheduled','checked-in','fabricating','ready','picked-up','no-show','cancelled','rejected'))`,
+  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS hanging_weight_lbs     NUMERIC(8,2)`,
+  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS fabrication_started_at TIMESTAMPTZ`,
+  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ready_at               TIMESTAMPTZ`,
+  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS picked_up_at           TIMESTAMPTZ`,
+
+  // cut_sheets existed in production but had no DDL anywhere in the repo — a
+  // fresh environment came up without it. Now it is declared here.
+  `CREATE TABLE IF NOT EXISTS cut_sheets (
+     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     reservation_id UUID NOT NULL,
+     buyer_id       UUID,
+     processor_id   UUID,
+     species        TEXT NOT NULL,
+     cuts           JSONB NOT NULL DEFAULT '[]'::jsonb,
+     pills          JSONB NOT NULL DEFAULT '[]'::jsonb,
+     quarter        TEXT,
+     notes          TEXT,
+     status         TEXT NOT NULL DEFAULT 'submitted'
+                    CHECK (status IN ('draft','submitted','accepted','rejected')),
+     submitted_at   TIMESTAMPTZ DEFAULT NOW(),
+     updated_at     TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS cut_sheets_reservation_idx ON cut_sheets(reservation_id)`,
+  `CREATE INDEX IF NOT EXISTS cut_sheets_processor_idx   ON cut_sheets(processor_id)`,
+  `CREATE INDEX IF NOT EXISTS cut_sheets_buyer_idx       ON cut_sheets(buyer_id)`,
+  `CREATE INDEX IF NOT EXISTS cut_sheets_status_idx      ON cut_sheets(status)`,
+
+  // credentials.html has always PATCHed these; the column never existed, so
+  // every uploaded inspection document was silently discarded.
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS credentials_docs JSONB DEFAULT '{}'::jsonb`,
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS credentials_docs JSONB DEFAULT '{}'::jsonb`,
+
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS address       TEXT`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS phone         TEXT`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS email         TEXT`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS contact_email TEXT`,
+  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS website       TEXT`,
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS address       TEXT`,
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS phone         TEXT`,
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS email         TEXT`,
+  `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS website       TEXT`,
+
 ];
 
 const SEED_SQL = [

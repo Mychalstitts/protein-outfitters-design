@@ -154,6 +154,8 @@
 .compare-table .check { color: var(--accent); font-weight: 900; }
 .compare-table .x { color: var(--ink-3); }
 
+.tier-status .badge.is-alert { background: #c62828; color: #fff; }
+
 .section-card-head h3 { margin: 0; font-size: var(--text-xs); font-weight: 800; text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); color: var(--ink-3); }
 </style>
 <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
@@ -324,6 +326,10 @@
             <li>Buyer cut sheets built against <em>your</em> cut list, smoking, grinding and upcharges</li>
             <li>Stripe Connect payouts — live balance, transfer to your bank, 1099-K trail</li>
             <li>Your plant's public profile on the marketplace map</li>
+            <li>Plant-floor workflow in one tap: log hanging weight → start fabrication → mark ready → picked up, with buyers emailed at each step</li>
+            <li>Your hours, capacity and fees save and load — set your own animals-per-day limit</li>
+            <li>Accept or reject a cut sheet, so your inbox clears</li>
+            <li>Credential documents that stick, PDFs included</li>
             <li>20 automated customer emails across the reservation lifecycle</li>
             <li>Notification inbox with web push</li>
             <li>Self-serve billing — 14-day trial, Stripe portal, cancel anytime</li>
@@ -331,13 +337,12 @@
         </div>
 
         <div class="rm-col is-building">
-          <div class="rm-status"><h3>Building</h3><span class="rm-when">Now → Sept 2026</span></div>
+          <div class="rm-status"><h3>Building</h3><span class="rm-when">Now → Oct 2026</span></div>
           <ul class="rm-list">
-            <li>Floor workflow in one tap: log hanging weight → start fabrication → mark ready → picked up</li>
-            <li>Schedule and fee pages that load what you last saved</li>
-            <li>Your own daily capacity limit, per species</li>
-            <li>Accept or reject a cut sheet so the inbox actually clears</li>
-            <li>Credential documents that stick — inspection certs, PDFs included</li>
+            <li>Close out each buyer's share individually at pickup — today it's one confirmation for the whole animal</li>
+            <li>Invoice history inside the app, instead of a trip to the Stripe portal</li>
+            <li>Utilization reporting — how full your week actually ran</li>
+            <li>Free-tier booking cap enforced in software, with existing plants grandfathered first</li>
           </ul>
         </div>
 
@@ -412,6 +417,9 @@
 </section>
 
 <!-- ============ BILLING DASHBOARD ============ -->
+<!-- Everything in here is rendered by loadBilling() from GET /api/processor-subscription
+     (+ a real booking count from /api/processor-ops). Nothing is hardcoded: if we can't
+     read a number from an API, the panel stays hidden rather than showing a made-up one. -->
 <section id="page-billing" class="hidden">
   <div class="container container--narrow billing-dashboard">
 
@@ -424,51 +432,32 @@
         </div>
       </div>
 
-      <!-- Current tier -->
+      <!-- Current plan -->
       <div class="tier-status">
         <div>
-          <span class="badge">Active</span>
-          <h2 class="mt-3">Standard plan</h2>
-          <p class="meta">Annual · $63/mo billed yearly ($758/yr) · renews Mar 14, 2027</p>
+          <span class="badge" id="billing-badge">Loading</span>
+          <h2 class="mt-3" id="billing-plan">Checking your plan…</h2>
+          <p class="meta" id="billing-meta">Reading your subscription.</p>
         </div>
-        <div class="row gap-2">
-          <button class="btn btn--secondary btn--sm" onclick="document.getElementById('compare-sheet').classList.add('is-open')">Change plan</button>
-          <button class="btn btn--apple-pay btn--sm" onclick="openBillingPortal(this)">Manage in Stripe</button>
-        </div>
+        <div class="row gap-2" id="billing-actions"></div>
       </div>
 
-      <!-- Usage -->
-      <div class="billing-card mb-4">
+      <!-- Usage — real count of this month's bookings -->
+      <div class="billing-card mb-4 hidden" id="billing-usage">
         <span class="eyebrow">This month</span>
-        <h3 class="h2 mt-3">28 bookings processed</h3>
-        <p class="body-sm">Standard plan — unlimited bookings. Tracking for analytics only.</p>
-        <div class="usage-bar"><div style="width: 60%"></div></div>
-        <p class="body-sm text-faint mt-2">28 of 47 monthly average · 60% through your typical month</p>
+        <h3 class="h2 mt-3" id="usage-count">—</h3>
+        <p class="body-sm" id="usage-note"></p>
+        <div class="usage-bar hidden" id="usage-bar"><div id="usage-fill" style="width: 0%"></div></div>
+        <p class="body-sm text-faint mt-2" id="usage-sub"></p>
       </div>
 
-      <!-- Recent invoices -->
-      <div class="billing-card">
+      <!-- Invoices live in Stripe. We hold no copy, so we link instead of listing. -->
+      <div class="billing-card hidden" id="billing-invoices">
         <div class="row row--between">
-          <span class="eyebrow">Recent invoices</span>
-          <a class="btn btn--ghost btn--sm" href="/finance">View all</a>
+          <span class="eyebrow">Invoices &amp; receipts</span>
         </div>
-        <div class="mt-4">
-          <div class="invoice-row">
-            <span class="date">Mar 14, 2026 · Annual renewal</span>
-            <span class="amt">$758.00</span>
-            <button type="button" class="download" style="background:0;border:0;cursor:pointer;font:inherit;color:inherit;padding:0;" onclick="openBillingPortal(this)">View in Stripe</button>
-          </div>
-          <div class="invoice-row">
-            <span class="date">Mar 14, 2025 · Annual renewal</span>
-            <span class="amt">$758.00</span>
-            <button type="button" class="download" style="background:0;border:0;cursor:pointer;font:inherit;color:inherit;padding:0;" onclick="openBillingPortal(this)">View in Stripe</button>
-          </div>
-          <div class="invoice-row">
-            <span class="date">Mar 14, 2024 · Initial subscription</span>
-            <span class="amt">$758.00</span>
-            <button type="button" class="download" style="background:0;border:0;cursor:pointer;font:inherit;color:inherit;padding:0;" onclick="openBillingPortal(this)">View in Stripe</button>
-          </div>
-        </div>
+        <p class="body-sm mt-4" id="invoices-note"></p>
+        <button class="btn btn--ghost btn--sm mt-4 hidden" id="invoices-btn" onclick="openBillingPortal(this)">Open billing portal</button>
       </div>
     </div>
 
@@ -484,31 +473,18 @@
         <button class="btn btn--primary btn--sm" onclick="window.location.href='/hardware'">Talk to hardware</button>
       </div>
 
-      <!-- Payment method -->
-      <div class="billing-card mb-4">
+      <!-- Payment method — card details live in Stripe, never here -->
+      <div class="billing-card mb-4 hidden" id="billing-payment">
         <span class="eyebrow">Payment method</span>
-        <div class="row gap-3 mt-3">
-          <div style="width: 44px; height: 30px; background: linear-gradient(135deg,#1a3473,#3a5cb0); border-radius: 4px;"></div>
-          <div style="flex: 1;">
-            <strong style="font-size: var(--text-sm);">Visa ending 4242</strong>
-            <div class="body-sm text-faint">Expires 11/29</div>
-          </div>
-        </div>
-        <button class="btn btn--ghost btn--sm btn--block mt-4" onclick="openBillingPortal(this)">Update card</button>
+        <p class="body-sm mt-3" id="payment-note"></p>
+        <button class="btn btn--ghost btn--sm btn--block mt-4 hidden" id="payment-btn" onclick="openBillingPortal(this)">Manage in Stripe</button>
       </div>
 
       <!-- Tier features -->
-      <div class="billing-card">
-        <span class="eyebrow">What's in Standard</span>
-        <ul class="tier-features mt-3">
-          <li>Unlimited bookings</li>
-          <li>Outlook-style queue</li>
-          <li>Cut-sheet config</li>
-          <li>52 customer comm templates</li>
-          <li>5 staff seats (3 used)</li>
-          <li>Phone support</li>
-        </ul>
-        <button class="btn btn--ghost btn--sm btn--block mt-4" onclick="document.getElementById('compare-sheet').classList.add('is-open')">Compare to Premium →</button>
+      <div class="billing-card hidden" id="billing-features">
+        <span class="eyebrow" id="features-eyebrow">What's in your plan</span>
+        <ul class="tier-features mt-3" id="features-list"></ul>
+        <button class="btn btn--ghost btn--sm btn--block mt-4" onclick="document.getElementById('compare-sheet').classList.add('is-open')">Compare plans →</button>
       </div>
     </aside>
   </div>
@@ -541,7 +517,7 @@
         </tbody>
       </table>
       <div class="row gap-3 mt-6">
-        <button class="btn btn--secondary" style="flex:1;" onclick="document.getElementById('compare-sheet').classList.remove('is-open')">Stay on Standard</button>
+        <button class="btn btn--secondary" style="flex:1;" onclick="document.getElementById('compare-sheet').classList.remove('is-open')">Not now</button>
         <button class="btn btn--primary" style="flex:1;" id="upgradePremiumBtn">Upgrade to Premium</button>
       </div>
     </div>
@@ -557,6 +533,7 @@ function showPage(p) {
   document.querySelectorAll('.page-tabs button').forEach((b,i) => b.classList.toggle('active', (i===0?'pricing':'billing') === p));
   document.getElementById('page-pricing').classList.toggle('hidden', p !== 'pricing');
   document.getElementById('page-billing').classList.toggle('hidden', p !== 'billing');
+  if (p === 'billing') loadBilling();
 }
 
 function switchCadence(c) {
@@ -657,6 +634,296 @@ document.querySelectorAll('.tier-cta[data-tier]').forEach(btn => {
 document.getElementById('upgradePremiumBtn')?.addEventListener('click', function () {
   subscribeToTier('premium', this);
 });
+
+// ══════════════════════════════════════════════════════════════════
+// Billing dashboard — live state from GET /api/processor-subscription
+//
+// Ground rule for this view: every figure on screen comes back from an
+// API call. Amounts and invoices live in Stripe and we hold no copy of
+// them, so we link to the billing portal rather than print numbers we
+// can't verify (a promo code or grandfathered price would make any
+// list price we printed here a lie). Seat *usage* has no table behind
+// it yet (seats are Q4), so we show the allowance only.
+// ══════════════════════════════════════════════════════════════════
+
+// Plan copy mirrors the tier cards above — no per-account data in here.
+const TIERS = {
+  free: {
+    label: 'Free',
+    bookingsIncluded: 4,
+    features: [
+      'Up to 4 bookings/mo',
+      'Marketplace listing',
+      'Drop-off check-in codes (single source of truth)',
+      '1 staff seat<span class="soon">Q4</span>',
+      'Email support',
+    ],
+  },
+  standard: {
+    label: 'Standard',
+    bookingsIncluded: null,
+    features: [
+      'Unlimited bookings',
+      'Processor calendar — Today / Week / Month / Inbox',
+      'Cut-sheet config (cuts, smoking, grinding, upcharges)',
+      'Automated customer communications (20 lifecycle emails)',
+      '5 staff seats<span class="soon">Q4</span>',
+      'Phone support',
+      'Custom branding on emails',
+      'Dropoff deposit hold + auto-release',
+    ],
+  },
+  premium: {
+    label: 'Premium',
+    bookingsIncluded: null,
+    features: [
+      'Everything in Standard, plus:',
+      'Multi-location support<span class="soon">Q4</span>',
+      'API access<span class="soon">2027</span>',
+      'Advanced analytics + CSV/Excel exports<span class="soon">Q4</span>',
+      '25 staff seats<span class="soon">Q4</span>',
+      'Same-day support SLA',
+      'Dedicated CSM (customer success manager)',
+      'Early access to new features',
+    ],
+  },
+};
+
+// processor_subscriptions.status CHECK: incomplete | trialing | active | past_due | canceled | unpaid
+const SUB_STATUS_LABEL = {
+  active: 'Active',
+  trialing: 'Trial',
+  past_due: 'Past due',
+  unpaid: 'Unpaid',
+  canceled: 'Canceled',
+  incomplete: 'Incomplete',
+};
+
+function el(id) { return document.getElementById(id); }
+function setText(id, txt) { const n = el(id); if (n) n.textContent = txt; }
+function show(id, on) { const n = el(id); if (n) n.classList.toggle('hidden', !on); }
+
+function fmtDate(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function setHero(badgeText, title, meta, alert) {
+  const badge = el('billing-badge');
+  badge.textContent = badgeText;
+  badge.classList.toggle('is-alert', !!alert);
+  setText('billing-plan', title);
+  setText('billing-meta', meta);
+}
+
+// actions: [{ label, kind?, onClick(btn) }]
+function setHeroActions(actions) {
+  const host = el('billing-actions');
+  host.innerHTML = '';
+  actions.forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'btn btn--sm ' + (a.kind || 'btn--secondary');
+    b.textContent = a.label;
+    b.addEventListener('click', () => a.onClick(b));
+    host.appendChild(b);
+  });
+}
+
+function showBillingPanels(on) {
+  show('billing-invoices', on);
+  show('billing-payment', on);
+  show('billing-features', on);
+  if (!on) show('billing-usage', false);
+}
+
+function goSignIn() {
+  if (window.PO_API && window.PO_API.openAuth) window.PO_API.openAuth('Sign in to see your billing', 'processor');
+  else window.location.href = '/account';
+}
+
+// ── States that aren't a plan ──────────────────────────────────────
+function renderSignedOut() {
+  setHero('Signed out', 'Sign in to see your plan',
+    'Billing is tied to your processor account. We will not show a plan until we know who you are.');
+  setHeroActions([
+    { label: 'Sign in', kind: 'btn--apple-pay', onClick: goSignIn },
+    { label: 'See plans', onClick: () => showPage('pricing') },
+  ]);
+  showBillingPanels(false);
+}
+
+function renderNoProcessor() {
+  setHero('No plant yet', 'No processor profile on this account',
+    'A subscription attaches to a plant. Set up your processor profile first, then pick a plan.');
+  setHeroActions([
+    { label: 'Set up your plant', kind: 'btn--apple-pay', onClick: () => window.location.href = '/processor' },
+    { label: 'See plans', onClick: () => showPage('pricing') },
+  ]);
+  showBillingPanels(false);
+}
+
+function renderNoAccess() {
+  setHero('Not a processor account', 'Processor account required',
+    'This page bills processors. Sign in with the account that owns your plant to see its plan.');
+  setHeroActions([
+    { label: 'Switch account', onClick: goSignIn },
+    { label: 'Set up your plant', onClick: () => window.location.href = '/processor' },
+  ]);
+  showBillingPanels(false);
+}
+
+function renderBillingError(msg) {
+  setHero('Unavailable', 'Could not load your plan', msg, true);
+  setHeroActions([{ label: 'Retry', onClick: () => loadBilling(true) }]);
+  showBillingPanels(false);
+}
+
+// ── The real thing ─────────────────────────────────────────────────
+function renderPlan(data) {
+  const sub = data.subscription || null;
+  const tierKey = (sub && sub.tier) || 'free';
+  const tier = TIERS[tierKey] || TIERS.free;
+  const status = sub ? String(sub.status || '').toLowerCase() : 'active';
+  const endsOn = fmtDate(sub && sub.current_period_end);
+  const hasCustomer = !!(sub && sub.stripe_customer_id);
+  const alert = status === 'past_due' || status === 'unpaid';
+
+  const bits = [];
+  if (data.processor && data.processor.name) bits.push(data.processor.name);
+  if (sub && sub.cadence) bits.push(sub.cadence === 'annual' ? 'Billed annually' : 'Billed monthly');
+
+  if (!sub) {
+    bits.push('No subscription on file — you are on the Free tier');
+  } else if (status === 'canceled') {
+    bits.push(endsOn ? 'Ended ' + endsOn : 'Subscription canceled');
+  } else if (sub.cancel_at_period_end) {
+    bits.push(endsOn ? 'Ends ' + endsOn + ' — will not renew' : 'Set to end at the close of this billing period — will not renew');
+  } else if (status === 'trialing') {
+    bits.push(endsOn ? 'Free trial ends ' + endsOn : 'Free trial running');
+  } else if (alert) {
+    bits.push('Payment failed — update your card in Stripe to keep this plan');
+    if (endsOn) bits.push('Period ends ' + endsOn);
+  } else if (status === 'incomplete') {
+    bits.push('Checkout was never finished — nothing has been charged');
+  } else if (tierKey === 'free') {
+    bits.push('No charge');
+  } else if (endsOn) {
+    bits.push('Renews ' + endsOn);
+  }
+
+  setHero(
+    sub ? (SUB_STATUS_LABEL[status] || status || 'Unknown') : 'Free tier',
+    tier.label + ' plan',
+    bits.join(' · '),
+    alert
+  );
+
+  // Actions
+  const actions = [{ label: 'Change plan', onClick: () => el('compare-sheet').classList.add('is-open') }];
+  const onFree = tierKey === 'free' || status === 'canceled';
+  if (onFree) {
+    actions.push({ label: 'Start 14-day trial', kind: 'btn--apple-pay', onClick: (b) => subscribeToTier('standard', b) });
+  }
+  if (hasCustomer) {
+    actions.push({ label: 'Manage in Stripe', kind: 'btn--apple-pay', onClick: (b) => openBillingPortal(b) });
+  }
+  setHeroActions(actions);
+
+  // Features for the tier they are actually on
+  setText('features-eyebrow', "What's in " + tier.label);
+  const list = el('features-list');
+  list.innerHTML = '';
+  tier.features.forEach(f => {
+    const li = document.createElement('li');
+    li.innerHTML = f;
+    list.appendChild(li);
+  });
+
+  // Payment method — Stripe holds the card; we never see it
+  setText('payment-note', hasCustomer
+    ? 'Your card is held by Stripe. Open the billing portal to view or replace it.'
+    : 'No payment method on file. You add one at checkout when you start a paid plan.');
+  show('payment-btn', hasCustomer);
+
+  // Invoices — no endpoint returns them, so we point at the portal
+  let inv = hasCustomer
+    ? "Invoices, receipts and the exact amount you are charged live in your Stripe billing portal. We do not keep a copy here."
+    : "No invoices — this plant has never been billed. Invoices appear in the Stripe portal once you start a paid plan.";
+  if (data.pricing_configured === false) inv += ' Card billing is not configured on this deployment yet.';
+  setText('invoices-note', inv);
+  show('invoices-btn', hasCustomer);
+
+  showBillingPanels(true);
+  loadUsage(tierKey);
+}
+
+// Real booking count for the current calendar month.
+// /api/processor-ops?view=earnings returns every booking with
+// drop_off_date >= the first of this month (no upper bound), so we clip
+// to this month and drop cancelled/rejected rows. If the call fails we
+// leave the panel hidden — an empty panel beats an invented number.
+async function loadUsage(tierKey) {
+  try {
+    const r = await fetch('/api/processor-ops?view=earnings', { credentials: 'include' });
+    if (!r.ok) return;
+    const d = await r.json().catch(() => null);
+    const rows = (d && d.bookings) || [];
+    const now = new Date();
+    const ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    const monthLabel = now.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    const dead = ['cancelled', 'rejected'];
+    const mine = rows.filter(b =>
+      String(b.drop_off_date || '').slice(0, 10).indexOf(ym) === 0 &&
+      dead.indexOf(String(b.status || '').toLowerCase()) === -1);
+    const n = mine.length;
+
+    setText('usage-count', n + (n === 1 ? ' booking' : ' bookings'));
+    const limit = (TIERS[tierKey] || TIERS.free).bookingsIncluded;
+    const label = (TIERS[tierKey] || TIERS.free).label;
+    if (limit) {
+      setText('usage-note', label + ' plan includes ' + limit + ' bookings a month.');
+      el('usage-fill').style.width = Math.min(100, Math.round((n / limit) * 100)) + '%';
+      show('usage-bar', true);
+    } else {
+      setText('usage-note', label + ' plan — unlimited bookings.');
+      show('usage-bar', false);
+    }
+    setText('usage-sub', 'Drop-off dates in ' + monthLabel + '. Cancelled and rejected bookings excluded.');
+    show('billing-usage', true);
+  } catch (e) {
+    /* leave the panel hidden */
+  }
+}
+
+// Only a rendered plan counts as "loaded". Signed-out / no-plant / error are
+// all states the operator can walk out of (sign in, set up a plant, come back)
+// without reloading the page, so none of them latch — switching to the Billing
+// tab re-attempts. billingInFlight keeps that to one request at a time.
+let billingLoaded = false;
+let billingInFlight = false;
+async function loadBilling(force) {
+  if (force) billingLoaded = false;
+  if (billingLoaded || billingInFlight) return;
+  billingInFlight = true;
+  try {
+    const r = await fetch('/api/processor-subscription', { credentials: 'include' });
+    if (r.status === 401) { renderSignedOut(); return; }
+    const data = await r.json().catch(() => ({}));
+    if (r.status === 403) { renderNoAccess(); return; }
+    if (r.status === 404) { renderNoProcessor(); return; }
+    if (!r.ok) { renderBillingError(data.error || ('Server returned HTTP ' + r.status + '.')); return; }
+    // Admins with no plant of their own come back 200 with processor: null
+    if (!data.processor) { renderNoProcessor(); return; }
+    renderPlan(data);
+    billingLoaded = true;
+  } catch (e) {
+    renderBillingError('Network error — could not reach the billing service.');
+  } finally {
+    billingInFlight = false;
+  }
+}
 
 if (new URLSearchParams(location.search).get('page') === 'billing') {
   showPage('billing');

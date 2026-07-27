@@ -910,7 +910,9 @@
 
   const cap = cfg.capabilities || {};
   const species = cap.species || [];
-  const beefCuts = cap.cutOptions?.beef;
+  // Canonical key is cut_options; cutOptions is the legacy shape still sitting
+  // in older rows (the merging PATCH never deletes it).
+  const beefCuts = cap.cut_options?.beef ?? cap.cutOptions?.beef;
 
   // Banner showing active processor
   const tabs = document.querySelector('.species-tabs');

@@ -128,6 +128,12 @@
 .legend-swatch { width: 12px; height: 12px; border-radius: 4px; }
 
 .actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+.daily-cap-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; padding: 14px 16px; background: var(--accent-soft); border: 1px solid rgba(6,27,14,0.12); border-radius: 14px; }
+.daily-cap-row label { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; }
+.daily-cap-row input { width: 92px; padding: 8px 10px; border: 1px solid rgba(0,0,0,0.12); border-radius: 10px; background: #fff; font: inherit; font-size: 15px; font-weight: 800; text-align: right; }
+.daily-cap-row input:focus { outline: 0; border-color: var(--brand); }
+.daily-cap-row .hint { font-size: 12px; color: var(--ink-2); flex: 1; min-width: 220px; line-height: 1.45; }
+.sched-status { flex-basis: 100%; margin: 10px 0 0; font-size: 12px; color: var(--ink-2); text-align: right; }
 .btn-primary { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 14px 28px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; border-radius: 999px; transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s; }
 .btn-primary:hover { transform: scale(1.04); background: #0a2614; }
 .btn-ghost { background: transparent; color: var(--ink-2); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; padding: 14px 22px; font-size: 14px; font-weight: 600; border-radius: 999px; }
@@ -164,8 +170,8 @@
       </div>
       <div class="stat-tile">
         <p class="lab">Booked · 14d</p>
-        <p class="v">24<span style="font-size: 16px; opacity: .7;"> / 56</span></p>
-        <p class="s">43% utilization next two weeks</p>
+        <p class="v" id="statBooked">—</p>
+        <p class="s" id="statBookedSub">Utilization reporting not wired up yet</p>
       </div>
       <div class="stat-tile">
         <p class="lab">Capabilities on</p>
@@ -179,6 +185,12 @@
       <div class="ps-block-head">
         <h3>Weekly hours</h3>
         <p>This is your default. Calendar dates inherit these unless you override individual days below.</p>
+      </div>
+
+      <div class="daily-cap-row">
+        <label for="dailyCap">Plant maximum · animals per day</label>
+        <input id="dailyCap" type="number" min="0" max="500" step="1" />
+        <span class="hint">Hard ceiling for any single date — bookings stop once a day hits this number, whatever the weekly default says. Leave blank and we use your highest weekly per-day capacity.</span>
       </div>
 
       <div class="bulk-row">
@@ -394,6 +406,7 @@
     <div class="actions">
       <button class="btn-ghost" id="previewBtn">Preview customer view</button>
       <button class="btn-primary" id="saveBtn">Save schedule + capabilities →</button>
+      <p class="sched-status" id="schedStatus"></p>
     </div>
   </div>
 </section>
@@ -415,10 +428,43 @@
     5: { open: true, cap: 4 },
     6: { open: false, cap: 0 }
   };
-  const overrides = {}; // ISO date string → { open, cap }
+  let overrides = {}; // ISO date string → { open, cap }
+
+  // Set once loadSchedule() identifies the signed-in owner's plant.
+  let processorSlug = null;
+
+  const STATUS = document.getElementById('schedStatus');
+  const dailyCapInput = document.getElementById('dailyCap');
+
+  function setStatus(msg, kind) {
+    if (!STATUS) return;
+    STATUS.textContent = msg || '';
+    STATUS.style.color = kind === 'error' ? '#c25250' : kind === 'ok' ? 'var(--brand)' : 'var(--ink-2)';
+  }
+
+  // The label text is what we persist for each capability pill, so read and
+  // write must normalise it the same way.
+  function pillLabel(p) { return p.textContent.trim().replace(/^✓\s*/, ''); }
+
+  // Highest per-day capacity in the weekly default — the implicit plant maximum
+  // when the operator hasn't typed an explicit one.
+  function maxWeeklyCap() {
+    let m = 0;
+    for (let d = 0; d <= 6; d++) m = Math.max(m, Number(week[d].cap) || 0);
+    return m;
+  }
+  function syncDailyCapPlaceholder() {
+    if (dailyCapInput) dailyCapInput.placeholder = String(maxWeeklyCap());
+  }
+  function dailyCapValue() {
+    if (!dailyCapInput || dailyCapInput.value === '') return maxWeeklyCap();
+    const v = Number(dailyCapInput.value);
+    return Number.isFinite(v) && v >= 0 ? v : maxWeeklyCap();
+  }
 
   // Wire dow toggles + cap inputs
   function syncWeekUI() {
+    syncDailyCapPlaceholder();
     document.querySelectorAll('.dow-card').forEach(c => {
       const d = Number(c.dataset.dow);
       const w = week[d];
@@ -442,6 +488,8 @@
     syncWeekUI(); renderCalendars(); updateStats();
   }));
 
+  if (dailyCapInput) dailyCapInput.addEventListener('input', () => setStatus(''));
+
   // Bulk
   document.querySelectorAll('.bulk-btn').forEach(b => b.addEventListener('click', () => {
     const a = b.dataset.bulk;
@@ -452,6 +500,109 @@
     if (a === 'all-off') for (const d in week) { week[d].open=false; week[d].cap=0; }
     syncWeekUI(); renderCalendars(); updateStats();
   }));
+
+  // ============ LOAD SAVED STATE ============
+  // schedule (jsonb)       → { weekly: { 0..6: {open, capacity} }, overrides: { iso: {open, capacity} } }
+  // date_overrides (jsonb) → mirror of schedule.overrides
+  // capabilities (jsonb)   → { daily_capacity, species_cuts: { beef: [...], pork: [...] } }
+  function applySavedSchedule(sched) {
+    const weekly = sched && typeof sched === 'object' ? (sched.weekly || sched.week) : null;
+    if (!weekly || typeof weekly !== 'object') return false;
+    let touched = false;
+    for (let d = 0; d <= 6; d++) {
+      const w = weekly[d] !== undefined ? weekly[d] : weekly[String(d)];
+      if (!w || typeof w !== 'object') continue;
+      const raw = w.capacity !== undefined ? w.capacity : w.cap;
+      const cap = Number(raw) || 0;
+      week[d] = { open: w.open !== undefined ? !!w.open : cap > 0, cap: cap };
+      touched = true;
+    }
+    return touched;
+  }
+
+  function applySavedOverrides(src) {
+    if (!src || typeof src !== 'object') return false;
+    const next = {};
+    let n = 0;
+    for (const [iso, w] of Object.entries(src)) {
+      if (!w || typeof w !== 'object') continue;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) continue;
+      const raw = w.capacity !== undefined ? w.capacity : w.cap;
+      const cap = Number(raw) || 0;
+      next[iso] = { open: w.open !== undefined ? !!w.open : cap > 0, cap: cap };
+      n++;
+    }
+    if (!n) return false;
+    overrides = next;
+    return true;
+  }
+
+  function applySavedCapabilities(cap) {
+    cap = cap && typeof cap === 'object' ? cap : {};
+    const dc = Number(cap.daily_capacity);
+    if (dailyCapInput && Number.isFinite(dc) && dc > 0) dailyCapInput.value = dc;
+
+    const nested = cap.species_cuts && typeof cap.species_cuts === 'object' ? cap.species_cuts : null;
+    document.querySelectorAll('.pill-grid[data-cap]').forEach(grid => {
+      const sp = grid.dataset.cap;
+      // canonical capabilities.species_cuts[sp]; legacy saves put the array
+      // straight on capabilities[sp], where it collided with processor-config.
+      let list = nested ? nested[sp] : undefined;
+      if (!Array.isArray(list) && Array.isArray(cap[sp])) list = cap[sp];
+      if (!Array.isArray(list)) return; // nothing saved for this group — leave page defaults alone
+      const want = new Set(list.map(t => String(t).trim()));
+      grid.querySelectorAll('.pill-toggle').forEach(pill => {
+        if (pill.classList.contains('locked-on')) return;
+        pill.classList.toggle('on', want.has(pillLabel(pill)));
+      });
+    });
+  }
+
+  async function loadSchedule() {
+    setStatus('Loading your saved schedule…');
+    let me = null;
+    try {
+      me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => (r.ok ? r.json() : null));
+    } catch (e) { me = null; }
+    const userId = me && me.user ? me.user.id : null;
+    if (!userId) {
+      setStatus('Signed out — these are suggested starting values, not your saved schedule. Sign in at /account to load and save.', 'error');
+      return;
+    }
+
+    let all;
+    try {
+      const r = await fetch('/api/processors', { credentials: 'include' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      all = await r.json();
+    } catch (e) {
+      setStatus('Could not load your saved schedule: ' + e.message, 'error');
+      return;
+    }
+
+    const mine = (all.processors || []).find(p => p.owner_id === userId);
+    if (!mine) {
+      setStatus('No processor on your account yet — set your plant up at /processor, then come back.', 'error');
+      return;
+    }
+    processorSlug = mine.slug;
+
+    const sched = mine.schedule || {};
+    const hadWeek = applySavedSchedule(sched);
+    const hadOverrides = applySavedOverrides(sched.overrides) || applySavedOverrides(mine.date_overrides);
+    applySavedCapabilities(mine.capabilities);
+
+    syncWeekUI();
+    renderCalendars();
+
+    const anySaved = hadWeek || hadOverrides;
+    setStatus(
+      anySaved
+        ? 'Loaded saved schedule for ' + mine.name + '.'
+        : 'Editing ' + mine.name + '. Nothing saved yet — these are suggested starting values.',
+      anySaved ? 'ok' : 'info'
+    );
+  }
 
   // ============ CALENDAR ============
   let viewYear = new Date().getFullYear();
@@ -563,12 +714,18 @@
       )
     };
 
-    const capabilities = {};
+    // Only the capabilities keys this page owns. /api/processors PATCH merges
+    // jsonb columns, so processor-config's species / cut_options / smoking /
+    // grinding keys survive this write untouched.
+    const species_cuts = {};
     document.querySelectorAll('.pill-grid[data-cap]').forEach(grid => {
-      const sp = grid.dataset.cap;
-      capabilities[sp] = [...grid.querySelectorAll('.pill-toggle.on, .pill-toggle.locked-on')]
-        .map(p => p.textContent.trim().replace(/^[✓]\s*/, ''));
+      species_cuts[grid.dataset.cap] = [...grid.querySelectorAll('.pill-toggle.on, .pill-toggle.locked-on')]
+        .map(pillLabel);
     });
+    const capabilities = {
+      daily_capacity: dailyCapValue(), // api/bookings.js reads this to cap bookings per date
+      species_cuts: species_cuts
+    };
 
     try {
       const me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null);
@@ -589,9 +746,12 @@
         body: JSON.stringify({ schedule, capabilities, date_overrides: schedule.overrides })
       });
       if (!r.ok) throw new Error('Save failed');
+      processorSlug = mine.slug;
+      setStatus('Saved. Capacity ceiling: ' + capabilities.daily_capacity + ' animals/day.', 'ok');
       btn.textContent = 'Saved ✓'; btn.style.background = '#cfe9d3'; btn.style.color = 'var(--brand)';
       setTimeout(() => { btn.textContent = origText; btn.style.background = ''; btn.style.color = ''; btn.disabled = false; }, 1800);
     } catch (e) {
+      setStatus('Save failed: ' + e.message, 'error');
       btn.textContent = 'Save failed'; btn.disabled = false;
       setTimeout(() => { btn.textContent = origText; }, 2000);
     }
@@ -620,11 +780,10 @@
 
   syncWeekUI();
   renderCalendars();
-
-  // Pill-toggle controls — click to flip on/off (skip locked-on which can't be unset)
-  document.querySelectorAll('.pill-toggle:not(.locked-on)').forEach(p => {
-    p.addEventListener('click', () => p.classList.toggle('on'));
-  });
+  loadSchedule();
+  // NOTE: pill-toggle click handling is registered once, above, next to
+  // updateStats(). A second registration here used to toggle every pill a
+  // second time on the same click, which made the capability pills unclickable.
 })();
 </script>
 <script src="./po-api.js"></script>

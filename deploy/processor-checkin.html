@@ -133,6 +133,18 @@ inputs.forEach((inp, i) => {
   });
 });
 
+// Prefill from ?code=NNNNNN — /processor-ops hands the code over this way, so
+// the operator doesn't have to type the same six digits twice.
+(function prefillCodeFromQuery() {
+  try {
+    const q = new URLSearchParams(location.search).get('code') || '';
+    const digits = q.replace(/\D/g, '').slice(0, 6);
+    if (digits.length !== 6) return;
+    digits.split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
+    if (inputs[5]) inputs[5].focus();
+  } catch (e) { /* a bad query string must never block the page */ }
+})();
+
 (async function loadMyProcessors() {
   try {
     const r = await fetch('/api/processors', { credentials: 'include' });

@@ -247,6 +247,7 @@
 
 <script>
 const STATUS = document.getElementById('cfgSaveStatus');
+const SAVE_BTN = document.getElementById('cfgSaveBtn');
 let processorSlug = null;
 
 function setStatus(msg, kind = 'info') {
@@ -254,8 +255,15 @@ function setStatus(msg, kind = 'info') {
   STATUS.style.color = kind === 'error' ? '#c25250' : kind === 'ok' ? 'var(--brand)' : 'var(--ink-2)';
 }
 
+// Until we know which processor we are editing there is nothing to save.
+function setSavable(on) {
+  SAVE_BTN.disabled = !on;
+  SAVE_BTN.style.opacity = on ? '' : '0.5';
+  SAVE_BTN.style.cursor = on ? '' : 'not-allowed';
+}
+
 function setChecked(grid, values) {
-  if (!values || !Array.isArray(values)) return;
+  if (!Array.isArray(values)) return;
   grid.querySelectorAll('input[type="checkbox"]').forEach(c => {
     c.checked = values.includes(c.value);
   });
@@ -264,56 +272,89 @@ function readChecked(grid) {
   return Array.from(grid.querySelectorAll('input[type="checkbox"]:checked')).map(c => c.value);
 }
 
+// Read the canonical key, fall back to the legacy key that older saves used.
+function pick(obj, canonical, legacy) {
+  if (!obj) return undefined;
+  if (obj[canonical] !== undefined && obj[canonical] !== null) return obj[canonical];
+  if (legacy && obj[legacy] !== undefined && obj[legacy] !== null) return obj[legacy];
+  return undefined;
+}
+
 async function loadConfig() {
+  setSavable(false);
   setStatus('Loading…');
+
+  // Who is signed in? /api/auth/me is the only endpoint that returns a user.
+  let me = null;
+  try {
+    me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => (r.ok ? r.json() : null));
+  } catch (e) { me = null; }
+  const userId = me && me.user ? me.user.id : null;
+  if (!userId) {
+    setStatus('Sign in at /account to load and save your plant config.', 'error');
+    return;
+  }
+
+  let data;
   try {
     const r = await fetch('/api/processors', { credentials: 'include' });
     if (!r.ok) throw new Error('Could not load processors');
-    const data = await r.json();
-    // Find the processor owned by the current user
-    const me = await fetch('/api/config', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null);
-    const userId = me?.user?.id;
-    const mine = (data.processors || []).find(p => userId && p.owner_id === userId);
-    if (!mine) {
-      setStatus('No processor on your account yet — head to /processor to create one, then come back.', 'error');
-      return;
-    }
-    processorSlug = mine.slug;
-    document.getElementById('fldName').value = mine.name || '';
-    document.getElementById('fldCity').value = mine.city || '';
-    document.getElementById('fldState').value = mine.state || '';
-    document.getElementById('fldZip').value = mine.zip || '';
-    const inspRadio = document.querySelector(`input[name="insp"][value="${mine.inspection || 'usda'}"]`);
-    if (inspRadio) inspRadio.checked = true;
-    const cap = mine.capabilities || {};
-    setChecked(document.getElementById('speciesGrid'), cap.species || []);
-    setChecked(document.getElementById('beefCutsGrid'), cap.cutOptions?.beef);
-    setChecked(document.getElementById('smokingGrid'), cap.smoking || []);
-    setChecked(document.getElementById('grindingGrid'), cap.grinding || []);
-    const baseFees = mine.base_fees || {};
-    const perLb = mine.per_lb_fees || {};
-    const set = (id, v) => { if (v != null) document.getElementById(id).value = v; };
-    set('feeKill', baseFees.kill_fee);
-    set('feeCutLb', perLb.processing);
-    set('feeVac', perLb.vacuum_seal);
-    set('feeBone', perLb.boneless);
-    set('feeSmoke', perLb.smoking);
-    set('feeSausage', perLb.sausage);
-    setStatus(`Editing ${mine.name}.`, 'ok');
+    data = await r.json();
   } catch (e) {
     setStatus('Could not load: ' + e.message, 'error');
+    return;
   }
+
+  const mine = (data.processors || []).find(p => p.owner_id === userId);
+  if (!mine) {
+    setStatus('No processor on your account yet — head to /processor to create one, then come back.', 'error');
+    return;
+  }
+
+  processorSlug = mine.slug;
+  document.getElementById('fldName').value = mine.name || '';
+  document.getElementById('fldCity').value = mine.city || '';
+  document.getElementById('fldState').value = mine.state || '';
+  document.getElementById('fldZip').value = mine.zip || '';
+  const inspRadio = mine.inspection
+    ? document.querySelector('input[name="insp"][value="' + mine.inspection + '"]')
+    : null;
+  if (inspRadio) inspRadio.checked = true;
+
+  const cap = mine.capabilities || {};
+  setChecked(document.getElementById('speciesGrid'), cap.species);
+  // canonical: capabilities.cut_options.beef — legacy: capabilities.cutOptions.beef
+  const cutOptions = pick(cap, 'cut_options', 'cutOptions') || {};
+  setChecked(document.getElementById('beefCutsGrid'), cutOptions.beef);
+  setChecked(document.getElementById('smokingGrid'), cap.smoking);
+  setChecked(document.getElementById('grindingGrid'), cap.grinding);
+
+  const baseFees = mine.base_fees || {};
+  const perLb = mine.per_lb_fees || {};
+  const set = (id, v) => { if (v != null && v !== '') document.getElementById(id).value = v; };
+  set('feeKill', baseFees.kill_fee);
+  set('feeCutLb', perLb.processing);
+  // canonical: vacuum / smoke — legacy: vacuum_seal / smoking
+  set('feeVac', pick(perLb, 'vacuum', 'vacuum_seal'));
+  set('feeBone', perLb.boneless);
+  set('feeSmoke', pick(perLb, 'smoke', 'smoking'));
+  set('feeSausage', perLb.sausage);
+
+  setSavable(true);
+  setStatus('Editing ' + mine.name + '.', 'ok');
 }
 
 async function saveConfig() {
   if (!processorSlug) { setStatus('No processor loaded.', 'error'); return; }
-  const btn = document.getElementById('cfgSaveBtn');
+  const btn = SAVE_BTN;
   btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Saving…';
   setStatus('Saving…');
 
   const num = id => { const v = parseFloat(document.getElementById(id).value); return Number.isFinite(v) ? v : null; };
   const inspChecked = document.querySelector('input[name="insp"]:checked');
 
+  // Only the keys this page owns. /api/processors PATCH merges jsonb columns,
+  // so the schedule/pricing pages' keys are left untouched.
   const payload = {
     name: document.getElementById('fldName').value.trim() || null,
     city: document.getElementById('fldCity').value.trim() || null,
@@ -322,21 +363,23 @@ async function saveConfig() {
     inspection: inspChecked ? inspChecked.value : null,
     capabilities: {
       species: readChecked(document.getElementById('speciesGrid')),
-      cutOptions: { beef: readChecked(document.getElementById('beefCutsGrid')) },
+      cut_options: { beef: readChecked(document.getElementById('beefCutsGrid')) },
       smoking: readChecked(document.getElementById('smokingGrid')),
       grinding: readChecked(document.getElementById('grindingGrid')),
     },
-    base_fees: {
-      kill_fee: num('feeKill'),
-    },
-    per_lb_fees: {
-      processing: num('feeCutLb'),
-      vacuum_seal: num('feeVac'),
-      boneless: num('feeBone'),
-      smoking: num('feeSmoke'),
-      sausage: num('feeSausage'),
-    },
+    base_fees: {},
+    per_lb_fees: {},
   };
+
+  // Blank fee inputs are omitted rather than sent as null: the PATCH merges
+  // jsonb, so writing null here would wipe a value processor-pricing.html set.
+  const put = (bag, key, id) => { const v = num(id); if (v !== null) bag[key] = v; };
+  put(payload.base_fees, 'kill_fee', 'feeKill');
+  put(payload.per_lb_fees, 'processing', 'feeCutLb');
+  put(payload.per_lb_fees, 'vacuum', 'feeVac');
+  put(payload.per_lb_fees, 'boneless', 'feeBone');
+  put(payload.per_lb_fees, 'smoke', 'feeSmoke');
+  put(payload.per_lb_fees, 'sausage', 'feeSausage');
   try {
     const r = await fetch('/api/processors?slug=' + encodeURIComponent(processorSlug), {
       method: 'PATCH',
@@ -344,7 +387,7 @@ async function saveConfig() {
       credentials: 'include',
       body: JSON.stringify(payload),
     });
-    const out = await r.json();
+    const out = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(out.error || 'Save failed');
     setStatus('Saved. Cut sheets will use this config from now on.', 'ok');
   } catch (e) {
@@ -354,7 +397,7 @@ async function saveConfig() {
   }
 }
 
-document.getElementById('cfgSaveBtn').addEventListener('click', saveConfig);
+SAVE_BTN.addEventListener('click', saveConfig);
 loadConfig();
 </script>
 </body>

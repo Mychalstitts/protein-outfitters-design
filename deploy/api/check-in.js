@@ -51,8 +51,16 @@ async function handler(req) {
 
   // Mark check-in
   const ts = new Date().toISOString();
+  // Conditional on the status we read, so this and PATCH /api/bookings can't
+  // both check the same animal in and both email the buyers.
+  const moved = await sql`
+    UPDATE bookings
+    SET status = 'checked-in', checked_in_at = NOW(), checked_in_by = ${user.id}, updated_at = NOW()
+    WHERE id = ${c.booking_id} AND status = 'scheduled'`;
+  if (moved.count === 0) {
+    return err(409, 'This booking was just checked in from another screen');
+  }
   await sql`UPDATE checkin_codes SET consumed_at = NOW(), consumed_by = ${user.id} WHERE code = ${code}`;
-  await sql`UPDATE bookings SET status = 'checked-in', checked_in_at = NOW(), checked_in_by = ${user.id}, updated_at = NOW() WHERE id = ${c.booking_id}`;
   await sql`UPDATE farmer_deposits SET status = 'released', released_at = NOW(), updated_at = NOW() WHERE booking_id = ${c.booking_id}`;
   // Flip active reservations on this listing to 'processing'
   await sql`
