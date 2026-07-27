@@ -638,8 +638,8 @@
     </div>
     <div class="hs-controls">
       <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
-        <button type="button" data-mode="heat" class="on">Topo lines</button>
-        <button type="button" data-mode="zones">Filled zones</button>
+        <button type="button" data-mode="heat" class="on">Snap heat</button>
+        <button type="button" data-mode="zones">Market zones</button>
       </div>
       <label for="hsLens">Lens</label>
       <select id="hsLens">
@@ -694,20 +694,20 @@
   <button type="button" id="hsSearchArea">Search this area</button>
 
   <div class="hs-glass hs-legend">
-    <p class="title">Topo contour elevation</p>
-    <div class="bar"></div>
+    <p class="title">Opportunity rank heat</p>
+    <div class="bar" id="hsLegendBar"></div>
     <div class="labs" id="hsLegendLabs">
-      <span>Low</span><span>Mid</span><span>High</span><span>Peak</span>
+      <span>#1–10</span><span>#40</span><span>#100</span><span>#500+</span>
     </div>
     <p style="margin:8px 0 0;font:500 10px/1.35 Inter,system-ui,sans-serif;color:rgba(251,249,245,.45)">
-      Lines = elevation · red rings = top 20 · pin = details
+      Dark red = top 10 · light green = long tail · pin = details
     </p>
   </div>
 
   <aside class="hs-glass hs-rail" id="hsRail">
     <div class="hs-rail-head">
       <h2 id="hsRailTitle">Markets <small id="hsRailCount"></small></h2>
-      <p>Contour lines like a topo map · red peaks = top 20 · click tiny pin for details</p>
+      <p>Snap-style heat by rank · dark red = top 10 · green = long tail · pin = details</p>
     </div>
     <div class="hs-stats" id="hsStats"></div>
     <div class="hs-list" id="hsList">
@@ -740,8 +740,8 @@
 (function () {
   // Declare map state BEFORE any function that closes over it (TDZ crash if
   // syncNavH runs while `let map` is still uninitialized).
-  let map = null, circleLayer = null, contourLayer = null, pinLayer = null, lastData = null;
-  let mode = 'heat'; // heat = topo contour lines
+  let map = null, circleLayer = null, heatLayer = null, pinLayer = null, lastData = null;
+  let mode = 'heat'; // heat = Snap rank heat
   let mapReady = false;
   let focusCenter = null;
   let focusRadius = null;
@@ -792,51 +792,65 @@
     };
   }
 
-  // Topo contour colors (outer = low elevation, inner = high / peak)
-  // Like USGS / Navionics: stroke-only lines, color = contour level.
-  const CONTOUR_LEVELS = [
-    { key: 'low',   color: '#1a5276', weight: 1.0, opacity: 0.55, frac: 1.00 },
-    { key: 'midlo', color: '#148f77', weight: 1.1, opacity: 0.62, frac: 0.78 },
-    { key: 'mid',   color: '#27ae60', weight: 1.2, opacity: 0.68, frac: 0.58 },
-    { key: 'midhi', color: '#f4d03f', weight: 1.35, opacity: 0.75, frac: 0.40 },
-    { key: 'high',  color: '#e67e22', weight: 1.5, opacity: 0.82, frac: 0.24 },
-    { key: 'peak',  color: '#c62828', weight: 2.0, opacity: 0.95, frac: 0.11 },
-  ];
-  const TOP_PEAK_COUNT = 20;
-  const scoreColor = (s) => {
-    const t = Math.max(0, Math.min(100, s)) / 100;
-    const h = 38 - t * 38;
-    return `hsl(${h}, 92%, ${48 - t * 10}%)`;
+  // Snap-style rank heat ladder (user spec):
+  //  #1–10 dark red · #11–20 lighter red · #21–40 orange-red ·
+  //  #41–60 orange/yellow · #61–100 yellow · #101–200 greenish yellow ·
+  //  #201–500 green-yellow · #501–1000+ light green
+  const RANK_COLORS = {
+    top10:  '#7f0000',
+    top20:  '#e53935',
+    top40:  '#ff5722',
+    top60:  '#ff9800',
+    top100: '#ffee58',
+    top200: '#cddc39',
+    top500: '#9ccc65',
+    tail:   '#c8e6c9',
   };
+  function colorForRank(rank) {
+    const r = Number(rank) || 9999;
+    if (r <= 10) return RANK_COLORS.top10;
+    if (r <= 20) return RANK_COLORS.top20;
+    if (r <= 40) return RANK_COLORS.top40;
+    if (r <= 60) return RANK_COLORS.top60;
+    if (r <= 100) return RANK_COLORS.top100;
+    if (r <= 200) return RANK_COLORS.top200;
+    if (r <= 500) return RANK_COLORS.top500;
+    return RANK_COLORS.tail;
+  }
+  // Continuous Snap melt gradient — light green floor → dark red peaks
+  // Stops aligned roughly with rank bands (hot end is scarce)
+  const HEAT_GRADIENT = {
+    0.00: 'rgba(200, 230, 201, 0)',
+    0.06: '#c8e6c9',
+    0.16: '#9ccc65',
+    0.28: '#cddc39',
+    0.40: '#fff59d',
+    0.50: '#ffee58',
+    0.60: '#ffc107',
+    0.70: '#ff9800',
+    0.80: '#ff5722',
+    0.90: '#e53935',
+    1.00: '#7f0000',
+  };
+  const TOP_PEAK_COUNT = 20;
+  // List badge color: prefer rank; fall back from opportunity_score if needed
+  const scoreColor = (s, rank) => colorForRank(rank || Math.max(1, Math.round((100 - (s || 0)) / 4)));
 
-  /** Concentric stroke-only circles = elevation contours around a market. */
-  function drawMarketContours(layer, h, isPeak) {
-    const elev = Math.max(0.15, Math.min(1, (h.opportunity_score || 40) / 100));
-    const outerMi = 12 + elev * 28;
-    const outerM = outerMi * 1609.34;
-    const maxBand = isPeak ? 5 : (elev > 0.55 ? 4 : elev > 0.35 ? 3 : 2);
-    for (let i = 0; i <= maxBand; i++) {
-      const lvl = CONTOUR_LEVELS[i];
-      if (lvl.key === 'peak' && !isPeak) continue;
-      L.circle([h.lat, h.lng], {
-        radius: outerM * lvl.frac,
-        color: lvl.color,
-        fill: false,
-        weight: lvl.weight,
-        opacity: lvl.opacity,
-        interactive: false,
-      }).addTo(layer);
-    }
+  /** Map 0–1 intensity into rank-ladder shape: dark red only near the top. */
+  function heatIntensity(v) {
+    const x = Math.max(0, Math.min(1, Number(v) || 0));
+    // Push mass into cooler bands; peaks stay hot
+    return Math.pow(x, 1.15);
   }
 
-  function miniPinIcon(isPeak) {
-    const fill = isPeak ? '#c62828' : '#fbf9f5';
-    const stroke = isPeak ? '#ffffff' : 'rgba(6,27,14,.9)';
-    const dot = isPeak ? '#ffffff' : '#061b0e';
-    const html = `<div class="hs-mini-pin${isPeak ? ' peak' : ''}">
+  function miniPinIcon(rank) {
+    const fill = colorForRank(rank);
+    const stroke = rank <= 20 ? '#ffffff' : 'rgba(6,27,14,.85)';
+    const dot = rank <= 40 ? '#ffffff' : '#061b0e';
+    const html = `<div class="hs-mini-pin" title="#${rank}">
       <svg viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M6 0C2.7 0 0 2.7 0 6c0 4.5 6 10 6 10s6-5.5 6-10C12 2.7 9.3 0 6 0z" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
-        <circle cx="6" cy="6" r="2" fill="${dot}"/>
+        <path d="M6 0C2.7 0 0 2.7 0 6c0 4.5 6 10 6 10s6-5.5 6-10C12 2.7 9.3 0 6 0z" fill="${fill}" stroke="${stroke}" stroke-width="1.1"/>
+        <circle cx="6" cy="6" r="1.8" fill="${dot}"/>
       </svg>
     </div>`;
     return L.divIcon({ className: '', html, iconSize: [12, 16], iconAnchor: [6, 16], popupAnchor: [0, -14] });
@@ -917,12 +931,29 @@
     }).addTo(map);
 
     circleLayer = L.layerGroup();
-    contourLayer = L.layerGroup();
     pinLayer = L.layerGroup();
-    // No leaflet.heat — pure stroke contours (topo lines) + tiny pins
-    pinLayer.addTo(map);
-    contourLayer.addTo(map);
 
+    if (typeof L.heatLayer === 'function') {
+      if (!HTMLCanvasElement.prototype._poHeatCtxPatched) {
+        const _origGetContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+          if (type === '2d') {
+            attrs = Object.assign({ willReadFrequently: true }, attrs || {});
+          }
+          return _origGetContext.call(this, type, attrs);
+        };
+        HTMLCanvasElement.prototype._poHeatCtxPatched = true;
+      }
+      heatLayer = L.heatLayer([], {
+        radius: 26, blur: 18, maxZoom: 7, max: 1.0, minOpacity: 0.18,
+        gradient: HEAT_GRADIENT,
+      });
+      heatLayer.addTo(map);
+    } else {
+      heatLayer = null;
+      console.warn('leaflet.heat missing');
+    }
+    pinLayer.addTo(map);
 
     map.on('click', (e) => {
       focusCenter = { lat: e.latlng.lat, lng: e.latlng.lng };
@@ -988,7 +1019,6 @@
 
   function clearLayers() {
     if (circleLayer) circleLayer.clearLayers();
-    if (contourLayer) contourLayer.clearLayers();
     if (pinLayer) pinLayer.clearLayers();
     if (focusCircle) {
       map.removeLayer(focusCircle);
@@ -1035,9 +1065,11 @@
     const railHead = document.querySelector('.hs-rail-head p');
     if (railHead) {
       railHead.textContent = hs.length
-        ? `${hs.length} markets · topo contours · tiny pin = details`
+        ? `${hs.length} markets · Snap heat by rank · pin = details`
         : 'No markets yet — import Census + livestock under Data sources';
     }
+    document.getElementById('hsLegendLabs').innerHTML =
+      '<span>#1–10</span><span>#40</span><span>#100</span><span>#500+</span>';
 
     document.getElementById('hsStats').innerHTML = `
       <div class="hs-stat"><p class="lab">People</p><div class="v">${t.population ? (t.population/1e6).toFixed(0)+'M' : '—'}<small>${fmt(t.counties)} counties</small></div></div>
@@ -1047,21 +1079,42 @@
       <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${fmt(t.buyers)}<small>${fmt(t.reservations)} res.</small></div></div>
       <div class="hs-stat"><p class="lab">HW leads</p><div class="v">${fmt(t.hardware_leads)}<small>/hardware</small></div></div>`;
 
+    // Rank-shaped continuous heat (Snap melt)
+    let heatPts = (rawHeat || []).map(p => [p[0], p[1], heatIntensity(p[2])]);
+    // Seed / boost from ranked markets so top ranks read as dark-red peaks
+    if (hs.length) {
+      const n = hs.length;
+      hs.forEach((h) => {
+        // Map rank → intensity in the ladder (rank 1 ≈ 1.0, rank 500 ≈ cool)
+        const r = h.rank || n;
+        let intensity;
+        if (r <= 10) intensity = 0.97;
+        else if (r <= 20) intensity = 0.88;
+        else if (r <= 40) intensity = 0.78;
+        else if (r <= 60) intensity = 0.68;
+        else if (r <= 100) intensity = 0.55;
+        else if (r <= 200) intensity = 0.42;
+        else if (r <= 500) intensity = 0.28;
+        else intensity = 0.14;
+        // small cluster for each market peak
+        heatPts.push([h.lat, h.lng, intensity]);
+        heatPts.push([h.lat, h.lng, intensity * 0.92]);
+      });
+    }
+    if (heatLayer && typeof heatLayer.setLatLngs === 'function') {
+      heatLayer.setLatLngs(heatPts);
+      try { heatLayer.redraw(); } catch (_) {}
+    }
+
     clearLayers();
 
     const radiusMeters = (data.radius_miles || 100) * 1609.34;
-
-    // Topo contours for every ranked market (red peak ring only for top 20)
     hs.forEach((h) => {
-      const isPeak = h.rank <= TOP_PEAK_COUNT;
-      drawMarketContours(contourLayer, h, isPeak);
-
-      // Filled zones (secondary mode)
-      const color = scoreColor(h.opportunity_score);
+      const col = colorForRank(h.rank);
       const c = L.circle([h.lat, h.lng], {
         radius: nationwide ? 120 * 1609.34 : radiusMeters,
-        color, fillColor: color,
-        fillOpacity: 0.22 + 0.32 * (h.opportunity_score / 100),
+        color: col, fillColor: col,
+        fillOpacity: 0.16 + 0.28 * ((h.opportunity_score || 0) / 100),
         weight: 2,
       }).addTo(circleLayer);
       c.bindPopup(popupHtml(h));
@@ -1071,10 +1124,9 @@
       });
       circles[h.rank] = c;
 
-      // Tiny clickable pin (all markets)
       const pin = L.marker([h.lat, h.lng], {
-        icon: miniPinIcon(isPeak),
-        zIndexOffset: isPeak ? 600 : 400,
+        icon: miniPinIcon(h.rank),
+        zIndexOffset: Math.max(0, 800 - (h.rank || 50)),
       }).addTo(pinLayer);
       pin.bindPopup(popupHtml(h));
       pin.on('click', (e) => {
@@ -1083,18 +1135,18 @@
       });
     });
 
-    // Topo lines mode vs filled zones
+    // Snap heat + tiny rank pins; zones optional
     if (mode === 'heat') {
-      if (!map.hasLayer(contourLayer)) contourLayer.addTo(map);
+      if (heatLayer && !map.hasLayer(heatLayer)) heatLayer.addTo(map);
       if (!map.hasLayer(pinLayer)) pinLayer.addTo(map);
       if (map.hasLayer(circleLayer)) map.removeLayer(circleLayer);
+      if (!heatLayer && hs.length) circleLayer.addTo(map);
     } else {
-      if (map.hasLayer(contourLayer)) map.removeLayer(contourLayer);
+      if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
       if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
       if (!map.hasLayer(circleLayer)) circleLayer.addTo(map);
     }
 
-    // Continental US
     if (!keepView && !data.focus) {
       map.fitBounds(L.latLngBounds([[24.5, -125], [49.5, -66.5]]), { animate: true, maxZoom: 5 });
     }
@@ -1155,7 +1207,7 @@
             ${chips ? `<div class="hs-plays">${chips}</div>` : ''}
             ${why}
           </div>
-          <div class="hs-score" style="background:${scoreColor(h.opportunity_score)}">${h.opportunity_score}</div>
+          <div class="hs-score" style="background:${colorForRank(h.rank)}">${h.opportunity_score}</div>
         </div>`;
     }).join('') : `<div class="empty">No markets yet.<br><span style="opacity:.7;font-size:12px">Import census + livestock under Data sources.</span></div>`;
 
@@ -1217,6 +1269,7 @@
     const v = radiusSel.value;
     const f = currentFilters();
     let qs = v === 'nationwide' ? 'scope=nationwide' : `radius_miles=${v}`;
+    qs += '&max_hotspots=100';
     if (f.layers.length) qs += `&layers=${f.layers.join(',')}`;
     qs += `&capacity=${f.capacity}`;
     if (focusCenter) {
