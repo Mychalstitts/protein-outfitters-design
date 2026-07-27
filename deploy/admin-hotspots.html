@@ -185,6 +185,34 @@
     color: #fbf9f5;
     border: 1px solid rgba(255,255,255,.22);
   }
+  .hs-opacity {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.06);
+  }
+  .hs-opacity label {
+    font: 700 10px/1 Inter, system-ui, sans-serif;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(251,249,245,.55);
+    white-space: nowrap;
+  }
+  .hs-opacity input[type="range"] {
+    width: 100px;
+    height: 4px;
+    accent-color: #42a5f5;
+    cursor: pointer;
+  }
+  .hs-opacity #hsOpacityVal {
+    font: 800 11px/1 Inter, system-ui, sans-serif;
+    color: #fbf9f5;
+    min-width: 34px;
+    text-align: right;
+  }
   .hs-filters-btn {
     font: 700 12px/1 Inter, system-ui, sans-serif;
     padding: 10px 14px;
@@ -638,8 +666,13 @@
     </div>
     <div class="hs-controls">
       <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
-        <button type="button" data-mode="heat" class="on">Snap heat</button>
-        <button type="button" data-mode="zones">Market zones</button>
+        <button type="button" data-mode="heat" class="on">Radar</button>
+        <button type="button" data-mode="zones">Zones</button>
+      </div>
+      <div class="hs-opacity" title="Fade radar so city labels show through">
+        <label for="hsOpacity">Opacity</label>
+        <input type="range" id="hsOpacity" min="15" max="100" value="70" />
+        <span id="hsOpacityVal">70%</span>
       </div>
       <label for="hsLens">Lens</label>
       <select id="hsLens">
@@ -694,13 +727,13 @@
   <button type="button" id="hsSearchArea">Search this area</button>
 
   <div class="hs-glass hs-legend">
-    <p class="title">Snap heat by rank</p>
+    <p class="title">Opportunity radar</p>
     <div class="bar" id="hsLegendBar"></div>
     <div class="labs" id="hsLegendLabs">
-      <span>#1 dark red</span><span>yellow</span><span>green</span><span>blue</span>
+      <span>Light</span><span>Mod</span><span>Heavy</span><span>Peak</span>
     </div>
     <p style="margin:8px 0 0;font:500 10px/1.35 Inter,system-ui,sans-serif;color:rgba(251,249,245,.45)">
-      Pure color fade · no rings · #1–10 dark red → blue tail
+      Weather-radar shade · use Opacity to see cities
     </p>
   </div>
 
@@ -821,22 +854,23 @@
     if (r <= 2000) return RANK_COLORS.top2000;
     return RANK_COLORS.tail;
   }
-  // Continuous Snap melt — light blue floor → dark red peaks (smooth fades)
+  // Weather-radar style (rain intensity): light precip → severe core
+  // Includes blue tail for lowest ranks, green→yellow→orange→red→magenta peak
   const HEAT_GRADIENT = {
     0.00: 'rgba(187, 222, 251, 0)',
-    0.05: '#bbdefb',  // light blue (2000+)
-    0.12: '#64b5f6',  // blue (1000–2000)
-    0.22: '#42a5f5',
-    0.30: '#a5d6a7',  // light green (500–1000)
-    0.40: '#9ccc65',  // green-yellow (200–500)
-    0.50: '#cddc39',  // greenish yellow (100–200)
-    0.58: '#fff59d',  // light yellow
-    0.65: '#ffee58',  // yellow (61–100)
-    0.73: '#ffc107',  // yellow→orange
-    0.80: '#ff9800',  // orange (41–60)
-    0.87: '#ff5722',  // orange-red (21–40)
-    0.93: '#e53935',  // lighter red (11–20)
-    1.00: '#7f0000',  // dark red (1–10)
+    0.04: '#bbdefb',  // light blue (lightest / 2000+)
+    0.10: '#64b5f6',  // blue (1000–2000)
+    0.18: '#42a5f5',
+    0.26: '#81c784',  // light green (500–1000)
+    0.36: '#66bb6a',  // green (200–500)
+    0.46: '#cddc39',  // greenish yellow (100–200)
+    0.55: '#ffee58',  // yellow (61–100)
+    0.64: '#ffc107',  // gold
+    0.72: '#ff9800',  // orange (41–60)
+    0.80: '#ff5722',  // orange-red (21–40)
+    0.88: '#e53935',  // red (11–20)
+    0.94: '#b71c1c',  // dark red (1–10)
+    1.00: '#880e4f',  // magenta core (heaviest)
   };
   // Map rank → heat intensity (smooth continuum for melt field)
   function intensityForRank(rank) {
@@ -883,6 +917,22 @@
       filtersBtn.setAttribute('aria-expanded', 'false');
     }
   });
+
+  // Radar opacity — see cities through the shade or crank it denser
+  const opacityInput = document.getElementById('hsOpacity');
+  const opacityVal = document.getElementById('hsOpacityVal');
+  function applyRadarOpacity() {
+    const pct = opacityInput ? Number(opacityInput.value) : 70;
+    if (opacityVal) opacityVal.textContent = pct + '%';
+    try {
+      const pane = map && map.getPane('radarPane');
+      if (pane) pane.style.opacity = String(Math.max(0.05, Math.min(1, pct / 100)));
+    } catch (_) {}
+  }
+  if (opacityInput) {
+    opacityInput.addEventListener('input', applyRadarOpacity);
+    opacityInput.addEventListener('change', applyRadarOpacity);
+  }
 
   function showOverlay(html) {
     if (!overlay) return;
@@ -933,12 +983,19 @@
       attributionControl: true,
     }).setView([39.5, -96.5], 4);
 
-    // Dark basemap — lets heat glow like Snap Map
+    // Dark basemap — radar shade sits on top; opacity slider reveals cities
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 19,
     }).addTo(map);
+
+    // Dedicated pane so we can fade radar without touching basemap labels
+    if (!map.getPane('radarPane')) {
+      map.createPane('radarPane');
+      map.getPane('radarPane').style.zIndex = 350;
+      map.getPane('radarPane').style.pointerEvents = 'none';
+    }
 
     circleLayer = L.layerGroup();
     pinLayer = L.layerGroup();
@@ -954,17 +1011,19 @@
         };
         HTMLCanvasElement.prototype._poHeatCtxPatched = true;
       }
+      // Soft radar cells — continuous rain-style shade, no hard rings
       heatLayer = L.heatLayer([], {
-        // Soft continuous melt (Snap-like) — no hard circle edges
-        radius: 38, blur: 32, maxZoom: 6, max: 1.0, minOpacity: 0.15,
+        radius: 36, blur: 28, maxZoom: 6, max: 1.0, minOpacity: 0.12,
         gradient: HEAT_GRADIENT,
+        pane: 'radarPane',
       });
       heatLayer.addTo(map);
+      applyRadarOpacity();
     } else {
       heatLayer = null;
       console.warn('leaflet.heat missing');
     }
-    pinLayer.addTo(map);
+    // pins only used in zones / list fly-to — not shown on radar by default
 
     map.on('click', (e) => {
       focusCenter = { lat: e.latlng.lat, lng: e.latlng.lng };
@@ -1141,12 +1200,13 @@
       });
     });
 
-    // Heat mode = continuous color field ONLY (no rings, no pins, no circles).
-    // Click a market in the list for details / fly-to.
+    // Radar mode = weather-shade only. Zones = filled markets.
+    // Click list rows for details. Opacity slider controls radarPane.
     if (mode === 'heat') {
       if (heatLayer && !map.hasLayer(heatLayer)) heatLayer.addTo(map);
       if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
       if (map.hasLayer(circleLayer)) map.removeLayer(circleLayer);
+      applyRadarOpacity();
     } else {
       if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
       if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
