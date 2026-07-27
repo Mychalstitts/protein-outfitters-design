@@ -79,6 +79,16 @@
   .hs-row h4 { margin: 0; font: 700 14px/1.3 var(--ff-sans); }
   .hs-row p { margin: 3px 0 0; font: 500 12px/1.4 var(--ff-sans); color: var(--ink-2); }
   .hs-score { font: 900 15px/1 var(--ff-sans); color: #fbf9f5; border-radius: 999px; padding: 8px 12px; min-width: 46px; text-align: center; }
+  .hs-plays { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .hs-chip { font: 700 10px/1 var(--ff-sans); letter-spacing: .04em; text-transform: uppercase;
+    padding: 4px 8px; border-radius: 999px; background: rgba(6,27,14,.08); color: #061b0e; }
+  .hs-chip.hw { background: #b71c1c; color: #fff; }
+  .hs-chip.buy { background: #1565c0; color: #fff; }
+  .hs-chip.farm { background: #2e7d32; color: #fff; }
+  .hs-chip.retail { background: #6a1b9a; color: #fff; }
+  .hs-chip.gap { background: #e65100; color: #fff; }
+  .hs-ver { display: inline-block; font: 800 11px/1 var(--ff-sans); letter-spacing: .08em; text-transform: uppercase;
+    background: #2e7d32; color: #fff; padding: 5px 10px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
 
   .hs-data-card { margin-top: 20px; }
   .hs-data-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding: 10px 0; border-top: 1px solid rgba(6,27,14,.06); }
@@ -131,11 +141,12 @@
 <main class="hs-shell">
   <div class="hs-head">
     <div>
-      <p class="eyebrow">Hardware opportunity hotspots</p>
-      <h1>Where should the next unit go?</h1>
-      <p>Population, animal availability, and live platform demand vs. every known processor —
-         darkest red where people and livestock stack up with nobody nearby to process.
-         That's where PO hardware sells with built-in demand.</p>
+      <p class="eyebrow">Admin market intelligence <span class="hs-ver" id="hsVerBadge">Metro-first · v2</span></p>
+      <h1>Where to sell hardware &amp; grow the network</h1>
+      <p>Each ranked market is a <b>metro demand center</b> with cattle/livestock in haul range.
+         Use it to place PS units, recruit city buyers, sign farms, and later line up retail
+         (Whole Foods, Costco). Darkest red = people + animals + thin processing. Pins sit on
+         the city — ranchland raises the score without stealing the pin.</p>
     </div>
     <div class="hs-controls">
       <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
@@ -144,10 +155,10 @@
       </div>
       <label for="hsLens">Lens</label>
       <select id="hsLens">
-        <option value="opportunity" selected>Hardware opportunity</option>
+        <option value="opportunity" selected>Metro × cattle (default)</option>
         <option value="population">Population density</option>
         <option value="farmdensity">Farm &amp; livestock density</option>
-        <option value="underserved">Underserved demand</option>
+        <option value="underserved">Underserved metros</option>
         <option value="network">Platform network</option>
         <option value="custom">Custom…</option>
       </select>
@@ -333,14 +344,18 @@
         <div class="hs-list-card">
           <h2>${nationwide ? 'Ranked states' : 'Ranked opportunities'}<small>${hs.length} ${nationwide ? 'states' : 'market areas'}</small></h2>
           <div class="hs-list" id="hsList"></div>
-          <p class="hs-note">Score = √(demand × supply) ÷ (1 + processors in area), normalized to the top area.
-            Demand: buyers ×1, reservations ×3, plus √population÷100. Supply: farms ×2, listings ×1,
-            plus √livestock-head÷100 (USDA 2022 Census of Ag). An area needs <em>both</em> demand and supply to rank.
-            <br><br><b>Unit math:</b> one PS1 = 15 head/shift × 5 shifts/wk = 3,900 head/yr × ~440 lb boneless beef
-            ÷ 59 lb per-person beef consumption ≈ <b>one PS1 per ~29,000 people</b>. Supply ceiling = local cattle
-            × 38% annual marketing ÷ 3,900. "Supports" takes the lower of the two; "net" subtracts existing plants
-            at 1 PS1-equivalent each. PS2/PS3 sized at 2×/3× PS1 (placeholder specs). Processors with cut capability
-            but no kill floor are add-on/trailer prospects.</p>
+          <p class="hs-note"><b>How admins use this</b><br>
+            <b>Sell hardware</b> — net PS1 capacity (or zero plants + people + livestock).<br>
+            <b>Recruit buyers</b> — big population, few platform buyers (city GTM).<br>
+            <b>Recruit farms</b> — livestock inventory, few PO farms.<br>
+            <b>Activate listings</b> — farms signed up but no animals for sale.<br>
+            <b>Retail prospect</b> — large metros for commercial later.<br>
+            <b>Capacity gap</b> — nearest plant is a long haul.
+            <br><br><b>Model:</b> cattle serving metros. Pins on population/buyers; livestock + farms in radius
+            raise the score. Reservations at the <em>buyer</em> zip. Score = √(demand × supply) ÷ (1 + processors).
+            Demand: buyers ×1, reservations ×3, √population÷100. Supply: farms ×2, listings ×1, √livestock÷100 (USDA 2022).
+            <br><br><b>Unit math:</b> one PS1 ≈ 3,900 head/yr ≈ <b>~29,000 people</b> of beef demand. Net PS1 = min(pop, cattle)
+            ceiling minus plants (1 PS1 each, proxy). Import census + livestock under Data sources if totals look empty.</p>
         </div>
       </div>`;
 
@@ -359,14 +374,28 @@
     if (mode === 'heat') { heatLayer.addTo(map); pinLayer.addTo(map); }
     else circleLayer.addTo(map);
 
+    const chipClass = (id) => ({
+      hardware: 'hw', hardware_addon: 'hw', recruit_buyers: 'buy', recruit_farms: 'farm',
+      retail: 'retail', capacity_gap: 'gap', activate_listings: 'farm',
+    }[id] || '');
+    const playsHtml = (plays) => {
+      if (!plays || !plays.length) return '';
+      const chips = plays.map(p =>
+        `<span class="hs-chip ${chipClass(p.id)}" title="${(p.why || '').replace(/"/g, '&quot;')}">${p.label}</span>`
+      ).join('');
+      const why = plays[0]?.why
+        ? `<div style="margin-top:6px;font:500 12px/1.4 Inter;color:#5a6359">${plays[0].why}</div>` : '';
+      return `<div class="hs-plays" style="margin-top:8px">${chips}</div>${why}`;
+    };
     const unitsHtml = (u) => !u ? '' : `
         <div class="hs-pop-row" style="border-top:1px solid rgba(6,27,14,.12);margin-top:6px;padding-top:6px;"><span>PS1 units this market supports</span><strong>${u.ps1_supported}</strong></div>
         <div class="hs-pop-row"><span>Net after existing plants</span><strong>${u.net_ps1}</strong></div>
         <div class="hs-pop-row"><span>Limited by</span><strong>${u.limited_by}</strong></div>
         <div class="hs-pop-row"><span>Suggested</span><strong>${u.suggested_config}</strong></div>`;
     const popupHtml = (h) => `
-        <h4>#${h.rank} ${h.label || 'Market area'} — score ${h.opportunity_score}</h4>
-        <div class="hs-pop-row"><span>Population</span><strong>${fmt(h.metrics.population)}</strong></div>
+        <h4>#${h.rank != null ? h.rank + ' ' : ''}${h.label || 'Market area'} — score ${h.opportunity_score}</h4>
+        ${playsHtml(h.plays)}
+        <div class="hs-pop-row" style="margin-top:6px"><span>Population</span><strong>${fmt(h.metrics.population)}</strong></div>
         <div class="hs-pop-row"><span>Livestock head</span><strong>${fmt(h.metrics.livestock)}</strong></div>
         <div class="hs-pop-row"><span>Buyers</span><strong>${fmt(h.metrics.buyers)}</strong></div>
         <div class="hs-pop-row"><span>Reservations</span><strong>${fmt(h.metrics.reservations)}</strong></div>
@@ -422,7 +451,8 @@
         : `${focus.label ? 'Near ' + focus.label : 'This area'}`;
       const fPopup = `
         <h4>${title} — score ${focus.opportunity_score}</h4>
-        <div class="hs-pop-row"><span>Zone</span><strong>
+        ${playsHtml(focus.plays)}
+        <div class="hs-pop-row" style="margin-top:6px"><span>Zone</span><strong>
           <button class="hs-step" onclick="window.__hsFocusStep(-1)" ${focus.radius_miles <= 25 ? 'disabled' : ''}>−</button>
           ${focus.radius_miles} mi
           <button class="hs-step" onclick="window.__hsFocusStep(1)" ${focus.radius_miles >= 500 ? 'disabled' : ''}>+</button>
@@ -472,7 +502,21 @@
     };
 
     const list = document.getElementById('hsList');
-    list.innerHTML = hs.length ? hs.map(h => `
+    const verBadge = document.getElementById('hsVerBadge');
+    if (verBadge && data.model === 'metro_first_v2') {
+      verBadge.textContent = 'Live · metro-first v2';
+      verBadge.style.background = '#2e7d32';
+    } else if (verBadge) {
+      verBadge.textContent = 'API model: ' + (data.model || 'legacy');
+      verBadge.style.background = '#e65100';
+    }
+    list.innerHTML = hs.length ? hs.map(h => {
+      const chips = (h.plays || []).slice(0, 3).map(p =>
+        `<span class="hs-chip ${chipClass(p.id)}" title="${(p.why || '').replace(/"/g, '&quot;')}">${p.label}</span>`
+      ).join('');
+      const why = h.primary_play?.why
+        ? `<p style="margin-top:4px;opacity:.9">${h.primary_play.why}</p>` : '';
+      return `
       <div class="hs-row" data-rank="${h.rank}">
         <div>
           <h4>#${h.rank} ${h.label || 'Unnamed market area'}</h4>
@@ -480,9 +524,12 @@
              ${fmt(h.capacity_count)} processor${h.capacity_count === 1 ? '' : 's'}${
                h.nearest_processor_miles != null ? ` · nearest ${h.nearest_processor_miles} mi` : ''}${
                h.units && h.units.net_ps1 > 0 ? ` · <b>fits ${h.units.suggested_config}</b>` : ''}</p>
+          ${chips ? `<div class="hs-plays">${chips}</div>` : ''}
+          ${why}
         </div>
         <div class="hs-score" style="background:${scoreColor(h.opportunity_score)}">${h.opportunity_score}</div>
-      </div>`).join('')
+      </div>`;
+    }).join('')
       : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No hotspots yet.<br>
           <span style="opacity:.7;font-size:12px;">Import population + livestock data below, then refresh.</span></div>`;
 

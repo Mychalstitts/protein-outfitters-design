@@ -1,4 +1,4 @@
-// /api/admin-hotspots — hardware opportunity hotspot map data (admin only).
+// /api/admin-hotspots — hardware + marketplace opportunity map (admin only).
 //
 //   GET ?radius_miles=50&max_hotspots=25        → radius-cluster hotspots
 //   GET ?scope=nationwide                       → state-level ranking
@@ -13,25 +13,28 @@
 //                      those plants aren't real competition for PO's model
 //         none         ignore capacity entirely (pure density view)
 //
-// A hotspot is a market area where DEMAND and ANIMAL SUPPLY are both present
-// but processing capacity is thin — the prime target markets for PO hardware:
-// a processor who buys hardware in a hotspot inherits built-in demand.
+// Product model: cattle (and other livestock) serving metro demand.
+// City people don't organize farm-direct meat themselves — PO simplifies that.
+// A hotspot is a DEMAND CENTER (metro / buyer cluster) whose haul-radius
+// catchment has animal supply but thin processing. Pins sit on the city;
+// ranchland raises the score without pulling the pin out of the metro.
+// Same map later supports commercial demand (Whole Foods, Costco, etc.) as
+// an additional demand layer — not scored yet.
 //
 // Scoring blends live platform activity with county-level market data
 // (imported via /api/admin-county-stats):
-//   demand  = buyers ×1 + reservations ×3            (platform, geocoded)
-//           + √(county population within area)/100    (market potential)
+//   demand  = buyers ×1 + reservations ×3            (at BUYER zip, not farm)
+//           + √(county population within area)/100    (metro market potential)
 //   supply  = farms ×2 + active listings ×1           (platform)
-//           + √(county livestock head within area)/100 (animal availability,
-//             USDA NASS: cattle + hogs + sheep + goats)
+//           + √(county livestock head within area)/100 (cattle etc. that can
+//             feed the metro — USDA NASS: cattle + hogs + sheep + goats)
 //   score   = √(demand × supply) / (1 + processors within area)
-// The geometric mean means an area needs BOTH demand and supply to rank.
-// Capacity counts every geocoded processor in the DB — platform members,
-// FSIS/MPA imports, and association-registry imports alike.
+// The geometric mean means a market needs BOTH people to sell to and animals
+// within haul range. Capacity counts every geocoded processor in the DB.
 //
-// `heat` output drives the Snap-style gradient: every point's intensity is
-// its weight divided by (1 + processors nearby), so the map burns darkest
-// red where demand stacks up with nobody to process it.
+// Candidates and heat are demand-centered so "sell here" means the metro
+// (or the plant site that unlocks that metro), not a weight-average out in
+// pasture between the city and the herd.
 
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { geocode } from './_lib/geocode.js';
@@ -84,6 +87,111 @@ function computeUnits(metrics, capacityCount) {
   };
 }
 
+// Admin action tags — what the team should do in this market, not just a score.
+// Ordered by priority (lower = more urgent for GTM).
+function computePlays(metrics, capacityCount, nearestMi, units) {
+  const m = metrics || {};
+  const pop = m.population || 0;
+  const head = m.livestock || 0;
+  const cattle = m.cattle || 0;
+  const buyers = m.buyers || 0;
+  const farms = m.farms || 0;
+  const listings = m.listings || 0;
+  const res = m.reservations || 0;
+  const plays = [];
+
+  // Hardware: room for PS units after existing plants, or zero plants + both sides.
+  if (units && units.net_ps1 >= 0.5) {
+    plays.push({
+      id: 'hardware',
+      label: 'Sell hardware',
+      priority: 1,
+      why: `Market supports ~${units.suggested_config} (net ${units.net_ps1} PS1 after plants; limited by ${units.limited_by})`,
+    });
+  } else if (capacityCount === 0 && pop >= 40000 && (cattle >= 8000 || head >= 15000)) {
+    plays.push({
+      id: 'hardware',
+      label: 'Sell hardware',
+      priority: 1,
+      why: 'No processors in radius, with people + livestock to feed a plant',
+    });
+  } else if (units && units.ps1_supported >= 1 && units.net_ps1 < 0.5) {
+    plays.push({
+      id: 'hardware_addon',
+      label: 'Hardware add-on',
+      priority: 3,
+      why: 'Area is roughly covered — kill-floor upgrade / cut trailer / overflow play',
+    });
+  }
+
+  // Capacity gap even when some plants exist.
+  if (nearestMi != null && nearestMi > 45 && pop >= 50000 && head >= 10000) {
+    plays.push({
+      id: 'capacity_gap',
+      label: 'Capacity gap',
+      priority: 1,
+      why: `Nearest known plant ~${nearestMi} mi — haul is painful for farms serving this metro`,
+    });
+  }
+
+  // Buyer acquisition: big metro, thin platform demand.
+  if (pop >= 100000 && buyers < 15) {
+    plays.push({
+      id: 'recruit_buyers',
+      label: 'Recruit buyers',
+      priority: 2,
+      why: `${Math.round(pop / 1000)}k people, only ${buyers} geocoded buyer${buyers === 1 ? '' : 's'} on PO`,
+    });
+  } else if (pop >= 50000 && buyers + res === 0) {
+    plays.push({
+      id: 'recruit_buyers',
+      label: 'Recruit buyers',
+      priority: 2,
+      why: 'Population present but zero platform buyers/reservations in this zone',
+    });
+  }
+
+  // Farm / livestock acquisition.
+  if (head >= 40000 && farms < 5) {
+    plays.push({
+      id: 'recruit_farms',
+      label: 'Recruit farms',
+      priority: 2,
+      why: `${Math.round(head).toLocaleString()} livestock head, only ${farms} farm${farms === 1 ? '' : 's'} on platform`,
+    });
+  } else if (cattle >= 20000 && farms === 0) {
+    plays.push({
+      id: 'recruit_farms',
+      label: 'Recruit farms',
+      priority: 2,
+      why: 'Strong cattle inventory, no PO farms mapped here yet',
+    });
+  }
+
+  // Activate inventory.
+  if (farms >= 2 && listings === 0) {
+    plays.push({
+      id: 'activate_listings',
+      label: 'Activate listings',
+      priority: 3,
+      why: `${farms} farms on platform, 0 active listings — get animals up for sale`,
+    });
+  }
+
+  // Future commercial / retail channel.
+  if (pop >= 500000) {
+    plays.push({
+      id: 'retail',
+      label: 'Retail prospect',
+      priority: 4,
+      why: 'Large metro — Whole Foods / Costco / multi-store demand layer later',
+    });
+  }
+
+  plays.sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
+  return plays;
+}
+
 // Weights — platform signals
 const W_BUYER = 1;
 const W_RESERVATION = 3;
@@ -94,6 +202,12 @@ const W_LISTING = 1;
 const POP_DIVISOR = 100;
 const LIVESTOCK_DIVISOR = 100;
 const MAX_FRESH_GEOCODES = 8;
+// Heat: demand (metros) dominates; supply hinterland is visible but dim.
+const HEAT_DEMAND_SCALE = 1;
+const HEAT_SUPPLY_SCALE = 0.2;
+// Non-overlap uses half the market radius so adjacent metros (e.g. SF /
+// Sacramento at 100mi) can both rank instead of collapsing to one blob.
+const SEPARATION_FRACTION = 0.5;
 
 const RADIUS_CHOICES = [25, 50, 100, 200, 500];
 
@@ -106,27 +220,50 @@ function distanceMi(aLat, aLng, bLat, bLng) {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
+// Cache-first zip → {lat,lng}. Shares one fresh-lookup budget across buyers
+// and reservations so a single request can't hammer Nominatim.
+function makeZipGeocoder() {
+  const memo = new Map(); // zip → Promise<{lat,lng}|null>
+  let freshLookups = 0;
+  return async function zipToPoint(zipRaw) {
+    const zip = String(zipRaw || '').trim().slice(0, 5);
+    if (!/^\d{5}$/.test(zip)) return null;
+    if (memo.has(zip)) return memo.get(zip);
+    const p = (async () => {
+      const cached = await sql`
+        SELECT lat, lng FROM geocode_cache WHERE query_key = ${zip} LIMIT 1`;
+      if (cached[0]) return { lat: cached[0].lat, lng: cached[0].lng };
+      if (freshLookups >= MAX_FRESH_GEOCODES) return null;
+      freshLookups++;
+      const g = await geocode({ zip }).catch(() => null);
+      return g ? { lat: g.lat, lng: g.lng } : null;
+    })();
+    memo.set(zip, p);
+    return p;
+  };
+}
+
 async function loadPoints() {
   const totals = {
-    buyers: 0, buyers_geocoded: 0, reservations: 0,
+    buyers: 0, buyers_geocoded: 0, reservations: 0, reservations_geocoded: 0,
     farms: 0, farms_geocoded: 0, listings: 0,
     processors: 0, processors_geocoded: 0, hardware_leads: 0,
     counties: 0, population: 0, livestock_head: 0,
   };
-  const demand = [];   // { lat, lng, weight, label, state, counts }
+  const demand = [];   // { lat, lng, weight, label, state, counts, layer }
   const supply = [];
   const capacity = []; // { lat, lng, state }
+  const zipToPoint = makeZipGeocoder();
 
   // ── Supply: farms weighted by active listings ────────────────
+  // Animals / producers live here — hinterland that feeds metros.
   const farms = await sql`
     SELECT f.id, f.name, f.city, f.state, f.lat, f.lng,
            (SELECT COUNT(*)::int FROM listings l WHERE l.farm_id = f.id AND l.status = 'active') AS listings_count
     FROM farms f`;
-  const farmById = {};
   for (const f of farms) {
     totals.farms++;
     totals.listings += f.listings_count;
-    farmById[f.id] = f;
     if (f.lat == null || f.lng == null) continue;
     totals.farms_geocoded++;
     supply.push({
@@ -139,21 +276,23 @@ async function loadPoints() {
     });
   }
 
-  // ── Demand: active reservations, located at the reserved farm ─
+  // ── Demand: reservations at the BUYER (city), not the farm ───
+  // PO's job is simplifying farm-direct for people who live in metros.
+  // Putting reservation demand on the farm made ranchland look like demand.
   const reservations = await sql`
-    SELECT r.id, l.farm_id
+    SELECT r.id, u.zip AS buyer_zip
     FROM reservations r
-    JOIN listings l ON l.id = r.listing_id
+    LEFT JOIN users u ON u.id = r.buyer_id
     WHERE r.status NOT IN ('cancelled','refunded')`;
   for (const r of reservations) {
     totals.reservations++;
-    const f = farmById[r.farm_id];
-    if (!f || f.lat == null || f.lng == null) continue;
+    const g = await zipToPoint(r.buyer_zip);
+    if (!g) continue;
+    totals.reservations_geocoded++;
     demand.push({
-      lat: f.lat, lng: f.lng,
+      lat: g.lat, lng: g.lng,
       weight: W_RESERVATION,
-      label: f.city ? `${f.city}, ${f.state || ''}`.replace(/, $/, '') : null,
-      state: f.state || null,
+      label: null, state: null,
       layer: 'reservations',
       counts: { reservations: 1 },
     });
@@ -163,24 +302,23 @@ async function loadPoints() {
   const buyers = await sql`
     SELECT id, zip FROM users
     WHERE role = 'buyer' AND zip IS NOT NULL AND zip <> ''`;
-  let freshLookups = 0;
   for (const b of buyers) {
     totals.buyers++;
-    const zip = String(b.zip).trim().slice(0, 5);
-    if (!/^\d{5}$/.test(zip)) continue;
-    const cached = await sql`
-      SELECT lat, lng FROM geocode_cache WHERE query_key = ${zip} LIMIT 1`;
-    let g = cached[0] || null;
-    if (!g && freshLookups < MAX_FRESH_GEOCODES) {
-      freshLookups++;
-      g = await geocode({ zip }).catch(() => null);
-    }
+    const g = await zipToPoint(b.zip);
     if (!g) continue;
     totals.buyers_geocoded++;
-    demand.push({ lat: g.lat, lng: g.lng, weight: W_BUYER, label: null, state: null, layer: 'buyers', counts: { buyers: 1 } });
+    demand.push({
+      lat: g.lat, lng: g.lng,
+      weight: W_BUYER,
+      label: null, state: null,
+      layer: 'buyers',
+      counts: { buyers: 1 },
+    });
   }
 
-  // ── Market data: county population + livestock ────────────────
+  // ── Market data: county population (demand) + livestock (supply) ─
+  // Population pins are the metro demand surface. Livestock is the cattle
+  // (etc.) that can serve those metros when inside the haul radius.
   let countyRows = [];
   try {
     countyRows = await sql`
@@ -215,6 +353,7 @@ async function loadPoints() {
   }
 
   // ── Capacity: every geocoded processor ────────────────────────
+  // Plant count is a proxy until we have kill-floor vs cut-only throughput.
   const processors = await sql`
     SELECT id, state, lat, lng, owner_id,
            (bio ILIKE 'Imported from assoc%') AS from_registry
@@ -256,22 +395,29 @@ function rawScore(demandScore, supplyScore, requireBoth) {
 
 // Score one point against the full point sets within radius. Used for every
 // grid candidate and for zip-centered focus analysis.
+// Labels prefer the largest population county in the circle (the metro name
+// people recognize), then any demand label, then supply — never a pure
+// livestock county just because the herd is big.
 function scoreAt(lat, lng, radiusMiles, demand, supply, capacity) {
   const metrics = EMPTY_METRICS();
   let demandScore = 0, supplyScore = 0, capacityCount = 0;
-  const labels = new Map();
+  let bestPopLabel = null, bestPop = 0;
+  let bestDemandLabel = null, bestDemandW = 0;
+  let bestSupplyLabel = null, bestSupplyW = 0;
   for (const p of demand) {
     if (distanceMi(lat, lng, p.lat, p.lng) <= radiusMiles) {
       demandScore += p.weight;
       accumulate(metrics, p.counts);
-      if (p.label) labels.set(p.label, (labels.get(p.label) || 0) + p.weight);
+      const pop = p.counts?.population || 0;
+      if (pop > bestPop && p.label) { bestPop = pop; bestPopLabel = p.label; }
+      if (p.label && p.weight > bestDemandW) { bestDemandW = p.weight; bestDemandLabel = p.label; }
     }
   }
   for (const p of supply) {
     if (distanceMi(lat, lng, p.lat, p.lng) <= radiusMiles) {
       supplyScore += p.weight;
       accumulate(metrics, p.counts);
-      if (p.label) labels.set(p.label, (labels.get(p.label) || 0) + p.weight);
+      if (p.label && p.weight > bestSupplyW) { bestSupplyW = p.weight; bestSupplyLabel = p.label; }
     }
   }
   let nearestProcessor = Infinity;
@@ -280,10 +426,8 @@ function scoreAt(lat, lng, radiusMiles, demand, supply, capacity) {
     if (d <= radiusMiles) capacityCount++;
     if (d < nearestProcessor) nearestProcessor = d;
   }
-  let label = null, best = 0;
-  for (const [k, v] of labels) if (v > best) { best = v; label = k; }
   return {
-    label,
+    label: bestPopLabel || bestDemandLabel || bestSupplyLabel,
     demand_score: Math.round(demandScore * 10) / 10,
     supply_score: Math.round(supplyScore * 10) / 10,
     capacity_count: capacityCount,
@@ -293,14 +437,19 @@ function scoreAt(lat, lng, radiusMiles, demand, supply, capacity) {
   };
 }
 
-// ── Radius-cluster hotspots ────────────────────────────────────
+// ── Radius-cluster hotspots (metro-first) ──────────────────────
+// Candidates are binned from DEMAND only so pins land on cities / buyer
+// clusters. Cattle and farms inside the haul radius still raise the score;
+// they just don't drag the pin into pasture between the metro and the herd.
+// One-sided farm-density lenses fall back to supply centers.
 function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth) {
-  const activity = demand.concat(supply);
-  if (!activity.length) return [];
+  const centerSrc = demand.length ? demand : supply;
+  // Always return { hotspots, top } — callers destructure both fields.
+  if (!centerSrc.length) return finalize([]);
 
   const cellDeg = Math.max(radiusMiles / 2, 10) / 69;
   const bins = new Map();
-  for (const p of activity) {
+  for (const p of centerSrc) {
     const key = `${Math.floor(p.lat / cellDeg)}:${Math.floor(p.lng / cellDeg)}`;
     if (!bins.has(key)) bins.set(key, []);
     bins.get(key).push(p);
@@ -308,6 +457,7 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, req
   const candidates = [];
   for (const pts of bins.values()) {
     const w = pts.reduce((s, p) => s + p.weight, 0);
+    if (w <= 0) continue;
     candidates.push({
       lat: pts.reduce((s, p) => s + p.lat * p.weight, 0) / w,
       lng: pts.reduce((s, p) => s + p.lng * p.weight, 0) / w,
@@ -333,9 +483,10 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, req
   }
 
   scored.sort((a, b) => b._score - a._score);
+  const minSep = Math.max(radiusMiles * SEPARATION_FRACTION, 15);
   const kept = [];
   for (const cand of scored) {
-    if (kept.every(k => distanceMi(cand.lat, cand.lng, k.lat, k.lng) > radiusMiles)) {
+    if (kept.every(k => distanceMi(cand.lat, cand.lng, k.lat, k.lng) > minSep)) {
       kept.push(cand);
     }
     if (kept.length >= maxHotspots) break;
@@ -344,13 +495,16 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, req
 }
 
 // ── Nationwide: rank whole states ──────────────────────────────
+// State pin = demand-weighted centroid (where people are), not a blend with
+// cattle country that would park the marker in empty range.
 function computeStateRanking(demand, supply, capacity, maxHotspots, requireBoth) {
   const states = new Map(); // state → agg
   const get = (st) => {
     if (!states.has(st)) {
       states.set(st, {
         demand: 0, supply: 0, cap: 0, metrics: EMPTY_METRICS(),
-        latW: 0, lngW: 0, w: 0,
+        dLatW: 0, dLngW: 0, dW: 0,
+        sLatW: 0, sLngW: 0, sW: 0,
       });
     }
     return states.get(st);
@@ -359,13 +513,13 @@ function computeStateRanking(demand, supply, capacity, maxHotspots, requireBoth)
     if (!p.state) continue;
     const s = get(p.state);
     s.demand += p.weight; accumulate(s.metrics, p.counts);
-    s.latW += p.lat * p.weight; s.lngW += p.lng * p.weight; s.w += p.weight;
+    s.dLatW += p.lat * p.weight; s.dLngW += p.lng * p.weight; s.dW += p.weight;
   }
   for (const p of supply) {
     if (!p.state) continue;
     const s = get(p.state);
     s.supply += p.weight; accumulate(s.metrics, p.counts);
-    s.latW += p.lat * p.weight; s.lngW += p.lng * p.weight; s.w += p.weight;
+    s.sLatW += p.lat * p.weight; s.sLngW += p.lng * p.weight; s.sW += p.weight;
   }
   for (const p of capacity) {
     if (!p.state) continue;
@@ -375,10 +529,13 @@ function computeStateRanking(demand, supply, capacity, maxHotspots, requireBoth)
   const scored = [];
   for (const [st, s] of states) {
     const raw = rawScore(s.demand, s.supply, requireBoth);
-    if (raw <= 0 || !s.w) continue;
+    const cW = s.dW || s.sW;
+    if (raw <= 0 || !cW) continue;
+    const lat = s.dW ? s.dLatW / s.dW : s.sLatW / s.sW;
+    const lng = s.dW ? s.dLngW / s.dW : s.sLngW / s.sW;
     scored.push({
-      lat: Math.round((s.latW / s.w) * 1e5) / 1e5,
-      lng: Math.round((s.lngW / s.w) * 1e5) / 1e5,
+      lat: Math.round(lat * 1e5) / 1e5,
+      lng: Math.round(lng * 1e5) / 1e5,
       label: st,
       demand_score: Math.round(s.demand * 10) / 10,
       supply_score: Math.round(s.supply * 10) / 10,
@@ -398,12 +555,17 @@ function finalize(kept) {
     h.rank = i + 1;
     h.opportunity_score = Math.round((top ? 100 * h._score / top : 0) * 10) / 10;
     h.units = computeUnits(h.metrics, h.capacity_count);
+    h.plays = computePlays(h.metrics, h.capacity_count, h.nearest_processor_miles, h.units);
+    h.primary_play = h.plays[0] || null;
     delete h._score;
   });
   return { hotspots: kept, top };
 }
 
 // ── Snap-style heat points ─────────────────────────────────────
+// Burn brightest on demand (metros / buyers). Capacity damps intensity.
+// Supply hinterland is drawn dimly so cattle country is visible without
+// competing with city peaks for "sell here" red.
 function buildHeat(demand, supply, capacity, radiusMiles) {
   const pts = [];
   let max = 0;
@@ -417,8 +579,8 @@ function buildHeat(demand, supply, capacity, radiusMiles) {
     if (intensity > max) max = intensity;
     pts.push([p.lat, p.lng, intensity]);
   };
-  for (const p of demand) push(p, 1);
-  for (const p of supply) push(p, 0.5);
+  for (const p of demand) push(p, HEAT_DEMAND_SCALE);
+  for (const p of supply) push(p, HEAT_SUPPLY_SCALE);
   if (!max) return [];
   return pts
     .map(([lat, lng, i]) => [
@@ -495,6 +657,8 @@ async function handler(req) {
         const raw = rawScore(s._demand, s._supply, requireBoth);
         const fScore = raw / (1 + s.capacity_count);
         const denom = Math.max(top, fScore) || 1;
+        const units = computeUnits(s.metrics, s.capacity_count);
+        const plays = computePlays(s.metrics, s.capacity_count, s.nearest_processor_miles, units);
         focus = {
           zip: centerZip,
           center_type: centerZip ? 'zip' : 'point',
@@ -508,7 +672,9 @@ async function handler(req) {
           capacity_count: s.capacity_count,
           nearest_processor_miles: s.nearest_processor_miles,
           metrics: s.metrics,
-          units: computeUnits(s.metrics, s.capacity_count),
+          units,
+          plays,
+          primary_play: plays[0] || null,
         };
       } else {
         focus = { zip: centerZip, center_type: 'zip', error: 'Could not locate that zip code' };
@@ -520,6 +686,7 @@ async function handler(req) {
     const heat = buildHeat(demand, supply, capacity, scope === 'nationwide' ? 100 : radiusMiles);
     return json({
       scope,
+      model: 'metro_first_v2',
       radius_miles: scope === 'nationwide' ? null : radiusMiles,
       layers: [...layers],
       capacity_mode: capacityMode,
