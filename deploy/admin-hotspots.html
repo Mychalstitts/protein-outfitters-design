@@ -857,42 +857,78 @@
     if (r <= 2000) return RANK_COLORS.top2000;
     return RANK_COLORS.tail;
   }
-  // Weather-radar style (rain intensity): light precip → severe core
-  // Includes blue tail for lowest ranks, green→yellow→orange→red→magenta peak
+  // Weather-radar bands with flat plateaus + hard steps (less muddy blotch).
+  // Same color held across a range → sharper zone edges like NEXRAD.
   const HEAT_GRADIENT = {
     0.00: 'rgba(187, 222, 251, 0)',
-    0.04: '#bbdefb',  // light blue (lightest / 2000+)
-    0.10: '#64b5f6',  // blue (1000–2000)
-    0.18: '#42a5f5',
-    0.26: '#81c784',  // light green (500–1000)
-    0.36: '#66bb6a',  // green (200–500)
-    0.46: '#cddc39',  // greenish yellow (100–200)
-    0.55: '#ffee58',  // yellow (61–100)
-    0.64: '#ffc107',  // gold
-    0.72: '#ff9800',  // orange (41–60)
-    0.80: '#ff5722',  // orange-red (21–40)
-    0.88: '#e53935',  // red (11–20)
-    0.94: '#b71c1c',  // dark red (1–10)
-    1.00: '#880e4f',  // magenta core (heaviest)
+    0.06: '#bbdefb',  // light blue
+    0.119: '#bbdefb',
+    0.12: '#42a5f5',  // blue
+    0.239: '#42a5f5',
+    0.24: '#81c784',  // light green
+    0.359: '#81c784',
+    0.36: '#66bb6a',  // green
+    0.479: '#66bb6a',
+    0.48: '#cddc39',  // green-yellow
+    0.579: '#cddc39',
+    0.58: '#ffee58',  // yellow
+    0.679: '#ffee58',
+    0.68: '#ffc107',  // gold
+    0.759: '#ffc107',
+    0.76: '#ff9800',  // orange
+    0.829: '#ff9800',
+    0.83: '#ff5722',  // orange-red
+    0.889: '#ff5722',
+    0.89: '#e53935',  // red
+    0.939: '#e53935',
+    0.94: '#b71c1c',  // dark red
+    0.979: '#b71c1c',
+    0.98: '#880e4f',  // magenta peak
+    1.00: '#880e4f',
   };
-  // Map rank → heat intensity (smooth continuum for melt field)
+  // Discrete intensity centers matching each radar band
+  const HEAT_BANDS = [0.09, 0.18, 0.30, 0.42, 0.53, 0.63, 0.72, 0.80, 0.86, 0.92, 0.96, 0.995];
+
   function intensityForRank(rank) {
     const r = Number(rank) || 9999;
-    if (r <= 10) return 0.98;
+    if (r <= 10) return 0.995;
     if (r <= 20) return 0.92;
     if (r <= 40) return 0.86;
-    if (r <= 60) return 0.78;
-    if (r <= 100) return 0.68;
-    if (r <= 200) return 0.55;
+    if (r <= 60) return 0.80;
+    if (r <= 100) return 0.63;
+    if (r <= 200) return 0.53;
     if (r <= 500) return 0.42;
     if (r <= 1000) return 0.30;
     if (r <= 2000) return 0.18;
-    return 0.08;
+    return 0.09;
+  }
+  /** Snap raw 0–1 intensity onto a radar band center (cleaner zones). */
+  function quantizeHeat(v) {
+    const x = Math.max(0, Math.min(1, Number(v) || 0));
+    if (x < 0.05) return 0; // drop noise floor that causes blotch soup
+    let best = HEAT_BANDS[0], bestD = Infinity;
+    for (const b of HEAT_BANDS) {
+      const d = Math.abs(b - x);
+      if (d < bestD) { bestD = d; best = b; }
+    }
+    return best;
   }
   function heatIntensity(v) {
+    // Slight curve then snap to band
     const x = Math.max(0, Math.min(1, Number(v) || 0));
-    // Keep mid-tones alive so fades read; peaks still hit dark red
-    return Math.pow(x, 0.95);
+    return quantizeHeat(Math.pow(x, 1.05));
+  }
+
+  /** Thin overlapping points so heat cells don't smear into each other. */
+  function thinHeatPoints(pts, cellDeg) {
+    const best = new Map();
+    for (const p of pts) {
+      if (!p || p[2] <= 0) continue;
+      const key = `${Math.floor(p[0] / cellDeg)}:${Math.floor(p[1] / cellDeg)}`;
+      const prev = best.get(key);
+      if (!prev || p[2] > prev[2]) best.set(key, p);
+    }
+    return [...best.values()];
   }
   const scoreColor = (s, rank) => colorForRank(rank || 200);
 
@@ -1103,9 +1139,9 @@
         };
         HTMLCanvasElement.prototype._poHeatCtxPatched = true;
       }
-      // Soft radar cells — continuous rain-style shade, no hard rings
+      // Tighter cells + low blur = sharper radar zones (less blotchy melt)
       heatLayer = L.heatLayer([], {
-        radius: 36, blur: 28, maxZoom: 6, max: 1.0, minOpacity: 0.12,
+        radius: 20, blur: 11, maxZoom: 8, max: 1.0, minOpacity: 0.18,
         gradient: HEAT_GRADIENT,
         pane: 'radarPane',
       });
@@ -1241,24 +1277,21 @@
       <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${fmt(t.buyers)}<small>${fmt(t.reservations)} res.</small></div></div>
       <div class="hs-stat"><p class="lab">HW leads</p><div class="v">${fmt(t.hardware_leads)}<small>/hardware</small></div></div>`;
 
-    // Pure Snap heat field — continuous color fade only (no rings / circles)
-    let heatPts = (rawHeat || []).map(p => [p[0], p[1], heatIntensity(p[2])]);
-    // Ranked markets as soft peak seeds (color via intensity ladder, not drawn circles)
+    // Radar field: quantize + thin so colors read as clean zones, not blotchy soup
+    let heatPts = (rawHeat || [])
+      .map(p => [p[0], p[1], heatIntensity(p[2])])
+      .filter(p => p[2] > 0);
+    // One seed per ranked market (no multi-sample rings that blur into blotches)
     if (hs.length) {
       hs.forEach((h) => {
-        const intensity = intensityForRank(h.rank);
-        // soft multi-sample for smooth peak, not a hard disc
-        heatPts.push([h.lat, h.lng, intensity]);
-        heatPts.push([h.lat + 0.04, h.lng, intensity * 0.55]);
-        heatPts.push([h.lat - 0.04, h.lng, intensity * 0.55]);
-        heatPts.push([h.lat, h.lng + 0.05, intensity * 0.55]);
-        heatPts.push([h.lat, h.lng - 0.05, intensity * 0.55]);
+        heatPts.push([h.lat, h.lng, intensityForRank(h.rank)]);
       });
     }
+    // ~0.35° cells ≈ keep strongest point per local cell
+    heatPts = thinHeatPoints(heatPts, 0.35);
     if (heatLayer && typeof heatLayer.setLatLngs === 'function') {
       heatLayer.setLatLngs(heatPts);
       try { heatLayer.redraw(); } catch (_) {}
-      // Redraw recreates/repaints canvas — re-apply opacity so slider stays in control
       applyRadarOpacity();
     }
 
