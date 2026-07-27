@@ -11,8 +11,8 @@
 <link rel="stylesheet" href="./po-shell.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<!-- Self-hosted so radar works even if unpkg is blocked / cached without this tag -->
-<script src="/vendor/leaflet-heat.js"></script>
+<!-- Self-hosted + CDN fallbacks loaded in ensureHeatPlugin if needed -->
+<script src="/vendor/leaflet-heat.js" onerror="this.onerror=null;this.src='https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js'"></script>
 <style>
   /* ── Full-bleed Snap / Strava heat stage ───────────────── */
   html, body { height: 100%; margin: 0; }
@@ -988,20 +988,25 @@
         if (typeof L !== 'undefined' && typeof L.heatLayer === 'function') resolve();
         return;
       }
-      const s = document.createElement('script');
-      s.src = '/vendor/leaflet-heat.js';
-      s.dataset.poHeat = '1';
-      s.onload = () => resolve();
-      s.onerror = () => {
-        // CDN fallback
-        const s2 = document.createElement('script');
-        s2.src = 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js';
-        s2.dataset.poHeat = '1';
-        s2.onload = () => resolve();
-        s2.onerror = () => reject(new Error('leaflet.heat failed to load from local and CDN'));
-        document.head.appendChild(s2);
+      const urls = [
+        '/vendor/leaflet-heat.js',
+        './vendor/leaflet-heat.js',
+        'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js',
+        'https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js',
+      ];
+      const tryUrl = (i) => {
+        if (i >= urls.length) {
+          reject(new Error('leaflet.heat failed to load from all sources'));
+          return;
+        }
+        const s = document.createElement('script');
+        s.src = urls[i];
+        s.dataset.poHeat = '1';
+        s.onload = () => resolve();
+        s.onerror = () => tryUrl(i + 1);
+        document.head.appendChild(s);
       };
-      document.head.appendChild(s);
+      tryUrl(0);
     });
   }
 
