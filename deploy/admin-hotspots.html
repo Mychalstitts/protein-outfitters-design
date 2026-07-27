@@ -462,22 +462,32 @@
     margin: 0 0 8px;
   }
   .hs-legend .bar {
-    width: 200px;
-    height: 8px;
-    border-radius: 999px;
+    width: 220px;
+    height: 12px;
+    border-radius: 4px;
+    /* Topo / Navionics depth: cool lows → warm slopes → red only on summits */
     background: linear-gradient(90deg,
-      rgba(46,125,50,.35), #43a047, #cddc39, #ffb300, #f4511e, #b71c1c, #7f0000);
-    box-shadow: 0 0 20px rgba(183, 28, 28, .25);
+      #0a3d62 0%,
+      #148f77 22%,
+      #27ae60 40%,
+      #f7dc6f 58%,
+      #e67e22 76%,
+      #e53935 90%,
+      #7f0000 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 0 16px rgba(10, 61, 98, .35);
   }
   .hs-legend .labs {
     display: flex;
     justify-content: space-between;
-    font: 700 10px/1 Inter, system-ui, sans-serif;
-    letter-spacing: .06em;
+    font: 700 9px/1 Inter, system-ui, sans-serif;
+    letter-spacing: .05em;
     text-transform: uppercase;
     color: rgba(251,249,245,.5);
     margin-top: 7px;
   }
+  .hs-legend .labs span { flex: 1; text-align: center; }
+  .hs-legend .labs span:first-child { text-align: left; }
+  .hs-legend .labs span:last-child { text-align: right; }
 
   #hsSearchArea {
     position: absolute;
@@ -637,7 +647,7 @@
     </div>
     <div class="hs-controls">
       <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
-        <button type="button" data-mode="heat" class="on">Melt heat</button>
+        <button type="button" data-mode="heat" class="on">Elevation</button>
         <button type="button" data-mode="zones">Market rings</button>
       </div>
       <label for="hsLens">Lens</label>
@@ -693,15 +703,17 @@
   <button type="button" id="hsSearchArea">Search this area</button>
 
   <div class="hs-glass hs-legend">
-    <p class="title">Opportunity heat</p>
+    <p class="title">Opportunity elevation</p>
     <div class="bar"></div>
-    <div class="labs" id="hsLegendLabs"><span>Cooler</span><span>Hottest</span></div>
+    <div class="labs" id="hsLegendLabs">
+      <span>Low</span><span>Mid</span><span>High</span><span>Top 20</span>
+    </div>
   </div>
 
   <aside class="hs-glass hs-rail" id="hsRail">
     <div class="hs-rail-head">
       <h2 id="hsRailTitle">Markets <small id="hsRailCount"></small></h2>
-      <p>Tap a card to fly there · dark red = sell &amp; grow</p>
+      <p>Topo elevation of opportunity · red peaks = top 20 only</p>
     </div>
     <div class="hs-stats" id="hsStats"></div>
     <div class="hs-list" id="hsList">
@@ -734,7 +746,7 @@
 (function () {
   // Declare map state BEFORE any function that closes over it (TDZ crash if
   // syncNavH runs while `let map` is still uninitialized).
-  let map = null, circleLayer = null, heatLayer = null, pinLayer = null, lastData = null;
+  let map = null, circleLayer = null, heatLayer = null, summitLayer = null, pinLayer = null, lastData = null;
   let mode = 'heat';
   let mapReady = false;
   let focusCenter = null;
@@ -786,29 +798,81 @@
     };
   }
 
-  // Snap Map melt: continuous green → yellow → orange → red (no hard circles).
-  // Soft exponent so mid-tier markets still read; red reserved for true peaks.
-  const HEAT_GRADIENT = {
-    0.00: 'rgba(27,94,32,0)',
-    0.05: 'rgba(46,125,50,0.55)',
-    0.18: '#43a047',
-    0.32: '#8bc34a',
-    0.45: '#cddc39',
-    0.55: '#ffee58',
-    0.65: '#ffc107',
-    0.75: '#ff9800',
-    0.85: '#ff5722',
-    0.93: '#e53935',
-    1.00: '#b71c1c',
+  // Navionics / topo elevation of opportunity:
+  // low = deep cool blues → mid teal/green slopes → amber high ground.
+  // Pure red is NOT in this terrain layer — summits (top 20) use a separate layer.
+  const TERRAIN_GRADIENT = {
+    0.00: 'rgba(8, 24, 40, 0)',
+    0.06: '#0a3d62',
+    0.16: '#1a5276',
+    0.28: '#148f77',
+    0.40: '#1e8449',
+    0.52: '#52be80',
+    0.62: '#f4d03f',
+    0.74: '#f5b041',
+    0.86: '#e67e22',
+    0.95: '#d35400',
+    1.00: '#ca6f1e',
   };
-  // Gentle curve — don't crush mid intensities to invisible green soup
-  const HEAT_EXPONENT = 0.85;
+  // Summit peaks only — red is earned by top-20 rank, not raw density
+  const SUMMIT_GRADIENT = {
+    0.00: 'rgba(0,0,0,0)',
+    0.35: 'rgba(255, 152, 0, 0.25)',
+    0.55: '#ff8a65',
+    0.72: '#ef5350',
+    0.88: '#e53935',
+    1.00: '#7f0000',
+  };
+  const TOP_PEAK_COUNT = 20;
   const scoreColor = (s) => {
     const t = Math.max(0, Math.min(100, s)) / 100;
-    // amber → deep red
     const h = 38 - t * 38;
     return `hsl(${h}, 92%, ${48 - t * 10}%)`;
   };
+
+  /** Compress nationwide field into terrain band (never pure red). */
+  function buildTerrainPts(rawHeat) {
+    return (rawHeat || []).map(p => {
+      const v = Math.max(0, Math.min(1, Number(p[2]) || 0));
+      // Elevation-like curve: lots of cool floor, gradual slopes
+      const elev = 0.06 + 0.80 * Math.pow(v, 1.05);
+      return [p[0], p[1], Math.min(0.88, elev)];
+    });
+  }
+
+  /**
+   * Mountain peaks for top-N ranked markets only.
+   * Core + rings = 3D foothills → summit (Navionics depth / topo peak feel).
+   */
+  function buildSummitPts(markets) {
+    const tops = (markets || []).slice(0, TOP_PEAK_COUNT);
+    const pts = [];
+    tops.forEach((h, i) => {
+      const rankBoost = 1 - i / (TOP_PEAK_COUNT + 5); // #1 tallest
+      const peak = 0.90 + 0.10 * rankBoost;
+      const lat = h.lat, lng = h.lng;
+      // Summit core
+      pts.push([lat, lng, peak]);
+      pts.push([lat, lng, peak * 0.95]);
+      // Shoulder rings (elevation steps)
+      const rings = [
+        { d: 0.12, m: 0.72 },
+        { d: 0.22, m: 0.52 },
+        { d: 0.34, m: 0.34 },
+        { d: 0.48, m: 0.20 },
+      ];
+      for (const { d, m } of rings) {
+        const iv = peak * m;
+        pts.push([lat + d, lng, iv]);
+        pts.push([lat - d, lng, iv]);
+        pts.push([lat, lng + d * 1.15, iv]);
+        pts.push([lat, lng - d * 1.15, iv]);
+        pts.push([lat + d * 0.7, lng + d * 0.7, iv * 0.9]);
+        pts.push([lat - d * 0.7, lng - d * 0.7, iv * 0.9]);
+      }
+    });
+    return pts;
+  }
   const fmt = (n) => Number(n || 0).toLocaleString('en-US');
   const chipClass = (id) => ({
     hardware: 'hw', hardware_addon: 'hw', recruit_buyers: 'buy', recruit_farms: 'farm',
@@ -887,24 +951,31 @@
     pinLayer = L.layerGroup();
 
     if (typeof L.heatLayer === 'function') {
+      // Base terrain — cool lows, warm slopes (no pure red)
       heatLayer = L.heatLayer([], {
-        // Wide soft blur = Snap-style melt at continental zoom
-        radius: 42, blur: 38, maxZoom: 6, max: 1.0, minOpacity: 0.35,
-        gradient: HEAT_GRADIENT,
+        radius: 40, blur: 36, maxZoom: 6, max: 1.0, minOpacity: 0.22,
+        gradient: TERRAIN_GRADIENT,
+      });
+      // Summit peaks — red only for top-20 ranked opportunities
+      summitLayer = L.heatLayer([], {
+        radius: 28, blur: 22, maxZoom: 7, max: 1.0, minOpacity: 0.15,
+        gradient: SUMMIT_GRADIENT,
       });
       heatLayer.addTo(map);
-      try {
-        if (heatLayer._canvas) {
-          const c = heatLayer._canvas;
-          const ctx = c.getContext('2d', { willReadFrequently: true });
-          if (ctx) heatLayer._ctx = ctx;
-        }
-      } catch (_) { /* optional */ }
+      summitLayer.addTo(map);
+      [heatLayer, summitLayer].forEach((ly) => {
+        try {
+          if (ly._canvas) {
+            const ctx = ly._canvas.getContext('2d', { willReadFrequently: true });
+            if (ctx) ly._ctx = ctx;
+          }
+        } catch (_) { /* optional */ }
+      });
     } else {
       heatLayer = null;
+      summitLayer = null;
       console.warn('leaflet.heat missing — heat mode unavailable');
     }
-    // Pins only — circles live in Zones mode so Heat stays a pure melt field
     pinLayer.addTo(map);
 
     map.on('click', (e) => {
@@ -999,8 +1070,8 @@
     const nationwide = data.scope === 'nationwide';
 
     document.getElementById('hsLegendLabs').innerHTML = data.capacity_mode === 'none'
-      ? '<span>Sparse</span><span>Dense</span>'
-      : '<span>Cooler</span><span>Hottest</span>';
+      ? '<span>Sparse</span><span>Mid</span><span>Dense</span><span>Peak</span>'
+      : '<span>Low</span><span>Mid</span><span>High</span><span>Top 20</span>';
 
     const verBadge = document.getElementById('hsVerBadge');
     if (data.model === 'metro_first_v2') {
@@ -1032,27 +1103,29 @@
       <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${fmt(t.buyers)}<small>${fmt(t.reservations)} res.</small></div></div>
       <div class="hs-stat"><p class="lab">HW leads</p><div class="v">${fmt(t.hardware_leads)}<small>/hardware</small></div></div>`;
 
-    // Continuous melt field — server already geo-stratified + blended.
-    // Apply gentle curve only (points are already 0–1).
-    let heatPts = rawHeat.map(p => {
-      const v = Math.max(0, Math.min(1, Number(p[2]) || 0));
-      return [p[0], p[1], Math.pow(Math.max(0.04, v), HEAT_EXPONENT)];
-    });
-    if (heatPts.length < 8 && hs.length) {
-      heatPts = hs.map(h => [
+    // Terrain (nationwide cool→warm) + summit peaks (top 20 only → red)
+    let terrainPts = buildTerrainPts(rawHeat);
+    if (terrainPts.length < 8 && hs.length) {
+      terrainPts = hs.map(h => [
         h.lat, h.lng,
-        Math.pow(Math.max(0.2, (h.opportunity_score || 50) / 100), HEAT_EXPONENT),
+        Math.min(0.75, 0.15 + 0.6 * ((h.opportunity_score || 40) / 100)),
       ]);
     }
+    const summitPts = buildSummitPts(hs);
+
     if (heatLayer && typeof heatLayer.setLatLngs === 'function') {
-      heatLayer.setLatLngs(heatPts);
+      heatLayer.setLatLngs(terrainPts);
       try { heatLayer.redraw(); } catch (_) {}
+    }
+    if (summitLayer && typeof summitLayer.setLatLngs === 'function') {
+      summitLayer.setLatLngs(summitPts);
+      try { summitLayer.redraw(); } catch (_) {}
     }
 
     clearLayers();
 
     const radiusMeters = (data.radius_miles || 100) * 1609.34;
-    // Zones layer — discrete market rings (Zones mode only on the map)
+    // Zones layer — discrete market rings (Market rings mode only)
     hs.forEach((h) => {
       const color = scoreColor(h.opportunity_score);
       const c = L.circle([h.lat, h.lng], {
@@ -1069,8 +1142,8 @@
       circles[h.rank] = c;
     });
 
-    // Small rank pins — top 5 only in heat mode so melt stays the hero
-    const pinCount = mode === 'heat' ? 5 : 10;
+    // Numbered summits — top 20 in elevation mode (matches red peaks)
+    const pinCount = mode === 'heat' ? Math.min(TOP_PEAK_COUNT, hs.length) : 10;
     hs.slice(0, pinCount).forEach((h) => {
       const pin = L.marker([h.lat, h.lng], {
         icon: L.divIcon({
@@ -1086,34 +1159,23 @@
       });
     });
 
-    // Heat = pure melt field + light pins. Zones = circles only.
+    // Elevation = terrain + summits + pins. Rings mode = circles only.
     if (mode === 'heat') {
       if (heatLayer && !map.hasLayer(heatLayer)) heatLayer.addTo(map);
+      if (summitLayer && !map.hasLayer(summitLayer)) summitLayer.addTo(map);
       if (!map.hasLayer(pinLayer)) pinLayer.addTo(map);
       if (map.hasLayer(circleLayer)) map.removeLayer(circleLayer);
-      if (!heatLayer && hs.length) circleLayer.addTo(map); // fallback if plugin missing
+      if (!heatLayer && hs.length) circleLayer.addTo(map);
     } else {
       if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
+      if (summitLayer && map.hasLayer(summitLayer)) map.removeLayer(summitLayer);
       if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
       if (!map.hasLayer(circleLayer)) circleLayer.addTo(map);
     }
 
-    // Continental US by default so West / Midwest / South stay in frame —
-    // never zoom into only the densest Northeast cluster.
+    // Continental US — full country elevation map
     if (!keepView && !data.focus) {
-      const usBounds = L.latLngBounds([[24.5, -125], [49.5, -66.5]]);
-      if (heatPts.length > 20) {
-        try {
-          const hb = L.latLngBounds(heatPts.map(p => [p[0], p[1]]));
-          map.fitBounds(hb.extend(usBounds.getSouthWest()).extend(usBounds.getNorthEast()).pad(0.02), {
-            maxZoom: 5, animate: true,
-          });
-        } catch (_) {
-          map.fitBounds(usBounds, { animate: true });
-        }
-      } else {
-        map.fitBounds(usBounds, { animate: true });
-      }
+      map.fitBounds(L.latLngBounds([[24.5, -125], [49.5, -66.5]]), { animate: true, maxZoom: 5 });
     }
     setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 100);
 
