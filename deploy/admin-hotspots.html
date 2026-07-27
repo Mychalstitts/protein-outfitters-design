@@ -674,7 +674,7 @@
       </div>
       <div class="hs-opacity" title="Fade radar so city labels show through">
         <label for="hsOpacity">Opacity</label>
-        <input type="range" id="hsOpacity" min="15" max="100" value="70" />
+        <input type="range" id="hsOpacity" min="0" max="100" value="70" step="1" />
         <span id="hsOpacityVal">70%</span>
       </div>
       <label for="hsLens">Lens</label>
@@ -921,20 +921,69 @@
     }
   });
 
-  // Radar opacity — see cities through the shade or crank it denser
+  // Radar opacity — live as you drag (see cities through shade or denser fill)
   const opacityInput = document.getElementById('hsOpacity');
   const opacityVal = document.getElementById('hsOpacityVal');
+  let heatOpacity = 0.70;
+
   function applyRadarOpacity() {
     const pct = opacityInput ? Number(opacityInput.value) : 70;
-    if (opacityVal) opacityVal.textContent = pct + '%';
+    heatOpacity = Math.max(0, Math.min(1, pct / 100));
+    if (opacityVal) opacityVal.textContent = Math.round(pct) + '%';
+
+    // Hit every place leaflet.heat might paint so the slider always feels live
+    try {
+      if (map) {
+        const pane = map.getPane('radarPane');
+        if (pane) {
+          pane.style.opacity = String(heatOpacity);
+          pane.style.transition = 'none'; // instant while dragging
+        }
+      }
+    } catch (_) {}
+
+    try {
+      if (heatLayer) {
+        // Primary: the canvas simpleheat draws into
+        if (heatLayer._canvas) {
+          heatLayer._canvas.style.opacity = String(heatOpacity);
+          heatLayer._canvas.style.transition = 'none';
+        }
+        // Leaflet layer container / pane (version-dependent)
+        const el = typeof heatLayer.getElement === 'function' ? heatLayer.getElement()
+          : (typeof heatLayer.getContainer === 'function' ? heatLayer.getContainer() : null);
+        if (el) {
+          el.style.opacity = String(heatOpacity);
+          el.style.transition = 'none';
+        }
+        const p = typeof heatLayer.getPane === 'function' ? heatLayer.getPane() : null;
+        if (p) p.style.opacity = String(heatOpacity);
+      }
+    } catch (_) {}
+
+    // Fallback: any canvas sitting in the radar pane
     try {
       const pane = map && map.getPane('radarPane');
-      if (pane) pane.style.opacity = String(Math.max(0.05, Math.min(1, pct / 100)));
+      if (pane) {
+        pane.querySelectorAll('canvas').forEach((c) => {
+          c.style.opacity = String(heatOpacity);
+        });
+      }
     } catch (_) {}
   }
+
   if (opacityInput) {
-    opacityInput.addEventListener('input', applyRadarOpacity);
-    opacityInput.addEventListener('change', applyRadarOpacity);
+    // 'input' = live while dragging; 'change' = release (some browsers)
+    const onSlide = (e) => {
+      e.stopPropagation();
+      applyRadarOpacity();
+    };
+    opacityInput.addEventListener('input', onSlide);
+    opacityInput.addEventListener('change', onSlide);
+    // Don't let map steal drag gestures
+    ['mousedown', 'touchstart', 'pointerdown', 'click'].forEach((ev) => {
+      opacityInput.addEventListener(ev, (e) => e.stopPropagation());
+    });
   }
 
   function showOverlay(html) {
@@ -1209,6 +1258,8 @@
     if (heatLayer && typeof heatLayer.setLatLngs === 'function') {
       heatLayer.setLatLngs(heatPts);
       try { heatLayer.redraw(); } catch (_) {}
+      // Redraw recreates/repaints canvas — re-apply opacity so slider stays in control
+      applyRadarOpacity();
     }
 
     clearLayers();
