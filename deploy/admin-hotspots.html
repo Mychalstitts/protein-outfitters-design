@@ -732,12 +732,21 @@
 <script src="./po-shell.js"></script>
 <script>
 (function () {
+  // Declare map state BEFORE any function that closes over it (TDZ crash if
+  // syncNavH runs while `let map` is still uninitialized).
+  let map = null, circleLayer = null, heatLayer = null, pinLayer = null, lastData = null;
+  let mode = 'heat';
+  let mapReady = false;
+  let focusCenter = null;
+  let focusRadius = null;
+  let keepView = false;
+
   // Pin stage under nav
   function syncNavH() {
     const nav = document.getElementById('hsNav');
     const h = nav ? nav.offsetHeight : 64;
     document.documentElement.style.setProperty('--hs-nav-h', h + 'px');
-    if (map) setTimeout(() => map.invalidateSize(), 50);
+    if (mapReady && map) setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 50);
   }
   window.addEventListener('resize', syncNavH);
   syncNavH();
@@ -754,13 +763,7 @@
   const filtersPop = document.getElementById('hsFiltersPop');
   const searchBtn = document.getElementById('hsSearchArea');
   const FOCUS_RADII = [25, 50, 100, 200, 500];
-  let focusCenter = null;
-  let focusRadius = null;
-  let keepView = false;
   const layerBoxes = [...document.querySelectorAll('#hsFiltersPop input[data-layer]')];
-  let map = null, circleLayer = null, heatLayer = null, pinLayer = null, lastData = null;
-  let mode = 'heat';
-  let mapReady = false;
 
   const LENS_PRESETS = {
     opportunity: { layers: ['population', 'livestock', 'farms', 'buyers', 'reservations'], capacity: 'all' },
