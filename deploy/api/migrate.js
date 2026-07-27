@@ -643,7 +643,6 @@ const SCHEMA_STATEMENTS = [
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS address       TEXT`,
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS phone         TEXT`,
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS email         TEXT`,
-  `ALTER TABLE processors ADD COLUMN IF NOT EXISTS contact_email TEXT`,
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS website       TEXT`,
   `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS address       TEXT`,
   `ALTER TABLE farms      ADD COLUMN IF NOT EXISTS phone         TEXT`,

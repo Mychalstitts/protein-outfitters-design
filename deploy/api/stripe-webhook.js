@@ -525,7 +525,7 @@ async function handler(req) {
         // Notify the processor owner via email/notification — best effort
         try {
           const subRow = await sql`
-            SELECT ps.processor_id, ps.tier, p.contact_email, p.name AS processor_name, p.owner_id
+            SELECT ps.processor_id, ps.tier, p.email, p.name AS processor_name, p.owner_id
             FROM processor_subscriptions ps
             JOIN processors p ON p.id = ps.processor_id
             WHERE ps.stripe_subscription_id = ${invoice.subscription}
@@ -534,7 +534,7 @@ async function handler(req) {
             const ownerEmailRows = subRow[0].owner_id
               ? await sql`SELECT email FROM users WHERE id = ${subRow[0].owner_id}`
               : [];
-            const to = ownerEmailRows[0]?.email || subRow[0].contact_email;
+            const to = ownerEmailRows[0]?.email || subRow[0].email;
             if (to) {
               // Direct insert — there is no email template for this yet, the
               // notification is the user-facing artifact.

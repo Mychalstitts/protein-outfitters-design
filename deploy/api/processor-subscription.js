@@ -56,7 +56,7 @@ async function resolvePriceId(stripe, tier, cadence) {
 
 async function loadProcessorForUser(userId) {
   const rows = await sql`
-    SELECT p.id, p.slug, p.name, p.contact_email
+    SELECT p.id, p.slug, p.name, p.email
     FROM processors p
     WHERE p.owner_id = ${userId}
     LIMIT 1`;
@@ -157,7 +157,7 @@ async function handler(req) {
     let customerId = existing?.stripe_customer_id || null;
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: processor.contact_email || user.email,
+        email: processor.email || user.email,
         name: processor.name,
         metadata: { processor_id: processor.id, processor_slug: processor.slug, kind: 'processor_saas' },
       });
