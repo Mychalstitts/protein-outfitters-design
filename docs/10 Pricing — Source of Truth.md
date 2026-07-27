@@ -7,9 +7,9 @@ fix the other place rather than forking the number.
 
 | Tier | Monthly | Annual | Free-tier limit |
 |---|---|---|---|
-| Free | $0 | — | 4 bookings/mo · 1 staff seat |
-| Standard | **$79/mo** | **$758/yr** ($63/mo, 20% off) | Unlimited bookings · 5 seats |
-| Premium | **$199/mo** | **$1,910/yr** ($159/mo, 20% off) | Unlimited bookings · 25 seats |
+| Free | $0 | — | 4 animals/mo · 1 staff seat |
+| Standard | **$79/mo** | **$758/yr** ($63/mo, 20% off) | Up to 50 animals/mo · 5 seats |
+| Premium | **$199/mo** | **$1,910/yr** ($159/mo, 20% off) | Unlimited animals · 25 seats |
 
 Decision, 24 Jul 2026: $79/$199 are the **monthly list** prices. The earlier
 spec (`docs/archive/early-2026-decisions/20 Processor SaaS Spec.md`) proposed
@@ -82,3 +82,14 @@ consultation $40,000 (credits toward purchase).
    ≥ $50k. No coupon or code path exists for it yet.
 4. **14-day trial** is set in code (`trial_period_days: 14`) and matches the
    page. Keep them together if either moves.
+
+## Tier limits — decided 25 Jul 2026
+
+Free 4 animals/mo · **Standard up to 50 animals/mo** · Premium unlimited. The
+50-animal ceiling is the upgrade trigger: a plant that outgrows Standard moves to
+Premium. Standard was briefly published as "unlimited bookings", which left
+Premium with no volume story at all. Reflected on `/processor-saas`, in the
+compare tables, `/faq`, and both Stripe product descriptions.
+
+**Not yet enforced in software** — see open item 1. Until it is, the 50-animal
+cap is a contractual number, not a technical one.

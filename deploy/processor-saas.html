@@ -174,8 +174,8 @@
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
       <a href="/" style="font-weight: 900; font-size: 16px; letter-spacing: -0.018em; text-transform: uppercase;">Protein Outfitters</a>
-      <div class="row gap-3">
-        <a class="btn btn--ghost btn--sm" href="/account">Sign in</a>
+      <div class="row gap-3 po-nav-actions">
+        <a class="btn btn--ghost btn--sm signin" href="/account">Sign in</a>
         <a class="btn btn--primary btn--sm" href="/processor">For processors</a>
       </div>
     </nav>
@@ -201,6 +201,14 @@
         <button onclick="switchCadence('monthly')">Monthly</button>
         <button class="active" onclick="switchCadence('annual')">Annual <span class="save-badge">Save 20%</span></button>
       </div>
+    </div>
+
+    <div id="no-plant-notice" hidden style="background: #fff4e5; border: 1px solid rgba(251,140,0,0.35); border-radius: var(--r-3); padding: var(--s-5) var(--s-6); margin-top: var(--s-6);">
+      <strong style="display:block; margin-bottom: 6px;">A plan attaches to a plant, not to your login.</strong>
+      <span style="font-size: var(--text-sm); color: var(--ink-2);">
+        You're signed in, but this account doesn't own a processor profile yet — so there's nothing to bill.
+        <a href="/processor" style="color: var(--brand); font-weight: 700;">Set up your plant</a>, then pick a plan.
+      </span>
     </div>
 
     <div class="tier-grid">
@@ -230,9 +238,9 @@
           <span class="unit">/mo</span>
           <span class="strike" id="standard-strike">$79</span>
         </div>
-        <p class="tier-byline">For most USDA / state-inspected plants. 4–40 bookings/mo.</p>
+        <p class="tier-byline">For most USDA / state-inspected plants. Up to 50 animals a month.</p>
         <ul class="tier-features">
-          <li>Unlimited bookings</li>
+          <li>Up to 50 animals processed per month</li>
           <li>Processor calendar — Today / Week / Month / Inbox</li>
           <li>Cut-sheet config (cuts, smoking, grinding, upcharges)</li>
           <li>Automated customer communications (20 lifecycle emails)</li>
@@ -252,9 +260,10 @@
           <span class="unit">/mo</span>
           <span class="strike" id="premium-strike">$199</span>
         </div>
-        <p class="tier-byline">For multi-shift plants and chains. 40+ bookings/mo.</p>
+        <p class="tier-byline">For multi-shift plants and chains. More than 50 animals a month.</p>
         <ul class="tier-features">
           <li>Everything in Standard, plus:</li>
+          <li>Unlimited animals — no monthly cap</li>
           <li>Multi-location support<span class="soon">Q4</span></li>
           <li>API access<span class="soon">2027</span></li>
           <li>Advanced analytics + CSV/Excel exports<span class="soon">Q4</span></li>
@@ -285,10 +294,10 @@
             <tr><th>Feature</th><th class="text-center">Free</th><th class="text-center">Standard</th><th class="text-center">Premium</th></tr>
           </thead>
           <tbody>
-            <tr><td>Bookings per month</td><td class="text-center">4</td><td class="text-center">Unlimited</td><td class="text-center">Unlimited</td></tr>
+            <tr><td>Animals per month</td><td class="text-center">4</td><td class="text-center">50</td><td class="text-center">Unlimited</td></tr>
             <tr><td>Staff seats <span class="soon">Q4</span></td><td class="text-center">1</td><td class="text-center">5</td><td class="text-center">25</td></tr>
             <tr><td>Marketplace listing</td><td class="text-center check">✓</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
-            <tr><td>QR check-in</td><td class="text-center check">✓</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
+            <tr><td>Drop-off check-in codes</td><td class="text-center check">✓</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>Outlook-style queue view</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>Cut-sheet configurator</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>Automated customer comms (20 lifecycle emails)</td><td class="text-center x">—</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
@@ -506,7 +515,7 @@
           <tr><th>Feature</th><th class="text-center">Standard <small style="display:block;font-weight:700;color:var(--ink-3);text-transform:none;letter-spacing:0;">$79/mo</small></th><th class="text-center">Premium <small style="display:block;font-weight:700;color:var(--ink-3);text-transform:none;letter-spacing:0;">$199/mo</small></th></tr>
         </thead>
         <tbody>
-          <tr><td>Bookings per month</td><td class="text-center">Unlimited</td><td class="text-center">Unlimited</td></tr>
+          <tr><td>Animals per month</td><td class="text-center">50</td><td class="text-center">Unlimited</td></tr>
           <tr><td>Staff seats</td><td class="text-center">5</td><td class="text-center">25</td></tr>
           <tr><td>Multi-location</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
           <tr><td>API access</td><td class="text-center x">—</td><td class="text-center check">✓</td></tr>
@@ -599,8 +608,11 @@ async function subscribeToTier(tier, btn) {
       if (window.PO_API && window.PO_API.openAuth) window.PO_API.openAuth('Sign in as your processor account', 'processor');
       return;
     }
-    if (r.status === 403) {
-      showToast('You need a processor profile to subscribe');
+    if (r.status === 403 || r.status === 404 || r.status === 400) {
+      const d = await r.json().catch(() => ({}));
+      const looksLikeNoPlant = /processor profile|processor account|no processor/i.test(d.error || '');
+      if (looksLikeNoPlant) { showNoPlantNotice(); return; }
+      showToast(d.error || 'Couldn\'t start checkout');
       return;
     }
     const data = await r.json().catch(() => ({}));
@@ -627,9 +639,42 @@ async function subscribeToTier(tier, btn) {
   }
 }
 
+// A subscription attaches to a PLANT, not to a person — so an account with no
+// processor profile can never check out. Say that up front instead of letting
+// someone pick a tier, click, and get an error that sounds like a login failure.
+function showNoPlantNotice() {
+  const el = document.getElementById('no-plant-notice');
+  if (el) { el.hidden = false; el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  showToast('Set up your plant first — a plan attaches to a plant');
+}
+
+async function gateCtasOnProcessorProfile() {
+  let me = null;
+  try { me = await (await fetch('/api/auth/me', { credentials: 'include' })).json(); } catch (e) { return; }
+  if (!me || !me.user) return;               // signed out — the normal CTA copy is right
+  let data = null;
+  try {
+    const r = await fetch('/api/processor-subscription', { credentials: 'include' });
+    if (!r.ok) return;
+    data = await r.json();
+  } catch (e) { return; }
+  if (data && data.processor) return;        // has a plant — leave the buttons alone
+
+  const notice = document.getElementById('no-plant-notice');
+  if (notice) notice.hidden = false;
+  document.querySelectorAll('.tier-cta[data-tier]').forEach(btn => {
+    if (btn.dataset.tier === 'free') return;
+    btn.textContent = 'Set up your plant first →';
+    btn.dataset.noPlant = '1';
+  });
+}
+
 // Wire CTA buttons
 document.querySelectorAll('.tier-cta[data-tier]').forEach(btn => {
-  btn.addEventListener('click', () => subscribeToTier(btn.dataset.tier, btn));
+  btn.addEventListener('click', () => {
+    if (btn.dataset.noPlant === '1') { window.location.href = '/processor'; return; }
+    subscribeToTier(btn.dataset.tier, btn);
+  });
 });
 document.getElementById('upgradePremiumBtn')?.addEventListener('click', function () {
   subscribeToTier('premium', this);
@@ -663,7 +708,7 @@ const TIERS = {
     label: 'Standard',
     bookingsIncluded: null,
     features: [
-      'Unlimited bookings',
+      'Up to 50 animals per month',
       'Processor calendar — Today / Week / Month / Inbox',
       'Cut-sheet config (cuts, smoking, grinding, upcharges)',
       'Automated customer communications (20 lifecycle emails)',
@@ -939,6 +984,7 @@ if (new URLSearchParams(location.search).get('canceled') === '1') {
 </script>
 <script src="/po-api.js"></script>
 <div id="po-shell-host"></div>
-<script src="./po-shell.js"></script>
+<script src="./po-shell.js">gateCtasOnProcessorProfile();
+</script>
 </body>
 </html>

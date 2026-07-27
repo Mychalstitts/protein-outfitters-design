@@ -34,8 +34,13 @@ end to end in production. Mockups with hardcoded data stay in **Building**.
    proxying `stripe.invoices.list`. Today the page honestly points at the portal.
 3. **Utilization reporting** in the ops dashboard. The fake "43% utilization" tile
    was removed rather than left lying.
-4. **Free-tier booking cap enforced.** Every processor is on Free today, so this
-   needs grandfathering before it can be switched on — see Risks.
+4. **Volume caps enforced.** Free 4 animals/mo, Standard 50 animals/mo, Premium
+   unlimited (decided 25 Jul 2026 — the 50 ceiling is the upgrade trigger). Today
+   `api/bookings.js` counts nothing against a tier, so both caps are contractual
+   rather than technical. Every processor is on Free, so enforcement needs
+   grandfathering before it is switched on. The count should be animals with a
+   drop-off date in the calendar month, excluding cancelled and rejected — the
+   same basis the billing page already displays.
 
 ## Next — Q4 2026 → 2027
 
