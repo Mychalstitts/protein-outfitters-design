@@ -786,19 +786,20 @@
     };
   }
 
-  // Snap/Strava: cool field, red only at peaks
+  // Snap/Strava: cool field → hot peaks. Milder exponent so mid-tier markets
+  // still glow (1.85 was crushing almost everything to invisible on the map).
   const HEAT_GRADIENT = {
     0.00: 'rgba(20,40,28,0)',
-    0.12: 'rgba(46,125,50,0.35)',
-    0.28: '#2e7d32',
-    0.42: '#7cb342',
-    0.55: '#cddc39',
-    0.68: '#ffb300',
+    0.08: 'rgba(46,125,50,0.45)',
+    0.22: '#2e7d32',
+    0.38: '#9ccc65',
+    0.52: '#ffee58',
+    0.66: '#ffb300',
     0.80: '#f4511e',
-    0.90: '#e53935',
+    0.92: '#e53935',
     1.00: '#7f0000',
   };
-  const HEAT_EXPONENT = 1.85;
+  const HEAT_EXPONENT = 1.15;
   const scoreColor = (s) => {
     const t = Math.max(0, Math.min(100, s)) / 100;
     // amber → deep red
@@ -884,12 +885,20 @@
 
     if (typeof L.heatLayer === 'function') {
       heatLayer = L.heatLayer([], {
-        radius: 36, blur: 28, maxZoom: 10, max: 1.0, minOpacity: 0.08,
+        // Larger blobs + higher minOpacity so heat reads at US zoom (z4–7)
+        radius: 48, blur: 32, maxZoom: 7, max: 1.0, minOpacity: 0.28,
         gradient: HEAT_GRADIENT,
       });
       heatLayer.addTo(map);
+      // Quiet Canvas2D willReadFrequently warning when the plugin recreates ctx
+      try {
+        if (heatLayer._canvas) {
+          const c = heatLayer._canvas;
+          const ctx = c.getContext('2d', { willReadFrequently: true });
+          if (ctx) heatLayer._ctx = ctx;
+        }
+      } catch (_) { /* optional */ }
     } else {
-      // Heat plugin missing — still usable in Zones mode
       heatLayer = null;
       console.warn('leaflet.heat missing — heat mode unavailable');
     }
@@ -972,16 +981,8 @@
     mode = next;
     modeWrap.querySelectorAll('button').forEach(b =>
       b.classList.toggle('on', b.dataset.mode === mode));
-    if (mode === 'heat') {
-      if (map.hasLayer(circleLayer)) map.removeLayer(circleLayer);
-      if (heatLayer) heatLayer.addTo(map);
-      else circleLayer.addTo(map);
-      pinLayer.addTo(map);
-    } else {
-      if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
-      if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
-      circleLayer.addTo(map);
-    }
+    // Re-paint so circle opacities match the mode
+    if (lastData) renderData();
   }
 
   function renderData() {
@@ -1007,9 +1008,18 @@
       verBadge.style.background = 'linear-gradient(135deg, #e65100, #bf360c)';
     }
 
+    const rawHeat = data.heat || [];
     document.getElementById('hsRailTitle').innerHTML =
       (nationwide ? 'States' : 'Markets') +
       ` <small id="hsRailCount">${hs.length}</small>`;
+    const railHead = document.querySelector('.hs-rail-head p');
+    if (railHead) {
+      railHead.textContent = hs.length
+        ? `Loaded ${fmt(rawHeat.length)} heat pts · ${hs.length} markets · tap a card`
+        : (rawHeat.length
+          ? `Heat on (${fmt(rawHeat.length)} pts) but no ranked markets yet — try a wider radius`
+          : 'No heat data yet — open Data sources below and import Census + livestock');
+    }
 
     document.getElementById('hsStats').innerHTML = `
       <div class="hs-stat"><p class="lab">People</p><div class="v">${t.population ? (t.population/1e6).toFixed(0)+'M' : '—'}<small>${fmt(t.counties)} counties</small></div></div>
@@ -1019,10 +1029,17 @@
       <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${fmt(t.buyers)}<small>${fmt(t.reservations)} res.</small></div></div>
       <div class="hs-stat"><p class="lab">HW leads</p><div class="v">${fmt(t.hardware_leads)}<small>/hardware</small></div></div>`;
 
-    // Heat points (plugin optional)
+    // Heat points — boost visibility; fall back to ranked markets as heat seeds
+    let heatPts = rawHeat.map(p => [p[0], p[1], Math.pow(Math.max(0.05, Number(p[2]) || 0), HEAT_EXPONENT)]);
+    if (heatPts.length < 8 && hs.length) {
+      heatPts = hs.map(h => [
+        h.lat, h.lng,
+        Math.pow(Math.max(0.15, (h.opportunity_score || 50) / 100), HEAT_EXPONENT),
+      ]);
+    }
     if (heatLayer && typeof heatLayer.setLatLngs === 'function') {
-      const heatPts = (data.heat || []).map(p => [p[0], p[1], Math.pow(Number(p[2]) || 0, HEAT_EXPONENT)]);
       heatLayer.setLatLngs(heatPts);
+      try { heatLayer.redraw(); } catch (_) {}
     }
 
     clearLayers();
@@ -1059,21 +1076,43 @@
       });
     });
 
+    // Heat mode: heat + pins always; also keep faint zones so the map is never "empty dark"
     if (mode === 'heat') {
       if (heatLayer && !map.hasLayer(heatLayer)) heatLayer.addTo(map);
       if (!map.hasLayer(pinLayer)) pinLayer.addTo(map);
-      if (map.hasLayer(circleLayer)) map.removeLayer(circleLayer);
-      // No heat plugin → fall back to zones so the page is never blank
-      if (!heatLayer && !map.hasLayer(circleLayer)) circleLayer.addTo(map);
+      if (hs.length && !map.hasLayer(circleLayer)) {
+        // Soft underlay so ranked markets stay visible even if heat is sparse
+        circleLayer.eachLayer((lyr) => {
+          if (lyr.setStyle) lyr.setStyle({ fillOpacity: 0.08, weight: 1, opacity: 0.35 });
+        });
+        circleLayer.addTo(map);
+      } else if (!hs.length && map.hasLayer(circleLayer)) {
+        map.removeLayer(circleLayer);
+      }
+      if (!heatLayer && hs.length && !map.hasLayer(circleLayer)) circleLayer.addTo(map);
     } else {
       if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
       if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
       if (!map.hasLayer(circleLayer)) circleLayer.addTo(map);
+      circleLayer.eachLayer((lyr) => {
+        if (lyr.setStyle) {
+          const sc = lyr.options && lyr.options.fillOpacity;
+          lyr.setStyle({ fillOpacity: 0.18 + 0.28 * 0.5, weight: 2, opacity: 1 });
+        }
+      });
     }
 
-    if (hs.length && !nationwide && !keepView && !data.focus) {
-      map.fitBounds(L.latLngBounds(hs.map(h => [h.lat, h.lng])).pad(0.25), { maxZoom: 7, animate: true });
+    // Fit to markets, else heat points, else keep US view
+    if (!keepView && !data.focus) {
+      if (hs.length && !nationwide) {
+        map.fitBounds(L.latLngBounds(hs.map(h => [h.lat, h.lng])).pad(0.25), { maxZoom: 7, animate: true });
+      } else if (heatPts.length > 2) {
+        try {
+          map.fitBounds(L.latLngBounds(heatPts.map(p => [p[0], p[1]])).pad(0.15), { maxZoom: 6, animate: true });
+        } catch (_) {}
+      }
     }
+    setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 100);
 
     const focus = data.focus;
     if (focus && !focus.error) {
