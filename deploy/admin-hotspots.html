@@ -1141,7 +1141,7 @@
     modeWrap.querySelectorAll('button').forEach(b =>
       b.classList.toggle('on', b.dataset.mode === mode));
     // Re-paint so circle opacities match the mode
-    if (lastData) renderData();
+    if (lastData) renderData().catch((e) => console.error(e));
   }
 
   async function renderData() {
