@@ -39,7 +39,7 @@
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { geocode } from './_lib/geocode.js';
 
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'nodejs', maxDuration: 60 };
 
 // ── PO Hardware unit economics ────────────────────────────────
 // PS1: 15 head per 7-hour shift, 5 shifts/week, 52 weeks → 3,900 head/yr.
@@ -566,15 +566,34 @@ function finalize(kept) {
 // Burn brightest on demand (metros / buyers). Capacity damps intensity.
 // Supply hinterland is drawn dimly so cattle country is visible without
 // competing with city peaks for "sell here" red.
+//
+// Capacity is gridded (not O(points × plants)) so the endpoint stays under
+// the serverless budget when county_stats is fully loaded.
+const HEAT_MAX_POINTS = 3500;
+
 function buildHeat(demand, supply, capacity, radiusMiles) {
+  const cellDeg = Math.max(radiusMiles / 2.5, 12) / 69;
+  const capGrid = new Map();
+  for (const c of capacity) {
+    const key = `${Math.floor(c.lat / cellDeg)}:${Math.floor(c.lng / cellDeg)}`;
+    capGrid.set(key, (capGrid.get(key) || 0) + 1);
+  }
+  const nearCap = (lat, lng) => {
+    const i0 = Math.floor(lat / cellDeg);
+    const j0 = Math.floor(lng / cellDeg);
+    let n = 0;
+    for (let di = -1; di <= 1; di++) {
+      for (let dj = -1; dj <= 1; dj++) {
+        n += capGrid.get(`${i0 + di}:${j0 + dj}`) || 0;
+      }
+    }
+    return n;
+  };
+
   const pts = [];
   let max = 0;
   const push = (p, scale) => {
-    let capNear = 0;
-    for (const c of capacity) {
-      if (distanceMi(p.lat, p.lng, c.lat, c.lng) <= radiusMiles) capNear++;
-    }
-    const intensity = (p.weight * scale) / (1 + capNear);
+    const intensity = (p.weight * scale) / (1 + nearCap(p.lat, p.lng));
     if (intensity <= 0) return;
     if (intensity > max) max = intensity;
     pts.push([p.lat, p.lng, intensity]);
@@ -582,13 +601,21 @@ function buildHeat(demand, supply, capacity, radiusMiles) {
   for (const p of demand) push(p, HEAT_DEMAND_SCALE);
   for (const p of supply) push(p, HEAT_SUPPLY_SCALE);
   if (!max) return [];
-  return pts
+
+  // Keep the strongest peaks so the payload stays small and the client stays snappy.
+  let kept = pts;
+  if (kept.length > HEAT_MAX_POINTS) {
+    kept = kept.slice().sort((a, b) => b[2] - a[2]).slice(0, HEAT_MAX_POINTS);
+    max = kept[0][2] || max;
+  }
+
+  return kept
     .map(([lat, lng, i]) => [
       Math.round(lat * 1e5) / 1e5,
       Math.round(lng * 1e5) / 1e5,
       Math.round((i / max) * 1000) / 1000,
     ])
-    .filter(p => p[2] > 0); // drop sub-0.001 points — invisible on the gradient anyway
+    .filter(p => p[2] > 0);
 }
 
 async function handler(req) {

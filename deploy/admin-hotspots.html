@@ -558,7 +558,7 @@
     backdrop-filter: blur(8px);
     pointer-events: auto;
   }
-  .hs-overlay.hidden { display: none; }
+  .hs-overlay.hidden { display: none !important; }
   .needs-auth, .hs-loading {
     background: rgba(12, 18, 14, 0.92);
     border: 1px solid rgba(255,255,255,.1);
@@ -821,23 +821,48 @@
   });
 
   function showOverlay(html) {
+    if (!overlay) return;
     overlay.innerHTML = html;
     overlay.classList.remove('hidden');
+    overlay.style.display = 'flex';
   }
   function hideOverlay() {
+    if (!overlay) return;
     overlay.classList.add('hidden');
+    overlay.style.display = 'none';
     overlay.innerHTML = '';
   }
   function authWall(title, body, showSignIn) {
     showOverlay(`<div class="needs-auth"><img src="/brand/logo-monogram.svg" alt="">
       <h3>${title}</h3>
       <p>${body}</p>
-      ${showSignIn ? `<button onclick="window.PO_API.openAuth('Sign in', 'admin')" style="margin-top:16px;background:#fbf9f5;color:#061b0e;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 Inter;cursor:pointer">Sign in</button>` : ''}
+      ${showSignIn ? `<button type="button" id="hsAuthBtn" style="margin-top:16px;background:#fbf9f5;color:#061b0e;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 Inter;cursor:pointer">Sign in</button>` : ''}
+      <button type="button" id="hsRetryBtn" style="margin-top:12px;background:transparent;color:rgba(251,249,245,.75);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:10px 18px;font:700 13px/1 Inter;cursor:pointer;display:block;margin-left:auto;margin-right:auto">Retry</button>
+    </div>`);
+    const authBtn = document.getElementById('hsAuthBtn');
+    if (authBtn) authBtn.onclick = () => {
+      if (window.PO_API && typeof window.PO_API.openAuth === 'function') {
+        window.PO_API.openAuth('Sign in', 'admin');
+      } else {
+        window.location.href = '/account';
+      }
+    };
+    const retryBtn = document.getElementById('hsRetryBtn');
+    if (retryBtn) retryBtn.onclick = () => load();
+  }
+  function loadingOverlay(msg) {
+    showOverlay(`<div class="hs-loading"><img src="/brand/logo-monogram.svg" alt="">
+      <h3>Lighting the map…</h3>
+      <p>${msg || 'Loading market heat'}</p>
     </div>`);
   }
 
   function ensureMap() {
     if (mapReady) return;
+    if (typeof L === 'undefined') {
+      throw new Error('Map library (Leaflet) failed to load. Check your network and refresh.');
+    }
+
     map = L.map('hsMap', {
       scrollWheelZoom: true,
       zoomControl: true,
@@ -851,17 +876,23 @@
       maxZoom: 19,
     }).addTo(map);
 
-    heatLayer = L.heatLayer([], {
-      radius: 36, blur: 28, maxZoom: 10, max: 1.0, minOpacity: 0.08,
-      gradient: HEAT_GRADIENT,
-    });
     circleLayer = L.layerGroup();
     pinLayer = L.layerGroup();
-    heatLayer.addTo(map);
+
+    if (typeof L.heatLayer === 'function') {
+      heatLayer = L.heatLayer([], {
+        radius: 36, blur: 28, maxZoom: 10, max: 1.0, minOpacity: 0.08,
+        gradient: HEAT_GRADIENT,
+      });
+      heatLayer.addTo(map);
+    } else {
+      // Heat plugin missing — still usable in Zones mode
+      heatLayer = null;
+      console.warn('leaflet.heat missing — heat mode unavailable');
+    }
     pinLayer.addTo(map);
 
     map.on('click', (e) => {
-      // Ignore clicks that bubbled from interactive markers (Leaflet still fires map click sometimes)
       focusCenter = { lat: e.latlng.lat, lng: e.latlng.lng };
       if (!focusRadius) focusRadius = radiusSel.value === 'nationwide' ? 100 : Number(radiusSel.value);
       zipInput.value = '';
@@ -869,8 +900,8 @@
       keepView = true;
       load();
     });
-    map.on('movestart', () => { searchBtn.style.display = ''; });
-    searchBtn.onclick = () => {
+    map.on('movestart', () => { if (searchBtn) searchBtn.style.display = ''; });
+    if (searchBtn) searchBtn.onclick = () => {
       const c = map.getCenter();
       const east = map.getBounds().getEast();
       const halfWidthMi = Math.abs(east - c.lng) * 69.172 * Math.cos(c.lat * Math.PI / 180);
@@ -886,7 +917,7 @@
     };
 
     mapReady = true;
-    setTimeout(() => map.invalidateSize(), 80);
+    setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 80);
   }
 
   function playsHtml(plays) {
@@ -939,12 +970,13 @@
     modeWrap.querySelectorAll('button').forEach(b =>
       b.classList.toggle('on', b.dataset.mode === mode));
     if (mode === 'heat') {
-      map.removeLayer(circleLayer);
-      heatLayer.addTo(map);
+      if (map.hasLayer(circleLayer)) map.removeLayer(circleLayer);
+      if (heatLayer) heatLayer.addTo(map);
+      else circleLayer.addTo(map);
       pinLayer.addTo(map);
     } else {
-      map.removeLayer(heatLayer);
-      map.removeLayer(pinLayer);
+      if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
+      if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
       circleLayer.addTo(map);
     }
   }
@@ -984,9 +1016,11 @@
       <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${fmt(t.buyers)}<small>${fmt(t.reservations)} res.</small></div></div>
       <div class="hs-stat"><p class="lab">HW leads</p><div class="v">${fmt(t.hardware_leads)}<small>/hardware</small></div></div>`;
 
-    // Heat points
-    const heatPts = (data.heat || []).map(p => [p[0], p[1], Math.pow(p[2], HEAT_EXPONENT)]);
-    heatLayer.setLatLngs(heatPts);
+    // Heat points (plugin optional)
+    if (heatLayer && typeof heatLayer.setLatLngs === 'function') {
+      const heatPts = (data.heat || []).map(p => [p[0], p[1], Math.pow(Number(p[2]) || 0, HEAT_EXPONENT)]);
+      heatLayer.setLatLngs(heatPts);
+    }
 
     clearLayers();
 
@@ -1023,11 +1057,13 @@
     });
 
     if (mode === 'heat') {
-      if (!map.hasLayer(heatLayer)) heatLayer.addTo(map);
+      if (heatLayer && !map.hasLayer(heatLayer)) heatLayer.addTo(map);
       if (!map.hasLayer(pinLayer)) pinLayer.addTo(map);
       if (map.hasLayer(circleLayer)) map.removeLayer(circleLayer);
+      // No heat plugin → fall back to zones so the page is never blank
+      if (!heatLayer && !map.hasLayer(circleLayer)) circleLayer.addTo(map);
     } else {
-      if (map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
+      if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
       if (map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
       if (!map.hasLayer(circleLayer)) circleLayer.addTo(map);
     }
@@ -1084,7 +1120,7 @@
         <div class="hs-card" data-rank="${h.rank}">
           <div>
             <h4>#${h.rank} ${h.label || 'Unnamed market'}</h4>
-            <p class="meta">${(h.metrics.population/1e3).toFixed(0)}k people · ${fmt(h.metrics.livestock)} head ·
+            <p class="meta">${((h.metrics && h.metrics.population) ? h.metrics.population / 1e3 : 0).toFixed(0)}k people · ${fmt(h.metrics && h.metrics.livestock)} head ·
               ${fmt(h.capacity_count)} plant${h.capacity_count === 1 ? '' : 's'}${
                 h.nearest_processor_miles != null ? ` · ${h.nearest_processor_miles} mi` : ''}${
                 h.units && h.units.net_ps1 > 0 ? ` · <b>${h.units.suggested_config}</b>` : ''}</p>
@@ -1115,10 +1151,19 @@
   // Fix pin handlers to use selectRow after re-render
   // (already inline above calling selectRow via closure — good)
 
+  let loadGen = 0;
   async function load() {
-    if (!mapReady) {
-      showOverlay(`<div class="hs-loading"><img src="/brand/logo-monogram.svg" alt=""><h3>Lighting the map…</h3><p>Loading market heat</p></div>`);
+    const gen = ++loadGen;
+    loadingOverlay(mapReady ? 'Refreshing market heat…' : 'Loading market heat…');
+
+    try {
+      ensureMap();
+    } catch (e) {
+      console.error(e);
+      authWall('Map failed to start', (e && e.message) || String(e), false);
+      return;
     }
+
     const v = radiusSel.value;
     const f = currentFilters();
     let qs = v === 'nationwide' ? 'scope=nationwide' : `radius_miles=${v}`;
@@ -1128,25 +1173,45 @@
       qs += `&center=${focusCenter.zip ? focusCenter.zip : focusCenter.lat.toFixed(5) + ',' + focusCenter.lng.toFixed(5)}`;
       if (focusRadius) qs += `&focus_radius=${focusRadius}`;
     }
+
     let res;
     try {
       const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 25000);
+      const t = setTimeout(() => ctrl.abort(), 45000);
       res = await fetch(`/api/admin-hotspots?${qs}`, { credentials: 'include', signal: ctrl.signal });
       clearTimeout(t);
     } catch (e) {
-      authWall('Map timed out', e.name === 'AbortError' ? 'The heat endpoint took too long — try again in a minute.' : e.message, false);
+      if (gen !== loadGen) return;
+      console.error(e);
+      authWall(
+        e.name === 'AbortError' ? 'Still working — timed out' : 'Network error',
+        e.name === 'AbortError'
+          ? 'The heat endpoint took longer than 45s. Hit Retry — a cold start can be slow the first time.'
+          : ((e && e.message) || 'Could not reach the API'),
+        false,
+      );
       return;
     }
+    if (gen !== loadGen) return;
+
     if (res.status === 401) return authWall('Sign in to see heat', 'Admin account required for market intelligence.', true);
     if (res.status === 403) return authWall('Admin only', 'This map is restricted to platform admins.', false);
     if (!res.ok) {
       const t = await res.text().catch(() => '');
-      return authWall('Error', t.slice(0, 300), false);
+      return authWall('API error ' + res.status, (t || 'Unknown error').slice(0, 400), false);
     }
-    lastData = await res.json();
-    renderData();
-    refreshDataStatus();
+
+    try {
+      loadingOverlay('Drawing heat…');
+      lastData = await res.json();
+      if (gen !== loadGen) return;
+      renderData();
+      hideOverlay(); // belt-and-suspenders if renderData early-returned
+      refreshDataStatus().catch((err) => console.warn('data status', err));
+    } catch (e) {
+      console.error(e);
+      authWall('Could not render heat', (e && e.message) || String(e), false);
+    }
   }
 
   // ── Data sources ────────────────────────────────────────
@@ -1303,8 +1368,11 @@
     if (btn) setMode(btn.dataset.mode);
   });
 
-  ensureMap();
-  load();
+  // Start load — never leave the loading chrome up without a path out.
+  load().catch((e) => {
+    console.error(e);
+    authWall('Unexpected error', (e && e.message) || String(e), false);
+  });
 })();
 </script>
 </body>
