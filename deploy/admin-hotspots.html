@@ -932,6 +932,42 @@
     }
     return [...best.values()];
   }
+
+  /**
+   * leaflet.heat radius is in screen pixels. As you zoom in, points separate
+   * and colors "disappear" unless radius grows. Scale so radar stays visible.
+   * maxZoom on the layer is set low so intensity is full from US view upward.
+   */
+  function heatStyleForZoom(z) {
+    const zc = Math.max(3, Math.min(14, Number(z) || 5));
+    // ~double footprint every ~2 zoom levels past z5
+    const scale = Math.pow(2, (zc - 5) * 0.5);
+    return {
+      radius: Math.round(Math.min(96, Math.max(18, 20 * scale))),
+      blur: Math.round(Math.min(36, Math.max(9, 11 * scale * 0.5))),
+    };
+  }
+
+  function syncHeatToZoom() {
+    if (!heatLayer || !map) return;
+    const st = heatStyleForZoom(map.getZoom());
+    try {
+      heatLayer.setOptions({
+        radius: st.radius,
+        blur: st.blur,
+        maxZoom: 4,
+        minOpacity: 0.22,
+        gradient: HEAT_GRADIENT,
+      });
+    } catch (_) {
+      // older leaflet.heat: mutate options + redraw
+      heatLayer.options.radius = st.radius;
+      heatLayer.options.blur = st.blur;
+      heatLayer.options.maxZoom = 4;
+      try { heatLayer.redraw(); } catch (__) {}
+    }
+    applyRadarOpacity();
+  }
   const scoreColor = (s, rank) => colorForRank(rank || 200);
 
   // Invisible hit targets only (optional) — no visible circle chrome
@@ -1141,9 +1177,17 @@
         };
         HTMLCanvasElement.prototype._poHeatCtxPatched = true;
       }
-      // Tighter cells + low blur = sharper radar zones (less blotchy melt)
+      // maxZoom low = full radar intensity from continental zoom up (not washed out).
+      // radius/blur scale with zoom so colors don't vanish when you zoom in
+      // (leaflet.heat radius is in pixels — without this, points separate and fade).
+      const z0 = map.getZoom();
+      const st0 = heatStyleForZoom(z0);
       heatLayer = L.heatLayer([], {
-        radius: 20, blur: 11, maxZoom: 8, max: 1.0, minOpacity: 0.18,
+        radius: st0.radius,
+        blur: st0.blur,
+        maxZoom: 4,
+        max: 1.0,
+        minOpacity: 0.22,
         gradient: HEAT_GRADIENT,
         pane: 'radarPane',
       });
@@ -1154,6 +1198,19 @@
       console.warn('leaflet.heat missing');
     }
     // pins only used in zones / list fly-to — not shown on radar by default
+
+    // Keep radar filled as zoom changes
+    map.on('zoomend', syncHeatToZoom);
+    map.on('zoom', () => {
+      // light touch during pinch/scroll so it doesn't flicker empty mid-zoom
+      if (heatLayer && map) {
+        const st = heatStyleForZoom(map.getZoom());
+        if (heatLayer.options.radius !== st.radius) {
+          heatLayer.setOptions({ radius: st.radius, blur: st.blur });
+          applyRadarOpacity();
+        }
+      }
+    });
 
     map.on('click', (e) => {
       focusCenter = { lat: e.latlng.lat, lng: e.latlng.lng };
