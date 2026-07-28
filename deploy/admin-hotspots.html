@@ -1478,9 +1478,9 @@
       if (!map.hasLayer(circleLayer)) circleLayer.addTo(map);
     }
 
-    // Only snap back to the whole US when we are NOT following the view —
-    // otherwise the snap would fire moveend and yank the user out of their region.
-    if (!keepView && !data.focus && !followView) {
+    // First paint (or pinned national): frame the whole continental US so the
+    // radar field is read as a country map, not a zoomed-in East-Coast crop.
+    if (!keepView && !data.focus && (!followView || !data.region || data.region.type !== 'view')) {
       quiet(1600);
       map.fitBounds(L.latLngBounds([[24.5, -125], [49.5, -66.5]]), { animate: true, maxZoom: 5 });
     }

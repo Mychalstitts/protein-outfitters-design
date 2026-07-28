@@ -204,7 +204,12 @@ const LIVESTOCK_DIVISOR = 100;
 const MAX_FRESH_GEOCODES = 8;
 // Heat: demand (metros) dominates; supply hinterland is visible but dim.
 const HEAT_DEMAND_SCALE = 1;
-const HEAT_SUPPLY_SCALE = 0.2;
+// Supply was so dim that cattle country (West/Midwest/South) barely painted.
+// Still below demand so metros stay the peaks, but hinterland shows nationwide.
+const HEAT_SUPPLY_SCALE = 0.45;
+// Always paint the continental US even when data is sparse in a corner —
+// otherwise the heat grid shrinks to the Northeast and the West looks "off".
+const CONUS_BOX = { south: 24.3, north: 49.5, west: -125.0, east: -66.5 };
 // Non-overlap uses half the market radius so adjacent metros (e.g. SF /
 // Sacramento at 100mi) can both rank instead of collapsing to one blob.
 const SEPARATION_FRACTION = 0.5;
@@ -714,8 +719,8 @@ function finalize(kept, topScore) {
 const HEAT_MAX_CELLS = 100000;
 
 // Percentile transfer curve. Max-normalizing against a single outlier county
-// crushed 95% of the country into the pale green end — this stretches the
-// palette across the real distribution so the differences are visible.
+// crushed most of the country into nearly-invisible paint. Stretch more of the
+// mass into the light/mid radar bands so West/Midwest/South still show up.
 function transferCurve(values) {
   const sorted = Float64Array.from(values);
   sorted.sort();
@@ -723,8 +728,9 @@ function transferCurve(values) {
   const q = (f) => sorted[clamp(Math.round(f * (n - 1)), 0, n - 1)];
   const raw = [
     [0, 0],
-    [q(0.35), 0.06], [q(0.60), 0.20], [q(0.75), 0.34], [q(0.86), 0.48],
-    [q(0.93), 0.62], [q(0.97), 0.76], [q(0.99), 0.88], [q(0.998), 1.0],
+    // Visible floor: the bottom half of the country still tints light blue/green
+    [q(0.12), 0.14], [q(0.30), 0.26], [q(0.50), 0.40], [q(0.68), 0.52],
+    [q(0.80), 0.64], [q(0.90), 0.76], [q(0.96), 0.86], [q(0.99), 0.94], [q(0.998), 1.0],
   ];
   const xs = [], ys = [];
   for (const [x, y] of raw) {
@@ -753,8 +759,9 @@ function buildHeatField(demand, supply, capacity, radiusMiles, region) {
   if (!pts.length) return null;
 
   // Kernel width tracks the market radius: a 25-mile lens should show tight
-  // local pockets, a 500-mile lens broad regional pressure.
-  const sigmaMi = clamp(radiusMiles * 0.45, 12, 140);
+  // local pockets, a 500-mile lens broad regional pressure. National view gets
+  // a slightly wider kernel so sparse data still connects across states.
+  const sigmaMi = clamp(radiusMiles * (region ? 0.45 : 0.55), region ? 12 : 22, 160);
   const capSigmaMi = Math.max(sigmaMi, radiusMiles * 0.55);
 
   // Points whose kernel can still reach into the box. Keeping the ones just
@@ -821,8 +828,10 @@ function buildHeatField(demand, supply, capacity, radiusMiles, region) {
     return { field, dLat, dLng, rows, cols, minLat, minLng, cellMi };
   };
 
-  // National extent, from the points themselves.
-  let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+  // National extent: always cover CONUS so the heat field is a full-country
+  // canvas. Expand only if data exists outside the lower 48 (e.g. AK/HI).
+  let minLat = CONUS_BOX.south, maxLat = CONUS_BOX.north;
+  let minLng = CONUS_BOX.west, maxLng = CONUS_BOX.east;
   for (const p of pts) {
     if (p.lat < minLat) minLat = p.lat;
     if (p.lat > maxLat) maxLat = p.lat;
@@ -830,13 +839,16 @@ function buildHeatField(demand, supply, capacity, radiusMiles, region) {
     if (p.lng > maxLng) maxLng = p.lng;
   }
   const cosNat = Math.max(0.2, Math.cos(((minLat + maxLat) / 2) * Math.PI / 180));
+  const padLat = (sigmaMi * 2) / MI_PER_DEG;
+  const padLng = (sigmaMi * 2) / (MI_PER_DEG * cosNat);
   const natBox = {
-    south: minLat - (sigmaMi * 2) / MI_PER_DEG,
-    north: maxLat + (sigmaMi * 2) / MI_PER_DEG,
-    west: minLng - (sigmaMi * 2) / (MI_PER_DEG * cosNat),
-    east: maxLng + (sigmaMi * 2) / (MI_PER_DEG * cosNat),
+    south: Math.min(CONUS_BOX.south, minLat) - padLat,
+    north: Math.max(CONUS_BOX.north, maxLat) + padLat,
+    west: Math.min(CONUS_BOX.west, minLng) - padLng,
+    east: Math.max(CONUS_BOX.east, maxLng) + padLng,
   };
-  const nat = fieldOver(natBox, Math.max(6, sigmaMi / 1.25));
+  // Slightly finer national grid so West/Midwest cells aren't giant washes
+  const nat = fieldOver(natBox, Math.max(5, sigmaMi / 1.4));
   if (!nat) return null;
 
   // The colour scale is ALWAYS derived nationally. Re-fitting it to whatever is
