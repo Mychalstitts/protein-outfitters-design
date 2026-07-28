@@ -503,7 +503,7 @@
       #ffee58 52%,
       #ff9800 66%,
       #e53935 82%,
-      #880e4f 100%);
+      #7f0000 100%);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 0 16px rgba(66, 165, 245, .25);
   }
   .hs-legend .labs {
@@ -879,28 +879,29 @@
     0.829: '#ff9800',
     0.83: '#ff5722',  // orange-red
     0.889: '#ff5722',
-    0.89: '#e53935',  // red
-    0.939: '#e53935',
-    0.94: '#b71c1c',  // dark red
-    0.979: '#b71c1c',
-    0.98: '#880e4f',  // magenta peak
-    1.00: '#880e4f',
+    0.89: '#e53935',  // lighter red (#11–20)
+    0.929: '#e53935',
+    // Top 10 live here — solid dark red summit (not purple/magenta)
+    0.93: '#c62828',
+    0.96: '#b71c1c',
+    1.00: '#7f0000',  // darkest red peak
   };
   // Discrete intensity centers matching each radar band
-  const HEAT_BANDS = [0.09, 0.18, 0.30, 0.42, 0.53, 0.63, 0.72, 0.80, 0.86, 0.92, 0.96, 0.995];
+  const HEAT_BANDS = [0.09, 0.18, 0.30, 0.42, 0.53, 0.63, 0.72, 0.80, 0.86, 0.91, 0.97, 1.0];
 
   function intensityForRank(rank) {
     const r = Number(rank) || 9999;
-    if (r <= 10) return 0.995;
-    if (r <= 20) return 0.92;
-    if (r <= 40) return 0.86;
-    if (r <= 60) return 0.80;
-    if (r <= 100) return 0.63;
-    if (r <= 200) return 0.53;
-    if (r <= 500) return 0.42;
-    if (r <= 1000) return 0.30;
-    if (r <= 2000) return 0.18;
-    return 0.09;
+    // #1–10: dark red band only (heaviest radar / opportunity tops)
+    if (r <= 10) return 1.0;
+    if (r <= 20) return 0.91;   // lighter red
+    if (r <= 40) return 0.86;   // orange-red
+    if (r <= 60) return 0.80;   // orange
+    if (r <= 100) return 0.63;  // yellow
+    if (r <= 200) return 0.53;  // greenish yellow
+    if (r <= 500) return 0.42;  // green
+    if (r <= 1000) return 0.30; // light green
+    if (r <= 2000) return 0.18; // blue
+    return 0.09;                 // light blue
   }
   /** Snap raw 0–1 intensity onto a radar band center (cleaner zones). */
   function quantizeHeat(v) {
@@ -1281,10 +1282,16 @@
     let heatPts = (rawHeat || [])
       .map(p => [p[0], p[1], heatIntensity(p[2])])
       .filter(p => p[2] > 0);
-    // One seed per ranked market (no multi-sample rings that blur into blotches)
+    // Rank seeds: top 10 get a slightly stronger red core so they "top" the map
     if (hs.length) {
       hs.forEach((h) => {
-        heatPts.push([h.lat, h.lng, intensityForRank(h.rank)]);
+        const intensity = intensityForRank(h.rank);
+        heatPts.push([h.lat, h.lng, intensity]);
+        if (h.rank <= 10) {
+          // Extra core weight without a wide halo — keeps #1–10 clearly dark red
+          heatPts.push([h.lat, h.lng, intensity]);
+          heatPts.push([h.lat, h.lng, 1.0]);
+        }
       });
     }
     // ~0.35° cells ≈ keep strongest point per local cell
