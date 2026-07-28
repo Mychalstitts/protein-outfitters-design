@@ -915,9 +915,10 @@
     return best;
   }
   function heatIntensity(v) {
-    // Slight curve then snap to band
+    // Slight curve then snap to band — but never into top-10 dark red.
+    // Only ranked #1–10 seeds (intensityForRank) may paint the summit red.
     const x = Math.max(0, Math.min(1, Number(v) || 0));
-    return quantizeHeat(Math.pow(x, 1.05));
+    return Math.min(0.91, quantizeHeat(Math.pow(x, 1.05)));
   }
 
   /** Thin overlapping points so heat cells don't smear into each other. */
@@ -1268,7 +1269,7 @@
         : 'No markets yet — import Census + livestock under Data sources';
     }
     document.getElementById('hsLegendLabs').innerHTML =
-      '<span>#1–10</span><span>#40</span><span>#100</span><span>#500+</span>';
+      '<span>Blue</span><span>Green</span><span>Yellow</span><span>Top10 red</span>';
 
     document.getElementById('hsStats').innerHTML = `
       <div class="hs-stat"><p class="lab">People</p><div class="v">${t.population ? (t.population/1e6).toFixed(0)+'M' : '—'}<small>${fmt(t.counties)} counties</small></div></div>
