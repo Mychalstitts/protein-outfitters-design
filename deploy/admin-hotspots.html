@@ -11,8 +11,8 @@
 <link rel="stylesheet" href="./po-shell.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<!-- Self-hosted + CDN fallbacks loaded in ensureHeatPlugin if needed -->
-<script src="/vendor/leaflet-heat.js" onerror="this.onerror=null;this.src='https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js'"></script>
+<!-- Heat is drawn by our own HeatField canvas overlay (see HeatField below).
+     No leaflet.heat: its ramp lost contrast through mid-scale yellow. -->
 <style>
   /* ── Full-bleed Snap / Strava heat stage ───────────────── */
   html, body { height: 100%; margin: 0; }
@@ -305,6 +305,33 @@
     font: 500 12px/1.45 Inter, system-ui, sans-serif;
     color: rgba(251,249,245,.55);
   }
+  .hs-rail-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .hs-region-tools { display: flex; gap: 5px; flex-shrink: 0; }
+  /* Region buttons are .hs-rgn, NOT .hs-chip — .hs-chip is already taken by the
+     play tags (.hs-chip.hw/.buy/.farm/...) and reusing it would restyle those. */
+  .hs-rgn {
+    font: 700 10.5px/1 Inter, system-ui, sans-serif;
+    padding: 6px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(255,255,255,.05);
+    color: rgba(251,249,245,.62);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .hs-rgn:hover { background: rgba(255,255,255,.11); color: #fbf9f5; }
+  .hs-rgn.on {
+    background: #fbf9f5;
+    border-color: #fbf9f5;
+    color: #0a0f0c;
+  }
+  .hs-list.busy { opacity: .4; transition: opacity .12s ease; }
 
   .hs-stats {
     display: grid;
@@ -494,17 +521,22 @@
     width: 220px;
     height: 12px;
     border-radius: 4px;
-    /* Rain radar: light → heavy */
+    /* Matches the HeatField RAMP: cool green → yellow → orange → deep red.
+       Every stop is measurably darker than the one before it. */
     background: linear-gradient(90deg,
-      #bbdefb 0%,
-      #42a5f5 12%,
-      #81c784 26%,
-      #cddc39 40%,
-      #ffee58 52%,
-      #ff9800 66%,
-      #e53935 82%,
-      #7f0000 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 0 16px rgba(66, 165, 245, .25);
+      #0a5c3c 5%,
+      #0d7d4a 14%,
+      #20a04a 26%,
+      #7cc43e 38%,
+      #bed628 48%,
+      #ffd600 56%,
+      #ffa000 65%,
+      #ff6f00 73%,
+      #f4511e 81%,
+      #e02020 88%,
+      #b71c1c 94%,
+      #6d0000 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 0 16px rgba(224, 32, 32, .25);
   }
   .hs-legend .labs {
     display: flex;
@@ -664,7 +696,7 @@
 
   <div class="hs-glass hs-topbar" id="hsTopbar" style="position:relative;">
     <div class="hs-brand">
-      <p class="eyebrow">Market heat <span class="hs-ver" id="hsVerBadge">Metro-first · v2</span></p>
+      <p class="eyebrow">Market heat <span class="hs-ver" id="hsVerBadge">Metro-first · v3</span></p>
       <h1>Where opportunity burns</h1>
     </div>
     <div class="hs-controls">
@@ -742,8 +774,14 @@
 
   <aside class="hs-glass hs-rail" id="hsRail">
     <div class="hs-rail-head">
-      <h2 id="hsRailTitle">Markets <small id="hsRailCount"></small></h2>
-      <p>Snap-style heat by rank · dark red = top 10 · green = long tail · pin = details</p>
+      <div class="hs-rail-top">
+        <h2 id="hsRailTitle">Markets <small id="hsRailCount"></small></h2>
+        <div class="hs-region-tools">
+          <button type="button" class="hs-rgn on" id="hsFollow" aria-pressed="true">Follows map</button>
+          <button type="button" class="hs-rgn" id="hsHome">Whole US</button>
+        </div>
+      </div>
+      <p id="hsRegionNote">Ranking the whole country. Zoom into a region and this list follows the map.</p>
     </div>
     <div class="hs-stats" id="hsStats"></div>
     <div class="hs-list" id="hsList">
@@ -782,6 +820,32 @@
   let focusCenter = null;
   let focusRadius = null;
   let keepView = false;
+
+  // Follow-the-map ranking: the list re-scores whatever region is on screen.
+  let followView = true;
+  let moveTimer = null, quietUntil = 0, sentBounds = null;
+
+  /** Go deaf to moveend for a beat so our own programmatic pans don't reload. */
+  function quiet(ms) { quietUntil = Date.now() + (ms || 1400); }
+
+  function currentBounds() {
+    if (!map) return null;
+    const b = map.getBounds();
+    return [b.getSouth(), b.getWest(), b.getNorth(), b.getEast()];
+  }
+
+  /** True if the view drifted enough (>5% of span) to be worth a refetch. */
+  function boundsMoved(a, b) {
+    if (!a || !b) return true;
+    const spanLat = Math.max(a[2] - a[0], 0.01), spanLng = Math.max(a[3] - a[1], 0.01);
+    return Math.abs(a[0] - b[0]) / spanLat > 0.05 || Math.abs(a[2] - b[2]) / spanLat > 0.05 ||
+           Math.abs(a[1] - b[1]) / spanLng > 0.05 || Math.abs(a[3] - b[3]) / spanLng > 0.05;
+  }
+
+  function markBusy(on) {
+    const l = document.getElementById('hsList');
+    if (l) l.classList.toggle('busy', !!on);
+  }
 
   // Pin stage under nav
   function syncNavH() {
@@ -857,117 +921,183 @@
     if (r <= 2000) return RANK_COLORS.top2000;
     return RANK_COLORS.tail;
   }
-  // Weather-radar bands with flat plateaus + hard steps (less muddy blotch).
-  // Same color held across a range → sharper zone edges like NEXRAD.
-  const HEAT_GRADIENT = {
-    0.00: 'rgba(187, 222, 251, 0)',
-    0.06: '#bbdefb',  // light blue
-    0.119: '#bbdefb',
-    0.12: '#42a5f5',  // blue
-    0.239: '#42a5f5',
-    0.24: '#81c784',  // light green
-    0.359: '#81c784',
-    0.36: '#66bb6a',  // green
-    0.479: '#66bb6a',
-    0.48: '#cddc39',  // green-yellow
-    0.579: '#cddc39',
-    0.58: '#ffee58',  // yellow
-    0.679: '#ffee58',
-    0.68: '#ffc107',  // gold
-    0.759: '#ffc107',
-    0.76: '#ff9800',  // orange
-    0.829: '#ff9800',
-    0.83: '#ff5722',  // orange-red
-    0.889: '#ff5722',
-    0.89: '#e53935',  // lighter red (#11–20)
-    0.929: '#e53935',
-    // Top 10 live here — solid dark red summit (not purple/magenta)
-    0.93: '#c62828',
-    0.96: '#b71c1c',
-    1.00: '#7f0000',  // darkest red peak
-  };
-  // Discrete intensity centers matching each radar band
-  const HEAT_BANDS = [0.09, 0.18, 0.30, 0.42, 0.53, 0.63, 0.72, 0.80, 0.86, 0.91, 0.97, 1.0];
+  // ── Heat ramp ────────────────────────────────────────────────
+  // Stops are [v, r, g, b, alpha]. Alphas are tuned so that *perceived ink*
+  // — composite_alpha × |luminance − background| — rises monotonically with v.
+  // The old leaflet.heat radar ramp ran 47/81/78/52/36/29/62/95/119/160/176/218:
+  // v=0.14 green scored 81 while v=0.56 yellow scored 29, so a busy market read
+  // FAINTER than a dead one straight through the middle of the scale. These
+  // alphas give 9/20/29/30/28/28/63/98/122/163/178/218 — a 2-point wobble at the
+  // yellow plateau instead of a 52-point collapse, and cold-to-hot range of 24×
+  // instead of 4.6×. That is the contrast fix.
+  const RAMP = [
+    [0.00,   0,   0,   0,   0],
+    [0.05,  10,  92,  60,  14],
+    [0.14,  13, 125,  74,  34],
+    [0.26,  32, 160,  74,  62],
+    [0.38, 124, 196,  62, 104],
+    [0.48, 190, 214,  40, 150],
+    [0.56, 255, 214,   0, 196],
+    [0.65, 255, 160,   0, 214],
+    [0.73, 255, 111,   0, 226],
+    [0.81, 244,  81,  30, 236],
+    [0.88, 224,  32,  32, 243],
+    [0.94, 183,  28,  28, 248],
+    [1.00, 109,   0,   0, 252],
+  ];
+  // Contour lines drawn at these levels so zones have readable edges.
+  const BANDS = [0.38, 0.56, 0.73, 0.88];
 
-  function intensityForRank(rank) {
-    const r = Number(rank) || 9999;
-    // #1–10: dark red band only (heaviest radar / opportunity tops)
-    if (r <= 10) return 1.0;
-    if (r <= 20) return 0.91;   // lighter red
-    if (r <= 40) return 0.86;   // orange-red
-    if (r <= 60) return 0.80;   // orange
-    if (r <= 100) return 0.63;  // yellow
-    if (r <= 200) return 0.53;  // greenish yellow
-    if (r <= 500) return 0.42;  // green
-    if (r <= 1000) return 0.30; // light green
-    if (r <= 2000) return 0.18; // blue
-    return 0.09;                 // light blue
-  }
-  /** Snap raw 0–1 intensity onto a radar band center (cleaner zones). */
-  function quantizeHeat(v) {
-    const x = Math.max(0, Math.min(1, Number(v) || 0));
-    if (x < 0.05) return 0; // drop noise floor that causes blotch soup
-    let best = HEAT_BANDS[0], bestD = Infinity;
-    for (const b of HEAT_BANDS) {
-      const d = Math.abs(b - x);
-      if (d < bestD) { bestD = d; best = b; }
+  const LUT = (function buildLut() {
+    const lut = new Uint8ClampedArray(256 * 4);
+    let seg = 0;
+    for (let i = 0; i < 256; i++) {
+      const v = i / 255;
+      while (seg < RAMP.length - 2 && v > RAMP[seg + 1][0]) seg++;
+      const a = RAMP[seg], b = RAMP[seg + 1];
+      const span = b[0] - a[0];
+      const t = span > 0 ? Math.max(0, Math.min(1, (v - a[0]) / span)) : 0;
+      for (let k = 0; k < 4; k++) lut[i * 4 + k] = a[k + 1] + (b[k + 1] - a[k + 1]) * t;
     }
-    return best;
-  }
-  function heatIntensity(v) {
-    // Slight curve then snap to band — but never into top-10 dark red.
-    // Only ranked #1–10 seeds (intensityForRank) may paint the summit red.
-    const x = Math.max(0, Math.min(1, Number(v) || 0));
-    return Math.min(0.91, quantizeHeat(Math.pow(x, 1.05)));
+    return lut;
+  })();
+
+  function b64ToBytes(b64) {
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
   }
 
-  /** Thin overlapping points so heat cells don't smear into each other. */
-  function thinHeatPoints(pts, cellDeg) {
-    const best = new Map();
-    for (const p of pts) {
-      if (!p || p[2] <= 0) continue;
-      const key = `${Math.floor(p[0] / cellDeg)}:${Math.floor(p[1] / cellDeg)}`;
-      const prev = best.get(key);
-      if (!prev || p[2] > prev[2]) best.set(key, p);
-    }
-    return [...best.values()];
-  }
+  // ── HeatField ────────────────────────────────────────────────
+  // Paints the server's KDE grid (heat_grid) straight onto a canvas in the
+  // radar pane. Replaces leaflet.heat: the server already did the smoothing,
+  // so the client just samples and colors — no per-point blur, no rank seeds,
+  // and the ramp above can't be undone by additive stacking.
+  const HeatField = L.Layer.extend({
+    options: { pane: 'radarPane' },
 
-  /**
-   * leaflet.heat radius is in screen pixels. As you zoom in, points separate
-   * and colors "disappear" unless radius grows. Scale so radar stays visible.
-   * maxZoom on the layer is set low so intensity is full from US view upward.
-   */
-  function heatStyleForZoom(z) {
-    const zc = Math.max(3, Math.min(14, Number(z) || 5));
-    // ~double footprint every ~2 zoom levels past z5
-    const scale = Math.pow(2, (zc - 5) * 0.5);
-    return {
-      radius: Math.round(Math.min(96, Math.max(18, 20 * scale))),
-      blur: Math.round(Math.min(36, Math.max(9, 11 * scale * 0.5))),
-    };
-  }
+    initialize(grid) { this._grid = null; this._bytes = null; this.setGrid(grid, true); },
 
-  function syncHeatToZoom() {
-    if (!heatLayer || !map) return;
-    const st = heatStyleForZoom(map.getZoom());
-    try {
-      heatLayer.setOptions({
-        radius: st.radius,
-        blur: st.blur,
-        maxZoom: 4,
-        minOpacity: 0.22,
-        gradient: HEAT_GRADIENT,
-      });
-    } catch (_) {
-      // older leaflet.heat: mutate options + redraw
-      heatLayer.options.radius = st.radius;
-      heatLayer.options.blur = st.blur;
-      heatLayer.options.maxZoom = 4;
-      try { heatLayer.redraw(); } catch (__) {}
-    }
-    applyRadarOpacity();
-  }
+    setGrid(grid, quietSet) {
+      this._grid = grid || null;
+      this._bytes = grid && grid.b64 ? b64ToBytes(grid.b64) : null;
+      if (!quietSet && this._map) this._reset();
+    },
+
+    onAdd(map) {
+      this._map = map;
+      if (!map.getPane('radarPane')) {
+        const pane = map.createPane('radarPane');
+        pane.style.zIndex = 350;          // above tiles, below circles/pins
+        pane.style.pointerEvents = 'none';
+      }
+      const c = this._canvas = L.DomUtil.create('canvas', 'hs-heat-canvas');
+      c.style.position = 'absolute';
+      c.style.pointerEvents = 'none';
+      map.getPane('radarPane').appendChild(c);
+      map.on('moveend zoomend resize', this._reset, this);
+      if (map.options.zoomAnimation && L.Browser.any3d) map.on('zoomanim', this._animateZoom, this);
+      this._reset();
+      return this;
+    },
+
+    onRemove(map) {
+      map.off('moveend zoomend resize', this._reset, this);
+      map.off('zoomanim', this._animateZoom, this);
+      if (this._canvas && this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
+      this._canvas = null; this._map = null;
+      return this;
+    },
+
+    _animateZoom(e) {
+      const scale = this._map.getZoomScale(e.zoom);
+      const offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale)
+        .subtract(this._map._getMapPanePos());
+      L.DomUtil.setTransform(this._canvas, offset, scale);
+    },
+
+    _reset() {
+      const map = this._map, canvas = this._canvas;
+      if (!map || !canvas) return;
+      const size = map.getSize();
+      L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+      if (canvas.width !== size.x || canvas.height !== size.y) {
+        canvas.width = size.x; canvas.height = size.y;
+      }
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, size.x, size.y);
+      const g = this._grid, bytes = this._bytes;
+      if (!g || !bytes || !size.x || !size.y) return;
+
+      // Render at 1/3 res then let the browser upscale — cheap smooth blend.
+      const SS = 3;
+      const w = Math.max(2, Math.ceil(size.x / SS)), h = Math.max(2, Math.ceil(size.y / SS));
+
+      // Mercator is separable: lat depends only on y, lng only on x.
+      const lats = new Float64Array(h), lngs = new Float64Array(w);
+      for (let j = 0; j < h; j++) lats[j] = map.containerPointToLatLng([0, j * SS]).lat;
+      for (let i = 0; i < w; i++) lngs[i] = map.containerPointToLatLng([i * SS, 0]).lng;
+
+      const cols = g.cols, rows = g.rows;
+      const vals = new Float32Array(w * h);
+      for (let j = 0; j < h; j++) {
+        const gy = (g.lat_top - lats[j]) / g.d_lat;          // row 0 = north edge
+        if (gy < -0.5 || gy > rows - 0.5) continue;
+        const y0 = Math.max(0, Math.min(rows - 1, Math.floor(gy)));
+        const y1 = Math.min(rows - 1, y0 + 1);
+        const fy = Math.max(0, Math.min(1, gy - y0));
+        const rowA = y0 * cols, rowB = y1 * cols;
+        for (let i = 0; i < w; i++) {
+          const gx = (lngs[i] - g.lng_left) / g.d_lng;
+          if (gx < -0.5 || gx > cols - 0.5) continue;
+          const x0 = Math.max(0, Math.min(cols - 1, Math.floor(gx)));
+          const x1 = Math.min(cols - 1, x0 + 1);
+          const fx = Math.max(0, Math.min(1, gx - x0));
+          const top = bytes[rowA + x0] + (bytes[rowA + x1] - bytes[rowA + x0]) * fx;
+          const bot = bytes[rowB + x0] + (bytes[rowB + x1] - bytes[rowB + x0]) * fx;
+          vals[j * w + i] = top + (bot - top) * fy;
+        }
+      }
+
+      const img = ctx.createImageData(w, h);
+      const px = img.data;
+      for (let j = 0; j < h; j++) {
+        for (let i = 0; i < w; i++) {
+          const idx = j * w + i;
+          const v = vals[idx];
+          const li = (Math.round(v) & 255) * 4;
+          let r = LUT[li], gch = LUT[li + 1], b = LUT[li + 2], a = LUT[li + 3];
+          if (a) {
+            // Darken pixels straddling a band level → visible contour edge.
+            const vr = i + 1 < w ? vals[idx + 1] : v;
+            const vb = j + 1 < h ? vals[idx + w] : v;
+            const lo = v / 255, hiR = vr / 255, hiB = vb / 255;
+            let edge = false;
+            for (let k = 0; k < BANDS.length; k++) {
+              const t = BANDS[k];
+              if ((lo < t) !== (hiR < t) || (lo < t) !== (hiB < t)) { edge = true; break; }
+            }
+            if (edge) { r = r * 0.55; gch = gch * 0.55; b = b * 0.55; a = Math.min(255, a + 18); }
+          }
+          const o = idx * 4;
+          px[o] = r; px[o + 1] = gch; px[o + 2] = b; px[o + 3] = a;
+        }
+      }
+
+      const off = document.createElement('canvas');
+      off.width = w; off.height = h;
+      off.getContext('2d').putImageData(img, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(off, 0, 0, w, h, 0, 0, size.x, size.y);
+    },
+  });
+
+  // No zoom-sizing helpers here on purpose. leaflet.heat sized its blobs in
+  // screen pixels, so every zoom needed a radius/blur fixup. The HeatField grid
+  // is geographic — a cell covers the same ground at every zoom — so it rescales
+  // itself in _reset() and there is nothing to sync.
   const scoreColor = (s, rank) => colorForRank(rank || 200);
 
   // Invisible hit targets only (optional) — no visible circle chrome
@@ -1073,6 +1203,7 @@
     overlay.innerHTML = '';
   }
   function authWall(title, body, showSignIn) {
+    markBusy(false); // every failure path in load() lands here — un-dim the list
     showOverlay(`<div class="needs-auth"><img src="/brand/logo-monogram.svg" alt="">
       <h3>${title}</h3>
       <p>${body}</p>
@@ -1097,51 +1228,13 @@
     </div>`);
   }
 
-  function ensureHeatPlugin() {
-    return new Promise((resolve, reject) => {
-      if (typeof L !== 'undefined' && typeof L.heatLayer === 'function') {
-        resolve();
-        return;
-      }
-      const existing = document.querySelector('script[data-po-heat]');
-      if (existing) {
-        existing.addEventListener('load', () => resolve());
-        existing.addEventListener('error', () => reject(new Error('leaflet.heat failed to load')));
-        // already loaded?
-        if (typeof L !== 'undefined' && typeof L.heatLayer === 'function') resolve();
-        return;
-      }
-      const urls = [
-        '/vendor/leaflet-heat.js',
-        './vendor/leaflet-heat.js',
-        'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js',
-        'https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js',
-      ];
-      const tryUrl = (i) => {
-        if (i >= urls.length) {
-          reject(new Error('leaflet.heat failed to load from all sources'));
-          return;
-        }
-        const s = document.createElement('script');
-        s.src = urls[i];
-        s.dataset.poHeat = '1';
-        s.onload = () => resolve();
-        s.onerror = () => tryUrl(i + 1);
-        document.head.appendChild(s);
-      };
-      tryUrl(0);
-    });
-  }
-
   async function ensureMap() {
     if (mapReady) return;
     if (typeof L === 'undefined') {
       throw new Error('Map library (Leaflet) failed to load. Check your network and refresh.');
     }
-    await ensureHeatPlugin();
-    if (typeof L.heatLayer !== 'function') {
-      throw new Error('Heat map plugin (leaflet.heat) is not available.');
-    }
+    // No plugin fetch: heat is our own HeatField canvas overlay, so there is no
+    // third-party script that can fail to load and leave the map blank.
 
     map = L.map('hsMap', {
       scrollWheelZoom: true,
@@ -1166,51 +1259,12 @@
     circleLayer = L.layerGroup();
     pinLayer = L.layerGroup();
 
-    if (typeof L.heatLayer === 'function') {
-      if (!HTMLCanvasElement.prototype._poHeatCtxPatched) {
-        const _origGetContext = HTMLCanvasElement.prototype.getContext;
-        HTMLCanvasElement.prototype.getContext = function (type, attrs) {
-          if (type === '2d') {
-            attrs = Object.assign({ willReadFrequently: true }, attrs || {});
-          }
-          return _origGetContext.call(this, type, attrs);
-        };
-        HTMLCanvasElement.prototype._poHeatCtxPatched = true;
-      }
-      // maxZoom low = full radar intensity from continental zoom up (not washed out).
-      // radius/blur scale with zoom so colors don't vanish when you zoom in
-      // (leaflet.heat radius is in pixels — without this, points separate and fade).
-      const z0 = map.getZoom();
-      const st0 = heatStyleForZoom(z0);
-      heatLayer = L.heatLayer([], {
-        radius: st0.radius,
-        blur: st0.blur,
-        maxZoom: 4,
-        max: 1.0,
-        minOpacity: 0.22,
-        gradient: HEAT_GRADIENT,
-        pane: 'radarPane',
-      });
-      heatLayer.addTo(map);
-      applyRadarOpacity();
-    } else {
-      heatLayer = null;
-      console.warn('leaflet.heat missing');
-    }
+    // The heat field paints into radarPane, so the opacity slider keeps working
+    // exactly as before. It starts empty and fills in when load() returns a grid.
+    heatLayer = new HeatField(null);
+    heatLayer.addTo(map);
+    applyRadarOpacity();
     // pins only used in zones / list fly-to — not shown on radar by default
-
-    // Keep radar filled as zoom changes
-    map.on('zoomend', syncHeatToZoom);
-    map.on('zoom', () => {
-      // light touch during pinch/scroll so it doesn't flicker empty mid-zoom
-      if (heatLayer && map) {
-        const st = heatStyleForZoom(map.getZoom());
-        if (heatLayer.options.radius !== st.radius) {
-          heatLayer.setOptions({ radius: st.radius, blur: st.blur });
-          applyRadarOpacity();
-        }
-      }
-    });
 
     map.on('click', (e) => {
       focusCenter = { lat: e.latlng.lat, lng: e.latlng.lng };
@@ -1233,6 +1287,37 @@
       zipClear.style.display = '';
       keepView = true;
       searchBtn.style.display = 'none';
+      load();
+    };
+
+    // The ranked list re-scores whatever region is on screen. Debounced, and
+    // deaf to our own programmatic moves so it can never chase itself.
+    map.on('moveend zoomend', () => {
+      if (!followView) return;
+      if (Date.now() < quietUntil) return;
+      clearTimeout(moveTimer);
+      moveTimer = setTimeout(() => {
+        const b = currentBounds();
+        if (!boundsMoved(sentBounds, b)) return;
+        load();
+      }, 900);
+    });
+
+    const followBtn = document.getElementById('hsFollow');
+    if (followBtn) followBtn.onclick = () => {
+      followView = !followView;
+      followBtn.classList.toggle('on', followView);
+      followBtn.setAttribute('aria-pressed', String(followView));
+      followBtn.textContent = followView ? 'Follows map' : 'Pinned';
+      load();
+    };
+    const homeBtn = document.getElementById('hsHome');
+    if (homeBtn) homeBtn.onclick = () => {
+      focusCenter = null; focusRadius = null;
+      zipInput.value = ''; zipClear.style.display = 'none';
+      if (searchBtn) searchBtn.style.display = 'none';
+      quiet(1600);
+      map.setView([39.5, -96.5], 4, { animate: false });
       load();
     };
 
@@ -1298,35 +1383,39 @@
     if (!data) return;
     await ensureMap();
     hideOverlay();
+    markBusy(false);
 
     const t = data.totals || {};
     const hs = data.hotspots || [];
     const nationwide = data.scope === 'nationwide';
 
-    document.getElementById('hsLegendLabs').innerHTML =
-      '<span>Low</span><span>Mid</span><span>High</span><span>Peak</span>';
-
     const verBadge = document.getElementById('hsVerBadge');
-    if (data.model === 'metro_first_v2') {
-      verBadge.textContent = 'Live · v2';
+    if (data.model === 'metro_first_v3') {
+      verBadge.textContent = 'Live · v3';
       verBadge.style.background = 'linear-gradient(135deg, #2e7d32, #1b5e20)';
     } else {
       verBadge.textContent = data.model || 'legacy';
       verBadge.style.background = 'linear-gradient(135deg, #e65100, #bf360c)';
     }
 
-    const rawHeat = data.heat || [];
+    // Region: whose top-10 is this? Nationwide, or just the view on screen.
+    const region = data.region || { type: 'national', label: 'Nationwide' };
+    const regional = region.type === 'view';
+    const seenMi = region.view_span_miles != null ? region.view_span_miles : region.span_miles;
     document.getElementById('hsRailTitle').innerHTML =
-      (nationwide ? 'States' : 'Markets') +
+      (regional ? 'Markets' : (nationwide ? 'States' : 'Markets')) +
+      (regional && region.label ? ` <em style="font-style:normal;font-weight:600;opacity:.6">· ${region.label}</em>` : '') +
       ` <small id="hsRailCount">${hs.length}</small>`;
-    const railHead = document.querySelector('.hs-rail-head p');
-    if (railHead) {
-      railHead.textContent = hs.length
-        ? `${hs.length} markets · pure heat fade · click pin for details`
-        : 'No markets yet — import Census + livestock under Data sources';
+    const note = document.getElementById('hsRegionNote');
+    if (note) {
+      note.textContent = regional
+        ? (region.widened
+            ? `Ranking the ${fmt(seenMi)} mi view on screen — widened to ${fmt(region.span_miles)} mi to find enough market areas. Scores stay on the national scale.`
+            : `Ranking the ${fmt(seenMi)} mi view on screen. Scores stay on the national scale.`)
+        : 'Ranking the whole country. Zoom into a region and this list follows the map.';
     }
     document.getElementById('hsLegendLabs').innerHTML =
-      '<span>Blue</span><span>Green</span><span>Yellow</span><span>Top10 red</span>';
+      '<span>Quiet</span><span>Warm</span><span>Hot</span><span>Peak</span>';
 
     document.getElementById('hsStats').innerHTML = `
       <div class="hs-stat"><p class="lab">People</p><div class="v">${t.population ? (t.population/1e6).toFixed(0)+'M' : '—'}<small>${fmt(t.counties)} counties</small></div></div>
@@ -1336,27 +1425,11 @@
       <div class="hs-stat"><p class="lab">Buyers</p><div class="v">${fmt(t.buyers)}<small>${fmt(t.reservations)} res.</small></div></div>
       <div class="hs-stat"><p class="lab">HW leads</p><div class="v">${fmt(t.hardware_leads)}<small>/hardware</small></div></div>`;
 
-    // Radar field: quantize + thin so colors read as clean zones, not blotchy soup
-    let heatPts = (rawHeat || [])
-      .map(p => [p[0], p[1], heatIntensity(p[2])])
-      .filter(p => p[2] > 0);
-    // Rank seeds: top 10 get a slightly stronger red core so they "top" the map
-    if (hs.length) {
-      hs.forEach((h) => {
-        const intensity = intensityForRank(h.rank);
-        heatPts.push([h.lat, h.lng, intensity]);
-        if (h.rank <= 10) {
-          // Extra core weight without a wide halo — keeps #1–10 clearly dark red
-          heatPts.push([h.lat, h.lng, intensity]);
-          heatPts.push([h.lat, h.lng, 1.0]);
-        }
-      });
-    }
-    // ~0.35° cells ≈ keep strongest point per local cell
-    heatPts = thinHeatPoints(heatPts, 0.35);
-    if (heatLayer && typeof heatLayer.setLatLngs === 'function') {
-      heatLayer.setLatLngs(heatPts);
-      try { heatLayer.redraw(); } catch (_) {}
+    // Heat is a server-side density grid now, not a bag of points. No thinning,
+    // no rank seeding, no per-zoom radius: the field already encodes intensity,
+    // and the ramp gets strictly darker as intensity rises.
+    if (heatLayer && typeof heatLayer.setGrid === 'function') {
+      heatLayer.setGrid(data.heat_grid || null);
       applyRadarOpacity();
     }
 
@@ -1405,7 +1478,10 @@
       if (!map.hasLayer(circleLayer)) circleLayer.addTo(map);
     }
 
-    if (!keepView && !data.focus) {
+    // Only snap back to the whole US when we are NOT following the view —
+    // otherwise the snap would fire moveend and yank the user out of their region.
+    if (!keepView && !data.focus && !followView) {
+      quiet(1600);
       map.fitBounds(L.latLngBounds([[24.5, -125], [49.5, -66.5]]), { animate: true, maxZoom: 5 });
     }
     setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 100);
@@ -1437,6 +1513,7 @@
         ${unitsHtml(focus.units)}`;
       focusCircle.bindPopup(fPopup, { autoClose: false, closeOnClick: false });
       if (!keepView) {
+        quiet(1600);
         map.setView([focus.lat, focus.lng], focus.radius_miles > 150 ? 5 : (focus.radius_miles > 60 ? 6 : 8));
       }
       keepView = false;
@@ -1467,7 +1544,9 @@
           </div>
           <div class="hs-score" style="background:${colorForRank(h.rank)}">${h.opportunity_score}</div>
         </div>`;
-    }).join('') : `<div class="empty">No markets yet.<br><span style="opacity:.7;font-size:12px">Import census + livestock under Data sources.</span></div>`;
+    }).join('') : (regional
+      ? `<div class="empty">Nothing scoring in this view.<br><span style="opacity:.7;font-size:12px">Zoom out, or hit Whole US to rank the country.</span></div>`
+      : `<div class="empty">No markets yet.<br><span style="opacity:.7;font-size:12px">Import census + livestock under Data sources.</span></div>`);
 
     list.querySelectorAll('.hs-card').forEach(row => {
       row.addEventListener('click', () => selectRow(Number(row.dataset.rank), true));
@@ -1478,7 +1557,7 @@
         r.classList.toggle('active', Number(r.dataset.rank) === rank));
       const h = hs.find(x => x.rank === rank);
       if (!h) return;
-      if (fly) map.flyTo([h.lat, h.lng], nationwide ? 6 : 8, { duration: 0.85 });
+      if (fly) { quiet(1800); map.flyTo([h.lat, h.lng], nationwide ? 6 : 8, { duration: 0.85 }); }
       if (mode === 'zones' && circles[rank]) circles[rank].openPopup();
       else L.popup().setLatLng([h.lat, h.lng]).setContent(popupHtml(h)).openOn(map);
     }
@@ -1534,7 +1613,13 @@
       qs += `&center=${focusCenter.zip ? focusCenter.zip : focusCenter.lat.toFixed(5) + ',' + focusCenter.lng.toFixed(5)}`;
       if (focusRadius) qs += `&focus_radius=${focusRadius}`;
     }
+    // Follow-the-map: hand the server the visible box so the ranked list is the
+    // top markets *here*, not the same national top 10 at every zoom.
+    const vb = followView ? currentBounds() : null;
+    if (vb) { qs += `&bounds=${vb.map(n => n.toFixed(4)).join(',')}`; sentBounds = vb; }
+    else sentBounds = null;
 
+    markBusy(true);
     loadingOverlay('Fetching market heat…');
     let res;
     try {

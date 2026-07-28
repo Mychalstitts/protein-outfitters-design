@@ -211,6 +211,21 @@ const SEPARATION_FRACTION = 0.5;
 
 const RADIUS_CHOICES = [25, 50, 100, 200, 500];
 
+// ── Region (map view) ranking ──────────────────────────────────
+// A view wider than this is just "the country" — rank nationally instead of
+// pretending it's a region.
+const NATIONAL_SPAN_MI = 2600;
+// ...and a view tighter than this is smaller than the smallest market lens we
+// sell against. Analyse a 25-mile box around it rather than dropping the region
+// and silently snapping the list back to the whole country.
+const MIN_REGION_SPAN_MI = 25;
+// A region that yields fewer than this many places is a dead end for the user,
+// so widen the analysis box until it has something to show.
+const MIN_REGION_RESULTS = 5;
+const MI_PER_DEG = 69;
+
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(v, hi));
+
 function distanceMi(aLat, aLng, bLat, bLng) {
   const R = 3959;
   const dLat = (bLat - aLat) * Math.PI / 180;
@@ -516,15 +531,25 @@ const MAX_CANDIDATES = 220;
 // clusters. Cattle and farms inside the haul radius still raise the score;
 // they just don't drag the pin into pasture between the metro and the herd.
 // One-sided farm-density lenses fall back to supply centers.
-function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth) {
+// When `region` is set, candidates are binned from inside that box only and the
+// bin/separation sizes shrink to the view — so zooming into one metro ranks the
+// places *within* it instead of re-listing the same national top 25.
+function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth, region) {
   // Prefer population / platform demand for pin placement; fall back to all demand, then supply.
   let centerSrc = demand.filter(p => p.layer === 'population' || p.layer === 'buyers' || p.layer === 'reservations');
   if (!centerSrc.length) centerSrc = demand.length ? demand : supply;
-  if (!centerSrc.length) return finalize([]);
+  if (!centerSrc.length) return [];
 
-  const cellDeg = Math.max(radiusMiles / 2, 10) / 69;
+  // Region views get a finer grid: ~12 bins across the view, so a city-sized
+  // box resolves neighbourhoods instead of returning one bin for the whole view.
+  const cellMi = region
+    ? clamp(region.span_miles / 12, 5, Math.max(radiusMiles / 2, 10))
+    : Math.max(radiusMiles / 2, 10);
+  const cellDeg = cellMi / MI_PER_DEG;
   const bins = new Map();
   for (const p of centerSrc) {
+    if (region && (p.lat < region.south || p.lat > region.north ||
+                   p.lng < region.west || p.lng > region.east)) continue;
     const key = `${Math.floor(p.lat / cellDeg)}:${Math.floor(p.lng / cellDeg)}`;
     if (!bins.has(key)) bins.set(key, []);
     bins.get(key).push(p);
@@ -573,8 +598,13 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, req
   scored.sort((a, b) => b._score - a._score);
   // Geographic diversity: don't let the top-25 collapse into only the Northeast.
   // First pass: at most one winner per ~3° cell; second pass fills remaining slots.
-  const minSep = Math.max(radiusMiles * SEPARATION_FRACTION, 15);
-  const diversifyDeg = 3;
+  const minSep = region
+    ? clamp(region.span_miles / 6, Math.min(12, radiusMiles * SEPARATION_FRACTION), radiusMiles * SEPARATION_FRACTION)
+    : Math.max(radiusMiles * SEPARATION_FRACTION, 15);
+  // Inside a region the 3° diversity cell is bigger than the whole view, which
+  // would keep exactly one pin. Scale it to the view so the first pass still
+  // spreads results out.
+  const diversifyDeg = region ? Math.max(region.span_miles / 3 / MI_PER_DEG, 0.05) : 3;
   const cellTaken = new Set();
   const kept = [];
   const tryKeep = (cand, enforceCell) => {
@@ -594,13 +624,14 @@ function computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, req
     if (kept.includes(cand)) continue;
     tryKeep(cand, false);
   }
-  return finalize(kept);
+  // Caller finalizes — it owns the score scale (national, not per-view).
+  return kept;
 }
 
 // ── Nationwide: rank whole states ──────────────────────────────
 // State pin = demand-weighted centroid (where people are), not a blend with
 // cattle country that would park the marker in empty range.
-function computeStateRanking(demand, supply, capacity, maxHotspots, requireBoth) {
+function computeStateRanking(demand, supply, capacity, requireBoth) {
   const states = new Map(); // state → agg
   const get = (st) => {
     if (!states.has(st)) {
@@ -649,11 +680,19 @@ function computeStateRanking(demand, supply, capacity, maxHotspots, requireBoth)
     });
   }
   scored.sort((a, b) => b._score - a._score);
-  return finalize(scored.slice(0, maxHotspots));
+  // Every state, best first. Caller slices (and may filter to a region).
+  return scored;
 }
 
-function finalize(kept) {
-  const top = kept.length ? kept[0]._score : 0;
+function inBox(h, box) {
+  return h.lat >= box.south && h.lat <= box.north && h.lng >= box.west && h.lng <= box.east;
+}
+
+// `topScore` is the NATIONAL best. Passing it explicitly is what keeps a quiet
+// region reading as quiet — re-normalizing to the visible list would paint the
+// best place in an empty county as a 100.
+function finalize(kept, topScore) {
+  const top = topScore || (kept.length ? kept[0]._score : 0);
   kept.forEach((h, i) => {
     h.rank = i + 1;
     h.opportunity_score = Math.round((top ? 100 * h._score / top : 0) * 10) / 10;
@@ -662,103 +701,287 @@ function finalize(kept) {
     h.primary_play = h.plays[0] || null;
     delete h._score;
   });
-  return { hotspots: kept, top };
+  return kept;
 }
 
-// ── Snap-style heat points ─────────────────────────────────────
-// Continuous green→yellow→orange→red field (not discrete market bubbles).
-// Capacity damps intensity. Supply is hinterland (dimmer) so demand/metros
-// still read as peaks.
-//
-// IMPORTANT: never keep only the global top-N by intensity — that wiped the
-// West / Midwest / South when Northeast metros dominated. We stratify by
-// geography so every region of the US contributes heat points.
-const HEAT_MAX_POINTS = 6000;
-const HEAT_PER_REGION = 8;          // strongest points per ~1.5° cell
-const HEAT_REGION_DEG = 1.5;
+// ── Continuous heat field (KDE grid) ───────────────────────────
+// The old renderer shipped ~6k weighted points to leaflet.heat, which drew a
+// pixel-constant blob per point: the map dimmed as you zoomed in, and the
+// palette's mid-yellow was LIGHTER than the greens below it, so a busier market
+// could read fainter than a dead one. This builds the density field on the
+// server instead and ships a grid the client colours with a monotonic ramp —
+// darker always means more, at every zoom.
+const HEAT_MAX_CELLS = 100000;
 
-function buildHeat(demand, supply, capacity, radiusMiles) {
-  const cellDeg = Math.max(radiusMiles / 2.5, 12) / 69;
-  const capGrid = new Map();
-  for (const c of capacity) {
-    const key = `${Math.floor(c.lat / cellDeg)}:${Math.floor(c.lng / cellDeg)}`;
-    capGrid.set(key, (capGrid.get(key) || 0) + 1);
+// Percentile transfer curve. Max-normalizing against a single outlier county
+// crushed 95% of the country into the pale green end — this stretches the
+// palette across the real distribution so the differences are visible.
+function transferCurve(values) {
+  const sorted = Float64Array.from(values);
+  sorted.sort();
+  const n = sorted.length;
+  const q = (f) => sorted[clamp(Math.round(f * (n - 1)), 0, n - 1)];
+  const raw = [
+    [0, 0],
+    [q(0.35), 0.06], [q(0.60), 0.20], [q(0.75), 0.34], [q(0.86), 0.48],
+    [q(0.93), 0.62], [q(0.97), 0.76], [q(0.99), 0.88], [q(0.998), 1.0],
+  ];
+  const xs = [], ys = [];
+  for (const [x, y] of raw) {
+    if (xs.length && x <= xs[xs.length - 1]) continue;
+    xs.push(x); ys.push(y);
   }
-  const nearCap = (lat, lng) => {
-    const i0 = Math.floor(lat / cellDeg);
-    const j0 = Math.floor(lng / cellDeg);
-    let n = 0;
-    for (let di = -1; di <= 1; di++) {
-      for (let dj = -1; dj <= 1; dj++) {
-        n += capGrid.get(`${i0 + di}:${j0 + dj}`) || 0;
-      }
-    }
-    return n;
+  if (xs.length < 2) { xs.push(xs[0] + 1); ys.push(1); }
+  const last = xs.length - 1;
+  return (v) => {
+    if (v <= xs[0]) return 0;
+    if (v >= xs[last]) return 1;
+    let i = 1;
+    while (i < last && v > xs[i]) i++;
+    const t = (v - xs[i - 1]) / (xs[i] - xs[i - 1]);
+    return ys[i - 1] + t * (ys[i] - ys[i - 1]);
   };
+}
 
+function buildHeatField(demand, supply, capacity, radiusMiles, region) {
+  // Demand (metros) drives the colour; the supply hinterland stays visible but
+  // dim, so ranchland tints the map instead of competing with the cities it
+  // feeds. Scoring still weights the two sides evenly — this is the picture.
   const pts = [];
-  let globalMax = 0;
-  const push = (p, scale) => {
-    const intensity = (p.weight * scale) / (1 + nearCap(p.lat, p.lng));
-    if (intensity <= 0) return;
-    if (intensity > globalMax) globalMax = intensity;
-    pts.push([p.lat, p.lng, intensity]);
+  for (const p of demand) if (p.weight > 0) pts.push({ lat: p.lat, lng: p.lng, w: p.weight * HEAT_DEMAND_SCALE });
+  for (const p of supply) if (p.weight > 0) pts.push({ lat: p.lat, lng: p.lng, w: p.weight * HEAT_SUPPLY_SCALE });
+  if (!pts.length) return null;
+
+  // Kernel width tracks the market radius: a 25-mile lens should show tight
+  // local pockets, a 500-mile lens broad regional pressure.
+  const sigmaMi = clamp(radiusMiles * 0.45, 12, 140);
+  const capSigmaMi = Math.max(sigmaMi, radiusMiles * 0.55);
+
+  // Points whose kernel can still reach into the box. Keeping the ones just
+  // outside it matters: a city eight miles off-screen genuinely heats the edge.
+  const near = (list, box, reachMi) => {
+    const cosB = Math.max(0.2, Math.cos(((box.south + box.north) / 2) * Math.PI / 180));
+    const dLatR = reachMi / MI_PER_DEG;
+    const dLngR = reachMi / (MI_PER_DEG * cosB);
+    return list.filter(p => p.lat >= box.south - dLatR && p.lat <= box.north + dLatR &&
+                            p.lng >= box.west - dLngR && p.lng <= box.east + dLngR);
   };
-  for (const p of demand) push(p, HEAT_DEMAND_SCALE);
-  for (const p of supply) push(p, HEAT_SUPPLY_SCALE);
-  if (!globalMax || !pts.length) return [];
 
-  // Regional max — blend with global so CA/TX/Midwest show local heat even when
-  // absolute intensity is below Northeast metros.
-  const regionMax = new Map();
-  for (const [lat, lng, i] of pts) {
-    const rk = `${Math.floor(lat / HEAT_REGION_DEG)}:${Math.floor(lng / HEAT_REGION_DEG)}`;
-    regionMax.set(rk, Math.max(regionMax.get(rk) || 0, i));
-  }
-
-  // Stratified keep: top HEAT_PER_REGION per region, then fill by intensity.
-  const byRegion = new Map();
-  for (const pt of pts) {
-    const rk = `${Math.floor(pt[0] / HEAT_REGION_DEG)}:${Math.floor(pt[1] / HEAT_REGION_DEG)}`;
-    if (!byRegion.has(rk)) byRegion.set(rk, []);
-    byRegion.get(rk).push(pt);
-  }
-  const kept = [];
-  for (const arr of byRegion.values()) {
-    arr.sort((a, b) => b[2] - a[2]);
-    for (let i = 0; i < Math.min(HEAT_PER_REGION, arr.length); i++) kept.push(arr[i]);
-  }
-  if (kept.length < HEAT_MAX_POINTS) {
-    const seen = new Set(kept.map(p => `${p[0]}:${p[1]}`));
-    const rest = pts.filter(p => !seen.has(`${p[0]}:${p[1]}`)).sort((a, b) => b[2] - a[2]);
-    for (const p of rest) {
-      if (kept.length >= HEAT_MAX_POINTS) break;
-      kept.push(p);
+  // Capacity-damped density over an arbitrary box. Cell size only controls
+  // resolution — the Gaussian is normalized to K(0)=1, so the same place reads
+  // the same value on a coarse grid or a fine one. That's what lets the zoomed
+  // grid below reuse the national colour scale.
+  const fieldOver = (box, targetCellMi) => {
+    const minLat = box.south, minLng = box.west;
+    const cosMid = Math.max(0.2, Math.cos(((box.south + box.north) / 2) * Math.PI / 180));
+    let cellMi = Math.max(0.2, targetCellMi);
+    let dLat, dLng, rows, cols;
+    for (let guard = 0; guard < 60; guard++) {
+      dLat = cellMi / MI_PER_DEG;
+      dLng = cellMi / (MI_PER_DEG * cosMid);
+      rows = Math.ceil((box.north - box.south) / dLat) + 1;
+      cols = Math.ceil((box.east - box.west) / dLng) + 1;
+      if (rows * cols <= HEAT_MAX_CELLS) break;
+      cellMi *= 1.15;
     }
-  } else if (kept.length > HEAT_MAX_POINTS) {
-    // Prefer geographic coverage: already stratified — trim weakest globally.
-    kept.sort((a, b) => b[2] - a[2]);
-    kept.length = HEAT_MAX_POINTS;
+    if (!(rows > 1 && cols > 1)) return null;
+
+    const field = new Float64Array(rows * cols);
+    const capField = new Float64Array(rows * cols);
+    const scatter = (target, list, sigma, weightOf) => {
+      const reach = sigma * 2.5;
+      const twoSigSq = 2 * sigma * sigma;
+      const rLat = Math.ceil(reach / MI_PER_DEG / dLat);
+      const rLng = Math.ceil(reach / (MI_PER_DEG * cosMid) / dLng);
+      for (const p of list) {
+        const w = weightOf(p);
+        if (!(w > 0)) continue;
+        const r0 = Math.round((p.lat - minLat) / dLat);
+        const c0 = Math.round((p.lng - minLng) / dLng);
+        for (let r = r0 - rLat; r <= r0 + rLat; r++) {
+          if (r < 0 || r >= rows) continue;
+          const cellLat = minLat + r * dLat;
+          const dyMi = (cellLat - p.lat) * MI_PER_DEG;
+          const cosRow = Math.max(0.2, Math.cos(cellLat * Math.PI / 180));
+          for (let c = c0 - rLng; c <= c0 + rLng; c++) {
+            if (c < 0 || c >= cols) continue;
+            const dxMi = (minLng + c * dLng - p.lng) * MI_PER_DEG * cosRow;
+            const k = Math.exp(-(dxMi * dxMi + dyMi * dyMi) / twoSigSq);
+            if (k < 0.01) continue;
+            target[r * cols + c] += w * k;
+          }
+        }
+      }
+    };
+
+    scatter(field, near(pts, box, sigmaMi * 2.5), sigmaMi, (p) => p.w);
+    if (capacity.length) scatter(capField, near(capacity, box, capSigmaMi * 2.5), capSigmaMi, () => 1);
+    // Damp by capacity: activity with a plant on top of it isn't an opportunity.
+    for (let i = 0; i < field.length; i++) field[i] = field[i] / (1 + capField[i]);
+    return { field, dLat, dLng, rows, cols, minLat, minLng, cellMi };
+  };
+
+  // National extent, from the points themselves.
+  let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+  for (const p of pts) {
+    if (p.lat < minLat) minLat = p.lat;
+    if (p.lat > maxLat) maxLat = p.lat;
+    if (p.lng < minLng) minLng = p.lng;
+    if (p.lng > maxLng) maxLng = p.lng;
+  }
+  const cosNat = Math.max(0.2, Math.cos(((minLat + maxLat) / 2) * Math.PI / 180));
+  const natBox = {
+    south: minLat - (sigmaMi * 2) / MI_PER_DEG,
+    north: maxLat + (sigmaMi * 2) / MI_PER_DEG,
+    west: minLng - (sigmaMi * 2) / (MI_PER_DEG * cosNat),
+    east: maxLng + (sigmaMi * 2) / (MI_PER_DEG * cosNat),
+  };
+  const nat = fieldOver(natBox, Math.max(6, sigmaMi / 1.25));
+  if (!nat) return null;
+
+  // The colour scale is ALWAYS derived nationally. Re-fitting it to whatever is
+  // on screen would paint a quiet county red the moment you zoomed into it, and
+  // the ranked list beside the map is on the national scale too.
+  const values = [];
+  for (const v of nat.field) if (v > 0) values.push(v);
+  if (!values.length) return null;
+  const curve = transferCurve(values);
+
+  // Zoomed in, the national grid's ~18-mile cells put a whole screen inside one
+  // or two samples and the map flattens into a wash. Re-grid just the view at a
+  // resolution that actually resolves it: same kernel, same scale, real detail.
+  let g = nat;
+  if (region) {
+    const padMi = Math.max(4, region.span_miles * 0.25);
+    const cosR = Math.max(0.2, Math.cos(((region.south + region.north) / 2) * Math.PI / 180));
+    const viewBox = {
+      south: clamp(region.south - padMi / MI_PER_DEG, -85, 85),
+      north: clamp(region.north + padMi / MI_PER_DEG, -85, 85),
+      west: region.west - padMi / (MI_PER_DEG * cosR),
+      east: region.east + padMi / (MI_PER_DEG * cosR),
+    };
+    if (spanMiles(viewBox) < nat.cellMi * 40) {
+      const local = fieldOver(viewBox, spanMiles(viewBox) / 260);
+      if (local && local.cellMi < nat.cellMi) g = local;
+    }
   }
 
-  // Display intensity: 55% global rank + 45% regional rank → Snap-like melt
-  // across the whole country, not one glowing Northeast blob.
-  return kept
-    .map(([lat, lng, i]) => {
-      const rk = `${Math.floor(lat / HEAT_REGION_DEG)}:${Math.floor(lng / HEAT_REGION_DEG)}`;
-      const rMax = regionMax.get(rk) || globalMax;
-      const g = i / globalMax;
-      const r = rMax > 0 ? i / rMax : 0;
-      const blended = 0.55 * g + 0.45 * r;
-      // Floor so cool regions still tint green instead of vanishing
-      const intensity = Math.max(0.06, Math.min(1, blended));
-      return [
-        Math.round(lat * 1e5) / 1e5,
-        Math.round(lng * 1e5) / 1e5,
-        Math.round(intensity * 1000) / 1000,
-      ];
-    })
-    .filter(p => p[2] > 0);
+  const bytes = new Uint8Array(g.field.length);
+  for (let i = 0; i < g.field.length; i++) {
+    if (g.field[i] <= 0) continue;
+    bytes[i] = Math.round(clamp(curve(g.field[i]), 0, 1) * 255);
+  }
+
+  return {
+    lat_top: Math.round((g.minLat + (g.rows - 1) * g.dLat) * 1e6) / 1e6,
+    lng_left: Math.round(g.minLng * 1e6) / 1e6,
+    d_lat: g.dLat,
+    d_lng: g.dLng,
+    rows: g.rows,
+    cols: g.cols,
+    cell_miles: Math.round(g.cellMi * 100) / 100,
+    sigma_miles: Math.round(sigmaMi * 10) / 10,
+    scale: 'national',
+    // Row 0 = TOP (north). Client reads it straight into image rows.
+    b64: Buffer.from(flipRows(bytes, g.rows, g.cols)).toString('base64'),
+  };
+}
+
+// Grid is built south-to-north; images draw north-to-south.
+function flipRows(bytes, rows, cols) {
+  const out = new Uint8Array(bytes.length);
+  for (let r = 0; r < rows; r++) {
+    out.set(bytes.subarray(r * cols, (r + 1) * cols), (rows - 1 - r) * cols);
+  }
+  return out;
+}
+
+// ── Region parsing ─────────────────────────────────────────────
+function spanMiles(box) {
+  const cosMid = Math.max(0.2, Math.cos(((box.north + box.south) / 2) * Math.PI / 180));
+  return Math.round(Math.max(
+    (box.north - box.south) * MI_PER_DEG,
+    (box.east - box.west) * MI_PER_DEG * cosMid,
+  ));
+}
+
+function parseBounds(raw) {
+  if (!raw) return null;
+  const m = String(raw).trim().split(',').map(Number);
+  if (m.length !== 4 || m.some(v => !Number.isFinite(v))) return null;
+  let south = clamp(Math.min(m[0], m[2]), -85, 85);
+  let north = clamp(Math.max(m[0], m[2]), -85, 85);
+  let west = Math.min(m[1], m[3]);
+  let east = Math.max(m[1], m[3]);
+  const midLat = (north + south) / 2;
+  const midLng = (east + west) / 2;
+  const cosMid = Math.max(0.2, Math.cos(midLat * Math.PI / 180));
+  const view_span_miles = spanMiles({ south, north, west, east });
+
+  // A view tighter than the smallest lens we sell against still deserves a
+  // regional answer. Grow the analysis box around the same center instead of
+  // throwing the region away — dropping it silently snapped the list back to
+  // the whole country while the user was staring at one town.
+  const minLatDeg = MIN_REGION_SPAN_MI / MI_PER_DEG;
+  const minLngDeg = MIN_REGION_SPAN_MI / (MI_PER_DEG * cosMid);
+  if (north - south < minLatDeg) {
+    south = clamp(midLat - minLatDeg / 2, -85, 85);
+    north = clamp(midLat + minLatDeg / 2, -85, 85);
+  }
+  if (east - west < minLngDeg) {
+    west = midLng - minLngDeg / 2;
+    east = midLng + minLngDeg / 2;
+  }
+  const box = { south, west, north, east };
+  return { ...box, span_miles: spanMiles(box), view_span_miles };
+}
+
+// Grow a region box about its center. Used when a view is too tight to hold
+// enough places to rank — widening and saying so beats an empty list.
+function expandRegion(box, factor) {
+  const midLat = (box.north + box.south) / 2;
+  const midLng = (box.east + box.west) / 2;
+  const halfLat = ((box.north - box.south) / 2) * factor;
+  const halfLng = ((box.east - box.west) / 2) * factor;
+  const out = {
+    south: clamp(midLat - halfLat, -85, 85),
+    north: clamp(midLat + halfLat, -85, 85),
+    west: midLng - halfLng,
+    east: midLng + halfLng,
+  };
+  out.span_miles = spanMiles(out);
+  return out;
+}
+
+// Run `produce` on the view. A view holding even one qualifying place has an
+// honest answer — show exactly that, so the list keeps tracking the map. Only a
+// dead-end empty view is worth stepping back from, and then we step back far
+// enough to return a useful set instead of one lonely pin 300 miles out.
+// Returns the box actually used so the client can say so out loud.
+function withWidening(region, produce) {
+  let box = region;
+  let list = produce(box);
+  if (list.length) return { list, box, widened: 0 };
+  let widened = 0;
+  while (list.length < MIN_REGION_RESULTS && box.span_miles < NATIONAL_SPAN_MI && widened < 8) {
+    box = expandRegion(box, 2);
+    widened++;
+    list = produce(box);
+  }
+  return { list, box, widened };
+}
+
+// Name the view from the states carrying the most weight inside it.
+function regionLabel(activity, region) {
+  const byState = new Map();
+  for (const p of activity) {
+    if (!p.state) continue;
+    if (p.lat < region.south || p.lat > region.north || p.lng < region.west || p.lng > region.east) continue;
+    byState.set(p.state, (byState.get(p.state) || 0) + p.weight);
+  }
+  const top = [...byState.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+  if (!top.length) return 'Selected area';
+  return top.join(' · ');
 }
 
 async function handler(req) {
@@ -774,6 +997,11 @@ async function handler(req) {
     radiusMiles = Math.max(10, Math.min(radiusMiles, 500));
   }
   const maxHotspots = Math.max(1, Math.min(Number(url.searchParams.get('max_hotspots')) || 25, 100));
+
+  // The map's current view, as "south,west,north,east". A view wider than the
+  // country isn't a region — rank nationally rather than pretend it is one.
+  let region = parseBounds(url.searchParams.get('bounds'));
+  if (region && region.span_miles >= NATIONAL_SPAN_MI) region = null;
 
   // Layer + competition filters
   const ALL_LAYERS = ['population', 'livestock', 'farms', 'buyers', 'reservations'];
@@ -800,9 +1028,55 @@ async function handler(req) {
     const requireBoth = [...layers].some(l => DEMAND_LAYERS.has(l))
                      && [...layers].some(l => SUPPLY_LAYERS.has(l));
 
-    const { hotspots, top } = scope === 'nationwide'
-      ? computeStateRanking(demand, supply, capacity, Math.max(maxHotspots, 51), requireBoth)
-      : computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth);
+    // Rank the whole country FIRST, always — even when a region is in play.
+    // That national best is the yardstick every score is normalized against,
+    // which is what keeps a quiet region reading as quiet instead of painting
+    // its least-dead county a 100.
+    const activity = demand.concat(supply);
+    let hotspots = [], top = 0;
+    let regionOut = { type: 'national', span_miles: null, label: 'Nationwide' };
+    const viewRegion = (w) => ({
+      type: 'view',
+      label: regionLabel(activity, w.box),
+      span_miles: w.box.span_miles,
+      view_span_miles: region.view_span_miles,
+      widened: w.widened,
+      bounds: {
+        south: w.box.south, west: w.box.west,
+        north: w.box.north, east: w.box.east,
+      },
+    });
+
+    if (scope === 'nationwide') {
+      const ranked = computeStateRanking(demand, supply, capacity, requireBoth);
+      top = ranked.length ? ranked[0]._score : 0;
+      let list = ranked.slice(0, Math.max(maxHotspots, 51));
+      if (region) {
+        const w = withWidening(region, (box) => ranked.filter(h => inBox(h, box)).slice(0, maxHotspots));
+        if (w.list.length) { list = w.list; regionOut = viewRegion(w); }
+        else region = null;   // nothing in view — fall back to the national list
+      }
+      // Everything we aren't returning still carries the private score field.
+      for (const s of ranked) if (!list.includes(s)) delete s._score;
+      hotspots = finalize(list, top);
+    } else {
+      const national = computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth, null);
+      top = national.length ? national[0]._score : 0;
+      let list = national;
+      if (region) {
+        const w = withWidening(region, (box) =>
+          computeHotspots(demand, supply, capacity, radiusMiles, maxHotspots, requireBoth, box));
+        if (w.list.length) {
+          for (const h of national) delete h._score;   // discarded set
+          list = w.list;
+          regionOut = viewRegion(w);
+        } else region = null;
+      }
+      // A region can out-score the national pass when its finer grid resolves a
+      // peak the coarse pass averaged away; take the higher of the two so no
+      // score exceeds 100.
+      hotspots = finalize(list, Math.max(top, list.length ? list[0]._score : 0));
+    }
 
     // Shared spatial indexes for focus scoring (same grid as ranking).
     const idxCell = Math.max((scope === 'nationwide' ? 100 : radiusMiles) / 3, 12) / 69;
@@ -861,15 +1135,24 @@ async function handler(req) {
 
     // Heat damping radius: for nationwide use 100mi so the gradient still
     // reads locally rather than one state-sized blob.
-    const heat = buildHeat(demand, supply, capacity, scope === 'nationwide' ? 100 : radiusMiles);
+    const heat_grid = buildHeatField(
+      demand, supply, capacity,
+      scope === 'nationwide' ? 100 : radiusMiles,
+      region,
+    );
     return json({
       scope,
-      model: 'metro_first_v2',
+      model: 'metro_first_v3',
       radius_miles: scope === 'nationwide' ? null : radiusMiles,
       layers: [...layers],
       capacity_mode: capacityMode,
+      region: regionOut,
       focus,
-      hotspots, heat, totals,
+      hotspots, heat_grid, totals,
+      // Retired point-cloud field. Kept as an empty array so a browser holding
+      // the previous HTML during the ~50s deploy window renders no heat instead
+      // of throwing on undefined.
+      heat: [],
       unit_economics: {
         ps1_head_per_shift: PS1_HEAD_PER_SHIFT,
         shifts_per_week: SHIFTS_PER_WEEK,
