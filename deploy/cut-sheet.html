@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Cut sheet · Protein Outfitters</title>
-<meta name="description" content="Tell your processor exactly how you want every cut. Visual cow diagram, family-size tuning, real-time yield meter." />
+<meta name="description" content="Tell your processor exactly how you want every cut. Accurate U.S. primal diagram, family-size tuning, real-time yield meter." />
 <meta property="og:title" content="Cut sheet · Protein Outfitters" />
-<meta property="og:description" content="Visual cow diagram + real-time yield meter cut sheet." />
+<meta property="og:description" content="Accurate U.S. beef primal diagram + real-time yield meter cut sheet." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/cut-sheet" />
 <meta property="og:type" content="website" />
@@ -58,72 +58,80 @@
 .seg button { flex: 1; background: transparent; border: 0; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 999px; transition: background .2s, color .2s; white-space: nowrap; }
 .seg button.active { background: var(--brand); color: #fbf9f5; }
 
-/* Animal cut chart diagram — beautiful chalkboard art + interactive overlay */
+/* Accurate interactive US primal cut chart (SVG — not the broken chalk JPGs) */
 .cow-block { background: #fff; border-radius: 22px; padding: clamp(22px, 2.5vw, 28px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 18px; }
-.diagram-wrap { position: relative; width: 100%; max-width: 820px; margin: 0 auto; }
-.diagram-art { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
-.diagram-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.diagram-overlay .primal { cursor: pointer; pointer-events: all; fill: transparent; transition: fill .2s ease; }
-.diagram-overlay .primal:hover { fill: rgba(125,160,93,0.22); }
-.diagram-overlay .primal.has-cuts { fill: rgba(220,165,74,0.35); } /* warm highlight over the chalk art */
-
-/* Make the container dark and clean so the chalkboard art pops (the old light gradient fights the dark JPG) */
-.cow-wrap:has(.diagram-art) {
-  background: #1f2a24;
-  padding: 12px;
+.diagram-wrap { position: relative; width: 100%; max-width: 900px; margin: 0 auto; }
+.cow-wrap {
+  background: linear-gradient(165deg, #0f1a14 0%, #1a2a20 55%, #152018 100%);
+  border-radius: 18px;
+  padding: clamp(16px, 2vw, 28px);
+  position: relative;
+  overflow: hidden;
 }
-.cow-wrap:has(.diagram-art)::before {
-  display: none;
+.cow-wrap::before {
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(125,160,93,.12) 0, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(220,165,74,.10) 0, transparent 42%);
 }
-.diagram-art {
-  border-radius: 10px;
-  display: block;
+.cow-svg {
+  display: block; width: 100%; max-width: 880px; height: auto; margin: 0 auto;
+  position: relative; z-index: 1;
 }
-.cow-wrap { background: linear-gradient(180deg, #fbf9f5 0%, #f0e6d2 100%); border-radius: 18px; padding: clamp(20px, 2.4vw, 32px); position: relative; overflow: hidden; }
-.cow-wrap::before { content:""; position:absolute; inset:0; background:
-  radial-gradient(circle at 18% 28%, rgba(125,160,93,.10) 0, transparent 35%),
-  radial-gradient(circle at 82% 72%, rgba(220,165,74,.12) 0, transparent 40%);
-  pointer-events:none; }
-.cow-svg { display: block; width: 100%; max-width: 760px; height: auto; margin: 0 auto; position: relative; }
-.cow-svg .cow-body { fill: #1c2a22; }
-.cow-svg .cow-shadow { fill: rgba(6,27,14,.10); }
-.cow-svg .tail { fill: #15201a; }
-.cow-svg .ear { fill: #2c3a31; }
-.cow-svg .horn { fill: #6b4f33; }
-.cow-svg .eye { fill: #fbf9f5; }
-.cow-svg .nostril, .cow-svg .hoof { fill: #0a120d; }
-.cow-svg .mouth { stroke: #3a4a3f; stroke-width: 1.6; fill: none; stroke-linecap: round; }
+.cow-svg .cow-silhouette { fill: #0a120d; opacity: .55; }
+.cow-svg .cow-outline { fill: none; stroke: rgba(251,249,245,.22); stroke-width: 2.5; stroke-linejoin: round; }
+.cow-svg .primal {
+  cursor: pointer;
+  stroke: rgba(251,249,245,.55);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  transition: fill .2s ease, opacity .2s ease, filter .2s ease;
+  fill: #3d4f45;
+  opacity: .92;
+}
+.cow-svg .primal:hover {
+  filter: brightness(1.18);
+  stroke: rgba(251,249,245,.9);
+  stroke-width: 2.25;
+}
+.cow-svg .primal.has-cuts[data-primal="chuck"]   { fill: #b04a3a; }
+.cow-svg .primal.has-cuts[data-primal="rib"]     { fill: #dca54a; }
+.cow-svg .primal.has-cuts[data-primal="loin"]    { fill: #c97140; }
+.cow-svg .primal.has-cuts[data-primal="sirloin"] { fill: #b48a5a; }
+.cow-svg .primal.has-cuts[data-primal="round"]   { fill: #7da05d; }
+.cow-svg .primal.has-cuts[data-primal="brisket"] { fill: #6a4028; }
+.cow-svg .primal.has-cuts[data-primal="plate"]   { fill: #b8862e; }
+.cow-svg .primal.has-cuts[data-primal="flank"]   { fill: #8a6840; }
+.cow-svg .primal.has-cuts[data-primal="shank"]   { fill: #948660; }
+.cow-svg .primal.empty { fill: #3d4f45; opacity: .75; }
 
-.cow-svg .primal { cursor: pointer; transition: fill .25s ease, opacity .25s ease; }
-.cow-svg .primal-hit { cursor: pointer; fill: transparent; pointer-events: all; }
-.cow-svg .primal-hit:hover { fill: rgba(125,160,93,.18); }
+.cow-svg .label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800; font-size: 13px; letter-spacing: 0.06em;
+  pointer-events: none; user-select: none;
+  fill: #fbf9f5; text-anchor: middle; text-transform: uppercase;
+}
+.cow-svg .label-sm { font-size: 11px; letter-spacing: 0.05em; }
+.cow-svg .guide {
+  fill: none; stroke: rgba(251,249,245,.18); stroke-width: 1;
+  stroke-dasharray: 4 5; pointer-events: none;
+}
+.cow-svg .head-fill { fill: #2a3830; stroke: rgba(251,249,245,.35); stroke-width: 1.5; }
+.cow-svg .tail-fill { fill: #2a3830; stroke: rgba(251,249,245,.28); stroke-width: 1.25; }
+.cow-svg .caption {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600; font-size: 11px; letter-spacing: 0.04em;
+  fill: rgba(251,249,245,.55); text-anchor: middle;
+}
 
-/* Default primal fill (ground / not allocated) */
-.cow-svg .primal { fill: #5a6b62; opacity: .85; }
-/* Has-cuts: each primal lights up in its assigned brand tint */
-.cow-svg .primal.has-cuts[data-primal="chuck"]      { fill: #b04a3a; opacity: 1; }
-.cow-svg .primal.has-cuts[data-primal="rib"]        { fill: #dca54a; opacity: 1; }
-.cow-svg .primal.has-cuts[data-primal="loin"]       { fill: #c97140; opacity: 1; }
-.cow-svg .primal.has-cuts[data-primal="sirloin"]    { fill: #b48a5a; opacity: 1; }
-.cow-svg .primal.has-cuts[data-primal="round"]      { fill: #7da05d; opacity: 1; }
-.cow-svg .primal.has-cuts[data-primal="brisket"]    { fill: #6a4028; opacity: 1; }
-.cow-svg .primal.has-cuts[data-primal="plate"]      { fill: #b8862e; opacity: 1; }
-.cow-svg .primal.has-cuts[data-primal="flank"]      { fill: #8a6840; opacity: 1; }
-.cow-svg .primal.has-cuts[data-primal="shank"]      { fill: #948660; opacity: 1; }
-/* Hover boost — slightly brighten via mix-blend? Use overlay rect instead handled by .primal-hit */
-
-/* Chalkboard-style dividing lines between primals */
-.cow-svg .chalk { stroke: rgba(251,249,245,.55); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-dasharray: 1.8 0; }
-.cow-svg .chalk-soft { stroke: rgba(251,249,245,.32); stroke-width: 1.5; fill: none; stroke-linecap: round; }
-
-.cow-svg .label { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 11.5px; letter-spacing: 0.10em; pointer-events: none; user-select: none; fill: #fbf9f5; text-anchor: middle; text-transform: uppercase; }
-.cow-svg .label-sub { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 9px; letter-spacing: 0.04em; pointer-events: none; user-select: none; fill: rgba(251,249,245,.72); text-anchor: middle; }
-.cow-svg .count-pill { fill: rgba(251,249,245,.18); }
-.cow-svg .count-pill-text { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 9px; pointer-events: none; user-select: none; fill: #fbf9f5; text-anchor: middle; letter-spacing: .04em; }
-
-.cow-legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 16px 6px 4px; font-size: 12px; color: var(--ink-2); align-items: center; }
+.cow-legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 16px 6px 4px; font-size: 12px; color: var(--ink-2); align-items: center; justify-content: center; }
 .cow-legend-item { display: flex; align-items: center; gap: 7px; font-weight: 600; }
 .cow-legend-swatch { width: 14px; height: 14px; border-radius: 4px; }
+.diagram-note {
+  text-align: center; margin: 12px 0 0;
+  font: 600 12.5px/1.45 'Inter', system-ui, sans-serif;
+  color: rgba(251,249,245,.65);
+}
 
 /* Presets */
 .preset-row { display: grid; gap: 10px; grid-template-columns: 1fr; }
@@ -331,41 +339,162 @@
         </div>
       </div>
 
-      <!-- ============ ARTISTIC CHALKBOARD CUT CHART ============ -->
+      <!-- ============ ACCURATE US BEEF PRIMAL CHART (NAMP-style side view) ============ -->
       <div class="cow-block">
         <div class="cs-block-head">
           <h3>The animal · tap a section to dive in</h3>
-          <p>Highlighted = cuts you’re keeping · tap any region</p>
+          <p>Standard U.S. primals · highlighted = cuts you’re keeping · tap any region</p>
         </div>
         <div class="cow-wrap">
-          <!-- Hybrid: gorgeous generated chalkboard art + transparent interactive overlay -->
           <div class="diagram-wrap" id="diagramWrap" data-species="beef">
-            <img class="diagram-art" id="diagramArt"
-                 src="/img/cut-charts/beef.jpg"
-                 alt="Artistic chalkboard beef primal cut chart — side view of steer with labeled sections">
-            <svg class="diagram-overlay" id="diagramOverlay" viewBox="0 0 1408 704" preserveAspectRatio="xMidYMid meet">
-              <!-- Beef primal hit zones (large, forgiving, calibrated to the generated art).
-                   These drive the exact same subp cards and has-cuts highlighting as before. -->
-              <!-- Chuck / shoulder (front upper) -->
-              <rect class="primal" data-primal="chuck"   x="120"  y="160" width="220" height="210"/>
-              <!-- Brisket (front lower) -->
-              <rect class="primal" data-primal="brisket" x="130"  y="370" width="200" height="140"/>
-              <!-- Rib -->
-              <rect class="primal" data-primal="rib"     x="360"  y="150" width="170" height="200"/>
-              <!-- Plate / short rib (under rib) -->
-              <rect class="primal" data-primal="plate"   x="370"  y="360" width="160" height="130"/>
-              <!-- Loin (middle back) -->
-              <rect class="primal" data-primal="loin"    x="540"  y="145" width="170" height="195"/>
-              <!-- Flank (belly under loin) -->
-              <rect class="primal" data-primal="flank"   x="540"  y="350" width="180" height="130"/>
-              <!-- Sirloin (transition) -->
-              <rect class="primal" data-primal="sirloin" x="720"  y="150" width="110" height="180"/>
-              <!-- Round (hind quarter) -->
-              <rect class="primal" data-primal="round"   x="840"  y="160" width="220" height="200"/>
-              <!-- Shank / legs (bottom) - broad hit -->
-              <rect class="primal" data-primal="shank"   x="150"  y="520" width="1050" height="160"/>
+            <!--
+              Side view facing LEFT (standard butcher chart orientation).
+              Front → back: chuck | rib | short loin | sirloin | round
+              Lower: foreshank · brisket · plate · flank · hindshank
+            -->
+            <svg class="cow-svg" id="cowSvg" viewBox="0 0 1040 520" role="img" aria-label="Interactive U.S. beef primal cut chart — side view facing left">
+              <title>U.S. beef primals — chuck, rib, loin, sirloin, round, brisket, plate, flank, shank</title>
+
+              <!-- Soft ground line -->
+              <line class="guide" x1="40" y1="470" x2="1000" y2="470"/>
+
+              <!-- Head (decorative, not a primal) -->
+              <path class="head-fill" d="M118 210
+                C 95 205, 72 215, 58 235
+                C 48 252, 50 275, 62 288
+                C 78 305, 105 300, 122 285
+                L 138 250 Z"/>
+              <ellipse cx="72" cy="248" rx="5" ry="4" fill="#fbf9f5" opacity=".85"/>
+              <path d="M55 268 Q 70 278 88 272" fill="none" stroke="rgba(251,249,245,.35)" stroke-width="1.5"/>
+              <!-- Ear / neck bridge -->
+              <path class="head-fill" d="M122 220 C 145 200, 165 195, 188 205 L 175 255 C 155 248, 138 240, 122 235 Z"/>
+
+              <!-- Tail (decorative) -->
+              <path class="tail-fill" d="M900 195 C 930 175, 970 185, 990 210 C 1000 222, 992 235, 975 228 C 950 215, 925 220, 905 235 Z"/>
+
+              <!-- ===== PRIMALS (accurate relative placement) ===== -->
+              <!-- CHUCK — neck + shoulder blade, front quarter upper (ribs 1–5) -->
+              <path class="primal has-cuts" data-primal="chuck" d="
+                M 175 175
+                C 195 145, 230 130, 275 128
+                L 355 132
+                L 355 300
+                L 230 305
+                C 200 300, 175 275, 168 245
+                Z"/>
+              <text class="label" x="265" y="220">Chuck</text>
+
+              <!-- RIB — backbone + ribs 6–12, upper mid -->
+              <path class="primal has-cuts" data-primal="rib" d="
+                M 355 132
+                L 480 128
+                L 480 275
+                L 355 300
+                Z"/>
+              <text class="label" x="418" y="210">Rib</text>
+
+              <!-- LOIN (short loin) — strip + tenderloin, mid-back upper -->
+              <path class="primal has-cuts" data-primal="loin" d="
+                M 480 128
+                L 600 130
+                L 600 270
+                L 480 275
+                Z"/>
+              <text class="label" x="540" y="205">Loin</text>
+
+              <!-- SIRLOIN — between short loin and round -->
+              <path class="primal" data-primal="sirloin" d="
+                M 600 130
+                L 720 145
+                L 720 295
+                L 600 270
+                Z"/>
+              <text class="label label-sm" x="660" y="215">Sirloin</text>
+
+              <!-- ROUND — hindquarter upper / rump + top/bottom round -->
+              <path class="primal" data-primal="round" d="
+                M 720 145
+                C 780 140, 840 155, 885 190
+                L 895 280
+                C 870 320, 800 330, 740 320
+                L 720 295
+                Z"/>
+              <text class="label" x="800" y="230">Round</text>
+
+              <!-- BRISKET — lower front chest (point + flat) -->
+              <path class="primal has-cuts" data-primal="brisket" d="
+                M 200 305
+                L 355 300
+                L 355 365
+                L 230 375
+                C 205 370, 190 345, 200 320
+                Z"/>
+              <text class="label label-sm" x="280" y="345">Brisket</text>
+
+              <!-- PLATE (short plate) — lower mid under rib (short ribs, skirt) -->
+              <path class="primal" data-primal="plate" d="
+                M 355 300
+                L 480 275
+                L 480 365
+                L 355 365
+                Z"/>
+              <text class="label label-sm" x="418" y="330">Plate</text>
+
+              <!-- FLANK — lower mid-rear under loin (flank steak) -->
+              <path class="primal" data-primal="flank" d="
+                M 480 275
+                L 600 270
+                L 620 360
+                L 480 365
+                Z"/>
+              <text class="label label-sm" x="545" y="325">Flank</text>
+
+              <!-- FORESHANK — front leg -->
+              <path class="primal has-cuts" data-primal="shank" d="
+                M 210 370
+                L 275 365
+                L 285 455
+                C 280 470, 255 475, 240 465
+                L 225 400
+                Z"/>
+              <!-- HINDSHANK — rear leg (same primal bucket: bones / shank / trim) -->
+              <path class="primal has-cuts" data-primal="shank" d="
+                M 760 320
+                L 840 315
+                L 855 455
+                C 848 472, 820 478, 800 465
+                L 775 360
+                Z"/>
+              <text class="label label-sm" x="248" y="420">Shank</text>
+              <text class="label label-sm" x="810" y="400">Shank</text>
+
+              <!-- Outer outline hint for whole carcass shape -->
+              <path class="cow-outline" d="
+                M 175 175
+                C 195 145, 230 130, 275 128
+                L 720 145
+                C 780 140, 840 155, 885 190
+                L 895 280
+                C 870 320, 800 330, 760 320
+                L 840 315 L 855 455
+                M 210 370 L 225 400 L 240 465
+                M 200 305 C 190 345, 205 370, 230 375"/>
+
+              <text class="caption" x="520" y="500">U.S. beef primals · side view · head left · tap a region to open cuts</text>
             </svg>
+            <p class="diagram-note" id="diagramNote">USDA / NAMP-style layout. Front (chuck · rib · brisket) · Mid (loin · plate · flank) · Hind (sirloin · round).</p>
           </div>
+        </div>
+        <div class="cow-legend" aria-hidden="true">
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#b04a3a"></span>Chuck</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#dca54a"></span>Rib</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#c97140"></span>Loin</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#b48a5a"></span>Sirloin</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#7da05d"></span>Round</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#6a4028"></span>Brisket</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#b8862e"></span>Plate</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#8a6840"></span>Flank</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#948660"></span>Shank</span>
         </div>
       </div>
 
@@ -409,7 +538,7 @@
             <div class="subp-body">
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="9"></label><div><span class="cut-name">Ribeye steaks <button class="cut-info-btn" data-info="ribeye">Info</button></span><span class="cut-desc">Bone-in or boneless. 1″ default.</span></div><span class="cut-yield">~9 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">Prime rib roast</span><span class="cut-desc">Whole, frenched, 4-bone or 7-bone.</span></div><span class="cut-yield">~6 lb</span></div>
-              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="3"></label><div><span class="cut-name">Short ribs</span><span class="cut-desc">English-cut, 3-bone packs.</span></div><span class="cut-yield">~3 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="3"></label><div><span class="cut-name">Back ribs</span><span class="cut-desc">From the rib primal after ribeyes are cut. Sauce + grill.</span></div><span class="cut-yield">~3 lb</span></div>
             </div>
           </div>
 
@@ -422,19 +551,18 @@
           </div>
 
           <div class="subp open" data-primal="loin" id="subp-loin">
-            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">LON</span><div class="meta"><h4>Loin (hind)</h4><p>~22 lb · tenderloin + strips + T-bones</p></div><span class="right">3 cuts on</span></div>
+            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">LON</span><div class="meta"><h4>Loin (short loin · mid)</h4><p>~18 lb · tenderloin + strips + T-bones</p></div><span class="right">2 cuts on</span></div>
             <div class="subp-body">
               <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="4"></label><div><span class="cut-name">Tenderloin (filet) <button class="cut-info-btn" data-info="tenderloin">Info</button></span><span class="cut-desc">Whole or 1½″ medallions.</span></div><span class="cut-yield">~4 lb</span></div>
-              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="8"></label><div><span class="cut-name">NY strip steaks</span><span class="cut-desc">Boneless. 1″ default.</span></div><span class="cut-yield">~8 lb</span></div>
-              <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">T-bone / Porterhouse</span><span class="cut-desc">Strip + tenderloin in one cut. Replaces NY strip + filet.</span></div><span class="cut-yield">~6 lb</span></div>
-              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="4"></label><div><span class="cut-name">Sirloin steaks</span><span class="cut-desc">Top sirloin. Great for grilling.</span></div><span class="cut-yield">~4 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="8"></label><div><span class="cut-name">NY strip steaks</span><span class="cut-desc">Boneless short loin. 1″ default.</span></div><span class="cut-yield">~8 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">T-bone / Porterhouse</span><span class="cut-desc">Strip + tenderloin on one bone. Replaces NY strip + filet.</span></div><span class="cut-yield">~6 lb</span></div>
             </div>
           </div>
 
           <div class="subp" data-primal="sirloin" id="subp-sirloin">
-            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">SIR</span><div class="meta"><h4>Sirloin (hind)</h4><p>~10 lb · top sirloin + tri-tip</p></div><span class="right">0 cuts on</span></div>
+            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">SIR</span><div class="meta"><h4>Sirloin (hind · behind loin)</h4><p>~10 lb · top sirloin + tri-tip</p></div><span class="right">1 cut on</span></div>
             <div class="subp-body">
-              <div class="cut-row"><label><input type="checkbox" data-cut data-w="6"></label><div><span class="cut-name">Top sirloin steaks</span><span class="cut-desc">Lean, big-flavor cuts. 1″ default.</span></div><span class="cut-yield">~6 lb</span></div>
+              <div class="cut-row"><label><input type="checkbox" checked data-cut data-w="6"></label><div><span class="cut-name">Top sirloin steaks <button class="cut-info-btn" data-info="sirloin">Info</button></span><span class="cut-desc">Lean, big-flavor cuts. 1″ default.</span></div><span class="cut-yield">~6 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="3"></label><div><span class="cut-name">Tri-tip roast</span><span class="cut-desc">Whole triangular cut, Santa Maria style.</span></div><span class="cut-yield">~3 lb</span></div>
             </div>
           </div>
@@ -458,7 +586,7 @@
           </div>
 
           <div class="subp" data-primal="plate" id="subp-plate">
-            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">PLT</span><div class="meta"><h4>Plate (lower mid)</h4><p>~7 lb · short ribs (English) + skirt</p></div><span class="right">0 cuts on</span></div>
+            <div class="subp-head"><span class="arrow">▶</span><span class="glyph">PLT</span><div class="meta"><h4>Plate (short plate · under rib)</h4><p>~7 lb · short ribs (English) + skirt</p></div><span class="right">0 cuts on</span></div>
             <div class="subp-body">
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="4"></label><div><span class="cut-name">English short ribs</span><span class="cut-desc">Cross-cut, 3″ pieces.</span></div><span class="cut-yield">~4 lb</span></div>
               <div class="cut-row"><label><input type="checkbox" data-cut data-w="3"></label><div><span class="cut-name">Hanger / outside skirt</span><span class="cut-desc">Butcher's cut — small, intense.</span></div><span class="cut-yield">~3 lb</span></div>
@@ -570,12 +698,11 @@
       const on = s.querySelectorAll('input[data-cut]:checked').length;
       const right = s.querySelector('.right');
       if (right) right.textContent = on + ' cut' + (on === 1 ? '' : 's') + ' on';
-      // Mirror to cow diagram
-      const cowRegion = document.querySelector(`.cow-svg .primal[data-primal="${s.dataset.primal}"], .diagram-overlay .primal[data-primal="${s.dataset.primal}"]`);
-      if (cowRegion) {
+      // Mirror to cow diagram (multiple paths may share a primal, e.g. fore + hind shank)
+      document.querySelectorAll(`.cow-svg .primal[data-primal="${s.dataset.primal}"]`).forEach(cowRegion => {
         cowRegion.classList.toggle('has-cuts', on > 0);
         cowRegion.classList.toggle('empty', on === 0);
-      }
+      });
     });
     if (alloc > 90) document.getElementById('meterMsg').textContent = 'Heads up — you\'re at 80%+ allocated to specific cuts. Less ground than typical.';
     else if (alloc < 50) document.getElementById('meterMsg').textContent = 'Lots of ground in this build. Great for burger families.';
@@ -652,38 +779,42 @@
   // ===== Pill toggles =====
   document.querySelectorAll('.pill-toggle').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
 
-  // ===== Species switcher (now with real artistic chalkboard charts) =====
-  const DIAGRAM_MAP = {
-    beef:     { img: '/img/cut-charts/beef.jpg',    label: 'Beef' },
-    pork:     { img: '/img/cut-charts/pork.jpg',    label: 'Pork' },
-    lamb:     { img: '/img/cut-charts/sheep.jpg',   label: 'Lamb' },
-    goat:     { img: '/img/cut-charts/goat.jpg',    label: 'Goat' },
-    venison:  { img: '/img/cut-charts/venison.jpg', label: 'Venison' },
-    bison:    { img: '/img/cut-charts/bison.jpg',   label: 'Bison' },
-    poultry:  { img: '/img/cut-charts/beef.jpg',    label: 'Poultry (coming soon)' }
+  // ===== Species switcher =====
+  // Interactive SVG uses accurate U.S. beef primals. Bison / venison share that
+  // layout closely; pork / lamb / goat get a note until dedicated charts ship.
+  const SPECIES_LABEL = {
+    beef: 'Beef', pork: 'Pork', lamb: 'Lamb', goat: 'Goat',
+    venison: 'Venison', bison: 'Bison', poultry: 'Poultry'
   };
+  const BEEF_LIKE = new Set(['beef', 'bison', 'venison']);
 
   document.querySelectorAll('.species-tab').forEach(t => t.addEventListener('click', () => {
     document.querySelectorAll('.species-tab').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
     const sp = t.dataset.species;
-    const cfg = DIAGRAM_MAP[sp] || DIAGRAM_MAP.beef;
-
-    // Swap the beautiful chalkboard art
-    const art = document.getElementById('diagramArt');
     const wrap = document.getElementById('diagramWrap');
-    if (art) art.src = cfg.img;
     if (wrap) wrap.dataset.species = sp;
 
-    // Beef-only UI
     const qt = document.getElementById('quarterToggle');
-    if (qt) qt.style.display = sp === 'beef' ? 'flex' : 'none';
+    if (qt) qt.style.display = (sp === 'beef' || sp === 'bison') ? 'flex' : 'none';
+
+    const note = document.getElementById('diagramNote');
+    const label = SPECIES_LABEL[sp] || 'Beef';
+    if (note) {
+      if (BEEF_LIKE.has(sp)) {
+        note.textContent = sp === 'beef'
+          ? 'USDA / NAMP-style layout. Front (chuck · rib · brisket) · Mid (loin · plate · flank) · Hind (sirloin · round).'
+          : `${label} uses the same primal layout as beef (very close anatomically). Tap a region to open cuts.`;
+      } else {
+        note.textContent = `${label} chart uses the beef primal map for navigation until a dedicated ${label.toLowerCase()} diagram ships. Cut list below still applies where your plant offers them.`;
+      }
+    }
 
     const msg = document.getElementById('meterMsg');
     if (msg) {
-      msg.textContent = sp === 'beef'
+      msg.textContent = BEEF_LIKE.has(sp)
         ? 'Trim from primary cuts auto-routes to ground.'
-        : `${cfg.label} cut chart — full interactive cuts for this species coming soon. Beef defaults shown for demo.`;
+        : `${label} — cut options shown; diagram is beef-primal map for navigation.`;
     }
   }));
 
@@ -694,16 +825,18 @@
     const q = b.dataset.q;
     document.querySelectorAll('.subp').forEach(s => {
       const p = s.dataset.primal;
-      const isFront = ['chuck','rib','brisket'].includes(p);
+      // Front quarter: chuck, rib, brisket, plate, foreshank
+      // Hind quarter: loin, sirloin, round, flank, hindshank
+      const isFront = ['chuck','rib','brisket','plate'].includes(p);
       const isHind = ['loin','sirloin','round','flank'].includes(p);
-      if (q === 'mixed' || ['shank','plate'].includes(p)) s.style.display = '';
+      if (q === 'mixed' || p === 'shank') s.style.display = '';
       else if (q === 'front') s.style.display = isFront ? '' : 'none';
       else s.style.display = isHind ? '' : 'none';
     });
   }));
 
   // ===== Cow diagram click → scroll to + flash sub-primal =====
-  document.querySelectorAll('.cow-svg .primal, .cow-svg .primal-hit, .diagram-overlay .primal').forEach(p => p.addEventListener('click', () => {
+  document.querySelectorAll('.cow-svg .primal').forEach(p => p.addEventListener('click', () => {
     const primal = p.dataset.primal;
     const target = document.getElementById('subp-' + primal);
     if (target) {
