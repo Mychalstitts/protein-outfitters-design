@@ -131,7 +131,14 @@
 <div class="po-nav-wrap">
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
-    <div class="po-nav-links"><a href="/discover">Reserve</a><a href="/farmer" class="active">My ranch</a><a href="/producers">Producers</a><a href="/hardware">Hardware</a></div>
+    <div class="po-nav-links">
+      <a href="/farmer" class="active">My ranch</a>
+      <a href="/list-animal">List animal</a>
+      <a href="/map">Book a plant</a>
+      <a href="/credentials">Credentials</a>
+      <a href="/finance">Finance</a>
+      <a href="/reviews">Reviews</a>
+    </div>
     <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a href="/list-animal" aria-label="List an animal" style="text-decoration:none;"><button type="button" tabindex="-1" aria-hidden="true">List an animal</button></a></div>
   </nav>
 </div>
@@ -173,8 +180,39 @@
       </div>
     </div>
 
+    <!-- Create farm (shown when signed-in with no farm) -->
+    <section class="fm-section" id="fmClaimSection" style="display:none;">
+      <div class="fm-section-head">
+        <h2>Set up your farm</h2>
+      </div>
+      <div style="background:#fff;border-radius:22px;padding:28px 26px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 14px rgba(0,0,0,.04);max-width:560px;">
+        <p style="margin:0 0 18px;font:500 15px/1.5 'Inter';color:var(--ink-2);">Your farm profile is the public page buyers visit. List animals from it, book plants when shares fill, and get paid via Stripe.</p>
+        <form id="fmClaimForm" style="display:grid;gap:12px;">
+          <label style="display:grid;gap:6px;font:700 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);">
+            Farm name
+            <input name="name" required placeholder="e.g. Northfield Pastures" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;" />
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <label style="display:grid;gap:6px;font:700 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);">
+              City
+              <input name="city" placeholder="Bemidji" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;" />
+            </label>
+            <label style="display:grid;gap:6px;font:700 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);">
+              State
+              <input name="state" maxlength="2" placeholder="MN" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;text-transform:uppercase;" />
+            </label>
+          </div>
+          <p id="fmClaimStatus" style="margin:0;font:500 13px/1.4 'Inter';color:var(--ink-2);min-height:1.2em;"></p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <button type="submit" id="fmClaimBtn" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer;">Create farm →</button>
+          </div>
+          <p style="margin:4px 0 0;font:500 12px/1.45 'Inter';color:var(--ink-3);">Next: <a href="/list-animal" style="color:inherit;font-weight:700;">list an animal</a>, add <a href="/credentials" style="color:inherit;font-weight:700;">credentials</a>, then book a plant when shares sell.</p>
+        </form>
+      </div>
+    </section>
+
     <!-- Quick actions -->
-    <div class="qa-grid">
+    <div class="qa-grid" id="fmQaGrid">
       <a href="/list-animal" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></span>
         <h4>List an animal</h4>
@@ -183,49 +221,54 @@
       <a href="/map" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
         <h4>Book a plant</h4>
-        <p>Find capacity, distance, and drop-off windows.</p>
+        <p>Find capacity after shares fill — you assign the plant.</p>
       </a>
       <a href="/credentials" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></span>
         <h4>Credentials</h4>
-        <p>Certifications + claims.</p>
+        <p>Certifications + practices buyers filter on.</p>
+      </a>
+      <a href="/finance" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></span>
+        <h4>Finance + payouts</h4>
+        <p>Wallet, transfers, tax docs.</p>
       </a>
       <a href="/reviews" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></span>
         <h4>Reviews</h4>
-        <p>Mutual rating system.</p>
+        <p>Mutual rating with buyers + plants.</p>
       </a>
-      <a href="#" id="fmPublicProfileLink" class="qa">
+      <a href="/producers" id="fmPublicProfileLink" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#house"/></svg></span>
         <h4>Public profile</h4>
-        <p>What buyers see.</p>
+        <p>What buyers see on your farm page.</p>
       </a>
     </div>
 
-    <!-- Today (real reservations + harvest dates) -->
+    <!-- Today (real harvest dates only) -->
     <section class="fm-section" id="fmTodaySection" style="display:none;">
       <div class="fm-section-head">
         <h2>What needs your attention</h2>
-        <a class="more" href="/account">All activity →</a>
+        <a class="more" href="/list-animal">List another →</a>
       </div>
       <div class="today-grid" id="fmTodayGrid"></div>
     </section>
 
     <!-- Active listings -->
-    <section class="fm-section">
+    <section class="fm-section" id="fmListingsSection">
       <div class="fm-section-head">
         <h2>Active listings</h2>
-        <a class="more" href="/farm/northfield-pastures">See public view →</a>
+        <a class="more" id="fmPublicViewLink" href="/producers">See public view →</a>
       </div>
       <div class="listings-grid" id="fmListingsGrid">
-        <a href="/list-animal" class="fm-add-listing">
+        <a href="/list-animal" class="fm-add-listing" id="fmAddListingCard">
           <svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg>
           List a new animal
         </a>
       </div>
     </section>
 
-    <!-- Drop-off bookings — populated when /api/bookings has rows for this farmer -->
+    <!-- Drop-off bookings — real data only -->
     <section class="fm-section" id="fmBookingsSection" style="display:none;">
       <div class="fm-section-head">
         <h2>Drop-off bookings</h2>
@@ -234,72 +277,15 @@
       <div id="fmBookingsGrid" style="display:grid;gap:14px;grid-template-columns:1fr;"></div>
     </section>
 
-    <!-- This week (hidden until we have real Stripe-verified payouts) -->
-    <section class="fm-section" id="fmWeekSection" style="display:none;">
-      <div class="fm-section-head">
-        <h2>This week</h2>
-        <a class="more" href="/finance">Full report →</a>
-      </div>
-      <div class="week-stats">
-        <div class="week-stat">
-          <p class="lab">Revenue</p>
-          <p class="v">$8,420 <span class="delta up">+18%</span></p>
-          <p class="s">vs last week</p>
-        </div>
-        <div class="week-stat">
-          <p class="lab">New reservations</p>
-          <p class="v">5 <span class="delta up">+2</span></p>
-          <p class="s">2 quarters · 2 halves · 1 whole</p>
-        </div>
-        <div class="week-stat">
-          <p class="lab">Customer satisfaction</p>
-          <p class="v">4.9 <span class="delta up">+0.1</span></p>
-          <p class="s">12 new reviews</p>
-        </div>
-        <div class="week-stat">
-          <p class="lab">Profile views</p>
-          <p class="v">312 <span class="delta up">+24</span></p>
-          <p class="s">847 followers · +14 this week</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Activity feed -->
-    <section class="fm-section">
+    <!-- Activity: empty until we have a real feed (no demo rows) -->
+    <section class="fm-section" id="fmActivitySection">
       <div class="fm-section-head">
         <h2>Activity</h2>
-        <a class="more" href="/notifications">View all →</a>
+        <a class="more" href="/notifications">Notifications →</a>
       </div>
-      <div class="activity">
-        <div class="activity-row">
-          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check"/></svg></div>
-          <div class="activity-meta"><h4>Sarah R. <strong>reserved a quarter</strong> of #2641</h4></div>
-          <span class="activity-time">14m ago</span>
-        </div>
-        <div class="activity-row">
-          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#star"/></svg></div>
-          <div class="activity-meta"><h4>Plant 04 <strong>left a 5-star review</strong></h4></div>
-          <span class="activity-time">2h ago</span>
-        </div>
-        <div class="activity-row">
-          <div class="activity-glyph brand"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></div>
-          <div class="activity-meta"><h4>Stripe payout · <strong>$1,395.00</strong> deposited</h4></div>
-          <span class="activity-time">Yesterday</span>
-        </div>
-        <div class="activity-row">
-          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#users"/></svg></div>
-          <div class="activity-meta"><h4>Alex P. <strong>followed your ranch</strong></h4></div>
-          <span class="activity-time">Yesterday</span>
-        </div>
-        <div class="activity-row">
-          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></div>
-          <div class="activity-meta"><h4>Auto-description generated for <strong>#2671</strong></h4></div>
-          <span class="activity-time">2 days ago</span>
-        </div>
-        <div class="activity-row">
-          <div class="activity-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#check-shield"/></svg></div>
-          <div class="activity-meta"><h4>USDA Process Verified <strong>renewal due in 60 days</strong></h4></div>
-          <span class="activity-time">3 days ago</span>
+      <div class="activity" id="fmActivityList">
+        <div style="padding:32px 20px;text-align:center;font:500 14px/1.5 'Inter';color:var(--ink-2);">
+          No recent activity yet. Reservations, check-ins, and payouts will show here.
         </div>
       </div>
     </section>
@@ -356,11 +342,38 @@ window.poStartConnect = async function(kind, id) {
   })();
   document.querySelectorAll('[data-user-name]').forEach(e => e.textContent = firstName);
 
+  const claimSection = document.getElementById('fmClaimSection');
+  const claimForm = document.getElementById('fmClaimForm');
+  if (claimForm) {
+    claimForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(claimForm);
+      const name = String(fd.get('name') || '').trim();
+      const city = String(fd.get('city') || '').trim();
+      const state = String(fd.get('state') || '').trim().toUpperCase().slice(0, 2);
+      const status = document.getElementById('fmClaimStatus');
+      const btn = document.getElementById('fmClaimBtn');
+      if (!name) { status.textContent = 'Farm name is required.'; return; }
+      btn.disabled = true; btn.textContent = 'Creating…';
+      status.textContent = '';
+      try {
+        await window.PO_API.createFarm({ name, city, state });
+        status.textContent = 'Farm created. Loading dashboard…';
+        location.reload();
+      } catch (err) {
+        status.textContent = 'Could not create farm: ' + err.message;
+        btn.disabled = false; btn.textContent = 'Create farm →';
+      }
+    });
+  }
+
   if (!me.user) {
-    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:#fff; border-radius:16px; border:1px solid rgba(6,27,14,.08)">
-      <div style="font:700 22px/1.3 'Inter';margin-bottom:10px;">Sign in to your producer dashboard</div>
-      <div style="opacity:.65;font:500 14px/1.5 'Inter';max-width:380px;margin:0 auto 18px;">Manage your farm, animal listings, reservations, and payouts.</div>
-      <button onclick="window.PO_API.openAuth('Sign in', 'producer')" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer">Sign in as a producer</button>
+    const greet = document.querySelector('.fm-greeting');
+    if (greet) {
+      greet.innerHTML = `<p class="eye">Welcome</p><h1>Sign in to your ranch.</h1><p>List animals, book plants when shares fill, and track drop-offs and payouts.</p><button type="button" onclick="window.PO_API.openAuth('Sign in as a producer', 'producer', { next: '/farmer' })" style="margin-top:14px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer">Sign in as a producer →</button>`;
+    }
+    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px 20px; background:#fff; border-radius:16px; border:1px solid rgba(6,27,14,.08);font:500 14px/1.5 'Inter';color:var(--ink-2);">
+      Sign in to see your listings and drop-off codes.
     </div>`;
     return;
   }
@@ -370,14 +383,16 @@ window.poStartConnect = async function(kind, id) {
   try { const r = await window.PO_API.myFarms(); myFarms = r.farms || []; } catch { myFarms = []; }
 
   if (!myFarms.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:#fff; border-radius:16px; border:1px solid rgba(6,27,14,.08)">
-      <img src="/brand/logo-monogram.svg" alt="" width="68" height="68" style="display:block;margin:0 auto 18px;border-radius:16px;box-shadow:0 8px 24px rgba(6,27,14,.15);" />
-      <div style="font:700 22px/1.3 'Inter';margin-bottom:10px;">Set up your farm profile first</div>
-      <div style="opacity:.65;font:500 14px/1.5 'Inter';max-width:380px;margin:0 auto 18px;">A farm profile is your public-facing page. You can list multiple animals from one farm.</div>
-      <button onclick="createFarmFlow()" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer">Create farm profile</button>
-    </div>`;
+    if (claimSection) claimSection.style.display = '';
+    const sub = document.getElementById('fmGreetSub');
+    if (sub) sub.textContent = 'Create your farm profile to list animals and receive reservations.';
+    grid.innerHTML = ''; // claim form is the primary CTA
+    const addCard = document.getElementById('fmAddListingCard');
+    if (addCard) addCard.style.display = 'none';
     return;
   }
+
+  if (claimSection) claimSection.style.display = 'none';
 
   // Pull all listings for all my farms
   const allListings = [];
@@ -394,17 +409,11 @@ window.poStartConnect = async function(kind, id) {
   if (primaryFarm) {
     // Standing card
     document.getElementById('fmStanding').style.display = '';
+    const pub = primaryFarm.slug ? '/farm/' + primaryFarm.slug : '/producers';
     const link = document.getElementById('fmPublicProfileLink');
-    if (link) {
-      if (primaryFarm.slug) {
-        link.href = '/farm/' + primaryFarm.slug;
-        link.removeAttribute('aria-disabled');
-      } else {
-        link.href = '#';
-        link.setAttribute('aria-disabled', 'true');
-        link.addEventListener('click', e => e.preventDefault(), { once: true });
-      }
-    }
+    if (link) link.href = pub;
+    const pubView = document.getElementById('fmPublicViewLink');
+    if (pubView) pubView.href = pub;
     document.getElementById('fmFarmRole').textContent = `${primaryFarm.name}${primaryFarm.city ? ' · ' + primaryFarm.city + ', ' + primaryFarm.state : ''}`;
     const certs = (primaryFarm.certs || []).map(c => c.toUpperCase()).slice(0, 3).join(' · ');
     document.getElementById('fmFarmName').textContent = certs || 'Verified producer';
@@ -517,7 +526,13 @@ window.poStartConnect = async function(kind, id) {
   const cards = allListings.map(l => {
     const totShares = ['whole','half','quarter'].reduce((s, k) => s + (l.shares?.[k]?.available || 0) + (l.shares?.[k]?.reserved || 0), 0);
     const reservedShares = ['whole','half','quarter'].reduce((s, k) => s + (l.shares?.[k]?.reserved || 0), 0);
-    const fromPrice = l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || '—';
+    const farmerRate = Number(l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0);
+    const shareKey = l.shares?.quarter ? 'quarter' : l.shares?.half ? 'half' : 'whole';
+    const hw = l.estimated_hanging_weight || 700;
+    const allIn = window.PO_PRICING && farmerRate
+      ? window.PO_PRICING.allInPerLbHW(farmerRate, shareKey, hw)
+      : farmerRate;
+    const fromPrice = allIn || farmerRate || '—';
     const photo = (l.photos && l.photos[0]) || photoFor(l.species);
     const availableShares = ['whole','half','quarter'].reduce((s, k) => s + (l.shares?.[k]?.available || 0), 0);
     const fullySold = totShares > 0 && availableShares === 0;
@@ -553,7 +568,7 @@ window.poStartConnect = async function(kind, id) {
         <span class="product-eyebrow">${l.species[0].toUpperCase()+l.species.slice(1)}${l.practice && l.practice.length ? ' · ' + l.practice[0] : ''}</span>
         <h3 class="product-name">${l.number ? l.number + ' — ' : ''}${l.breed || l.species}</h3>
         <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
-        <div class="product-foot"><span class="product-price">From <strong>$${typeof fromPrice === 'number' ? fromPrice.toFixed(2) + '/lb' : fromPrice}</strong></span><span class="product-cta">Manage →</span></div>
+        <div class="product-foot"><span class="product-price">From <strong>$${typeof fromPrice === 'number' ? fromPrice.toFixed(2) : fromPrice}</strong><span style="font-weight:600;opacity:.6;font-size:11px">/lb all-in</span></span><span class="product-cta">Manage →</span></div>
         ${bookingCta}
       </div>
     </button>`;
@@ -637,15 +652,15 @@ window.poStartConnect = async function(kind, id) {
   } catch {}
 })();
 
-async function createFarmFlow() {
-  const name = prompt("What's the name of your farm?");
-  if (!name || !name.trim()) return;
-  try {
-    await window.PO_API.createFarm({ name: name.trim() });
-    location.reload();
-  } catch (e) { alert('Could not create farm: ' + e.message); }
-}
-window.createFarmFlow = createFarmFlow;
+// Create-farm lives in #fmClaimForm (no browser prompts).
+window.createFarmFlow = function() {
+  const sec = document.getElementById('fmClaimSection');
+  if (sec) {
+    sec.style.display = '';
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    sec.querySelector('input[name="name"]')?.focus();
+  }
+};
 
 // ─── Book-a-processor inline flow ─────────────────────────────
 let _bookingModalListing = null;
