@@ -268,20 +268,27 @@
     let state = { step: 1, animal: null, share: null, processor: null };
     function fmt(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-    function buildShareOptions() {
+    function buildShareOptions(preselectKey) {
       const a = state.animal; if (!a) return;
       const opts = [
         { key: 'q', glyph: '¼', title: 'Quarter share', sub: '~110 lb of cuts · fits a 7 cu ft freezer', price: a.priceQ },
         { key: 'h', glyph: '½', title: 'Half share', sub: '~220 lb of cuts · fits a 14 cu ft freezer', price: a.priceH },
         { key: 'w', glyph: '1', title: 'Whole animal', sub: '~440 lb of cuts · for serious operators', price: a.priceW }
       ].filter(o => o.price > 0);
-      shareWrap.innerHTML = opts.map(o => `<button class="option" data-share="${o.key}" data-price="${o.price}"><span class="option-glyph">${o.glyph}</span><span class="option-text"><span class="option-title">${o.title}</span><span class="option-sub">${o.sub}</span></span><span class="option-price">${fmt(o.price)}</span></button>`).join('');
+      // Prices are all-in $/lb hanging weight — label so they never look like a lump total.
+      shareWrap.innerHTML = opts.map(o => `<button class="option" data-share="${o.key}" data-price="${o.price}"><span class="option-glyph">${o.glyph}</span><span class="option-text"><span class="option-title">${o.title}</span><span class="option-sub">${o.sub}</span></span><span class="option-price">${fmt(o.price)}<small style="display:block;font-size:10px;font-weight:600;opacity:.65;margin-top:2px">/lb all-in</small></span></button>`).join('');
       shareWrap.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
         shareWrap.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         state.share = { key: btn.dataset.share, price: Number(btn.dataset.price) };
         nextBtn.disabled = false;
       }));
+      // Preselect share when opening from a listing share card or deep-link return.
+      if (preselectKey) {
+        const key = preselectKey === 'quarter' ? 'q' : preselectKey === 'half' ? 'h' : preselectKey === 'whole' ? 'w' : preselectKey;
+        const match = shareWrap.querySelector(`.option[data-share="${key}"]`);
+        if (match) match.click();
+      }
     }
 
     // Step 2 processor list — populated dynamically from /api/processors.
@@ -338,20 +345,21 @@
       if (n === 2 && state.share) {
         // Reservation deposit model: deposit is a flat 10% of estimated meat cost (capped 50–500),
         // plus processing fee + insurance. Meat balance is settled at pickup on actual hanging weight.
+        // share.price is all-in $/lb HW; cuts-lb estimate used for take-home framing.
         const lbsBySize = { q: 110, h: 220, w: 440 };
         const lbs = lbsBySize[state.share.key] || 110;
-        const meatEstimate = state.share.price * lbs;       // price-per-lb × estimated cuts lb
+        const meatEstimate = state.share.price * lbs;       // all-in $/lb × estimated cuts lb
         const deposit = Math.min(500, Math.max(50, Math.round(meatEstimate * 0.10)));
         const fees = 225 + 18;
         const reserveToday = deposit + fees;
         const shareLabel = state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole';
-        sumShareLabel.textContent = `Deposit (${shareLabel} share)`;
+        sumShareLabel.textContent = `Deposit (${shareLabel} · 10% of est. meat)`;
         sumShareVal.textContent = fmt(deposit);
         sumTotalVal.textContent = fmt(reserveToday);
         const pickupEl = document.getElementById('sumPickupVal');
         const pickupLabel = document.getElementById('sumPickupLabel');
         if (pickupEl) pickupEl.textContent = `~${fmt(meatEstimate - deposit)}`;
-        if (pickupLabel) pickupLabel.textContent = `Balance at pickup (~${lbs} lb @ ${fmt(state.share.price)}/lb, less deposit)`;
+        if (pickupLabel) pickupLabel.textContent = `Balance at pickup (~${lbs} lb cuts @ ${fmt(state.share.price)}/lb all-in, less deposit)`;
       }
     }
 
@@ -364,11 +372,12 @@
         photo: el.dataset.photo,
         priceQ: Number(el.dataset.priceQ || 0),
         priceH: Number(el.dataset.priceH || 0),
-        priceW: Number(el.dataset.priceW || 0)
+        priceW: Number(el.dataset.priceW || 0),
+        share: el.dataset.share || null
       };
     }
 
-    function open(a) {
+    function open(a, opts = {}) {
       if (!a || !a.id) return;
       state.animal = a;
       if (ctxImg) ctxImg.style.backgroundImage = `url('${a.photo}')`;
@@ -376,7 +385,8 @@
       if (ctxSub) ctxSub.textContent = a.producer;
       state.share = null; state.processor = null;
       shareWrap?.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
-      buildShareOptions();
+      const preselect = opts.share || a.share || null;
+      buildShareOptions(preselect);
       // Processor is no longer chosen by the buyer — the farmer assigns it once
       // the animal is fully sold. Reservations are created with processor=null.
       setStep(1);
@@ -401,13 +411,13 @@
       if (!c || c.disabled) return;
       if (c.dataset.animal) {
         e.preventDefault();
-        open(animalFromEl(c));
+        open(animalFromEl(c), { share: c.dataset.share || null });
         return;
       }
       const f = document.querySelector('[data-animal]');
       if (f) {
         e.preventDefault();
-        open(animalFromEl(f));
+        open(animalFromEl(f), { share: c.dataset.share || f.dataset.share || null });
         return;
       }
       e.preventDefault();
@@ -443,9 +453,30 @@
         if (!email) {
           // Customer-by-default: trigger the proper signin modal with role='buyer'
           // instead of a plain prompt, so the magic-link / Apple-Pay flow runs.
+          // Deep-link back into this listing + open the sheet with the chosen share.
           if (window.PO_API && typeof window.PO_API.openAuth === 'function') {
             nextBtn.disabled = false; nextBtn.textContent = origText;
-            window.PO_API.openAuth('Sign in to reserve your share', 'buyer');
+            const listingId = state.animal?.id;
+            const shareKey = state.share?.key || '';
+            const shareParam = shareKey === 'q' ? 'quarter' : shareKey === 'h' ? 'half' : shareKey === 'w' ? 'whole' : shareKey;
+            let returnNext = null;
+            if (listingId) {
+              returnNext = `/listing?id=${encodeURIComponent(listingId)}&open_sheet=1` +
+                (shareParam ? `&share=${encodeURIComponent(shareParam)}` : '');
+              try {
+                sessionStorage.setItem('po_pending_reserve', JSON.stringify({
+                  id: listingId,
+                  name: state.animal.name,
+                  producer: state.animal.producer,
+                  photo: state.animal.photo,
+                  priceQ: state.animal.priceQ,
+                  priceH: state.animal.priceH,
+                  priceW: state.animal.priceW,
+                  share: shareParam || shareKey
+                }));
+              } catch (_) { /* private mode */ }
+            }
+            window.PO_API.openAuth('Sign in to reserve your share', 'buyer', { next: returnNext });
             return;
           }
           // Fallback only if the API helper isn't loaded.

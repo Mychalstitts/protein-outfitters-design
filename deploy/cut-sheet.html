@@ -227,8 +227,8 @@
   <div class="cs-context">
     <div class="cs-context-img"></div>
     <div class="cs-context-text">
-      <h2>Quarter share · #2641 · Black Angus steer</h2>
-      <p>Northfield Pastures · Bemidji, MN · Estimated 110 lb of cuts · Submit by May 21</p>
+      <h2 id="csContextTitle">Loading your reservation…</h2>
+      <p id="csContextMeta">Connecting to your order details.</p>
     </div>
     <button class="cs-skip" id="skipBtn">Skip → Processor's Choice</button>
   </div>
@@ -793,25 +793,50 @@
     } catch (_) { return { error: 'fetch_failed' }; }
   }
 
-  // Populate the context header from the REAL reservation — the static markup
-  // above is only a placeholder. Runs on load; degrades silently if signed-out
-  // or no matching reservation is found.
+  // Populate the context header from the REAL reservation.
+  // Never leave demo animal names on screen — show a clear empty/sign-in state.
   async function loadReservationHeader() {
+    const h2 = document.getElementById('csContextTitle') || document.querySelector('.cs-context-text h2');
+    const p = document.getElementById('csContextMeta') || document.querySelector('.cs-context-text p');
+    const img = document.querySelector('.cs-context-img');
+    const submitBtn = document.getElementById('submitBtn');
+    const setEmpty = (title, meta) => {
+      if (h2) h2.textContent = title;
+      if (p) p.innerHTML = meta;
+    };
     try {
       const params = new URLSearchParams(location.search);
       const urlId = params.get('reservation_id') || params.get('id') || params.get('reservation');
       const r = await fetch('/api/reservations', { credentials: 'include' });
-      if (!r.ok) return;
+      if (r.status === 401) {
+        setEmpty('Sign in to load your cut sheet', 'Your cut sheet is tied to a reservation. <a href="#" id="csSignInLink" style="font-weight:700;color:inherit">Sign in</a> or open Account to pick an order.');
+        document.getElementById('csSignInLink')?.addEventListener('click', e => {
+          e.preventDefault();
+          window.PO_API?.openAuth('Sign in to build your cut sheet', 'buyer', {
+            next: location.pathname + location.search
+          });
+        });
+        return;
+      }
+      if (!r.ok) {
+        setEmpty('Couldn’t load reservation', 'Try again from <a href="/account" style="font-weight:700;color:inherit">your account</a>.');
+        return;
+      }
       const { reservations = [] } = await r.json();
       const active = reservations.filter(x => !['cancelled', 'refunded'].includes(x.status));
       const res = (urlId && reservations.find(x => x.id === urlId)) || (active.length === 1 ? active[0] : null);
-      if (!res) return;
+      if (!res) {
+        if (urlId) {
+          setEmpty('Reservation not found', 'This link may be expired or for another account. <a href="/account" style="font-weight:700;color:inherit">Open Account</a> or <a href="/discover" style="font-weight:700;color:inherit">reserve an animal</a>.');
+        } else if (active.length > 1) {
+          setEmpty('Pick a reservation', `You have ${active.length} active reservations. <a href="/account" style="font-weight:700;color:inherit">Choose one in Account</a> to open its cut sheet.`);
+        } else {
+          setEmpty('No reservation yet', 'Cut sheets are built after you reserve. <a href="/discover" style="font-weight:700;color:inherit">Browse animals →</a>');
+        }
+        return;
+      }
       const shareLabel = { quarter: 'Quarter', half: 'Half', whole: 'Whole' }[res.share_size] || 'Share';
       const lb = { quarter: 110, half: 220, whole: 440 }[res.share_size] || 110;
-      const h2 = document.querySelector('.cs-context-text h2');
-      const p = document.querySelector('.cs-context-text p');
-      const img = document.querySelector('.cs-context-img');
-      const submitBtn = document.getElementById('submitBtn');
       if (h2) h2.textContent = [`${shareLabel} share`, res.number, res.breed || res.species || 'your animal'].filter(Boolean).join(' · ');
       if (p) {
         const loc = [res.farm_city, res.farm_state].filter(Boolean).join(', ');
@@ -820,7 +845,16 @@
       }
       if (img && res.photos && res.photos[0]) img.style.backgroundImage = `url('${res.photos[0]}')`;
       if (submitBtn) submitBtn.textContent = 'Submit cut sheet →';
-    } catch (_) { /* keep placeholder */ }
+      // Lock species tab to reserved animal when we know it
+      const speciesMap = { cattle: 'beef', beef: 'beef', hog: 'pork', pork: 'pork', lamb: 'lamb', sheep: 'lamb', goat: 'goat', bison: 'bison', venison: 'venison' };
+      const sp = speciesMap[(res.species || '').toLowerCase()];
+      if (sp) {
+        const tab = document.querySelector(`.species-tab[data-species="${sp}"]`);
+        if (tab) tab.click();
+      }
+    } catch (_) {
+      setEmpty('Couldn’t load reservation', 'Network error — try <a href="/account" style="font-weight:700;color:inherit">Account</a>.');
+    }
   }
   loadReservationHeader();
 

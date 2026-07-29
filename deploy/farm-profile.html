@@ -130,7 +130,10 @@
       titleEl.textContent = listings.length === 1 ? '1 animal reserving' : `${listings.length} animals reserving`;
       grid.innerHTML = listings.map(l => {
         const photo = (l.photos && l.photos[0]) || photoFor(l.species);
-        const fromPrice = l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0;
+        const farmerRate = Number(l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0);
+        const shareKey = l.shares?.quarter?.available > 0 ? 'quarter' : l.shares?.half?.available > 0 ? 'half' : 'whole';
+        const hw = l.estimated_hanging_weight || 700;
+        const allIn = window.PO_PRICING ? window.PO_PRICING.allInPerLbHW(farmerRate, shareKey, hw) : farmerRate;
         const practiceLabel = (l.practice && l.practice[0]) ? cap(l.practice[0].replace('-', ' ')) : '';
         return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
           <div class="product-photo" style="background-image:url('${photo}');"><span class="product-tag">Reserving</span></div>
@@ -138,7 +141,7 @@
             <span class="product-eyebrow">${cap(l.species)}${practiceLabel ? ' · ' + practiceLabel : ''}</span>
             <h3 class="product-name">${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}</h3>
             <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
-            <div class="product-foot"><span class="product-price">From <strong>$${Number(fromPrice).toFixed(2)}/lb</strong></span><span class="product-cta">Reserve →</span></div>
+            <div class="product-foot"><span class="product-price">From <strong>$${Number(allIn).toFixed(2)}</strong><span style="font-weight:600;opacity:.6;font-size:12px">/lb all-in</span></span><span class="product-cta">Reserve →</span></div>
           </div>
         </button>`;
       }).join('');

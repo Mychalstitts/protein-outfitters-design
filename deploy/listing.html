@@ -213,7 +213,9 @@
   }
 
   // ─── Share row ──────────────────────────────────
-  const shareEls = sharesArr.map(s => `<button class="share-card js-reserve" data-share="${s.key}" data-price="${s.farmerRate}"><span class="glyph">${s.glyph}</span><span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span><span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1">/lb all-in</span></span></button>`);
+  // data-open-sheet + data-share so the reserve sheet opens with this share preselected.
+  // data-price-* on the button are all-in $/lb (set below for all .js-reserve).
+  const shareEls = sharesArr.map(s => `<button type="button" class="share-card js-reserve" data-open-sheet data-share="${s.key}" data-price="${s.price}"><span class="glyph">${s.glyph}</span><span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span><span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1">/lb all-in</span></span></button>`);
   if (!sharesArr.length) {
     shareEls.push('<div style="padding:32px;text-align:center;background:#fff;border-radius:14px;font:600 14px/1.5 \'Inter\';opacity:.7">All shares are reserved.</div>');
   }
@@ -320,14 +322,21 @@
   // ─── Wire all .js-reserve buttons to open the sheet with REAL data ──
   // The reserve sheet (po-shell.js) reads data-* on the clicked element, so
   // we set them on each .js-reserve here using the listing UUID as data-animal.
+  // priceQ/H/W are all-in $/lb so the sheet matches the sticky bar and share cards.
+  const allInQ = sharesArr.find(s => s.key === 'q')?.price || 0;
+  const allInH = sharesArr.find(s => s.key === 'h')?.price || 0;
+  const allInW = sharesArr.find(s => s.key === 'w')?.price || 0;
+  const animalName = `${l.number || ''} · ${l.breed || cap(l.species)}`.replace(/^\s*·\s*/, '');
+  const producerLabel = `${l.farm_name} · ${l.farm_city || ''}, ${l.farm_state || ''}`;
+
   document.querySelectorAll('.js-reserve').forEach(btn => {
     btn.dataset.animal = l.id;
-    btn.dataset.name = `${l.number || ''} · ${l.breed || cap(l.species)}`.replace(/^\s*·\s*/, '');
-    btn.dataset.producer = `${l.farm_name} · ${l.farm_city || ''}, ${l.farm_state || ''}`;
+    btn.dataset.name = animalName;
+    btn.dataset.producer = producerLabel;
     btn.dataset.photo = photo;
-    if (l.shares?.quarter) btn.dataset.priceQ = l.shares.quarter.price;
-    if (l.shares?.half)    btn.dataset.priceH = l.shares.half.price;
-    if (l.shares?.whole)   btn.dataset.priceW = l.shares.whole.price;
+    if (allInQ) btn.dataset.priceQ = allInQ;
+    if (allInH) btn.dataset.priceH = allInH;
+    if (allInW) btn.dataset.priceW = allInW;
   });
 
   // Also update the nav Reserve button
@@ -337,12 +346,53 @@
     navReserve.style.opacity = '';
     navReserve.style.cursor = '';
     navReserve.dataset.animal = l.id;
-    navReserve.dataset.name = `${l.number || ''} · ${l.breed || cap(l.species)}`;
+    navReserve.dataset.name = animalName;
     navReserve.dataset.producer = l.farm_name;
     navReserve.dataset.photo = photo;
-    if (l.shares?.quarter) navReserve.dataset.priceQ = l.shares.quarter.price;
-    if (l.shares?.half)    navReserve.dataset.priceH = l.shares.half.price;
-    if (l.shares?.whole)   navReserve.dataset.priceW = l.shares.whole.price;
+    if (allInQ) navReserve.dataset.priceQ = allInQ;
+    if (allInH) navReserve.dataset.priceH = allInH;
+    if (allInW) navReserve.dataset.priceW = allInW;
+  }
+
+  // ─── Resume reserve after magic-link auth ─────────────────────────
+  // ?open_sheet=1&share=quarter (from auth next=) or sessionStorage po_pending_reserve
+  const wantOpen = params.get('open_sheet') === '1' || params.get('open_sheet') === 'true';
+  const shareParam = (params.get('share') || '').toLowerCase();
+  let pending = null;
+  try { pending = JSON.parse(sessionStorage.getItem('po_pending_reserve') || 'null'); } catch { pending = null; }
+  if (pending && pending.id && pending.id !== l.id) pending = null;
+
+  if (wantOpen || (pending && pending.id === l.id)) {
+    const shareKey = shareParam || (pending && pending.share) || null;
+    const openAnimal = {
+      id: l.id,
+      name: animalName,
+      producer: producerLabel,
+      photo,
+      priceQ: allInQ,
+      priceH: allInH,
+      priceW: allInW,
+      share: shareKey
+    };
+    const tryOpen = () => {
+      if (window.PO_SHELL && typeof window.PO_SHELL.open === 'function') {
+        window.PO_SHELL.open(openAnimal, { share: shareKey });
+        try { sessionStorage.removeItem('po_pending_reserve'); } catch (_) {}
+        // Clean deep-link params so a refresh doesn't re-open the sheet
+        if (wantOpen) {
+          history.replaceState(null, '', '/listing?id=' + encodeURIComponent(l.id));
+        }
+        return true;
+      }
+      return false;
+    };
+    if (!tryOpen()) {
+      // po-shell may still be loading
+      let tries = 0;
+      const t = setInterval(() => {
+        if (tryOpen() || ++tries > 40) clearInterval(t);
+      }, 50);
+    }
   }
 })();
 </script>

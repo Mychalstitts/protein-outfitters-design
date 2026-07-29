@@ -269,11 +269,20 @@
 (function () {
   const tabs = document.querySelectorAll('.faq-tabs button');
   const lists = document.querySelectorAll('[data-grp].faq-list');
-  tabs.forEach(t => t.addEventListener('click', () => {
-    tabs.forEach(b => b.classList.toggle('active', b === t));
-    const g = t.dataset.grp;
+  function showGrp(g) {
+    if (!g) return;
+    const tab = Array.from(tabs).find(b => b.dataset.grp === g);
+    if (!tab) return;
+    tabs.forEach(b => b.classList.toggle('active', b === tab));
     lists.forEach(l => l.classList.toggle('hidden', l.dataset.grp !== g));
+  }
+  tabs.forEach(t => t.addEventListener('click', () => {
+    showGrp(t.dataset.grp);
+    try { history.replaceState(null, '', '#' + t.dataset.grp); } catch (_) {}
   }));
+  // Deep-link: /faq#buyer (and farmer/processor/institution/general)
+  const hash = (location.hash || '').replace(/^#/, '').toLowerCase();
+  if (hash) showGrp(hash);
 })();
 </script>
 </body>

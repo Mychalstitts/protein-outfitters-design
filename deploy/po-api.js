@@ -22,13 +22,19 @@
   const api = {
     me: () => jsonFetch('/api/auth/me'),
     updateProfile: (patch) => jsonFetch('/api/auth/me', { method: 'PATCH', body: patch }),
-    requestLink: (email, role) => jsonFetch('/api/auth/request-link', { method: 'POST', body: {
+    requestLink: (email, role, nextOverride) => jsonFetch('/api/auth/request-link', { method: 'POST', body: {
       email, role,
       // Thread the captured referral code + current path through sign-in so the
       // magic link carries ?ref= and /api/auth/verify can attribute the
       // redemption (otherwise referral rewards never fire on email signup).
+      // nextOverride lets reserve-sheet hand back a deep link (listing + open sheet).
       ref: (() => { try { return localStorage.getItem('po_ref_code') || undefined; } catch { return undefined; } })(),
-      next: (() => { try { const p = location.pathname + location.search; return (p && p !== '/') ? p : undefined; } catch { return undefined; } })(),
+      next: (() => {
+        if (nextOverride && typeof nextOverride === 'string' && nextOverride.startsWith('/') && !nextOverride.startsWith('//')) {
+          return nextOverride;
+        }
+        try { const p = location.pathname + location.search; return (p && p !== '/') ? p : undefined; } catch { return undefined; }
+      })(),
     } }),
     logout: () => jsonFetch('/api/auth/logout', { method: 'POST' }),
 
@@ -151,8 +157,12 @@
     document.head.appendChild(s);
   }
 
-  function openAuth(prompt = 'Sign in', defaultRole = 'buyer') {
+  function openAuth(prompt = 'Sign in', defaultRole = 'buyer', opts = {}) {
     injectAuthStyles();
+    // opts.next — absolute path for post-magic-link redirect (e.g. resume reserve sheet)
+    const nextOverride = (opts && typeof opts.next === 'string' && opts.next.startsWith('/') && !opts.next.startsWith('//'))
+      ? opts.next
+      : null;
     let back = document.getElementById('po-auth-back');
     if (!back) {
       back = document.createElement('div');
@@ -176,11 +186,12 @@
       back.addEventListener('click', e => { if (e.target === back) back.classList.remove('open'); });
       back.querySelector('.po-auth-x').addEventListener('click', () => back.classList.remove('open'));
       const roleBtns = back.querySelectorAll('.po-auth-role button');
-      let chosenRole = defaultRole;
+      // chosenRole lives on the element so reopen can reset it without rebinding
+      back._chosenRole = defaultRole;
       roleBtns.forEach(b => b.addEventListener('click', () => {
         roleBtns.forEach(x => x.classList.remove('active'));
         b.classList.add('active');
-        chosenRole = b.dataset.role;
+        back._chosenRole = b.dataset.role;
       }));
       back.querySelector('#po-auth-go').addEventListener('click', async () => {
         const input = back.querySelector('#po-auth-email');
@@ -190,11 +201,12 @@
         if (!email.includes('@')) { input.focus(); return; }
         btn.disabled = true; btn.textContent = 'Sending…';
         try {
-          const r = await api.requestLink(email, chosenRole);
+          const r = await api.requestLink(email, back._chosenRole || 'buyer', back._nextOverride || null);
           result.style.display = 'block';
           if (r.emailSent) {
             result.className = 'po-auth-result';
-            result.innerHTML = `<strong>✓ Check your inbox.</strong> We sent a sign-in link to <strong>${email}</strong>. The link expires in 30 minutes.`;
+            result.innerHTML = `<strong>✓ Check your inbox.</strong> We sent a sign-in link to <strong>${email}</strong>. The link expires in 30 minutes.` +
+              (back._nextOverride ? ` After you sign in you'll return to finish your reservation.` : '');
           } else if (r.devLink) {
             result.className = 'po-auth-result';
             result.innerHTML = `<strong>Dev mode</strong> — email service not yet configured. <a href="${r.devLink}">Click here to sign in</a> (link expires in 30 min).`;
@@ -210,6 +222,8 @@
         }
       });
     }
+    back._nextOverride = nextOverride;
+    back._chosenRole = defaultRole;
     back.querySelector('#po-auth-title').textContent = prompt;
     const defaultBtn = back.querySelector(`[data-role="${defaultRole}"]`);
     if (defaultBtn) {

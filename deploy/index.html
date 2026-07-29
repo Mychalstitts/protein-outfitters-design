@@ -750,7 +750,7 @@ body { background: var(--bg); overflow-x: hidden; }
       <a href="#how">How it works</a>
       <a href="/producers">Producers</a>
       <a href="/hardware">Hardware</a>
-      <a href="/processor-saas">Pricing</a>
+      <a href="/processor-saas">Plant plans</a>
     </div>
     <div class="po-nav-actions">
       <a href="/account" class="signin">Sign in</a>
@@ -820,11 +820,11 @@ body { background: var(--bg); overflow-x: hidden; }
         <p>Search verified ranches by protein, breed, and miles from your ZIP. Reserve a share of a specific animal you can drive to.</p>
         <span class="arrow">Browse farms →</span>
       </a>
-      <a href="/trends" class="cta-card role-hw">
-        <span class="role">Supply chain intelligence</span>
-        <h3>Capacity gaps in the supply chain.</h3>
-        <p>Heat maps of underserved regions, surplus farms, and processor bottlenecks — for operators, investors, and county planners.</p>
-        <span class="arrow">View opportunities →</span>
+      <a href="/faq#buyer" class="cta-card role-hw">
+        <span class="role">How pricing works</span>
+        <h3>One all-in $/lb. Deposit today, balance at pickup.</h3>
+        <p>Farmer rate, processing, kill fee, insurance pool, and platform fee — rolled into the number you see. Free cancel up to 21 days before harvest.</p>
+        <span class="arrow">Read buyer FAQ →</span>
       </a>
     </div>
 
@@ -1009,7 +1009,7 @@ body { background: var(--bg); overflow-x: hidden; }
     return Number(farmerRate || 0) + 1.55; // rough fallback (processing + insurance + platform + kill share)
   }
 
-  function fmt$(n){ return '$' + Number(n||0).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+  function fmtPerLb(n){ return '$' + Number(n||0).toFixed(2); }
   function speciesLabel(s){ return ({cattle:'Beef', hog:'Pork', lamb:'Lamb', goat:'Goat', bison:'Bison', venison:'Venison', poultry:'Poultry'})[s] || s; }
   function photoFor(l){
     if (l.photos && l.photos[0]) return l.photos[0];
@@ -1018,14 +1018,20 @@ body { background: var(--bg); overflow-x: hidden; }
   }
 
   grid.innerHTML = listings.slice(0, 6).map(l => {
-    const farmerRate = Number(l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0);
+    const farmerQ = Number(l.shares?.quarter?.price || 0);
+    const farmerH = Number(l.shares?.half?.price || 0);
+    const farmerW = Number(l.shares?.whole?.price || 0);
+    const farmerRate = farmerQ || farmerH || farmerW || Number(l.price_per_lb || 0);
     const hw = Number(l.estimated_hanging_weight || 700);
     const cheapestShare = l.shares?.quarter?.available > 0 ? 'quarter'
                        : l.shares?.half?.available > 0 ? 'half'
                        : l.shares?.whole?.available > 0 ? 'whole'
                        : 'half';
-    const fractionLbs = (cheapestShare === 'whole' ? 1 : cheapestShare === 'half' ? 0.5 : 0.25) * hw;
-    const totalShare = farmerRate * fractionLbs; // approximate "from $X" headline
+    // Buyer-facing price is always cumulative all-in $/lb hanging weight
+    const allInLb = allInPerLb(farmerRate, cheapestShare, hw);
+    const allInQ = farmerQ ? allInPerLb(farmerQ, 'quarter', hw) : 0;
+    const allInH = farmerH ? allInPerLb(farmerH, 'half', hw) : 0;
+    const allInW = farmerW ? allInPerLb(farmerW, 'whole', hw) : 0;
     const photo = photoFor(l);
     const tag = l.status === 'sold' ? 'Sold out' : (l.shares?.quarter?.available || l.shares?.half?.available) ? 'Reserving' : 'Limited';
     const harvestLabel = l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en-US', {month:'long',day:'numeric'}) : 'TBD';
@@ -1047,9 +1053,9 @@ body { background: var(--bg); overflow-x: hidden; }
         data-animal="${l.id}" data-name="${animalLabel}"
         data-producer="${farmName}${l.farm_city ? ' · ' + l.farm_city + ', ' + l.farm_state : ''}"
         data-photo="${photo}"
-        data-price-q="${l.shares?.quarter?.price || 0}"
-        data-price-h="${l.shares?.half?.price || 0}"
-        data-price-w="${l.shares?.whole?.price || 0}">
+        data-price-q="${allInQ}"
+        data-price-h="${allInH}"
+        data-price-w="${allInW}">
         <div class="product-photo" style="background-image: url('${photo}');">
           <span class="product-tag">${tag}</span>
           ${ratingBadge ? `<span style="position:absolute;top:12px;right:12px;">${ratingBadge}</span>` : ''}
@@ -1059,7 +1065,7 @@ body { background: var(--bg); overflow-x: hidden; }
           <h3 class="product-name">${animalLabel}</h3>
           <p class="product-detail">${farmName} · ${hw} lb HW · Harvest ${harvestLabel}</p>
           <div class="product-foot">
-            <span class="product-price">From <strong>${fmt$(totalShare)}</strong></span>
+            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb all-in</span></span>
             <span class="product-cta">Reserve →</span>
           </div>
         </div>

@@ -93,23 +93,23 @@
     <h2 class="po-h3" style="text-align: center; margin: 0 auto;">Three light touches over three weeks.</h2>
 
     <div class="next-grid">
-      <a href="/cut-sheet" class="next-card" id="cutSheetLink">
+      <a href="/account" class="next-card" id="cutSheetLink">
         <span class="next-num">01 · This week</span>
         <h3 class="next-h">Build your cut sheet.</h3>
-        <p class="next-p">Five minutes on your phone. Tell the processor exactly how you want every cut.</p>
+        <p class="next-p" id="nextCutP">Five minutes on your phone. Tell the processor exactly how you want every cut.</p>
         <span class="next-cta">Open cut sheet →</span>
       </a>
-      <a href="/account" class="next-card">
-        <span class="next-num">02 · May 28</span>
+      <a href="/account" class="next-card" id="nextHarvestCard">
+        <span class="next-num" id="nextHarvestNum">02 · Harvest</span>
         <h3 class="next-h">Harvest day.</h3>
-        <p class="next-p">We'll email confirmation when #2641 is dropped off. No action needed.</p>
+        <p class="next-p" id="nextHarvestP">We'll email when your animal is dropped off at the plant. No action needed from you.</p>
         <span class="next-cta">View reservation →</span>
       </a>
-      <a href="/account" class="next-card">
-        <span class="next-num">03 · ~June 11</span>
+      <a href="/account" class="next-card" id="nextPickupCard">
+        <span class="next-num">03 · Pick up</span>
         <h3 class="next-h">Pick up.</h3>
-        <p class="next-p">We'll text when your cuts are wrapped, frozen, and ready. Walk in, scan, walk out.</p>
-        <span class="next-cta">Get a calendar reminder →</span>
+        <p class="next-p" id="nextPickupP">We'll text when your cuts are wrapped, frozen, and ready. Walk in, scan, walk out.</p>
+        <span class="next-cta">View reservation →</span>
       </a>
     </div>
 
@@ -124,24 +124,40 @@
 <script src="./po-shell.js"></script>
 <script>
   // Hydrate from ?reservation=<uuid> set in Stripe's success_url.
-  // Falls back to a generic confirmation if the lookup fails (logged in?
-  // user closed Stripe-hosted page early?) — we never block the user here.
+  // Never show demo animal names/dates — placeholders stay neutral until real data loads.
   (async function hydrateConfirmation() {
     const params = new URLSearchParams(location.search);
-    const reservationId = params.get('reservation');
-    // Wire the "Build your cut sheet" CTA to this reservation so the buyer
-    // doesn't get bounced to "pick an animal" when they tap it. Set as
-    // early as possible — before the API hydration even resolves.
-    if (reservationId) {
-      const cutLink = document.getElementById('cutSheetLink');
-      if (cutLink) cutLink.href = '/cut-sheet?reservation_id=' + encodeURIComponent(reservationId);
+    const reservationId = params.get('reservation') || params.get('reservation_id');
+    const cutLink = document.getElementById('cutSheetLink');
+
+    if (!reservationId) {
+      // No id in URL — don't invent a demo order
+      const resAnimal = document.getElementById('resAnimal');
+      const resMeta = document.getElementById('resMeta');
+      const confirmedSub = document.getElementById('confirmedSub');
+      if (resAnimal) resAnimal.textContent = 'Reservation details unavailable';
+      if (resMeta) resMeta.textContent = 'Open your account to see active reservations, or check the confirmation email we sent.';
+      if (confirmedSub) confirmedSub.textContent = 'If you just paid, check your email for a receipt — or sign in to Account to find this reservation.';
+      if (cutLink) cutLink.href = '/account';
+      return;
     }
-    if (!reservationId) return; // No id → leave the generic placeholders.
+
+    // Wire cut sheet early so a slow API still deep-links correctly
+    if (cutLink) cutLink.href = '/cut-sheet?reservation_id=' + encodeURIComponent(reservationId);
+
     try {
       const r = await fetch('/api/reservations?id=' + encodeURIComponent(reservationId), { credentials: 'include' });
-      if (!r.ok) return;
+      if (!r.ok) {
+        document.getElementById('resAnimal').textContent = 'Couldn’t load this reservation';
+        document.getElementById('resMeta').textContent = 'It may still be processing. Check your email or Account in a moment.';
+        return;
+      }
       const { reservation } = await r.json();
-      if (!reservation) return;
+      if (!reservation) {
+        document.getElementById('resAnimal').textContent = 'Reservation not found';
+        document.getElementById('resMeta').textContent = 'Check your email or open Account for active orders.';
+        return;
+      }
       const fraction = reservation.share_size === 'whole' ? 'Whole animal'
         : reservation.share_size === 'half' ? 'Half share'
         : reservation.share_size === 'quarter' ? 'Quarter share'
@@ -171,7 +187,23 @@
       if (confirmedSub) {
         confirmedSub.textContent = `We just held a ${fraction.toLowerCase()} of ${animalLabel} for you. Your receipt is on the way, and your cut sheet builder is one tap away.`;
       }
-    } catch { /* network/auth error — leave placeholders */ }
+      // Timeline uses real harvest date when known — never demo dates
+      const harvestNum = document.getElementById('nextHarvestNum');
+      const harvestP = document.getElementById('nextHarvestP');
+      if (dropoff && harvestNum) harvestNum.textContent = '02 · ' + dropoff;
+      if (harvestP) {
+        harvestP.textContent = dropoff
+          ? `We'll email when ${animalLabel} is dropped off around ${dropoff}. No action needed from you.`
+          : `We'll email when ${animalLabel} is dropped off at the plant. No action needed from you.`;
+      }
+      const pickupP = document.getElementById('nextPickupP');
+      if (pickupP) {
+        pickupP.textContent = 'We\'ll text when your cuts are wrapped, frozen, and ready — typically ~2 weeks after harvest. Walk in, scan, walk out.';
+      }
+    } catch {
+      document.getElementById('resAnimal').textContent = 'Couldn’t load this reservation';
+      document.getElementById('resMeta').textContent = 'Network error — try Account or your confirmation email.';
+    }
   })();
 </script>
 </body>
