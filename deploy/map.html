@@ -115,26 +115,44 @@
   .layer-tab.locked .count { opacity: .4; }
   .layer-tab.locked .label { opacity: .4; }
 
-  /* List items in side panel */
-  .list-item { display: flex; gap: 12px; padding: 11px 12px; border-radius: 10px; cursor: pointer; transition: background .15s; align-items: flex-start; }
-  .list-item:hover { background: rgba(232,238,233,.06); }
-  .list-item.active { background: rgba(125,160,93,.16); border: 1px solid rgba(125,160,93,.35); }
-  .list-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; font: 800 11.5px/1 'Inter'; color: #fbf9f5; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+  /* List items in side panel — product cards */
+  .list-item {
+    display: flex; gap: 12px; padding: 12px;
+    border-radius: 14px; cursor: pointer;
+    transition: background .15s, transform .15s, border-color .15s;
+    align-items: flex-start;
+    border: 1px solid transparent;
+    margin-bottom: 6px;
+    background: rgba(232,238,233,.03);
+  }
+  .list-item:hover { background: rgba(232,238,233,.08); border-color: rgba(232,238,233,.08); transform: translateY(-1px); }
+  .list-item.active { background: rgba(125,160,93,.14); border: 1px solid rgba(125,160,93,.35); }
+  .list-icon { flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font: 800 12px/1 'Inter'; color: #fbf9f5; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
   .list-icon.farm { background: linear-gradient(135deg, var(--po-green), #5a8540); }
   .list-icon.processor { background: linear-gradient(135deg, #b48a5a, #8a6840); }
   .list-icon.demand { background: linear-gradient(135deg, var(--po-yellow), #d39c1f); color: #4a3000; }
   .list-icon.opportunity { background: linear-gradient(135deg, var(--po-orange), #ce4d1f); }
   .list-icon.prospect { background: linear-gradient(135deg, #6b7c93, #4a5868); }
   .list-body { flex: 1; min-width: 0; }
-  .list-title { font: 700 13px/1.3 'Inter'; color: var(--map-text); margin: 0 0 2px; }
+  .list-title { font: 800 13.5px/1.3 'Inter'; color: var(--map-text); margin: 0 0 3px; letter-spacing: -0.01em; }
   .list-meta { font: 500 11.5px/1.4 'Inter'; color: var(--map-muted); margin: 0; }
-  .list-pill { display: inline-block; padding: 1px 7px; border-radius: 999px; font: 700 9.5px/1.5 'Inter'; letter-spacing: .04em; text-transform: uppercase; margin-right: 4px; }
+  .list-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+  .list-cta {
+    font: 800 11px/1 'Inter'; color: var(--po-green-bright);
+    letter-spacing: 0.02em; white-space: nowrap;
+  }
+  .list-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 700 9.5px/1.5 'Inter'; letter-spacing: .04em; text-transform: uppercase; margin-right: 4px; margin-top: 4px; }
   .list-pill.green { background: rgba(125,160,93,.22); color: var(--po-green-bright); }
   .list-pill.red   { background: rgba(255,69,72,.18); color: #ff8e90; }
   .list-pill.orange { background: rgba(255,122,61,.18); color: var(--po-orange); }
   .list-pill.gray { background: rgba(107,124,147,.22); color: #9aafc4; }
   .list-pill.blue { background: rgba(74,139,175,.22); color: #7ab8da; }
-  .list-empty { padding: 36px 16px; text-align: center; color: var(--map-muted); font: 500 13px/1.5 'Inter'; }
+  .list-empty { padding: 40px 18px; text-align: center; color: var(--map-muted); font: 500 13px/1.5 'Inter'; }
+  .list-empty strong { display: block; color: var(--map-text); font: 800 15px/1.3 'Inter'; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .list-empty a {
+    display: inline-flex; margin-top: 14px; padding: 10px 16px; border-radius: 999px;
+    background: var(--po-green); color: #061b0e; font: 800 12px/1 'Inter'; text-decoration: none;
+  }
 
   /* Locked-tier teaser inside sidebar */
   .locked-teaser { padding: 28px 20px; text-align: center; background: linear-gradient(135deg, rgba(255,122,61,.08), rgba(255,69,72,.08)); border-radius: 12px; margin: 12px; border: 1px solid rgba(255,122,61,.18); }
@@ -597,25 +615,43 @@
     }
 
     if (!items.length) {
-      el.innerHTML = `<div class="list-empty">No ${meta.title.toLowerCase()} on the map yet.</div>`;
+      const emptyCta = currentLayer === 'farms'
+        ? '<a href="/discover">Browse live animals →</a>'
+        : currentLayer === 'processors'
+          ? '<a href="/compare">Compare plants →</a>'
+          : '<a href="/discover">Browse marketplace →</a>';
+      el.innerHTML = `<div class="list-empty"><strong>Nothing in this view</strong>No ${escapeHtml(meta.title.toLowerCase())} in the current map area. Pan, zoom, or search a ZIP.${emptyCta}</div>`;
       return;
     }
 
-    el.innerHTML = items.map((item, i) => `
+    el.innerHTML = items.map((item, i) => {
+      const cta = item.link
+        ? (item.kind === 'farm' ? 'Open farm →' : item.kind === 'processor' ? 'Open plant →' : 'Open →')
+        : (item.kind === 'opportunity' ? 'View ROI →' : 'Show on map →');
+      return `
       <div class="list-item" data-i="${i}" data-lat="${item.lat}" data-lng="${item.lng}"${item.link ? ` data-link="${escapeHtml(item.link)}"` : ''}>
         <div class="list-icon ${item.kind}">${initials(item.title)}</div>
         <div class="list-body">
           <h4 class="list-title">${escapeHtml(item.title)}</h4>
           <p class="list-meta">${escapeHtml(item.meta)}</p>
-          ${item.pills.length ? `<div style="margin-top:4px;">${item.pills.map(p => `<span class="list-pill ${p.color}">${escapeHtml(p.text)}</span>`).join('')}</div>` : ''}
+          ${item.pills.length ? `<div>${item.pills.map(p => `<span class="list-pill ${p.color}">${escapeHtml(p.text)}</span>`).join('')}</div>` : ''}
+          <div class="list-foot"><span class="list-cta">${cta}</span></div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     lastListItems = items;
-    // Click → fly to + open popup
-    el.querySelectorAll('.list-item').forEach(li => li.addEventListener('click', () => {
+    // Click → fly to + open popup (profile links open on second affordance via double-click or long hold via link)
+    el.querySelectorAll('.list-item').forEach(li => li.addEventListener('click', (ev) => {
       const idx = parseInt(li.dataset.i, 10);
       const item = lastListItems[idx];
+      // Alt/meta click or if already active → open profile
+      if ((ev.metaKey || ev.altKey || li.classList.contains('active')) && li.dataset.link) {
+        window.location.href = li.dataset.link;
+        return;
+      }
+      el.querySelectorAll('.list-item').forEach(x => x.classList.remove('active'));
+      li.classList.add('active');
       flyToAndOpenPopup(item);
     }));
   }

@@ -87,12 +87,16 @@
   </header>
   <div class="sheet-body">
     <div class="sheet-context"><div class="sheet-context-img" id="sheetContextImg"></div><div class="sheet-context-text"><p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p><p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p></div></div>
-    <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><div class="options" id="shareOptions"></div></section>
-    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Reserve it.</h3>
-      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Pay your deposit + fees today. Meat is settled at pickup based on actual hanging weight.</p>
-      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18.00</span></div><div class="summary-row total"><span>Reserve today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
-      <div class="pay-stack"><button class="btn-pay btn-pay--apple" id="payApple"> Pay deposit</button><button class="btn-pay btn-pay--card" id="payCard">Reserve with card →</button></div>
-      <p style="font-size:12px;color:var(--ink-3);text-align:center;margin:14px 0 0;line-height:1.5;">Free cancellation up to 21 days before harvest. Next, you'll build your cut sheet.</p>
+    <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><p style="font-size:13px;color:var(--ink-2);margin:0 0 12px;line-height:1.45;">One all-in $/lb. Deposit locks your place — balance at pickup on actual hanging weight.</p><div class="options" id="shareOptions"></div></section>
+    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Lock it in.</h3>
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Pay deposit + fees today. Secure checkout. Free cancel up to 21 days before harvest.</p>
+      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18.00</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
+      <div class="pay-stack"><button class="btn-pay btn-pay--card" id="payCard" style="order:-1">Continue to secure checkout →</button><button class="btn-pay btn-pay--apple" id="payApple" type="button">Pay deposit</button></div>
+      <ul class="sheet-trust" style="list-style:none;padding:14px 0 0;margin:12px 0 0;border-top:1px solid rgba(6,27,14,.08);display:grid;gap:8px;font:600 12px/1.35 'Inter',system-ui,sans-serif;color:var(--ink-2);">
+        <li>✓ Stripe secure checkout · card never hits our servers</li>
+        <li>✓ Free cancel up to 21 days before harvest</li>
+        <li>✓ Next step: build your cut sheet on your phone</li>
+      </ul>
     </section>
     <section class="sheet-step" data-step="3" hidden><div class="confirm"><div class="confirm-mark">✓</div><h3 id="confirmTitle">Reserved.</h3><p id="confirmBody">We just sent your reservation details and your cut sheet builder.</p></div></section>
   </div>
@@ -459,7 +463,7 @@
       else {
         nextBtn.style.visibility = 'visible'; backBtn.style.visibility = 'visible';
         if (n === 1) { nextBtn.disabled = !state.share; nextBtn.textContent = 'Continue →'; }
-        if (n === 2) { nextBtn.disabled = false; nextBtn.textContent = 'Reserve →'; }
+        if (n === 2) { nextBtn.disabled = false; nextBtn.textContent = 'Pay deposit →'; }
       }
       if (n === 2 && state.share) {
         // Reservation deposit model: deposit is a flat 10% of estimated meat cost (capped 50–500),

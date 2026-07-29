@@ -68,9 +68,70 @@ body { background: var(--surface-2); }
 
 /* Mobile-only role switcher (top of phone view) */
 .role-switcher { display: flex; gap: 6px; padding: var(--s-3); background: var(--bg); position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--hairline); }
-.role-switcher button { flex: 1; padding: 10px; background: var(--surface); border-radius: var(--r-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: var(--tracking-wide); }
+.role-switcher button { flex: 1; padding: 10px; background: var(--surface); border-radius: var(--r-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: var(--tracking-wide); min-height: 44px; }
 .role-switcher button.active { background: var(--brand); color: var(--ink-inverse); }
 @media (min-width: 768px) { .role-switcher { display: none; } }
+
+/* Phone bottom dock — Uber-style ops chrome */
+.proc-mobile-dock {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: rgba(251,249,245,.96);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--hairline);
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  gap: 4px;
+}
+.proc-mobile-dock a {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 4px; border-radius: 12px; text-decoration: none;
+  font: 700 10px/1.1 'Inter', system-ui, sans-serif; color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+.proc-mobile-dock a span.ico { font-size: 18px; line-height: 1; }
+.proc-mobile-dock a.active { color: var(--brand); background: rgba(6,27,14,.06); }
+@media (max-width: 767px) {
+  .proc-mobile-dock { display: flex; }
+  .proc-main { padding-bottom: 88px; }
+  .booking {
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    padding: 14px;
+    min-height: 72px;
+  }
+  .booking .booking-right { grid-column: 2; justify-self: start; margin-top: 4px; }
+  .proc-tabs { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .proc-tabs button { flex: 0 0 auto; min-height: 40px; }
+}
+
+/* Mobile inspector sheet */
+.proc-inspector-sheet {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  max-height: 72vh; overflow-y: auto;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -12px 40px rgba(6,27,14,.18);
+  padding: 12px 18px calc(24px + env(safe-area-inset-bottom));
+  transform: translateY(110%);
+  transition: transform .32s cubic-bezier(.2,.9,.3,1.05);
+}
+.proc-inspector-sheet.open { transform: translateY(0); }
+.proc-inspector-sheet .sheet-handle {
+  width: 40px; height: 4px; border-radius: 99px; background: rgba(6,27,14,.15);
+  margin: 4px auto 14px;
+}
+@media (max-width: 1099px) {
+  .proc-inspector-sheet { display: block; }
+  .proc-inspector-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 45;
+    background: rgba(6,27,14,.4); backdrop-filter: blur(4px);
+  }
+  .proc-inspector-backdrop.open { display: block; }
+}
+@media (min-width: 1100px) {
+  .proc-inspector-sheet, .proc-inspector-backdrop { display: none !important; }
+}
 
 /* Booking row */
 .booking {
@@ -188,24 +249,37 @@ body { background: var(--surface-2); }
 
 .lunch-block { padding: 8px var(--s-4); background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 6px, var(--surface) 6px, var(--surface) 12px); text-align: center; font-size: 10px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); border-radius: var(--r-2); margin: 6px 0; }
 </style>
-<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<meta property="og:title" content="Plant ops · Protein Outfitters" />
+<meta property="og:description" content="Today's queue, cooler, and check-in for inspected meat plants." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 </head>
 <body>
 
 <!-- Phone-only role switcher -->
 <div class="role-switcher">
-  <button class="active" data-role="processor" onclick="switchRole('processor')">Processor</button>
-  <button data-role="farmer-qr" onclick="switchRole('farmer-qr')">Farmer · QR</button>
-  <button data-role="farmer-book" onclick="switchRole('farmer-book')">Farmer · Book</button>
+  <button class="active" data-role="processor" onclick="switchRole('processor')">Plant</button>
+  <button data-role="farmer-qr" onclick="switchRole('farmer-qr')">QR dropoff</button>
+  <button data-role="farmer-book" onclick="switchRole('farmer-book')">Book slot</button>
 </div>
+
+<nav class="proc-mobile-dock" aria-label="Plant ops">
+  <a href="/processor" class="active"><span class="ico">📋</span>Queue</a>
+  <a href="/processor-checkin"><span class="ico">📷</span>Check-in</a>
+  <a href="/processor-schedule"><span class="ico">📅</span>Schedule</a>
+  <a href="/processor-pricing"><span class="ico">💲</span>Fees</a>
+  <a href="/finance"><span class="ico">💸</span>Pay</a>
+</nav>
+
+<div class="proc-inspector-backdrop" id="procInspBd" hidden></div>
+<aside class="proc-inspector-sheet" id="procInspSheet" aria-hidden="true">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div id="procInspSheetBody">
+    <p style="text-align:center;color:var(--ink-3);font:500 14px/1.4 Inter;padding:24px 12px;">Tap a booking in the queue to inspect it.</p>
+  </div>
+</aside>
 
 <!-- ============ PROCESSOR VIEW ============ -->
 <div class="proc-shell" id="view-processor">
@@ -517,8 +591,53 @@ function switchRole(r) {
 function selectBooking(el, id) {
   document.querySelectorAll('.booking').forEach(b => b.classList.remove('is-selected'));
   el.classList.add('is-selected');
-  // update inspector — minimal here
-  showToast('Loaded booking ' + id);
+
+  // Desktop inspector titles
+  const title = el.querySelector('.booking-title');
+  const sub = el.querySelector('.booking-sub');
+  const insTitle = document.getElementById('ins-title');
+  const insSub = document.getElementById('ins-sub');
+  if (insTitle && title) insTitle.textContent = title.textContent.replace(/^[^·]*·\s*/, '') || title.textContent;
+  if (insSub && sub) insSub.textContent = sub.textContent;
+
+  // Mobile / tablet: open bottom sheet with booking summary + primary action
+  const sheet = document.getElementById('procInspSheet');
+  const bd = document.getElementById('procInspBd');
+  const body = document.getElementById('procInspSheetBody');
+  if (sheet && body && window.matchMedia('(max-width: 1099px)').matches) {
+    const t = title ? title.textContent : ('Booking ' + id);
+    const s = sub ? sub.textContent : '';
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div>
+          <span class="eyebrow">Booking detail</span>
+          <h3 class="h2 mt-2" style="margin:8px 0 4px;">${t.replace(/</g,'&lt;')}</h3>
+          <p class="body-sm" style="margin:0;color:var(--ink-2);">${s.replace(/</g,'&lt;')}</p>
+        </div>
+        <button type="button" id="procInspClose" style="border:0;background:rgba(6,27,14,.06);width:36px;height:36px;border-radius:999px;font:700 16px/1 Inter;cursor:pointer;">✕</button>
+      </div>
+      <div class="card" style="padding:14px;margin-bottom:12px;">
+        <span class="eyebrow">Next action</span>
+        <p class="body-sm mt-2" style="margin:8px 0 0;">Check the animal in when it hits the dock. Use the camera check-in flow for deposit release and buyer notifications.</p>
+      </div>
+      <button class="btn btn--primary btn--block btn--lg" type="button" id="procInspCheckin">Check in drop-off →</button>
+      <a href="/processor-checkin" class="btn btn--secondary btn--block mt-3" style="text-decoration:none;text-align:center;">Open check-in station</a>
+    `;
+    sheet.classList.add('open');
+    sheet.setAttribute('aria-hidden', 'false');
+    if (bd) { bd.hidden = false; bd.classList.add('open'); }
+    const closeSheet = () => {
+      sheet.classList.remove('open');
+      sheet.setAttribute('aria-hidden', 'true');
+      if (bd) { bd.classList.remove('open'); bd.hidden = true; }
+    };
+    document.getElementById('procInspClose')?.addEventListener('click', closeSheet);
+    bd?.addEventListener('click', closeSheet, { once: true });
+    document.getElementById('procInspCheckin')?.addEventListener('click', () => {
+      openScanner(id, t, s);
+      closeSheet();
+    });
+  }
 }
 
 function openScanner(id, name, ranch) {

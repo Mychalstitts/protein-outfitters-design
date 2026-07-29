@@ -140,6 +140,22 @@
 
 @media (max-width: 899px) {
   .book-card { position: static; }
+  /* Mobile sticky buy bar — Airbnb pattern */
+  .lg-mobile-bar {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+    background: rgba(251,249,245,.96); backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(6,27,14,.08);
+    padding: 12px var(--shell-pad) calc(12px + env(safe-area-inset-bottom));
+    align-items: center; justify-content: space-between; gap: 14px;
+    box-shadow: 0 -8px 28px rgba(6,27,14,.08);
+  }
+  .lg-mobile-bar .num { font: 900 18px/1 'Inter'; letter-spacing: -0.02em; }
+  .lg-mobile-bar .meta { font: 500 12px/1.3 'Inter'; color: var(--ink-2); margin-top: 3px; }
+  .lg-mobile-bar .btn-xl { padding: 14px 20px; font-size: 14px; }
+  .lg-shell { padding-bottom: 100px; }
+}
+@media (min-width: 900px) {
+  .lg-mobile-bar { display: none !important; }
 }
 </style>
 </head>
@@ -176,9 +192,9 @@
   </div>
 
   <div class="lg-gallery" id="lgGallery" aria-label="Photos">
-    <div class="g-main"><div class="g-ph" id="lgPhoto0"></div></div>
-    <div class="g-side"><div class="g-ph" id="lgPhoto1"></div></div>
-    <div class="g-side"><div class="g-ph" id="lgPhoto2"></div></div>
+    <div class="g-main"><img class="g-ph" id="lgPhoto0" alt="" decoding="async" fetchpriority="high" /></div>
+    <div class="g-side"><img class="g-ph" id="lgPhoto1" alt="" loading="lazy" decoding="async" /></div>
+    <div class="g-side"><img class="g-ph" id="lgPhoto2" alt="" loading="lazy" decoding="async" /></div>
   </div>
 
   <div class="lg-body">
@@ -235,6 +251,14 @@
   </div>
 </div>
 
+<div class="lg-mobile-bar" id="lgMobileBar" hidden>
+  <div>
+    <div class="num" id="lgMobilePrice">—</div>
+    <div class="meta" id="lgMobileMeta">all-in · deposit today</div>
+  </div>
+  <button type="button" class="btn-xl btn-xl--dark js-reserve" data-open-sheet id="lgMobileReserve">Reserve →</button>
+</div>
+
 <div id="po-shell-host"></div>
 <script src="./po-shell.js"></script>
 <script src="./po-api.js"></script>
@@ -273,14 +297,22 @@
   const photo = (l.photos && l.photos[0]) || photoFor(l.species);
   const photos = (l.photos && l.photos.length ? l.photos.slice(0, 3) : [photo, '/img/ranch.jpg', '/img/cattle-pasture.jpg']);
   while (photos.length < 3) photos.push(photos[0] || photo);
-  const setPh = (el, url) => {
+  const setPh = (el, url, alt) => {
     if (!el) return;
-    if (el.tagName === 'IMG') el.src = url;
-    else { el.style.backgroundImage = `url('${url}')`; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; }
+    if (el.tagName === 'IMG') {
+      el.src = url;
+      el.alt = alt || '';
+      el.onerror = () => { el.src = photoFor(l.species); };
+    } else {
+      el.style.backgroundImage = `url('${url}')`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+    }
   };
-  setPh(document.getElementById('lgPhoto0'), photos[0]);
-  setPh(document.getElementById('lgPhoto1'), photos[1]);
-  setPh(document.getElementById('lgPhoto2'), photos[2]);
+  const galleryAlt = `${l.breed || cap(l.species)} · ${l.farm_name || 'farm'}`;
+  setPh(document.getElementById('lgPhoto0'), photos[0], galleryAlt);
+  setPh(document.getElementById('lgPhoto1'), photos[1], galleryAlt + ' · 2');
+  setPh(document.getElementById('lgPhoto2'), photos[2], galleryAlt + ' · 3');
 
   document.title = `${l.number || ''} · ${l.breed || cap(l.species)} · Protein Outfitters`.replace(/^\s*·\s*/, '');
   document.getElementById('lgCrumbSpecies').textContent = cap(l.species || 'Animal');
@@ -309,6 +341,12 @@
     const cheapest = [...sharesArr].sort((a, b) => a.price - b.price)[0];
     document.getElementById('lgFromPrice').textContent = '$' + cheapest.price.toFixed(2);
     document.getElementById('lgFromMeta').textContent = cheapest.label + ' · everything included · deposit today';
+    const bar = document.getElementById('lgMobileBar');
+    if (bar) {
+      bar.hidden = false;
+      document.getElementById('lgMobilePrice').textContent = '$' + cheapest.price.toFixed(2) + '/lb';
+      document.getElementById('lgMobileMeta').textContent = cheapest.label + ' · deposit today';
+    }
   } else {
     document.getElementById('lgFromPrice').textContent = 'Sold out';
     document.getElementById('lgFromUnit').textContent = '';
