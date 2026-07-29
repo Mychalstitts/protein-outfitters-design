@@ -58,132 +58,147 @@
 .seg button { flex: 1; background: transparent; border: 0; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 999px; transition: background .2s, color .2s; white-space: nowrap; }
 .seg button.active { background: var(--brand); color: #fbf9f5; }
 
-/* Realistic butcher-chart cow (silhouette + clipped primals) */
+/* Classic chalkboard "Cuts of Beef" chart */
 .cow-block { background: #fff; border-radius: 22px; padding: clamp(22px, 2.5vw, 28px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 18px; }
-.diagram-wrap { position: relative; width: 100%; max-width: 960px; margin: 0 auto; }
+.diagram-wrap { position: relative; width: 100%; max-width: 980px; margin: 0 auto; }
 .cow-wrap {
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 45%, #f7f1e6 0%, #ebe2d0 55%, #e0d4be 100%);
-  border-radius: 20px;
-  padding: clamp(12px, 1.6vw, 20px) clamp(8px, 1.2vw, 16px) 8px;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(6,27,14,0.06);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
+  border-radius: 18px;
+  padding: clamp(10px, 1.5vw, 18px) clamp(8px, 1.2vw, 14px) 6px;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, #3a3a3a 0%, #2a2a2a 45%, #1c1c1c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    inset 0 0 80px rgba(0,0,0,.35),
+    0 12px 40px rgba(0,0,0,.18);
 }
+/* Chalk dust / board texture */
 .cow-wrap::before {
-  content:""; position:absolute; inset:0; pointer-events:none; opacity:.35;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
-  mix-blend-mode: multiply;
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.55;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+.cow-wrap::after {
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 50% 40% at 20% 15%, rgba(255,255,255,.04), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 85% 80%, rgba(0,0,0,.25), transparent 55%);
 }
 .cow-svg {
-  display: block; width: 100%; max-width: 920px; height: auto; margin: 0 auto;
+  display: block; width: 100%; max-width: 940px; height: auto; margin: 0 auto;
   position: relative; z-index: 1;
 }
 
-/* Base animal body under the colored primals */
+/* White chalk cow body */
 .cow-svg .cow-body-fill {
-  /* gradient applied via attribute on <use> */
-}
-.cow-svg .cow-body-shade {
-  fill: url(#cowShade);
-  pointer-events: none;
+  fill: #f2efe8;
+  filter: url(#chalkFill);
 }
 .cow-svg .cow-outline {
   fill: none !important;
-  stroke: #1a1510;
-  stroke-width: 3.2;
+  stroke: #f7f4ed;
+  stroke-width: 2.4;
   stroke-linejoin: round;
   stroke-linecap: round;
   pointer-events: none;
+  opacity: .9;
 }
-.cow-svg .cow-detail {
-  fill: none;
-  stroke: rgba(26,21,16,.35);
-  stroke-width: 1.4;
-  stroke-linejoin: round;
-  pointer-events: none;
-}
-.cow-svg .cow-ear { fill: #3a3028; stroke: #1a1510; stroke-width: 1.8; }
-.cow-svg .cow-eye { fill: #f5efe4; }
-.cow-svg .cow-eye-pupil { fill: #1a1510; }
-.cow-svg .cow-hoof { fill: #1a1510; }
-.cow-svg .cow-horn { fill: #c4a574; stroke: #8a6f45; stroke-width: 1.2; }
 
-/* Primal regions — soft, semi-transparent over the silhouette */
+/* Chalk primals: default white body; selected = soft brand tint; empty = dim chalk */
 .cow-svg .primal {
   cursor: pointer;
-  stroke: rgba(26,21,16,.55);
-  stroke-width: 1.6;
+  fill: #f2efe8;
+  stroke: #2a2a2a;
+  stroke-width: 1.75;
   stroke-linejoin: round;
-  transition: fill .22s ease, opacity .22s ease, filter .22s ease, stroke .22s ease;
-  opacity: .88;
-  fill: #6b6358;
+  transition: fill .2s ease, opacity .2s ease, filter .2s ease;
+  opacity: .97;
 }
 .cow-svg .primal:hover {
-  filter: brightness(1.12) saturate(1.15);
-  stroke: #061b0e;
-  stroke-width: 2.4;
-  opacity: 1;
+  fill: #ffffff;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,.25));
 }
-.cow-svg .primal.has-cuts[data-primal="chuck"]   { fill: #c45a4a; }
-.cow-svg .primal.has-cuts[data-primal="rib"]     { fill: #e0b04e; }
-.cow-svg .primal.has-cuts[data-primal="loin"]    { fill: #d47a48; }
-.cow-svg .primal.has-cuts[data-primal="sirloin"] { fill: #c49a62; }
-.cow-svg .primal.has-cuts[data-primal="round"]   { fill: #7da05d; }
-.cow-svg .primal.has-cuts[data-primal="brisket"] { fill: #7a4a30; }
-.cow-svg .primal.has-cuts[data-primal="plate"]   { fill: #c9983a; }
-.cow-svg .primal.has-cuts[data-primal="flank"]   { fill: #9a7448; }
-.cow-svg .primal.has-cuts[data-primal="shank"]   { fill: #a09068; }
-.cow-svg .primal.empty { fill: #6b6358; opacity: .72; }
+.cow-svg .primal.empty {
+  fill: #d8d4cb;
+  opacity: .88;
+}
+/* Soft brand tints when cuts selected — still chalkboard-readable */
+.cow-svg .primal.has-cuts[data-primal="chuck"]   { fill: #f0c4bc; }
+.cow-svg .primal.has-cuts[data-primal="rib"]     { fill: #f5e0b0; }
+.cow-svg .primal.has-cuts[data-primal="loin"]    { fill: #f0c9a8; }
+.cow-svg .primal.has-cuts[data-primal="sirloin"] { fill: #ebd4b0; }
+.cow-svg .primal.has-cuts[data-primal="round"]   { fill: #cfe0b8; }
+.cow-svg .primal.has-cuts[data-primal="brisket"] { fill: #d9b8a0; }
+.cow-svg .primal.has-cuts[data-primal="plate"]   { fill: #ecd4a0; }
+.cow-svg .primal.has-cuts[data-primal="flank"]   { fill: #e0ccb0; }
+.cow-svg .primal.has-cuts[data-primal="shank"]   { fill: #ddd4bc; }
 
-/* Division seams between primals (butcher chalk lines) */
+.cow-svg .primal-static {
+  fill: #f2efe8;
+  stroke: #2a2a2a;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
 .cow-svg .seam {
   fill: none;
-  stroke: rgba(251,249,245,.72);
-  stroke-width: 2;
+  stroke: #2a2a2a;
+  stroke-width: 1.9;
+  stroke-linejoin: round;
   stroke-linecap: round;
   pointer-events: none;
-  mix-blend-mode: soft-light;
 }
 
-/* In-body labels */
+/* Chalk labels inside cow */
 .cow-svg .label {
   font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 800; font-size: 12.5px; letter-spacing: 0.08em;
-  pointer-events: none; user-select: none;
-  fill: #fbf9f5;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+  user-select: none;
+  fill: #1f1f1f;
   text-anchor: middle;
   text-transform: uppercase;
-  paint-order: stroke fill;
-  stroke: rgba(26,21,16,.45);
-  stroke-width: 3.5px;
-  stroke-linejoin: round;
 }
-.cow-svg .label-sm { font-size: 10.5px; letter-spacing: 0.06em; stroke-width: 3px; }
+.cow-svg .label-sm { font-size: 9.5px; letter-spacing: 0.04em; font-weight: 800; }
+.cow-svg .label-xs { font-size: 8px; letter-spacing: 0.03em; font-weight: 700; }
 
-/* Outside callout labels (classic chart style) */
-.cow-svg .callout-line {
-  fill: none; stroke: rgba(6,27,14,.35); stroke-width: 1.25;
-  stroke-linecap: round; pointer-events: none;
-}
-.cow-svg .callout {
+/* Title / caption on chalkboard */
+.cow-svg .board-title {
   font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 700; font-size: 11px; letter-spacing: 0.06em;
-  fill: #3a342c; text-anchor: middle; text-transform: uppercase;
-  pointer-events: none; user-select: none;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.28em;
+  fill: #f2efe8;
+  text-anchor: middle;
+  text-transform: uppercase;
 }
+.cow-svg .board-dot { fill: #f2efe8; opacity: .75; }
 .cow-svg .caption {
   font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 600; font-size: 11px; letter-spacing: 0.03em;
-  fill: rgba(58,52,44,.55); text-anchor: middle;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  fill: rgba(242,239,232,.45);
+  text-anchor: middle;
 }
 
-.cow-legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 14px 6px 2px; font-size: 12px; color: var(--ink-2); align-items: center; justify-content: center; }
+.cow-legend {
+  display: flex; gap: 12px; flex-wrap: wrap; padding: 14px 6px 2px;
+  font-size: 12px; color: var(--ink-2); align-items: center; justify-content: center;
+}
 .cow-legend-item { display: flex; align-items: center; gap: 6px; font-weight: 600; }
-.cow-legend-swatch { width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.cow-legend-swatch {
+  width: 12px; height: 12px; border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  background: #f2efe8;
+}
+.cow-legend-swatch.on { box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
 .diagram-note {
-  text-align: center; margin: 4px 0 6px;
+  text-align: center; margin: 6px 0 4px;
   font: 600 12.5px/1.45 'Inter', system-ui, sans-serif;
   color: var(--ink-2);
 }
@@ -394,158 +409,161 @@
         </div>
       </div>
 
-      <!-- ============ REALISTIC BEEF BUTCHER CHART ============ -->
+      <!-- ============ CHALKBOARD CUTS OF BEEF (classic butcher chart) ============ -->
       <div class="cow-block">
         <div class="cs-block-head">
           <h3>The animal · tap a section to dive in</h3>
-          <p>Standard U.S. primals · color = cuts you’re keeping · tap any region</p>
+          <p>Classic U.S. cuts of beef · soft color = cuts you’re keeping · tap any region</p>
         </div>
         <div class="cow-wrap">
           <div class="diagram-wrap" id="diagramWrap" data-species="beef">
             <!--
-              Side view facing LEFT. Organic cow silhouette with primals clipped
-              to the body so it reads as a real animal, not a block map.
-              Front → back: chuck | rib | short loin | sirloin | round
-              Lower: foreshank · brisket · plate · flank · hindshank
+              Layout mirrors the classic chalkboard chart (head left):
+              HEAD/CHEEK/NECK | CHUCK | RIB | SHORT LOIN | SIRLOIN | ROUND
+              BRISKET | PLATE | FLANK | SHANK (fore + hind)
             -->
-            <svg class="cow-svg" id="cowSvg" viewBox="0 0 1100 620" role="img" aria-label="Interactive U.S. beef primal cut chart on a realistic cow silhouette">
-              <title>U.S. beef primals on a side-view steer</title>
+            <svg class="cow-svg" id="cowSvg" viewBox="0 0 1120 680" role="img" aria-label="Interactive chalkboard cuts of beef chart">
+              <title>Cuts of beef — chalkboard chart</title>
               <defs>
-                <linearGradient id="cowShade" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#fff" stop-opacity="0.14"/>
-                  <stop offset="45%" stop-color="#fff" stop-opacity="0"/>
-                  <stop offset="100%" stop-color="#000" stop-opacity="0.28"/>
-                </linearGradient>
-                <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#3a322a"/>
-                  <stop offset="50%" stop-color="#2a231c"/>
-                  <stop offset="100%" stop-color="#1c1712"/>
-                </linearGradient>
-                <filter id="softShadow" x="-8%" y="-8%" width="116%" height="116%">
-                  <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#1a1510" flood-opacity="0.22"/>
+                <filter id="chalkFill" x="-2%" y="-2%" width="104%" height="104%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="noise" seed="3"/>
+                  <feDiffuseLighting in="noise" lighting-color="#f2efe8" surfaceScale="0.6" result="lit">
+                    <feDistantLight azimuth="45" elevation="55"/>
+                  </feDiffuseLighting>
+                  <feBlend in="SourceGraphic" in2="lit" mode="multiply"/>
                 </filter>
-                <!-- Full animal silhouette for clipping primals into the body -->
-                <!-- Full animal silhouette: side view steer, head left -->
+                <!-- Realistic chalk cow silhouette, side view, head left -->
                 <path id="cowBodyPath" d="
-                  M 95 290
-                  C 78 270, 72 245, 88 228
-                  C 102 214, 125 210, 148 218
-                  C 160 200, 185 185, 220 178
-                  C 270 168, 320 162, 380 158
-                  C 460 152, 540 150, 620 156
-                  C 690 162, 750 178, 800 205
-                  C 835 225, 865 255, 875 290
-                  C 882 315, 875 340, 850 355
-                  C 830 365, 810 368, 790 365
-                  L 785 430
-                  C 782 460, 795 485, 820 492
-                  C 845 500, 868 488, 870 462
-                  L 865 370
-                  C 880 365, 895 350, 900 330
-                  L 905 280
-                  C 920 265, 955 270, 980 290
-                  C 995 302, 992 320, 975 325
-                  C 950 310, 920 305, 900 315
-                  L 890 345
-                  C 870 375, 830 390, 785 395
-                  L 720 400
-                  L 640 398
-                  L 560 392
-                  L 480 388
-                  L 400 390
-                  L 320 398
-                  L 250 410
-                  L 235 455
-                  C 230 480, 245 500, 270 505
-                  C 295 510, 318 495, 320 470
-                  L 315 415
-                  L 240 400
-                  C 200 390, 165 365, 145 335
-                  C 130 340, 110 335, 100 320
-                  C 90 308, 90 298, 95 290
+                  M 92 300
+                  C 70 278, 68 248, 90 230
+                  C 108 216, 135 212, 158 222
+                  C 168 198, 200 178, 245 170
+                  C 300 160, 360 154, 430 150
+                  C 520 144, 600 148, 670 160
+                  C 730 172, 780 195, 815 230
+                  C 845 258, 865 295, 868 330
+                  C 870 355, 858 375, 835 385
+                  C 820 392, 805 392, 790 388
+                  L 782 450
+                  C 778 485, 792 512, 822 520
+                  C 850 528, 875 512, 878 482
+                  L 872 400
+                  C 900 385, 925 350, 928 310
+                  C 932 280, 920 255, 892 245
+                  C 910 228, 945 232, 970 252
+                  C 988 268, 990 288, 972 295
+                  C 948 278, 918 272, 895 282
+                  L 885 320
+                  C 870 355, 835 378, 790 388
+                  L 720 395
+                  L 640 392
+                  L 560 385
+                  L 480 382
+                  L 400 385
+                  L 320 395
+                  L 255 410
+                  L 242 470
+                  C 238 500, 255 522, 282 528
+                  C 310 534, 335 516, 338 488
+                  L 332 420
+                  L 250 402
+                  C 205 390, 165 360, 145 328
+                  C 128 335, 108 328, 98 312
+                  C 90 300, 90 300, 92 300
                   Z"/>
-                <clipPath id="cowClip">
-                  <use href="#cowBodyPath"/>
-                </clipPath>
+                <clipPath id="cowClip"><use href="#cowBodyPath"/></clipPath>
               </defs>
 
-              <!-- Ground shadow -->
-              <ellipse cx="520" cy="530" rx="360" ry="16" fill="rgba(26,21,16,.12)"/>
+              <!-- Title -->
+              <circle class="board-dot" cx="360" cy="48" r="3.5"/>
+              <text class="board-title" x="560" y="56">Cuts of Beef</text>
+              <circle class="board-dot" cx="760" cy="48" r="3.5"/>
 
-              <g filter="url(#softShadow)">
-                <!-- Base body fill -->
-                <use href="#cowBodyPath" class="cow-body-fill" fill="url(#bodyGrad)"/>
+              <g>
+                <!-- Base chalk body (shows through head/legs/edges) -->
+                <use href="#cowBodyPath" class="cow-body-fill"/>
 
-                <!-- Primals clipped to cow body so colors only fill the animal -->
+                <!-- Interactive primals, clipped to silhouette -->
                 <g clip-path="url(#cowClip)">
-                  <path class="primal has-cuts" data-primal="chuck" d="M 120 200 L 355 155 L 355 330 L 175 355 L 120 300 Z"/>
-                  <path class="primal has-cuts" data-primal="rib" d="M 355 155 L 490 150 L 490 315 L 355 330 Z"/>
-                  <path class="primal has-cuts" data-primal="loin" d="M 490 150 L 610 155 L 610 310 L 490 315 Z"/>
-                  <path class="primal" data-primal="sirloin" d="M 610 155 L 730 175 L 730 325 L 610 310 Z"/>
-                  <path class="primal" data-primal="round" d="M 730 175 L 900 200 L 910 340 L 730 325 Z"/>
-                  <path class="primal has-cuts" data-primal="brisket" d="M 175 355 L 355 330 L 355 400 L 200 420 Z"/>
-                  <path class="primal" data-primal="plate" d="M 355 330 L 490 315 L 490 400 L 355 400 Z"/>
-                  <path class="primal" data-primal="flank" d="M 490 315 L 620 310 L 640 410 L 490 400 Z"/>
-                  <path class="primal has-cuts" data-primal="shank" d="M 220 410 L 310 400 L 325 500 L 250 510 Z"/>
-                  <path class="primal has-cuts" data-primal="shank" d="M 760 340 L 860 330 L 875 495 L 800 505 Z"/>
-                  <use href="#cowBodyPath" class="cow-body-shade"/>
+                  <!-- HEAD cluster (static chalk art — not a marketplace primal) -->
+                  <path class="primal-static" d="M 70 220 L 175 210 L 185 320 L 95 340 L 65 290 Z"/>
+                  <!-- NECK → maps to chuck interaction area (front of chuck) -->
+                  <path class="primal has-cuts" data-primal="chuck" d="M 175 200 L 250 175 L 255 330 L 185 340 L 170 280 Z"/>
+                  <!-- CHUCK proper -->
+                  <path class="primal has-cuts" data-primal="chuck" d="M 250 175 L 360 155 L 360 320 L 255 330 Z"/>
+                  <!-- RIB -->
+                  <path class="primal has-cuts" data-primal="rib" d="M 360 155 L 510 148 L 510 305 L 360 320 Z"/>
+                  <!-- SHORT LOIN -->
+                  <path class="primal has-cuts" data-primal="loin" d="M 510 148 L 620 155 L 620 300 L 510 305 Z"/>
+                  <!-- SIRLOIN (top + bottom stacked) -->
+                  <path class="primal" data-primal="sirloin" d="M 620 155 L 720 175 L 720 250 L 620 240 Z"/>
+                  <path class="primal" data-primal="sirloin" d="M 620 240 L 720 250 L 720 320 L 620 300 Z"/>
+                  <!-- ROUND + tip of tail -->
+                  <path class="primal" data-primal="round" d="M 720 175 L 880 200 L 900 340 L 720 320 Z"/>
+                  <!-- BRISKET -->
+                  <path class="primal has-cuts" data-primal="brisket" d="M 200 340 L 360 320 L 360 400 L 220 415 Z"/>
+                  <!-- PLATE -->
+                  <path class="primal" data-primal="plate" d="M 360 320 L 510 305 L 510 400 L 360 400 Z"/>
+                  <!-- FLANK -->
+                  <path class="primal" data-primal="flank" d="M 510 305 L 630 300 L 650 410 L 510 400 Z"/>
+                  <!-- FORESHANK -->
+                  <path class="primal has-cuts" data-primal="shank" d="M 230 415 L 320 405 L 340 520 L 260 530 Z"/>
+                  <!-- HINDSHANK -->
+                  <path class="primal has-cuts" data-primal="shank" d="M 760 340 L 870 330 L 885 515 L 800 525 Z"/>
                 </g>
 
-                <!-- Butcher seams -->
+                <!-- Dark chalk division lines (like the poster) -->
                 <g class="seam" clip-path="url(#cowClip)">
-                  <path d="M 355 158 L 355 400"/>
-                  <path d="M 490 152 L 490 400"/>
-                  <path d="M 610 156 L 610 315"/>
-                  <path d="M 730 176 L 730 330"/>
-                  <path d="M 180 355 L 640 315"/>
+                  <path d="M 185 215 L 185 340"/>
+                  <path d="M 255 178 L 255 335"/>
+                  <path d="M 360 158 L 360 400"/>
+                  <path d="M 510 150 L 510 400"/>
+                  <path d="M 620 156 L 620 305"/>
+                  <path d="M 720 176 L 720 325"/>
+                  <path d="M 200 340 L 650 305"/>
+                  <path d="M 620 240 L 720 250"/>
                 </g>
 
-                <!-- Outer outline -->
-                <use href="#cowBodyPath" class="cow-outline" fill="none"/>
+                <use href="#cowBodyPath" class="cow-outline"/>
 
-                <!-- Face details -->
-                <path class="cow-ear" d="M 148 230 C 142 212, 155 198, 172 202 C 164 218, 156 228, 148 230 Z"/>
-                <path class="cow-horn" d="M 130 225 C 122 210, 128 196, 142 194 C 136 208, 132 218, 130 225 Z"/>
-                <ellipse class="cow-eye" cx="105" cy="265" rx="7" ry="5.5"/>
-                <ellipse class="cow-eye-pupil" cx="106" cy="265" rx="3" ry="2.6"/>
-                <path class="cow-detail" d="M 82 298 Q 100 310 125 305"/>
-                <ellipse cx="86" cy="305" rx="3.2" ry="2.4" fill="#1a1510" opacity=".5"/>
-                <ellipse class="cow-hoof" cx="275" cy="508" rx="26" ry="8"/>
-                <ellipse class="cow-hoof" cx="825" cy="505" rx="28" ry="8"/>
+                <!-- Horns / ear (chalk) -->
+                <path fill="#f2efe8" stroke="#2a2a2a" stroke-width="1.4" d="M 145 228 C 138 205, 148 188, 165 185 C 155 205, 150 220, 145 228 Z"/>
+                <path fill="#f2efe8" stroke="#2a2a2a" stroke-width="1.4" d="M 125 232 C 112 212, 118 192, 138 188 C 130 208, 128 222, 125 232 Z"/>
+                <ellipse fill="#2a2a2a" cx="108" cy="268" rx="4" ry="3.2" opacity=".55"/>
               </g>
 
-              <!-- Labels -->
-              <text class="label" x="250" y="255">Chuck</text>
-              <text class="label" x="422" y="245">Rib</text>
-              <text class="label" x="550" y="242">Loin</text>
-              <text class="label label-sm" x="670" y="255">Sirloin</text>
-              <text class="label" x="820" y="270">Round</text>
-              <text class="label label-sm" x="270" y="385">Brisket</text>
-              <text class="label label-sm" x="422" y="370">Plate</text>
-              <text class="label label-sm" x="555" y="368">Flank</text>
-              <text class="label label-sm" x="270" y="470">Shank</text>
-              <text class="label label-sm" x="820" y="430">Shank</text>
+              <!-- Labels matching classic chart -->
+              <text class="label label-xs" x="125" y="255">Head</text>
+              <text class="label label-xs" x="120" y="300">Tongue</text>
+              <text class="label label-xs" x="155" y="278">Cheek</text>
+              <text class="label label-xs" x="210" y="260">Neck</text>
+              <text class="label" x="305" y="250">Chuck</text>
+              <text class="label" x="435" y="245" style="font-size:22px;letter-spacing:0.12em;">Rib</text>
+              <text class="label label-sm" x="565" y="220">Short</text>
+              <text class="label label-sm" x="565" y="235">Loin</text>
+              <text class="label label-xs" x="670" y="200">Sirloin</text>
+              <text class="label label-xs" x="670" y="215">Tenderloin</text>
+              <text class="label label-xs" x="670" y="268">Top</text>
+              <text class="label label-xs" x="670" y="280">Sirloin</text>
+              <text class="label label-xs" x="670" y="300">Bottom</text>
+              <text class="label label-xs" x="670" y="312">Sirloin</text>
+              <text class="label" x="810" y="270">Round</text>
+              <text class="label label-xs" x="860" y="230" transform="rotate(70 860 230)">Tip of tail</text>
+              <text class="label label-sm" x="285" y="375">Brisket</text>
+              <text class="label label-sm" x="435" y="365">Plate</text>
+              <text class="label label-sm" x="570" y="360">Flank</text>
+              <text class="label label-sm" x="285" y="470">Shank</text>
+              <text class="label label-sm" x="825" y="440">Shank</text>
 
-              <path class="callout-line" d="M 250 185 L 250 145"/>
-              <text class="callout" x="250" y="132">Shoulder</text>
-              <path class="callout-line" d="M 820 190 L 820 135"/>
-              <text class="callout" x="820" y="122">Hindquarter</text>
-
-              <text class="caption" x="550" y="575">Side view · head left · U.S. beef primals · tap a region to open cuts</text>
+              <text class="caption" x="560" y="640">Tap a region · soft color means you’re keeping cuts from that primal</text>
             </svg>
-            <p class="diagram-note" id="diagramNote">Front: chuck · rib · brisket · foreshank &nbsp;·&nbsp; Mid: loin · plate · flank &nbsp;·&nbsp; Hind: sirloin · round · hindshank</p>
           </div>
         </div>
+        <p class="diagram-note" id="diagramNote">Classic U.S. cuts of beef — same map every locker uses. Front (chuck · rib · brisket) · Mid (short loin · plate · flank) · Hind (sirloin · round).</p>
         <div class="cow-legend" aria-hidden="true">
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#c45a4a"></span>Chuck</span>
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#e0b04e"></span>Rib</span>
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#d47a48"></span>Loin</span>
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#c49a62"></span>Sirloin</span>
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#7da05d"></span>Round</span>
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#7a4a30"></span>Brisket</span>
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#c9983a"></span>Plate</span>
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#9a7448"></span>Flank</span>
-          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#a09068"></span>Shank</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch on" style="background:#f0c4bc"></span>Keeping cuts</span>
+          <span class="cow-legend-item"><span class="cow-legend-swatch" style="background:#d8d4cb"></span>Grind / skip</span>
+          <span class="cow-legend-item">Tap any section to open that cut list</span>
         </div>
       </div>
 
@@ -854,10 +872,10 @@
     if (note) {
       if (BEEF_LIKE.has(sp)) {
         note.textContent = sp === 'beef'
-          ? 'USDA / NAMP-style layout. Front (chuck · rib · brisket) · Mid (loin · plate · flank) · Hind (sirloin · round).'
-          : `${label} uses the same primal layout as beef (very close anatomically). Tap a region to open cuts.`;
+          ? 'Classic U.S. cuts of beef — same map every locker uses. Front (chuck · rib · brisket) · Mid (short loin · plate · flank) · Hind (sirloin · round).'
+          : `${label} uses the same primal map as beef (very close anatomically). Tap a region to open cuts.`;
       } else {
-        note.textContent = `${label} chart uses the beef primal map for navigation until a dedicated ${label.toLowerCase()} diagram ships. Cut list below still applies where your plant offers them.`;
+        note.textContent = `${label} navigation uses the classic beef cut chart for now. Cut list below still applies where your plant offers them.`;
       }
     }
 
