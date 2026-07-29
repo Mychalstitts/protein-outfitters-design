@@ -115,15 +115,47 @@
   fill: rgba(251,249,245,.10);
 }
 
-/* Hide decorative chart chrome on the art */
-.diagram-overlay .seam,
-.diagram-overlay .label,
-.diagram-overlay .label-sm,
-.diagram-overlay .label-xs,
-.diagram-overlay .board-title,
-.diagram-overlay .board-dot,
-.diagram-overlay .caption {
-  display: none;
+/* Labels only — no blocks, no seams. Words sit on the cow. */
+.diagram-overlay .seam { display: none; }
+.diagram-overlay .label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+  user-select: none;
+  fill: #1a1a1a;
+  text-anchor: middle;
+  text-transform: uppercase;
+  paint-order: stroke fill;
+  stroke: rgba(255,255,255,.72);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
+.diagram-overlay .label-sm {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  stroke-width: 3px;
+}
+.diagram-overlay .label-xs {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  stroke-width: 2.5px;
+}
+.diagram-overlay .board-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 0.28em;
+  fill: rgba(242,239,232,.9);
+  text-anchor: middle;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.diagram-overlay .board-dot {
+  fill: rgba(242,239,232,.7);
+  pointer-events: none;
 }
 
 .diagram-note {
@@ -343,7 +375,7 @@
       <div class="cow-block">
         <div class="cs-block-head">
           <h3>The animal · tap a section to dive in</h3>
-          <p>Tap the cow — shoulder, ribs, loin, rump, brisket, legs — to open that cut list</p>
+          <p>Tap a labeled section on the cow to open that cut list</p>
         </div>
         <div class="cow-wrap">
           <div class="diagram-wrap" id="diagramWrap" data-species="beef">
@@ -360,7 +392,7 @@
               <text class="board-title" x="640" y="60">Cuts of Beef</text>
               <circle class="board-dot" cx="850" cy="52" r="3.5"/>
 
-              <!-- Invisible hit map only — cow art shows through; no blocks, lines, or labels -->
+              <!-- Invisible hit regions (no fill/blocks) -->
               <path class="primal has-cuts" data-primal="chuck" tabindex="0" role="button" aria-label="Chuck — shoulder cuts" title="Chuck" d="
                 M 400 200 L 540 185 L 545 390 L 420 405 L 395 320 Z"/>
               <path class="primal has-cuts" data-primal="rib" tabindex="0" role="button" aria-label="Rib" title="Rib" d="
@@ -381,6 +413,22 @@
                 M 470 470 L 555 460 L 570 580 L 490 590 Z"/>
               <path class="primal has-cuts" data-primal="shank" tabindex="0" role="button" aria-label="Hindshank" title="Shank" d="
                 M 900 400 L 990 395 L 1005 575 L 915 585 Z"/>
+
+              <!-- Visible cut names on the cow -->
+              <circle class="board-dot" cx="430" cy="52" r="3.5"/>
+              <text class="board-title" x="640" y="60">Cuts of Beef</text>
+              <circle class="board-dot" cx="850" cy="52" r="3.5"/>
+              <text class="label" x="470" y="295">Chuck</text>
+              <text class="label" x="610" y="290" style="font-size:22px;letter-spacing:.1em;">Rib</text>
+              <text class="label label-sm" x="735" y="275">Short</text>
+              <text class="label label-sm" x="735" y="292">Loin</text>
+              <text class="label label-sm" x="835" y="290">Sirloin</text>
+              <text class="label" x="940" y="310">Round</text>
+              <text class="label label-sm" x="490" y="440">Brisket</text>
+              <text class="label label-sm" x="612" y="430">Plate</text>
+              <text class="label label-sm" x="740" y="425">Flank</text>
+              <text class="label label-sm" x="525" y="535">Shank</text>
+              <text class="label label-sm" x="955" y="500">Shank</text>
             </svg>
           </div>
         </div>
