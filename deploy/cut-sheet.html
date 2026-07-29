@@ -86,6 +86,9 @@
   width: 100%;
   height: 100%;
   display: block;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none; /* let labels/hit map opt in */
 }
 
 /*
@@ -98,63 +101,63 @@
   fill: transparent;
   stroke: none;
   outline: none;
+  pointer-events: all;
   transition: fill .18s ease;
 }
-/* Faint hover only — enough to feel clickable, not a “block” */
 .diagram-overlay .primal:hover,
 .diagram-overlay .primal:focus {
-  fill: rgba(251,249,245,.10);
+  fill: rgba(6,27,14,.08);
 }
-/* Selection state: still invisible (has-cuts kept for JS, no visual paint) */
 .diagram-overlay .primal.has-cuts,
 .diagram-overlay .primal.empty {
   fill: transparent;
 }
 .diagram-overlay .primal.has-cuts:hover,
 .diagram-overlay .primal.empty:hover {
-  fill: rgba(251,249,245,.10);
+  fill: rgba(6,27,14,.08);
 }
 
-/* Labels only — no blocks, no seams. Words sit on the cow. */
-.diagram-overlay .seam { display: none; }
-.diagram-overlay .label {
-  font-family: 'Inter', system-ui, sans-serif;
+/* Chalk labels: dark ink + white pill so they always read on the cow */
+.diagram-overlay .label-pill {
+  fill: rgba(251,249,245,.92);
+  stroke: rgba(6,27,14,.18);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+.diagram-overlay .label,
+.diagram-overlay text.label {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
   font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 0.06em;
+  font-size: 26px;
+  letter-spacing: 0.08em;
   pointer-events: none;
   user-select: none;
-  fill: #1a1a1a;
+  fill: #0a120d !important;
+  stroke: none !important;
   text-anchor: middle;
+  dominant-baseline: middle;
   text-transform: uppercase;
-  paint-order: stroke fill;
-  stroke: rgba(255,255,255,.72);
-  stroke-width: 3.5px;
-  stroke-linejoin: round;
 }
-.diagram-overlay .label-sm {
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  stroke-width: 3px;
-}
-.diagram-overlay .label-xs {
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-  stroke-width: 2.5px;
+.diagram-overlay .label-sm,
+.diagram-overlay text.label-sm {
+  font-size: 20px;
+  letter-spacing: 0.06em;
 }
 .diagram-overlay .board-title {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 28px;
   letter-spacing: 0.28em;
-  fill: rgba(242,239,232,.9);
+  fill: rgba(251,249,245,.92) !important;
   text-anchor: middle;
   text-transform: uppercase;
   pointer-events: none;
 }
 .diagram-overlay .board-dot {
-  fill: rgba(242,239,232,.7);
+  fill: rgba(251,249,245,.75);
+  pointer-events: none;
+}
+.diagram-overlay .label-layer {
   pointer-events: none;
 }
 
@@ -387,48 +390,21 @@
               Overlay calibrated to beef-chalk-cow.jpg (1280×720).
               Head left · classic U.S. primal layout.
             -->
-            <svg class="diagram-overlay cow-svg" id="cowSvg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-              <circle class="board-dot" cx="430" cy="52" r="3.5"/>
-              <text class="board-title" x="640" y="60">Cuts of Beef</text>
-              <circle class="board-dot" cx="850" cy="52" r="3.5"/>
-
-              <!-- Invisible hit regions (no fill/blocks) -->
-              <path class="primal has-cuts" data-primal="chuck" tabindex="0" role="button" aria-label="Chuck — shoulder cuts" title="Chuck" d="
-                M 400 200 L 540 185 L 545 390 L 420 405 L 395 320 Z"/>
-              <path class="primal has-cuts" data-primal="rib" tabindex="0" role="button" aria-label="Rib" title="Rib" d="
-                M 540 185 L 680 180 L 680 380 L 545 390 Z"/>
-              <path class="primal has-cuts" data-primal="loin" tabindex="0" role="button" aria-label="Short loin" title="Short loin" d="
-                M 680 180 L 790 185 L 790 375 L 680 380 Z"/>
-              <path class="primal" data-primal="sirloin" tabindex="0" role="button" aria-label="Sirloin" title="Sirloin" d="
-                M 790 185 L 880 200 L 880 385 L 790 375 Z"/>
-              <path class="primal" data-primal="round" tabindex="0" role="button" aria-label="Round" title="Round" d="
-                M 880 200 L 990 230 L 1005 400 L 880 385 Z"/>
-              <path class="primal has-cuts" data-primal="brisket" tabindex="0" role="button" aria-label="Brisket" title="Brisket" d="
-                M 420 405 L 545 390 L 545 465 L 435 475 Z"/>
-              <path class="primal" data-primal="plate" tabindex="0" role="button" aria-label="Plate" title="Plate" d="
-                M 545 390 L 680 380 L 680 460 L 545 465 Z"/>
-              <path class="primal" data-primal="flank" tabindex="0" role="button" aria-label="Flank" title="Flank" d="
-                M 680 380 L 800 375 L 815 470 L 680 460 Z"/>
-              <path class="primal has-cuts" data-primal="shank" tabindex="0" role="button" aria-label="Foreshank" title="Shank" d="
-                M 470 470 L 555 460 L 570 580 L 490 590 Z"/>
-              <path class="primal has-cuts" data-primal="shank" tabindex="0" role="button" aria-label="Hindshank" title="Shank" d="
-                M 900 400 L 990 395 L 1005 575 L 915 585 Z"/>
-
-              <!-- Visible cut names on the cow -->
-              <circle class="board-dot" cx="430" cy="52" r="3.5"/>
-              <text class="board-title" x="640" y="60">Cuts of Beef</text>
-              <circle class="board-dot" cx="850" cy="52" r="3.5"/>
-              <text class="label" x="470" y="295">Chuck</text>
-              <text class="label" x="610" y="290" style="font-size:22px;letter-spacing:.1em;">Rib</text>
-              <text class="label label-sm" x="735" y="275">Short</text>
-              <text class="label label-sm" x="735" y="292">Loin</text>
-              <text class="label label-sm" x="835" y="290">Sirloin</text>
-              <text class="label" x="940" y="310">Round</text>
-              <text class="label label-sm" x="490" y="440">Brisket</text>
-              <text class="label label-sm" x="612" y="430">Plate</text>
-              <text class="label label-sm" x="740" y="425">Flank</text>
-              <text class="label label-sm" x="525" y="535">Shank</text>
-              <text class="label label-sm" x="955" y="500">Shank</text>
+            <!-- Invisible hit map only — words are painted on the cow image itself -->
+            <svg class="diagram-overlay cow-svg" id="cowSvg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Cuts of beef chart — tap a labeled section on the cow">
+              <g class="hit-layer">
+                <!-- Calibrated to labeled beef-chalk-cow.jpg -->
+                <path class="primal has-cuts" data-primal="chuck" tabindex="0" role="button" aria-label="Chuck" title="Chuck" d="M 430 195 L 545 185 L 550 400 L 445 410 L 425 300 Z"/>
+                <path class="primal has-cuts" data-primal="rib" tabindex="0" role="button" aria-label="Rib" title="Rib" d="M 545 185 L 700 180 L 700 375 L 550 400 Z"/>
+                <path class="primal has-cuts" data-primal="loin" tabindex="0" role="button" aria-label="Short loin" title="Short loin" d="M 700 180 L 810 190 L 810 370 L 700 375 Z"/>
+                <path class="primal" data-primal="sirloin" tabindex="0" role="button" aria-label="Sirloin" title="Sirloin" d="M 810 190 L 900 205 L 900 380 L 810 370 Z"/>
+                <path class="primal" data-primal="round" tabindex="0" role="button" aria-label="Round" title="Round" d="M 900 205 L 1005 230 L 1015 400 L 900 380 Z"/>
+                <path class="primal has-cuts" data-primal="brisket" tabindex="0" role="button" aria-label="Brisket" title="Brisket" d="M 445 410 L 560 395 L 565 470 L 455 480 Z"/>
+                <path class="primal" data-primal="plate" tabindex="0" role="button" aria-label="Plate" title="Plate" d="M 560 395 L 720 375 L 720 460 L 565 470 Z"/>
+                <path class="primal" data-primal="flank" tabindex="0" role="button" aria-label="Flank" title="Flank" d="M 700 375 L 820 370 L 830 470 L 720 460 Z"/>
+                <path class="primal has-cuts" data-primal="shank" tabindex="0" role="button" aria-label="Foreshank" title="Shank" d="M 490 470 L 580 460 L 595 585 L 510 595 Z"/>
+                <path class="primal has-cuts" data-primal="shank" tabindex="0" role="button" aria-label="Hindshank" title="Shank" d="M 910 400 L 1005 395 L 1020 580 L 925 590 Z"/>
+              </g>
             </svg>
           </div>
         </div>
