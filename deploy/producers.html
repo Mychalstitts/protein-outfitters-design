@@ -51,6 +51,26 @@
 .farm-meta .stats .lab { color: var(--ink-2); margin-left: 4px; }
 .farm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .farm-tag { background: var(--accent-soft); color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+.farm-live-pill {
+  position: absolute; top: 14px; left: 14px; z-index: 2;
+  background: rgba(125,160,93,.95); color: #061b0e; font: 800 11px/1 'Inter';
+  letter-spacing: .04em; text-transform: uppercase; padding: 7px 11px; border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(6,27,14,.18);
+}
+.farm-card-ctas {
+  display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 22px; margin-top: -4px;
+}
+.farm-card-ctas a {
+  display: inline-flex; align-items: center; padding: 9px 14px; border-radius: 999px;
+  font: 700 12.5px/1 'Inter'; text-decoration: none;
+}
+.farm-card-ctas .cta-primary { background: #061b0e; color: #fbf9f5; }
+.farm-card-ctas .cta-ghost { background: transparent; color: #061b0e; border: 1.5px solid rgba(6,27,14,.12); }
+.farm-card-wrap { background: #fff; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s; }
+.farm-card-wrap:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(0,0,0,0.10); }
+.farm-card-wrap .farm-cover-link { display: block; text-decoration: none; color: inherit; flex: 1; }
 
 /* Hero map embed */
 .map-strip { background: linear-gradient(180deg, var(--surface) 0%, #fff 100%); border-radius: 28px; padding: clamp(24px, 3vw, 40px); margin-bottom: clamp(40px, 5vw, 64px); display: grid; gap: clamp(20px, 2vw, 32px); grid-template-columns: 1fr; align-items: center; }
@@ -306,7 +326,7 @@
         let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
         return FALLBACK_COVERS[h % FALLBACK_COVERS.length];
       };
-      // Build new cards
+      // Build new cards — demand-first: inventory deep-links to Browse when live
       grid.innerHTML = farms.map(f => {
         const tags = []
           .concat((f.identity || []).map(x => String(x).toLowerCase()))
@@ -315,15 +335,33 @@
           .filter(Boolean).join(' ');
         const cover = coverFor(f);
         const loc = [f.city, f.state].filter(Boolean).join(', ') || 'United States';
-        const inner = `
-            <div class="farm-cover" style="background-image:url('${cover}')"></div>
+        const n = Number(f.listings_count) || 0;
+        const nameSafe = String(f.name || '').replace(/[<>&]/g, '');
+        const profileHref = f.slug ? `/farm/${encodeURIComponent(f.slug)}` : null;
+        const browseHref = (n > 0 && f.slug) ? `/discover?farm=${encodeURIComponent(f.slug)}` : null;
+        const livePill = n > 0
+          ? `<span class="farm-live-pill">${n} live animal${n === 1 ? '' : 's'}</span>`
+          : '';
+        const body = `
+            <div class="farm-cover" style="background-image:url('${cover.replace(/'/g, '%27')}')">${livePill}</div>
             <div class="farm-meta">
-              <h3>${f.name}</h3>
-              <p>${loc} · ${f.listings_count || 0} listings</p>
+              <h3>${nameSafe}</h3>
+              <p>${loc} · ${n} listing${n === 1 ? '' : 's'}</p>
             </div>`;
-        return f.slug
-          ? `<a href="/farm/${encodeURIComponent(f.slug)}" class="farm-card" data-tags="${tags}">${inner}</a>`
-          : `<div class="farm-card" data-tags="${tags}" aria-disabled="true">${inner}</div>`;
+        if (!f.slug) {
+          return `<div class="farm-card" data-tags="${tags}" aria-disabled="true">${body}</div>`;
+        }
+        // Prefer inventory CTA when animals are live; always keep farm profile.
+        if (browseHref) {
+          return `<div class="farm-card-wrap farm-card" data-tags="${tags}">
+            <a class="farm-cover-link" href="${browseHref}">${body}</a>
+            <div class="farm-card-ctas">
+              <a class="cta-primary" href="${browseHref}">Browse animals →</a>
+              <a class="cta-ghost" href="${profileHref}">Farm profile</a>
+            </div>
+          </div>`;
+        }
+        return `<a href="${profileHref}" class="farm-card" data-tags="${tags}">${body}</a>`;
       }).join('');
 
       // Rebuild state chips from live farm data so every covered state appears

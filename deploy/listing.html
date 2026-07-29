@@ -518,25 +518,46 @@
   } catch (_) {}
 
   const wantOpen = params.get('open_sheet') === '1' || params.get('open_sheet') === 'true';
+  const cancelledCheckout = params.get('cancelled') === '1' || params.get('cancelled') === 'true';
   const shareParam = (params.get('share') || '').toLowerCase();
   let pending = null;
   try { pending = JSON.parse(sessionStorage.getItem('po_pending_reserve') || 'null'); } catch { pending = null; }
   if (pending && pending.id && pending.id !== l.id) pending = null;
-  if (wantOpen || (pending && pending.id === l.id)) {
+
+  // Stripe cancel_url → re-open reserve sheet so recovery is one tap, not a dead end.
+  if (cancelledCheckout) {
+    const bar = document.createElement('div');
+    bar.setAttribute('role', 'status');
+    bar.style.cssText = 'position:sticky;top:0;z-index:40;padding:12px 18px;background:#fff8e8;border-bottom:1px solid rgba(213,156,31,.35);font:600 13.5px/1.4 Inter,system-ui,sans-serif;color:#061b0e;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;';
+    bar.innerHTML = `<span>Checkout cancelled — your share wasn't charged. Ready when you are.</span>
+      <button type="button" id="lgResumeReserve" style="font:700 12.5px/1 Inter;padding:9px 14px;border-radius:999px;border:0;background:#061b0e;color:#fbf9f5;cursor:pointer;">Resume reserve →</button>`;
+    document.body.insertBefore(bar, document.body.firstChild);
+    history.replaceState(null, '', '/listing?id=' + encodeURIComponent(l.id));
+  }
+
+  if (wantOpen || cancelledCheckout || (pending && pending.id === l.id)) {
     const shareKey = shareParam || (pending && pending.share) || null;
     const openAnimal = { id: l.id, name: animalName, producer: producerLabel, photo, priceQ: allInQ, priceH: allInH, priceW: allInW, share: shareKey };
     const tryOpen = () => {
       if (window.PO_SHELL && typeof window.PO_SHELL.open === 'function') {
         window.PO_SHELL.open(openAnimal, { share: shareKey });
         try { sessionStorage.removeItem('po_pending_reserve'); } catch (_) {}
-        if (wantOpen) history.replaceState(null, '', '/listing?id=' + encodeURIComponent(l.id));
+        if (wantOpen && !cancelledCheckout) history.replaceState(null, '', '/listing?id=' + encodeURIComponent(l.id));
         return true;
       }
       return false;
     };
-    if (!tryOpen()) {
-      let tries = 0;
-      const t = setInterval(() => { if (tryOpen() || ++tries > 40) clearInterval(t); }, 50);
+    const resumeBtn = document.getElementById('lgResumeReserve');
+    if (resumeBtn) {
+      resumeBtn.addEventListener('click', () => tryOpen());
+    }
+    // Auto-open on cancelled only if they had a pending share; otherwise let them tap Resume.
+    const shouldAutoOpen = wantOpen || (pending && pending.id === l.id) || (cancelledCheckout && shareKey);
+    if (shouldAutoOpen) {
+      if (!tryOpen()) {
+        let tries = 0;
+        const t = setInterval(() => { if (tryOpen() || ++tries > 40) clearInterval(t); }, 50);
+      }
     }
   }
 })();

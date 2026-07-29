@@ -31,7 +31,26 @@
 
 .pr-standing { background: var(--brand); color: #fbf9f5; border-radius: 22px; padding: 24px 26px; display: flex; flex-direction: column; gap: 16px; }
 .pr-standing-row { display: flex; align-items: center; gap: 16px; }
-.pr-standing-avatar { width: 56px; height: 56px; border-radius: 16px; background: url('/img/processor.jpg') center/cover; flex-shrink: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+.pr-standing-avatar { width: 56px; height: 56px; border-radius: 16px; background: url('/img/processor.jpg') center/cover; flex-shrink: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.18); position: relative; }
+.pr-standing-avatar.pr-photo-btn { border: 0; padding: 0; cursor: pointer; display: block; }
+.pr-standing-avatar.pr-photo-btn::after {
+  content: '📷'; position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px;
+  border-radius: 999px; background: #fbf9f5; color: #061b0e; font-size: 11px;
+  display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.pr-photo-strip {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid rgba(251,249,245,0.14);
+}
+.pr-photo-strip label {
+  appearance: none; border: 1.5px dashed rgba(251,249,245,0.35); background: rgba(251,249,245,0.08);
+  color: #fbf9f5; border-radius: 999px; padding: 7px 12px; font: 700 11.5px/1 'Inter';
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.pr-photo-strip label:hover { background: rgba(251,249,245,0.16); }
+.pr-photo-strip label[aria-busy="true"] { opacity: .55; cursor: wait; }
+.pr-photo-strip input[type="file"] { display: none; }
+.pr-photo-strip .ok { border-style: solid; border-color: rgba(125,160,93,.55); background: rgba(125,160,93,.22); }
 .pr-standing-meta .role { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
 .pr-standing-meta .name { margin: 4px 0 0; font-size: 18px; font-weight: 900; letter-spacing: -0.018em; }
 .pr-standing-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding-top: 14px; border-top: 1px solid rgba(251,249,245,0.18); }
@@ -123,7 +142,7 @@
       </div>
       <div class="pr-standing" id="prStanding" style="display:none;">
         <div class="pr-standing-row">
-          <div class="pr-standing-avatar" id="prAvatar"></div>
+          <button type="button" class="pr-standing-avatar pr-photo-btn" id="prAvatar" title="Upload plant photo" aria-label="Upload plant profile photo"></button>
           <div class="pr-standing-meta">
             <p class="role" id="prRole">—</p>
             <p class="name" id="prName">—</p>
@@ -133,6 +152,11 @@
           <div class="pr-standing-stat"><div class="v" id="prStatQueue">—</div><div class="lab">In queue</div></div>
           <div class="pr-standing-stat"><div class="v" id="prStatCapacity">—</div><div class="lab">Capacity used</div></div>
           <div class="pr-standing-stat"><div class="v" id="prStatRevenue">—</div><div class="lab">This week</div></div>
+        </div>
+        <div class="pr-photo-strip" id="prPhotoStrip" aria-label="Plant photos">
+          <label id="prAvatarLabel"><input type="file" id="prAvatarInput" accept="image/jpeg,image/png,image/webp" />Plant photo</label>
+          <label id="prCoverLabel"><input type="file" id="prCoverInput" accept="image/jpeg,image/png,image/webp" />Cover photo</label>
+          <span id="prPhotoStatus" style="font:500 11.5px/1.3 'Inter';opacity:.75;align-self:center;"></span>
         </div>
       </div>
     </div>
@@ -421,6 +445,63 @@ window.openMarkReady = function(bookingId, listingId, label) {
     const av = document.getElementById('prAvatar');
     if (av) av.style.backgroundImage = `url(${JSON.stringify(plant.avatar_url)})`;
   }
+  const prAvatarLabel = document.getElementById('prAvatarLabel');
+  const prCoverLabel = document.getElementById('prCoverLabel');
+  if (prAvatarLabel && plant.avatar_url) prAvatarLabel.classList.add('ok');
+  if (prCoverLabel && plant.cover_url) prCoverLabel.classList.add('ok');
+
+  // Inline plant photo upload (avatar + cover via Vercel Blob)
+  async function uploadPlantPhoto(kind, file) {
+    const status = document.getElementById('prPhotoStatus');
+    const label = kind === 'cover' ? prCoverLabel : prAvatarLabel;
+    if (!file || !plant.slug) return;
+    if (!window.PO_API?.upload || !window.PO_API?.updateProcessor) {
+      if (status) status.textContent = 'Upload helper not loaded — refresh and try again.';
+      return;
+    }
+    if (label) label.setAttribute('aria-busy', 'true');
+    if (status) status.textContent = 'Uploading…';
+    try {
+      const up = await window.PO_API.upload(file);
+      if (!up?.url) throw new Error('No URL returned');
+      const patch = kind === 'cover' ? { cover_url: up.url } : { avatar_url: up.url };
+      await window.PO_API.updateProcessor(plant.slug, patch);
+      if (kind === 'cover') {
+        plant.cover_url = up.url;
+        if (prCoverLabel) prCoverLabel.classList.add('ok');
+        if (status) status.textContent = 'Cover saved ✓';
+      } else {
+        plant.avatar_url = up.url;
+        const av = document.getElementById('prAvatar');
+        if (av) av.style.backgroundImage = `url(${JSON.stringify(up.url)})`;
+        if (prAvatarLabel) prAvatarLabel.classList.add('ok');
+        if (status) status.textContent = 'Plant photo saved ✓';
+      }
+    } catch (err) {
+      if (err.status === 401) {
+        window.PO_API.openAuth('Sign in to upload plant photos', 'processor');
+      } else if (status) {
+        status.textContent = 'Upload failed: ' + (err.message || 'unknown');
+      }
+    } finally {
+      if (label) label.removeAttribute('aria-busy');
+    }
+  }
+  const prAvInput = document.getElementById('prAvatarInput');
+  const prCoverInput = document.getElementById('prCoverInput');
+  const prAvBtn = document.getElementById('prAvatar');
+  if (prAvInput) prAvInput.addEventListener('change', () => {
+    const f = prAvInput.files && prAvInput.files[0];
+    if (f) uploadPlantPhoto('avatar', f);
+    prAvInput.value = '';
+  });
+  if (prCoverInput) prCoverInput.addEventListener('change', () => {
+    const f = prCoverInput.files && prCoverInput.files[0];
+    if (f) uploadPlantPhoto('cover', f);
+    prCoverInput.value = '';
+  });
+  if (prAvBtn && prAvInput) prAvBtn.addEventListener('click', () => prAvInput.click());
+
   document.getElementById('prStatQueue').textContent = '0';
   document.getElementById('prStatCapacity').textContent = '—';
   document.getElementById('prStatRevenue').textContent = '—';

@@ -126,41 +126,103 @@
 </section>
 
 <div id="po-shell-host"></div>
+<script src="./po-api.js"></script>
 <script src="./po-shell.js"></script>
 <script>
-  // Hydrate from ?reservation=<uuid> set in Stripe's success_url.
+  // Hydrate from ?reservation= / ?reservation_id= (post cut-sheet or deep link).
+  // Stripe success_url goes to cut-sheet first; confirmed is the "you're done" hub.
   // Never show demo animal names/dates — placeholders stay neutral until real data loads.
   (async function hydrateConfirmation() {
     const params = new URLSearchParams(location.search);
-    const reservationId = params.get('reservation') || params.get('reservation_id');
+    let reservationId = params.get('reservation') || params.get('reservation_id');
+    const cutSheetDone = params.get('cut_sheet') === '1' || params.get('cut_sheet') === 'true';
     const cutLink = document.getElementById('cutSheetLink');
+    const harvestCard = document.getElementById('nextHarvestCard');
+    const pickupCard = document.getElementById('nextPickupCard');
 
-    if (!reservationId) {
-      // No id in URL — don't invent a demo order
+    function paintEmpty(title, meta, sub) {
       const resAnimal = document.getElementById('resAnimal');
       const resMeta = document.getElementById('resMeta');
       const confirmedSub = document.getElementById('confirmedSub');
-      if (resAnimal) resAnimal.textContent = 'Reservation details unavailable';
-      if (resMeta) resMeta.textContent = 'Open your account to see active reservations, or check the confirmation email we sent.';
-      if (confirmedSub) confirmedSub.textContent = 'If you just paid, check your email for a receipt — or sign in to Account to find this reservation.';
+      if (resAnimal) resAnimal.textContent = title;
+      if (resMeta) resMeta.innerHTML = meta;
+      if (confirmedSub) confirmedSub.textContent = sub;
       if (cutLink) cutLink.href = '/account';
+    }
+
+    // Recovery: no id in URL — try signed-in buyer's latest active reservation.
+    if (!reservationId) {
+      try {
+        const r = await fetch('/api/reservations', { credentials: 'include' });
+        if (r.status === 401) {
+          paintEmpty(
+            'Sign in to see your reservation',
+            'Your receipt is also in your email. <a href="#" id="cfSignIn" style="font-weight:700;color:inherit">Sign in</a> to load it here.',
+            'If you just paid, check your inbox — or sign in to Account.'
+          );
+          document.getElementById('cfSignIn')?.addEventListener('click', e => {
+            e.preventDefault();
+            window.PO_API?.openAuth?.('Sign in to view your reservation', 'buyer', { next: '/confirmed' });
+          });
+          return;
+        }
+        if (r.ok) {
+          const { reservations = [] } = await r.json();
+          const active = reservations.filter(x => !['cancelled', 'refunded'].includes(x.status));
+          if (active.length === 1) {
+            reservationId = active[0].id;
+            history.replaceState(null, '', '/confirmed?reservation_id=' + encodeURIComponent(reservationId) + (cutSheetDone ? '&cut_sheet=1' : ''));
+          } else if (active.length > 1) {
+            paintEmpty(
+              'You have multiple reservations',
+              `Open <a href="/account" style="font-weight:700;color:inherit">Account</a> to pick one — or use the link in your confirmation email.`,
+              'Your deposits are safe. Pick a reservation to see cut sheet and harvest timeline.'
+            );
+            return;
+          }
+        }
+      } catch (_) { /* fall through */ }
+    }
+
+    if (!reservationId) {
+      paintEmpty(
+        'Reservation details unavailable',
+        'Open <a href="/account" style="font-weight:700;color:inherit">Account</a> for active orders, or check the confirmation email we sent.',
+        'If you just paid, check your email for a receipt — or sign in to Account to find this reservation.'
+      );
       return;
     }
 
-    // Wire cut sheet early so a slow API still deep-links correctly
-    if (cutLink) cutLink.href = '/cut-sheet?reservation_id=' + encodeURIComponent(reservationId);
+    // Wire deep links early so a slow API still routes correctly
+    if (cutLink) {
+      cutLink.href = '/cut-sheet?reservation_id=' + encodeURIComponent(reservationId);
+      if (cutSheetDone) {
+        cutLink.querySelector('.next-cta') && (cutLink.querySelector('.next-cta').textContent = 'Edit cut sheet →');
+        const cutP = document.getElementById('nextCutP');
+        if (cutP) cutP.textContent = 'Submitted — you can still edit until the plant starts fabrication.';
+      }
+    }
+    if (harvestCard) harvestCard.href = '/account';
+    if (pickupCard) pickupCard.href = '/account';
 
     try {
-      const r = await fetch('/api/reservations?id=' + encodeURIComponent(reservationId), { credentials: 'include' });
-      if (!r.ok) {
+      let reservation = null;
+      // Prefer list endpoint (always works for owner) then fall back to ?id=
+      const listR = await fetch('/api/reservations', { credentials: 'include' });
+      if (listR.ok) {
+        const { reservations = [] } = await listR.json();
+        reservation = reservations.find(x => x.id === reservationId) || null;
+      }
+      if (!reservation) {
+        const r = await fetch('/api/reservations?id=' + encodeURIComponent(reservationId), { credentials: 'include' });
+        if (r.ok) {
+          const data = await r.json();
+          reservation = data.reservation || null;
+        }
+      }
+      if (!reservation) {
         document.getElementById('resAnimal').textContent = 'Couldn’t load this reservation';
         document.getElementById('resMeta').textContent = 'It may still be processing. Check your email or Account in a moment.';
-        return;
-      }
-      const { reservation } = await r.json();
-      if (!reservation) {
-        document.getElementById('resAnimal').textContent = 'Reservation not found';
-        document.getElementById('resMeta').textContent = 'Check your email or open Account for active orders.';
         return;
       }
       const fraction = reservation.share_size === 'whole' ? 'Whole animal'
@@ -170,7 +232,9 @@
       const animalLabel = `${reservation.number ? '#' + reservation.number + ' · ' : ''}${reservation.breed || reservation.species || 'Animal'}`;
       const total = reservation.total_estimate != null
         ? '$' + Number(reservation.total_estimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        : '—';
+        : (reservation.deposit_amount != null
+          ? 'Deposit $' + Number(reservation.deposit_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : '—');
       const procLine = reservation.processor_name
         ? ` · ${reservation.processor_name}${reservation.processor_city ? ' (' + reservation.processor_city + ', ' + reservation.processor_state + ')' : ''}`
         : '';
@@ -186,11 +250,21 @@
       if (resTotal) resTotal.textContent = total;
       if (resAnimal) resAnimal.textContent = animalLabel;
       if (resMeta) {
+        const statusBit = reservation.status && reservation.status !== 'pending'
+          ? ` · ${String(reservation.status).replace(/-/g, ' ')}`
+          : '';
         resMeta.textContent = `${fraction} · ${reservation.farm_name || 'Farm'}${procLine}` +
-          (dropoff ? ` · Drop-off ${dropoff}` : '');
+          (dropoff ? ` · Drop-off ${dropoff}` : '') + statusBit;
       }
       if (confirmedSub) {
-        confirmedSub.textContent = `We just held a ${fraction.toLowerCase()} of ${animalLabel} for you. Your receipt is on the way, and your cut sheet builder is one tap away.`;
+        confirmedSub.textContent = cutSheetDone
+          ? `Cut sheet filed for your ${fraction.toLowerCase()} of ${animalLabel}. We'll email harvest and pickup updates.`
+          : `We held a ${fraction.toLowerCase()} of ${animalLabel} for you. Your receipt is on the way — finish your cut sheet next.`;
+      }
+      // Photo when available
+      const img = document.querySelector('.product-block-img');
+      if (img && reservation.photos && reservation.photos[0]) {
+        img.style.backgroundImage = `url('${String(reservation.photos[0]).replace(/'/g, '%27')}')`;
       }
       // Timeline uses real harvest date when known — never demo dates
       const harvestNum = document.getElementById('nextHarvestNum');

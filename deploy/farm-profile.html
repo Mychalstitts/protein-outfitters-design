@@ -154,6 +154,7 @@
     // Listings
     const grid = document.getElementById('fpGrid');
     const titleEl = document.getElementById('fpListingsTitle');
+    const browseFarmHref = slug ? `/discover?farm=${encodeURIComponent(slug)}` : '/discover';
     if (!listings.length) {
       titleEl.textContent = 'No listings yet';
       grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 24px;background:#fff;border-radius:16px;border:1px solid rgba(6,27,14,.06);">
@@ -163,7 +164,7 @@
         <a href="/discover" style="display:inline-block;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:12px 20px;font:700 13px/1 'Inter';">Browse animals →</a>
       </div>`;
     } else {
-      titleEl.textContent = listings.length === 1 ? '1 animal reserving' : `${listings.length} animals reserving`;
+      titleEl.innerHTML = `${listings.length === 1 ? '1 animal reserving' : `${listings.length} animals reserving`} <a href="${browseFarmHref}" style="font:700 13px/1 'Inter';color:var(--brand,#061b0e);text-decoration:none;margin-left:10px;white-space:nowrap;">See all on Browse →</a>`;
       grid.innerHTML = listings.map(l => {
         const photo = (l.photos && l.photos[0]) || photoFor(l.species);
         const farmerRate = Number(l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0);

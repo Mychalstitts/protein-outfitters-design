@@ -272,6 +272,13 @@
 </div>
 
 <section class="cs-shell">
+  <div id="csPaidBanner" hidden style="max-width:1320px;margin:0 auto clamp(16px,2vw,22px);padding:16px 20px;background:linear-gradient(135deg,rgba(125,160,93,.18),rgba(125,160,93,.08));border:1px solid rgba(125,160,93,.35);border-radius:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
+    <div style="font:500 14px/1.45 'Inter';color:var(--ink);">
+      <strong style="font-weight:800;">Deposit paid — you're locked in.</strong>
+      <span style="opacity:.8;"> Next: build this cut sheet so the plant knows exactly how to cut your share.</span>
+    </div>
+    <a href="/account" style="font:700 12.5px/1 'Inter';color:var(--brand);text-decoration:none;white-space:nowrap;">View reservation →</a>
+  </div>
   <div class="cs-context">
     <div class="cs-context-img"></div>
     <div class="cs-context-text">
@@ -908,6 +915,21 @@
     }
   }
   loadReservationHeader();
+
+  // Stripe success_url lands here with ?paid=1 — celebrate + clean the query.
+  (function showPaidBanner() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('paid') !== '1' && params.get('paid') !== 'true') return;
+    const banner = document.getElementById('csPaidBanner');
+    if (banner) {
+      banner.hidden = false;
+      banner.style.display = 'flex';
+    }
+    // Drop paid=1 from the URL so refresh doesn't re-flash; keep reservation id.
+    params.delete('paid');
+    const q = params.toString();
+    history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash);
+  })();
 
   document.getElementById('submitBtn').addEventListener('click', async () => {
     const btn = document.getElementById('submitBtn');
