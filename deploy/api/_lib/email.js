@@ -408,6 +408,21 @@ export const TEMPLATES = {
       footerNote: 'Producer Partnership, Inc. is a 501(c)(3) charitable organization. Donations are deductible to the extent allowed by law.',
     }),
   },
+
+  // ── Social: follower post alert ──────────────────────────────
+  'S1.follower_post': {
+    subject: (c) => `${c.ranch_name || 'A ranch you follow'} posted an update`,
+    render: (c) => layout({
+      heading: `News from ${c.ranch_name || 'your ranch'}`,
+      body: `<p>Hi ${firstName(c.buyer_name)},</p>
+<p><strong>${c.author_name || 'Someone'}</strong> shared an update on <strong>${c.ranch_name || 'a ranch you follow'}</strong>:</p>
+<p style="padding:14px 16px;background:rgba(125,160,93,.12);border-radius:12px;font-style:italic;">“${(c.post_preview || 'New photo update').replace(/</g, '&lt;')}”</p>
+<p>Open the community wall to see photos, leave a kind word, or check the animal journey if you have a reservation there.</p>`,
+      ctaLabel: 'Open community →',
+      ctaHref: c.post_url || `${baseUrl()}/community`,
+      footerNote: 'You get these because you follow this ranch or plant. Manage follows on your account or the ranch profile.',
+    }),
+  },
 };
 
 // ─── Send entry point ──────────────────────────────────────────
@@ -491,6 +506,7 @@ const NOTIFY_MAP = {
   'C18.ready_for_pickup':           { icon: 'check_circle', link: (c) => `/account?reservation=${c.reservation_id || ''}` },
   'C19.delivered_complaint_window': { icon: 'reviews',    link: (c) => `/account?reservation=${c.reservation_id || ''}` },
   'C20.complaint_received':         { icon: 'support_agent', link: (c) => `/account?reservation=${c.reservation_id || ''}` },
+  'S1.follower_post':               { icon: 'campaign',   link: (c) => c.post_url || '/community' },
   // Farmer notifications
   'F2.first_sale_pick_processor':   { icon: 'storefront', link: (c) => `/farmer?listing=${c.listing_id || ''}` },
   'F4.dropoff_reminder':            { icon: 'event',      link: (c) => `/farmer?booking=${c.booking_id || ''}` },

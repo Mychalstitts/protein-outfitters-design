@@ -40,19 +40,26 @@
 
   function renderPost(p, opts = {}) {
     const isMile = p.kind === 'milestone';
+    const isThanks = p.kind === 'thanks';
+    const isPrivate = p.visibility === 'participants';
     const hearts = (p.reaction_counts && p.reaction_counts.heart) || 0;
     const mine = (p.my_reactions || []).includes('heart');
     const media = (p.media_urls || []).map(u =>
       `<img class="po-soc-media" src="${esc(u)}" alt="" loading="lazy" />`
     ).join('');
-    const chip = isMile && p.milestone
-      ? `<span class="po-soc-chip">${esc(MILESTONE_LABEL[p.milestone] || p.milestone)}</span>`
-      : '';
+    let chip = '';
+    if (isMile && p.milestone) {
+      chip = `<span class="po-soc-chip">${esc(MILESTONE_LABEL[p.milestone] || p.milestone)}</span>`;
+    } else if (isThanks) {
+      chip = `<span class="po-soc-chip po-soc-chip--thanks">Thanks</span>`;
+    } else if (isPrivate) {
+      chip = `<span class="po-soc-chip po-soc-chip--private">Participants only</span>`;
+    }
     const subject = opts.showSubject && p.subject_name
       ? `<span class="po-soc-subject"> · ${esc(p.subject_name)}</span>`
       : '';
 
-    return `<article class="po-soc-post${isMile ? ' is-milestone' : ''}" data-post-id="${esc(p.id)}">
+    return `<article class="po-soc-post${isMile ? ' is-milestone' : ''}${isPrivate ? ' is-private' : ''}${isThanks ? ' is-thanks' : ''}" data-post-id="${esc(p.id)}">
       <div class="po-soc-avatar" aria-hidden="true">${esc(initial(p.author_name))}</div>
       <div class="po-soc-body">
         <div class="po-soc-meta">
@@ -156,7 +163,15 @@
     });
   }
 
-  function composerHtml(placeholder) {
+  function composerHtml(placeholder, opts = {}) {
+    const vis = opts.allowParticipants
+      ? `<label class="po-soc-vis">
+          <select name="visibility">
+            <option value="public">Public on journey</option>
+            <option value="participants">Participants only (cooler / floor)</option>
+          </select>
+        </label>`
+      : '';
     return `<form class="po-soc-composer">
       <textarea name="body" rows="3" maxlength="2000" placeholder="${esc(placeholder)}"></textarea>
       <div class="po-soc-composer-foot">
@@ -165,6 +180,7 @@
           + Photo
         </label>
         <span class="po-soc-photo-name" data-photo-name></span>
+        ${vis}
         <button type="submit" class="po-soc-submit">Share →</button>
       </div>
       <p class="po-soc-status" data-status></p>
@@ -180,7 +196,7 @@
     return data.url || data.href || data.downloadUrl;
   }
 
-  function wireComposer(form, { subjectType, subjectId, listingId, kind, onPosted }) {
+  function wireComposer(form, { subjectType, subjectId, listingId, kind, onPosted, defaultVisibility }) {
     let pendingUrl = null;
     const fileInput = form.querySelector('input[type="file"]');
     const nameEl = form.querySelector('[data-photo-name]');
@@ -207,6 +223,7 @@
           const url = await uploadPhoto(file);
           if (url) media_urls = [url];
         } else if (pendingUrl) media_urls = [pendingUrl];
+        const visibility = form.visibility?.value || defaultVisibility || 'public';
         const r = await fetch('/api/social-posts', {
           method: 'POST',
           credentials: 'include',
@@ -218,6 +235,8 @@
             body: body || null,
             media_urls,
             kind: kind || (media_urls.length ? 'photo' : 'update'),
+            visibility,
+            cooler: visibility === 'participants',
           }),
         });
         if (r.status === 401) {
@@ -230,7 +249,11 @@
         if (fileInput) fileInput.value = '';
         if (nameEl) nameEl.textContent = '';
         pendingUrl = null;
-        if (status) status.textContent = 'Shared.';
+        if (status) {
+          status.textContent = visibility === 'participants'
+            ? 'Shared with participants only (buyers, farm, plant).'
+            : 'Shared.';
+        }
         onPosted?.(data.post);
       } catch (err) {
         if (status) status.textContent = err.message;
@@ -277,14 +300,18 @@
 
   async function mountJourney(el, opts = {}) {
     if (!el) return;
-    const { listingId, canPost = false } = opts;
+    const { listingId, canPost = false, canThanks = false } = opts;
     el.classList.add('po-soc', 'po-soc--journey');
+    const thanksBtn = canThanks
+      ? `<button type="button" class="po-soc-thanks-btn" data-thanks>Say thanks to the ranch →</button>`
+      : '';
     el.innerHTML = `
       <div class="po-soc-journey-head">
         <h3>Animal journey</h3>
         <p>From pasture to plant to freezer — the story of this animal.</p>
+        ${thanksBtn}
       </div>
-      ${canPost ? composerHtml('Share a note or photo from the ranch…') : ''}
+      ${canPost ? composerHtml('Share a ranch note, cooler photo, or floor update…', { allowParticipants: true }) : ''}
       <div class="po-soc-list" data-list><p class="po-soc-empty">Loading journey…</p></div>`;
     const list = el.querySelector('[data-list]');
     const form = el.querySelector('.po-soc-composer');
@@ -293,9 +320,40 @@
         subjectType: 'listing',
         subjectId: listingId,
         listingId,
+        defaultVisibility: 'public',
         onPosted: () => mountJourney(el, opts),
       });
     }
+    el.querySelector('[data-thanks]')?.addEventListener('click', async () => {
+      const msg = prompt('A short thank-you to the people who raised and cut this animal:', 'Thank you for the care you put into this animal.');
+      if (msg == null) return;
+      const body = msg.trim();
+      if (!body) return;
+      try {
+        const r = await fetch('/api/social-posts', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject_type: 'listing',
+            subject_id: listingId,
+            listing_id: listingId,
+            kind: 'thanks',
+            body,
+            visibility: 'public',
+          }),
+        });
+        if (r.status === 401) {
+          window.PO_API?.openAuth?.('Sign in to say thanks', 'buyer');
+          return;
+        }
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || 'Could not post');
+        mountJourney(el, opts);
+      } catch (err) {
+        alert(err.message);
+      }
+    });
     try {
       const r = await fetch(
         `/api/social-posts?listing_id=${encodeURIComponent(listingId)}&limit=50`,

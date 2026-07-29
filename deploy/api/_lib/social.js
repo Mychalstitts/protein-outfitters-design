@@ -96,3 +96,77 @@ export function sharesFullySold(shares) {
   }
   return total > 0 && available === 0;
 }
+
+/**
+ * Email followers when a ranch/plant posts a public update.
+ * Caps at 40 recipients per post; one email per follower (deduped).
+ */
+export async function notifyFollowersOfPost({ post, authorName } = {}) {
+  try {
+    if (!post || post.visibility !== 'public') return { sent: 0 };
+    if (!['farm', 'processor'].includes(post.subject_type)) return { sent: 0 };
+    if (!['update', 'photo'].includes(post.kind)) return { sent: 0 };
+
+    let followers = [];
+    let subjectName = 'a ranch you follow';
+    let href = 'https://www.proteinoutfitters.com/community';
+
+    if (post.subject_type === 'farm') {
+      const farm = await sql`SELECT id, name, slug FROM farms WHERE id = ${post.subject_id} LIMIT 1`;
+      if (!farm[0]) return { sent: 0 };
+      subjectName = farm[0].name;
+      href = `https://www.proteinoutfitters.com/farm/${farm[0].slug}#community`;
+      followers = await sql`
+        SELECT DISTINCT u.id, u.email, u.name
+        FROM (
+          SELECT user_id FROM farm_follows WHERE farm_id = ${post.subject_id}
+          UNION
+          SELECT user_id FROM entity_follows
+          WHERE subject_type = 'farm' AND subject_id = ${post.subject_id}
+        ) f
+        JOIN users u ON u.id = f.user_id
+        WHERE u.email IS NOT NULL AND u.id IS DISTINCT FROM ${post.author_id}
+        LIMIT 40`;
+    } else {
+      const plant = await sql`SELECT id, name, slug FROM processors WHERE id = ${post.subject_id} LIMIT 1`;
+      if (!plant[0]) return { sent: 0 };
+      subjectName = plant[0].name;
+      href = plant[0].slug
+        ? `https://www.proteinoutfitters.com/p/${plant[0].slug}`
+        : 'https://www.proteinoutfitters.com/community';
+      followers = await sql`
+        SELECT DISTINCT u.id, u.email, u.name
+        FROM entity_follows ef
+        JOIN users u ON u.id = ef.user_id
+        WHERE ef.subject_type = 'processor' AND ef.subject_id = ${post.subject_id}
+          AND u.email IS NOT NULL AND u.id IS DISTINCT FROM ${post.author_id}
+        LIMIT 40`;
+    }
+
+    if (!followers.length) return { sent: 0 };
+
+    const { sendLifecycleEmail } = await import('./email.js');
+    const preview = (post.body || 'Shared a new photo update.').slice(0, 160);
+    let sent = 0;
+    for (const f of followers) {
+      try {
+        const out = await sendLifecycleEmail('S1.follower_post', {
+          to: f.email,
+          buyer_name: f.name,
+          ranch_name: subjectName,
+          author_name: authorName || 'Someone',
+          post_preview: preview,
+          post_url: href,
+          farm_id: post.subject_type === 'farm' ? post.subject_id : null,
+          processor_id: post.subject_type === 'processor' ? post.subject_id : null,
+          dedupKey: `S1::${post.id}::${f.id}`,
+        });
+        if (out.sent || out.skipped === 'no_api_key') sent++;
+      } catch (_) { /* keep going */ }
+    }
+    return { sent };
+  } catch (e) {
+    console.error('[social.notifyFollowersOfPost]', e.message || e);
+    return { sent: 0 };
+  }
+}

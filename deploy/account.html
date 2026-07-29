@@ -426,11 +426,13 @@
     let actions = '';
     if (r.status === 'ready') {
       actions = `<button onclick="markPickedUp('${r.id}')" style="background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';cursor:pointer;">Mark picked up</button>
+                 <a class="res-cta" href="/listing?id=${r.listing_id}#journey">Say thanks →</a>
                  <a class="res-cta" href="/cut-sheet?reservation_id=${r.id}">Cut sheet →</a>`;
     } else if (r.status === 'picked-up') {
       const days = r.updated_at ? Math.floor((Date.now() - new Date(r.updated_at).getTime()) / 86400000) : 99;
       const inWindow = days <= 7;
       actions = `${inWindow ? `<button onclick="openComplaint('${r.id}')" style="background:transparent;color:#c25250;border:1px solid rgba(194,82,80,.3);border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';cursor:pointer;">Flag a quality issue</button>` : ''}
+                 <a class="res-cta" href="/listing?id=${r.listing_id}#journey">Say thanks →</a>
                  <a class="res-cta" href="/cut-sheet?reservation_id=${r.id}">View cut sheet</a>`;
     } else {
       actions = `<a class="res-cta" href="/cut-sheet?reservation_id=${r.id}">Cut sheet →</a>

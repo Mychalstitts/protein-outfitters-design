@@ -38,6 +38,19 @@
 .po-soc-post:first-child { border-radius: 16px 16px 0 0; }
 .po-soc-post:last-child { border-radius: 0 0 16px 16px; border-bottom: 0; }
 .po-soc-post.is-milestone { background: linear-gradient(135deg, rgba(125,160,93,.08), #fff 55%); }
+.po-soc-post.is-private { background: linear-gradient(135deg, rgba(6,27,14,.04), #fff 50%); border-left: 3px solid rgba(6,27,14,.2); }
+.po-soc-post.is-thanks { background: linear-gradient(135deg, rgba(212,165,74,.12), #fff 55%); }
+.po-soc-chip--private { background: rgba(6,27,14,.1); color: #061b0e; }
+.po-soc-chip--thanks { background: rgba(212,165,74,.25); color: #6b4a10; }
+.po-soc-vis select {
+  font: 600 11.5px/1 'Inter'; border: 1px solid rgba(6,27,14,.12); border-radius: 999px;
+  padding: 7px 10px; background: #fff; color: var(--ink-2, #5a6359); max-width: 200px;
+}
+.po-soc-thanks-btn {
+  margin-top: 12px; background: #061b0e; color: #fbf9f5; border: 0; border-radius: 999px;
+  padding: 10px 16px; font: 700 13px/1 'Inter'; cursor: pointer;
+}
+.po-soc-thanks-btn:hover { background: #0a2614; }
 
 .po-soc-avatar {
   width: 40px; height: 40px; border-radius: 12px;

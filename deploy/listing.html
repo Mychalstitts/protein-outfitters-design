@@ -114,7 +114,7 @@
       <h3 class="po-h3" style="margin-bottom: 24px;">How much do you want?</h3>
       <div class="share-row" id="lgShareRow"></div>
 
-      <div id="lgJourney" style="margin-top: 48px;"></div>
+      <div id="lgJourney" style="margin-top: 48px; scroll-margin-top: 88px;"></div>
     </div>
 
     <aside>
@@ -358,19 +358,44 @@
     if (allInW) navReserve.dataset.priceW = allInW;
   }
 
-  // Journey timeline (milestones + ranch notes for this animal)
+  // Journey timeline (milestones + ranch/cooler notes + buyer thanks)
   try {
     let canPost = false;
+    let canThanks = false;
     try {
       const me = await window.PO_API.me();
-      // Farm owners can post; buyers use thanks via future CTA
       if (me.user && l.farm_owner_id && me.user.id === l.farm_owner_id) canPost = true;
       if (me.user && me.user.role === 'admin') canPost = true;
-      // Heuristic: producer who owns farm via myFarms if owner_id not on listing
       if (!canPost && me.user && (me.user.role === 'producer' || me.user.role === 'admin') && l.farm_id) {
         try {
           const fr = await window.PO_API.myFarms();
           canPost = (fr.farms || []).some(x => x.id === l.farm_id);
+        } catch (_) {}
+      }
+      // Plant owner with a booking on this listing can post cooler notes
+      if (!canPost && me.user && (me.user.role === 'processor' || me.user.role === 'admin')) {
+        try {
+          const pr = await window.PO_API.processors();
+          const mine = (pr.processors || []).filter(x => x.owner_id === me.user.id);
+          for (const plant of mine) {
+            const br = await fetch('/api/bookings?processor_slug=' + encodeURIComponent(plant.slug), { credentials: 'include' });
+            if (!br.ok) continue;
+            const bd = await br.json();
+            if ((bd.bookings || []).some(b => b.listing_id === l.id && !['cancelled','rejected'].includes(b.status))) {
+              canPost = true;
+              break;
+            }
+          }
+        } catch (_) {}
+      }
+      // Buyer with active reservation can thank
+      if (me.user) {
+        try {
+          const rr = await window.PO_API.reservations();
+          canThanks = (rr.reservations || []).some(r =>
+            r.listing_id === l.id &&
+            ['ready', 'picked-up', 'processing', 'deposit-paid', 'paid'].includes(r.status)
+          );
         } catch (_) {}
       }
     } catch (_) {}
@@ -378,7 +403,12 @@
       window.PO_SOCIAL.mountJourney(document.getElementById('lgJourney'), {
         listingId: l.id,
         canPost,
+        canThanks,
       });
+      // Deep-link from Account "Say thanks"
+      if ((location.hash || '').replace('#', '') === 'journey') {
+        setTimeout(() => document.getElementById('lgJourney')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+      }
     }
   } catch (_) { /* journey optional */ }
 

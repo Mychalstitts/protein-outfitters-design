@@ -18,13 +18,44 @@ async function canPostOn(user, subject_type, subject_id) {
     return !!r[0];
   }
   if (subject_type === 'listing') {
+    // Farm owner
     const r = await sql`
       SELECT 1 FROM listings l JOIN farms f ON f.id = l.farm_id
       WHERE l.id = ${subject_id} AND f.owner_id = ${user.id} LIMIT 1`;
-    return !!r[0];
+    if (r[0]) return true;
+    // Plant holding a booking for this animal (cooler notes)
+    const b = await sql`
+      SELECT 1 FROM bookings bk
+      JOIN processors p ON p.id = bk.processor_id
+      WHERE bk.listing_id = ${subject_id}
+        AND p.owner_id = ${user.id}
+        AND bk.status NOT IN ('cancelled','rejected')
+      LIMIT 1`;
+    return !!b[0];
   }
   if (subject_type === 'user') return subject_id === user.id;
   return false;
+}
+
+async function isListingParticipant(user, listing_id) {
+  if (!user || !listing_id) return false;
+  if (user.role === 'admin') return true;
+  const buyer = await sql`
+    SELECT 1 FROM reservations WHERE listing_id = ${listing_id} AND buyer_id = ${user.id}
+      AND status NOT IN ('cancelled','refunded') LIMIT 1`;
+  if (buyer[0]) return true;
+  const farm = await sql`
+    SELECT 1 FROM listings l JOIN farms f ON f.id = l.farm_id
+    WHERE l.id = ${listing_id} AND f.owner_id = ${user.id} LIMIT 1`;
+  if (farm[0]) return true;
+  const plant = await sql`
+    SELECT 1 FROM bookings bk
+    JOIN processors p ON p.id = bk.processor_id
+    WHERE bk.listing_id = ${listing_id}
+      AND p.owner_id = ${user.id}
+      AND bk.status NOT IN ('cancelled','rejected')
+    LIMIT 1`;
+  return !!plant[0];
 }
 
 async function canSeePost(user, post) {
@@ -42,12 +73,9 @@ async function canSeePost(user, post) {
       LIMIT 1`;
     return !!r[0];
   }
-  if (post.visibility === 'participants' && post.listing_id) {
-    const r = await sql`
-      SELECT 1 FROM reservations WHERE listing_id = ${post.listing_id} AND buyer_id = ${user.id}
-        AND status NOT IN ('cancelled','refunded') LIMIT 1`;
-    if (r[0]) return true;
-    return await canPostOn(user, 'listing', post.listing_id);
+  if (post.visibility === 'participants') {
+    const lid = post.listing_id || (post.subject_type === 'listing' ? post.subject_id : null);
+    if (lid) return await isListingParticipant(user, lid);
   }
   return false;
 }
@@ -183,11 +211,14 @@ async function handler(req) {
       if (subject_type !== 'listing') return err(400, 'thanks must target a listing');
       const r = await sql`
         SELECT 1 FROM reservations WHERE listing_id = ${subject_id} AND buyer_id = ${user.id}
-          AND status NOT IN ('cancelled','refunded') LIMIT 1`;
-      if (!r[0] && user.role !== 'admin') return err(403, 'Reserve this animal before thanking');
+          AND status IN ('ready','picked-up','processing','deposit-paid','paid')
+        LIMIT 1`;
+      if (!r[0] && user.role !== 'admin') {
+        return err(403, 'Thanks open after you have an active reservation on this animal');
+      }
     } else {
       const ok = await canPostOn(user, subject_type, subject_id);
-      if (!ok) return err(403, 'You can only post on profiles you own');
+      if (!ok) return err(403, 'You can only post on profiles you own (or animals at your plant)');
     }
 
     const text = (body.body || '').trim();
@@ -199,11 +230,19 @@ async function handler(req) {
     const media = Array.isArray(body.media_urls)
       ? body.media_urls.filter(u => typeof u === 'string' && u.startsWith('http')).slice(0, 6)
       : [];
-    const visibility = ['public', 'followers', 'participants'].includes(body.visibility)
+    let visibility = ['public', 'followers', 'participants'].includes(body.visibility)
       ? body.visibility : 'public';
+    // Explicit cooler flag or default participants when owner posts private journey notes
+    if (body.cooler === true || body.visibility === 'participants') visibility = 'participants';
+    if (kind === 'thanks') visibility = 'public';
+
     const listing_id = body.listing_id && isUuid(body.listing_id)
       ? body.listing_id
       : (subject_type === 'listing' ? subject_id : null);
+
+    if (visibility === 'participants' && !listing_id) {
+      return err(400, 'participants visibility requires a listing');
+    }
 
     const recent = await sql`
       SELECT COUNT(*)::int AS n FROM social_posts
@@ -217,6 +256,17 @@ async function handler(req) {
         ${user.id}, ${subject_type}, ${subject_id}, ${listing_id},
         ${kind}, ${text || null}, ${media}, ${visibility}
       ) RETURNING *`;
+
+    if (visibility === 'public' && (kind === 'update' || kind === 'photo')
+        && (subject_type === 'farm' || subject_type === 'processor')) {
+      try {
+        const { notifyFollowersOfPost } = await import('./_lib/social.js');
+        await notifyFollowersOfPost({
+          post: rows[0],
+          authorName: user.name || user.email?.split('@')[0] || 'Someone',
+        });
+      } catch (_) { /* best-effort */ }
+    }
 
     const enriched = await enrichPosts([{
       ...rows[0],
