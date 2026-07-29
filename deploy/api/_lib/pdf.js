@@ -86,7 +86,7 @@ export function footer(doc, { footnote }) {
   doc.strokeColor(BRAND.ink3).lineWidth(0.4).moveTo(doc.page.margins.left, bottomY).lineTo(doc.page.width - doc.page.margins.right, bottomY).stroke();
   doc.font('Helvetica').fontSize(8).fillColor(BRAND.ink3)
      .text(
-       footnote || 'Protein Outfitters · Bemidji, MN · hello@proteinoutfitters.com · proteinoutfitters.com',
+       footnote || 'Protein Outfitters · Nationwide · hello@proteinoutfitters.com · proteinoutfitters.com',
        doc.page.margins.left, bottomY + 6,
        { width: doc.page.width - doc.page.margins.left - doc.page.margins.right, align: 'center' }
      );

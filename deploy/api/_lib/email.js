@@ -69,7 +69,7 @@ function layout({ heading, body, ctaLabel, ctaHref, footerNote }) {
     ${footerNote ? `<p style="margin-top:28px;font-size:12px;color:rgba(6,27,14,.65);line-height:1.55;">${footerNote}</p>` : ''}
     <hr style="border:0;border-top:1px solid rgba(6,27,14,.1);margin:32px 0 16px;">
     <p style="font-size:11px;color:rgba(6,27,14,.55);line-height:1.55;margin:0;">
-      Protein Outfitters · By Stittsworth Meats · Bemidji, MN · <a href="${baseUrl()}/policies/refunds" style="color:rgba(6,27,14,.55);">Refund policy</a> · <a href="${baseUrl()}/faq" style="color:rgba(6,27,14,.55);">FAQ</a> · <a href="mailto:hello@proteinoutfitters.com" style="color:rgba(6,27,14,.55);">hello@proteinoutfitters.com</a>
+      Protein Outfitters · Nationwide marketplace · HQ Bemidji, MN · <a href="${baseUrl()}/policies/refunds" style="color:rgba(6,27,14,.55);">Refund policy</a> · <a href="${baseUrl()}/faq" style="color:rgba(6,27,14,.55);">FAQ</a> · <a href="mailto:hello@proteinoutfitters.com" style="color:rgba(6,27,14,.55);">hello@proteinoutfitters.com</a>
     </p>
   </div>
 </body></html>`;

@@ -94,7 +94,7 @@ async function _handler(req) {
     // Greeting
     paragraph(doc, `Dear ${d.donor_name || 'donor'},`, { size: 11, color: BRAND.ink });
     paragraph(doc,
-      `Thank you for your generous donation to ${CHARITY.name}. Your contribution helps us feed local food banks, schools, food shelves, and government feeding programs across the upper Midwest.`,
+      `Thank you for your generous donation to ${CHARITY.name}. Your contribution helps us feed local food banks, schools, food shelves, and government feeding programs across the United States.`,
       { size: 11 });
 
     // Donation summary

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Discover · Protein Outfitters</title>
-  <meta name="description" content="Find pasture-raised cattle, hogs, lamb, and poultry from real farms. Filter by certifications, location, finish date, and more — like Airbnb for the meat marketplace." />
+  <meta name="description" content="Nationwide marketplace for pasture-raised cattle, hogs, lamb, and poultry from real U.S. farms. Filter by certifications, location, finish date, and more." />
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
   <meta property="og:title" content="Discover · Protein Outfitters" />
   <meta property="og:description" content="Filter the marketplace by species, breed, certifications, location, and price. Smart natural-language search powered by AI." />
@@ -181,7 +181,7 @@
           <button id="saveSearchBtn">Save search</button>
         </div>
         <div class="results-head">
-          <div class="results-count" id="resultsCount">12 listings <em>· near Bemidji, MN</em></div>
+          <div class="results-count" id="resultsCount">Loading listings… <em>· nationwide</em></div>
           <select class="sort-select" id="sortSelect">
             <option value="best">Best match</option>
             <option value="closest">Closest to me</option>
@@ -212,9 +212,9 @@
 
     // ── User location for distance computation ──
     // Cached in localStorage once granted so we don't re-prompt on every visit.
-    // Default falls back to Bemidji, MN (PO HQ) so distances still rank
-    // sensibly even before the user grants geolocation.
-    const DEFAULT_USER_LOC = { lat: 47.4736, lng: -94.8803 };
+    // Default is geographic center of the contiguous U.S. (not HQ) so the product
+    // reads as nationwide until the browser shares a real location.
+    const DEFAULT_USER_LOC = { lat: 39.8283, lng: -98.5795 };
     let USER_LOC = (() => {
       try { return JSON.parse(localStorage.getItem('po_user_loc') || 'null') || DEFAULT_USER_LOC; }
       catch { return DEFAULT_USER_LOC; }
@@ -359,7 +359,7 @@
       const grid = document.getElementById('listingGrid');
       const count = document.getElementById('resultsCount');
       const usingDefaultLoc = !localStorage.getItem('po_user_loc');
-      const locLabel = usingDefaultLoc ? 'near Bemidji, MN' : 'near you';
+      const locLabel = usingDefaultLoc ? 'nationwide' : 'near you';
       count.innerHTML = `${r.length} listing${r.length===1?'':'s'} <em>· ${locLabel}</em>`;
       grid.innerHTML = r.map(l => `
         <article class="listing-card" data-id="${l.id}" onclick="window.location='/listing?id=${l.id}'">
@@ -473,7 +473,7 @@
 
     async function initDiscoverMap() {
       if (discoverMap) return; // already built
-      discoverMap = L.map('discoverMap', { zoomControl: true }).setView([45.5, -94], 5);
+      discoverMap = L.map('discoverMap', { zoomControl: true }).setView([39.8, -98.5], 4);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd', maxZoom: 19,

@@ -6,9 +6,9 @@
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <meta name="theme-color" content="#061b0e" />
 <title>Protein Outfitters — A whole animal, in three taps.</title>
-<meta name="description" content="Reserve a share of a real, named animal from a verified farm. One all-in price. USDA-inspected plants. Pick your cuts and pick up local — three taps." />
+<meta name="description" content="Nationwide marketplace for whole animals from verified U.S. farms. One all-in price. USDA-inspected plants. Pick your cuts and pick up local — three taps." />
 <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a share of a real, named animal from a verified farm. One all-in price. USDA plants. Three taps to a full freezer." />
+<meta property="og:description" content="Nationwide: reserve a share of a named animal from a verified U.S. farm. One all-in price. USDA plants. Three taps to a full freezer." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/" />
 <meta property="og:type" content="website" />
@@ -827,9 +827,9 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="hero-photo" aria-hidden="true"></div>
   <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-inner">
-    <span class="hero-eyebrow">Real farms · Real animals · USDA inspected</span>
+    <span class="hero-eyebrow">Nationwide · Real farms · USDA inspected</span>
     <h1 class="hero-headline">A whole animal,<br>in three taps.</h1>
-    <p class="hero-sub">Reserve a share of a named animal from a verified producer. Set your cuts. Pick it up at a local plant. One all-in price — farmer, processing, and insurance included.</p>
+    <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. One all-in price — farmer, processing, and insurance included.</p>
 
     <!-- Primary conversion: search (Airbnb) → inventory -->
     <form class="hero-search" id="heroSearch" role="search" aria-label="Find meat near you" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
@@ -873,7 +873,7 @@ body { background: var(--bg); overflow-x: hidden; }
     <span class="proof-strip-dot" aria-hidden="true">·</span>
     <span><strong>Free cancel</strong> up to 21 days before harvest</span>
     <span class="proof-strip-dot" aria-hidden="true">·</span>
-    <span id="proofGeo"><strong>24+</strong> states &amp; growing</span>
+    <span id="proofGeo"><strong>Nationwide</strong> · all 50 states</span>
   </div>
 </div>
 
@@ -883,8 +883,8 @@ body { background: var(--bg); overflow-x: hidden; }
     <div class="section-head-row">
       <div>
         <span class="section-eyebrow">Available now</span>
-        <h2 class="section-h2">Real animals.<br>Real farms. Near you.</h2>
-        <p class="section-lead" id="directoryLead">Every listing is one specific animal on a farm you can drive to. Reserve a share, set your cuts, pick up at a local plant — we handle the rest.</p>
+        <h2 class="section-h2">Real animals.<br>Real farms. Across America.</h2>
+        <p class="section-lead" id="directoryLead">Every listing is one specific animal on a farm you can drive to — anywhere in the U.S. Reserve a share, set your cuts, pick up at a local plant — we handle the rest.</p>
       </div>
       <a class="view-all-link" href="/discover">View all listings →</a>
     </div>
@@ -978,8 +978,8 @@ body { background: var(--bg); overflow-x: hidden; }
         <div class="po-icon-tile sky" style="margin: 0 0 14px;">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
-        <span class="trust-num" id="trustGeoNum">24+ states</span>
-        <span class="trust-label" id="trustGeoLabel">Farms and plants across the Midwest, Plains, and Mountain West</span>
+        <span class="trust-num" id="trustGeoNum">50 states</span>
+        <span class="trust-label" id="trustGeoLabel">Nationwide marketplace — farms and USDA / state-inspected plants across the U.S.</span>
       </div>
     </div>
   </div>
@@ -1072,13 +1072,21 @@ body { background: var(--bg); overflow-x: hidden; }
     (data.processors || []).concat(data.farms || []).forEach(p => {
       if (p.state) states.add(p.state);
     });
-    if (states.size >= 4) {
+    if (states.size >= 1) {
       const n = document.getElementById('trustGeoNum');
       const l = document.getElementById('trustGeoLabel');
-      if (n) n.textContent = states.size + ' states';
-      if (l) l.textContent = 'Active farms and plants across ' + states.size + ' states — growing weekly';
+      // Show live coverage when we have data; always frame as a national platform
+      const label = states.size >= 40
+        ? 'Farms and plants live across nearly every state — nationwide coverage.'
+        : 'Live inventory in ' + states.size + ' states today — reserving nationwide, growing every week.';
+      if (n) n.textContent = states.size >= 40 ? '50 states' : states.size + ' states live';
+      if (l) l.textContent = label;
       const pg = document.getElementById('proofGeo');
-      if (pg) pg.innerHTML = '<strong>' + states.size + '</strong> states &amp; growing';
+      if (pg) {
+        pg.innerHTML = states.size >= 40
+          ? '<strong>Nationwide</strong> · all 50 states'
+          : '<strong>' + states.size + ' states</strong> live · nationwide platform';
+      }
     }
   } catch { /* keep static copy */ }
 })();

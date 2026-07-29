@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Producers · Protein Outfitters</title>
-<meta name="description" content="Meet the ranchers behind every animal. Browse all verified producers on Protein Outfitters and follow the ones that match your values." />
+<meta name="description" content="Meet verified ranchers across the United States. Browse producers on Protein Outfitters and follow the ones that match your values." />
 <meta property="og:title" content="Producers · Protein Outfitters" />
 <meta property="og:description" content="Meet the verified producers behind every animal." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
@@ -76,19 +76,25 @@
   <div class="pp-inner">
 
     <div class="pp-hero">
-      <p class="po-eyebrow">Producers · Northland</p>
+      <p class="po-eyebrow">Producers · Nationwide</p>
       <h1 class="pp-h1">Meet the ranchers behind your meat.</h1>
-      <p class="pp-lead">Verified producers across Minnesota, Wisconsin, and the Dakotas. Each one named the animal they're raising. Follow the operations whose values match yours.</p>
+      <p class="pp-lead">Verified producers across the United States. Each one names the animal they’re raising. Follow the operations whose values match yours — wherever you live.</p>
     </div>
 
     <div class="filters">
-      <div class="filters-inner">
-        <button class="chip active" data-filter="all">All</button>
-        <span class="chip divider">By state</span>
+      <div class="filters-inner" id="producerFilters">
+        <button class="chip active" data-filter="all">All U.S.</button>
+        <span class="chip divider" id="stateDivider">By state</span>
         <button class="chip" data-filter="mn">Minnesota</button>
         <button class="chip" data-filter="wi">Wisconsin</button>
         <button class="chip" data-filter="nd">North Dakota</button>
         <button class="chip" data-filter="sd">South Dakota</button>
+        <button class="chip" data-filter="ia">Iowa</button>
+        <button class="chip" data-filter="mt">Montana</button>
+        <button class="chip" data-filter="tx">Texas</button>
+        <button class="chip" data-filter="ca">California</button>
+        <button class="chip" data-filter="co">Colorado</button>
+        <button class="chip" data-filter="ny">New York</button>
         <span class="chip divider">By practice</span>
         <button class="chip" data-filter="grass">Grass-fed</button>
         <button class="chip" data-filter="organic">Organic</button>
@@ -303,7 +309,7 @@
           .concat([(f.state || '').toLowerCase()])
           .filter(Boolean).join(' ');
         const cover = coverFor(f);
-        const loc = [f.city, f.state].filter(Boolean).join(', ') || 'Northland';
+        const loc = [f.city, f.state].filter(Boolean).join(', ') || 'United States';
         const inner = `
             <div class="farm-cover" style="background-image:url('${cover}')"></div>
             <div class="farm-meta">
@@ -314,6 +320,34 @@
           ? `<a href="/farm/${encodeURIComponent(f.slug)}" class="farm-card" data-tags="${tags}">${inner}</a>`
           : `<div class="farm-card" data-tags="${tags}" aria-disabled="true">${inner}</div>`;
       }).join('');
+
+      // Rebuild state chips from live farm data so every covered state appears
+      const STATE_NAMES = { al:'Alabama',ak:'Alaska',az:'Arizona',ar:'Arkansas',ca:'California',co:'Colorado',ct:'Connecticut',de:'Delaware',fl:'Florida',ga:'Georgia',hi:'Hawaii',id:'Idaho',il:'Illinois',in:'Indiana',ia:'Iowa',ks:'Kansas',ky:'Kentucky',la:'Louisiana',me:'Maine',md:'Maryland',ma:'Massachusetts',mi:'Michigan',mn:'Minnesota',ms:'Mississippi',mo:'Missouri',mt:'Montana',ne:'Nebraska',nv:'Nevada',nh:'New Hampshire',nj:'New Jersey',nm:'New Mexico',ny:'New York',nc:'North Carolina',nd:'North Dakota',oh:'Ohio',ok:'Oklahoma',or:'Oregon',pa:'Pennsylvania',ri:'Rhode Island',sc:'South Carolina',sd:'South Dakota',tn:'Tennessee',tx:'Texas',ut:'Utah',vt:'Vermont',va:'Virginia',wa:'Washington',wv:'West Virginia',wi:'Wisconsin',wy:'Wyoming' };
+      const statesLive = [...new Set(farms.map(f => String(f.state || '').toLowerCase()).filter(s => STATE_NAMES[s]))]
+        .sort((a, b) => STATE_NAMES[a].localeCompare(STATE_NAMES[b]));
+      const filterBar = document.getElementById('producerFilters');
+      if (filterBar && statesLive.length) {
+        const practiceHtml = `
+          <span class="chip divider">By practice</span>
+          <button class="chip" data-filter="grass">Grass-fed</button>
+          <button class="chip" data-filter="organic">Organic</button>
+          <button class="chip" data-filter="regen">Regenerative</button>
+          <button class="chip" data-filter="heritage">Heritage breeds</button>`;
+        filterBar.innerHTML = `
+          <button class="chip active" data-filter="all">All U.S.</button>
+          <span class="chip divider">By state</span>
+          ${statesLive.map(s => `<button class="chip" data-filter="${s}">${STATE_NAMES[s]}</button>`).join('')}
+          ${practiceHtml}`;
+        filterBar.querySelectorAll('.chip[data-filter]').forEach(chip => chip.addEventListener('click', () => {
+          filterBar.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          const f = chip.dataset.filter;
+          document.querySelectorAll('.farm-card').forEach(card => {
+            const tags = (card.dataset.tags || '').split(' ');
+            card.style.display = (f === 'all' || tags.includes(f)) ? '' : 'none';
+          });
+        }));
+      }
     } catch (e) { /* keep static fallback cards */ }
   })();
 })();

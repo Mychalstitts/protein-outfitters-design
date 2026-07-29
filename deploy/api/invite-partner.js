@@ -51,7 +51,7 @@ function inviteHtml({ kind, partnerName, inviterName, inviterEmail, personalMess
       Sign-in is by magic link — no password. We'll pre-fill your name and address so you can review and publish in 2 minutes.
     </p>
     <p style="font:500 12px/1.5 Inter;color:#9aa0a0;margin:32px 0 0;">
-      Don't want these? Just ignore this email — we won't follow up. Protein Outfitters · Bemidji, MN.
+      Don't want these? Just ignore this email — we won't follow up. Protein Outfitters · Nationwide · proteinoutfitters.com
     </p>
   </div>
 </body></html>`;

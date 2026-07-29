@@ -22,7 +22,7 @@ function defaultBio(name, state, species) {
   const sp = (species && species.length)
     ? species.join(', ')
     : 'pasture-raised meat';
-  return `${name} is a pasture-based farm in ${state || 'the Midwest'} producing ${sp}. Imported from the EatWild directory — claim this profile to add your own story, photos, and listings.`;
+  return `${name} is a pasture-based farm in ${state || 'the United States'} producing ${sp}. Imported from the EatWild directory — claim this profile to add your own story, photos, and listings.`;
 }
 
 async function handler(req) {
