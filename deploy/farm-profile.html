@@ -8,6 +8,7 @@
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
   <link rel="stylesheet" href="/po-shell.css" />
+  <link rel="stylesheet" href="/po-social.css" />
   <style>
     body{ background: var(--parchment); }
     .farm-cover{ height: 320px; background: linear-gradient(135deg, var(--ink), #0e2c19); background-size: cover; background-position: center; position: relative; }
@@ -62,20 +63,33 @@
 
       <div class="farm-stats" id="fpStats"></div>
 
-      <section class="farm-section">
+      <div class="po-soc-tabs" role="tablist" aria-label="Farm sections">
+        <button type="button" class="po-soc-tab active" data-tab="story" role="tab" aria-selected="true">Story</button>
+        <button type="button" class="po-soc-tab" data-tab="animals" role="tab" aria-selected="false">Animals</button>
+        <button type="button" class="po-soc-tab" data-tab="community" role="tab" aria-selected="false">Community</button>
+      </div>
+
+      <section class="farm-section po-soc-panel" data-panel="story">
         <h2>About</h2>
         <div class="farm-bio" id="fpBio">Loading…</div>
       </section>
 
-      <section class="farm-section">
+      <section class="farm-section po-soc-panel" data-panel="animals" hidden>
         <h2 id="fpListingsTitle">Active listings</h2>
         <div class="listings-grid" id="fpGrid"></div>
+      </section>
+
+      <section class="farm-section po-soc-panel" data-panel="community" hidden>
+        <h2>Community</h2>
+        <p style="font:500 14px/1.5 'Inter';color:rgba(6,27,14,.6);margin:0 0 14px;">Updates from this ranch — harvest notes, pasture photos, and the animals you follow.</p>
+        <div id="fpWall"></div>
       </section>
     </section>
     <div data-po-footer></div>
   </main>
   <script src="/po-shell.js"></script>
   <script src="/po-api.js"></script>
+  <script src="/po-social.js"></script>
   <script>
   (async () => {
     const slug = (location.pathname.match(/\/farm\/([^\/]+)/) || [])[1];
@@ -190,6 +204,40 @@
         fb.disabled = false;
       }
     });
+
+    // Tabs: Story · Animals · Community
+    function activateTab(name) {
+      const tab = document.querySelector(`.po-soc-tab[data-tab="${name}"]`);
+      if (!tab) return;
+      document.querySelectorAll('.po-soc-tab').forEach(t => {
+        t.classList.toggle('active', t === tab);
+        t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+      });
+      document.querySelectorAll('.po-soc-panel').forEach(p => {
+        p.hidden = p.dataset.panel !== name;
+      });
+      if (name === 'community' && window.PO_SOCIAL && !document.getElementById('fpWall').dataset.mounted) {
+        document.getElementById('fpWall').dataset.mounted = '1';
+        (async () => {
+          let canPost = false;
+          try {
+            const me = await window.PO_API.me();
+            canPost = !!(me.user && (me.user.id === f.owner_id || me.user.role === 'admin'));
+          } catch (_) {}
+          window.PO_SOCIAL.mountWall(document.getElementById('fpWall'), {
+            subjectType: 'farm',
+            subjectId: f.id,
+            canPost,
+            placeholder: "What's happening on the land today?",
+            emptyText: 'No posts yet — follow this ranch and check back for harvest updates.',
+          });
+        })();
+      }
+    }
+    document.querySelectorAll('.po-soc-tab').forEach(tab => {
+      tab.addEventListener('click', () => activateTab(tab.dataset.tab));
+    });
+    if ((location.hash || '').replace('#', '') === 'community') activateTab('community');
 
     // Share button — Web Share API with copy-to-clipboard fallback
     document.querySelectorAll('.btn-share').forEach(sb => sb.addEventListener('click', async () => {

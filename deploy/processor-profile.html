@@ -9,6 +9,7 @@
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
   <link rel="stylesheet" href="/theme.css" />
   <link rel="stylesheet" href="/po-shell.css" />
+  <link rel="stylesheet" href="/po-social.css" />
   <style>
     body { background: var(--bg); }
     .pp-cover { height: 280px; background: linear-gradient(135deg, #2a1f14, #061b0e); background-size: cover; background-position: center; position: relative; }
@@ -47,6 +48,7 @@
         </div>
         <div class="pp-actions">
           <button class="pp-btn pp-btn--primary" id="ppRequest">Submit a request</button>
+          <button class="pp-btn pp-btn--ghost" id="ppFollow">+ Follow</button>
           <a class="pp-btn pp-btn--ghost" id="ppMap" href="/map">View on map</a>
           <button class="pp-btn pp-btn--ghost" id="ppCompare">+ Compare</button>
           <button class="pp-btn pp-btn--ghost" id="ppShare">Share</button>
@@ -55,20 +57,33 @@
 
       <div class="pp-stats" id="ppStats"></div>
 
-      <section class="pp-section">
-        <h2>About this plant</h2>
-        <div class="pp-bio" id="ppBio">Loading…</div>
-      </section>
+      <div class="po-soc-tabs" role="tablist">
+        <button type="button" class="po-soc-tab active" data-tab="about">About</button>
+        <button type="button" class="po-soc-tab" data-tab="community">Community</button>
+      </div>
 
-      <section class="pp-section">
-        <h2>Services &amp; species</h2>
-        <div class="chip-grid" id="ppChips"></div>
+      <div class="po-soc-panel" data-panel="about">
+        <section class="pp-section">
+          <h2>About this plant</h2>
+          <div class="pp-bio" id="ppBio">Loading…</div>
+        </section>
+        <section class="pp-section">
+          <h2>Services &amp; species</h2>
+          <div class="chip-grid" id="ppChips"></div>
+        </section>
+      </div>
+
+      <section class="pp-section po-soc-panel" data-panel="community" hidden>
+        <h2>Community</h2>
+        <p style="font:500 14px/1.5 'Inter';color:var(--ink-2);margin:0 0 14px;">Floor notes and updates for farmers and families waiting on cuts.</p>
+        <div id="ppWall"></div>
       </section>
     </section>
   </main>
   <div id="po-shell-host"></div>
   <script src="/po-api.js"></script>
   <script src="/po-shell.js"></script>
+  <script src="/po-social.js"></script>
   <script>
   (async () => {
     const slug = (location.pathname.match(/\/p\/([^\/]+)/) || [])[1];
@@ -164,6 +179,71 @@
       localStorage.setItem(key, JSON.stringify(ids.slice(0, 4)));
       document.getElementById('ppCompare').textContent = '✓ Pinned';
       setTimeout(() => { document.getElementById('ppCompare').textContent = '+ Compare'; }, 1600);
+    });
+
+    // Follow plant
+    const followBtn = document.getElementById('ppFollow');
+    async function paintFollow(state) {
+      if (!followBtn) return;
+      followBtn.textContent = state.following
+        ? ('✓ Following' + (state.count ? ' · ' + state.count : ''))
+        : ('+ Follow' + (state.count ? ' · ' + state.count : ''));
+      followBtn.dataset.following = state.following ? '1' : '';
+    }
+    try {
+      const fr = await fetch(`/api/entity-follow?subject_type=processor&subject_id=${encodeURIComponent(p.id)}`, { credentials: 'include' });
+      if (fr.ok) paintFollow(await fr.json());
+    } catch (_) { paintFollow({ following: false, count: 0 }); }
+    followBtn?.addEventListener('click', async () => {
+      const was = followBtn.dataset.following === '1';
+      try {
+        const me = await window.PO_API.me();
+        if (!me?.user) {
+          window.PO_API.openAuth('Sign in to follow ' + p.name, 'buyer');
+          return;
+        }
+      } catch (_) {
+        window.PO_API.openAuth('Sign in to follow ' + p.name, 'buyer');
+        return;
+      }
+      try {
+        const r = was
+          ? await fetch(`/api/entity-follow?subject_type=processor&subject_id=${encodeURIComponent(p.id)}`, { method: 'DELETE', credentials: 'include' })
+          : await fetch('/api/entity-follow', {
+              method: 'POST', credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ subject_type: 'processor', subject_id: p.id }),
+            });
+        if (r.ok) paintFollow(await r.json());
+      } catch (_) {}
+    });
+
+    // Tabs
+    document.querySelectorAll('.po-soc-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const name = tab.dataset.tab;
+        document.querySelectorAll('.po-soc-tab').forEach(t => t.classList.toggle('active', t === tab));
+        document.querySelectorAll('.po-soc-panel').forEach(panel => {
+          panel.hidden = panel.dataset.panel !== name;
+        });
+        if (name === 'community' && window.PO_SOCIAL && !document.getElementById('ppWall').dataset.mounted) {
+          document.getElementById('ppWall').dataset.mounted = '1';
+          (async () => {
+            let canPost = false;
+            try {
+              const me = await window.PO_API.me();
+              canPost = !!(me.user && (me.user.id === p.owner_id || me.user.role === 'admin'));
+            } catch (_) {}
+            window.PO_SOCIAL.mountWall(document.getElementById('ppWall'), {
+              subjectType: 'processor',
+              subjectId: p.id,
+              canPost,
+              placeholder: 'Floor note for farmers and families waiting on cuts…',
+              emptyText: 'No posts yet from this plant.',
+            });
+          })();
+        }
+      });
     });
 
     document.getElementById('ppShare').addEventListener('click', async () => {

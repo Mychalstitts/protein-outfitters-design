@@ -1,0 +1,99 @@
+/* PO Social — walls, journey, feed */
+.po-soc { font-family: 'Inter', system-ui, sans-serif; color: var(--ink, #061b0e); }
+.po-soc-journey-head { margin-bottom: 16px; }
+.po-soc-journey-head h3 { margin: 0 0 4px; font: 800 20px/1.2 'Inter'; letter-spacing: -0.02em; }
+.po-soc-journey-head p { margin: 0; font: 500 13.5px/1.45 'Inter'; color: var(--ink-2, #5a6359); }
+
+.po-soc-composer {
+  background: #fff; border: 1px solid rgba(6,27,14,.08); border-radius: 16px;
+  padding: 14px 16px; margin-bottom: 18px;
+  box-shadow: 0 1px 2px rgba(6,27,14,.04);
+}
+.po-soc-composer textarea {
+  width: 100%; border: 0; resize: vertical; min-height: 72px;
+  font: 500 15px/1.45 'Inter'; color: inherit; outline: none; background: transparent;
+}
+.po-soc-composer-foot {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px;
+  padding-top: 10px; border-top: 1px solid rgba(6,27,14,.06);
+}
+.po-soc-photo-btn {
+  font: 700 12px/1 'Inter'; color: var(--ink-2, #5a6359); cursor: pointer;
+  padding: 8px 12px; border-radius: 999px; background: rgba(6,27,14,.05);
+}
+.po-soc-photo-name { font: 500 12px/1 'Inter'; opacity: .55; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.po-soc-submit {
+  background: #061b0e; color: #fbf9f5; border: 0; border-radius: 999px;
+  padding: 10px 16px; font: 700 13px/1 'Inter'; cursor: pointer;
+}
+.po-soc-status { margin: 8px 0 0; font: 500 12.5px/1.3 'Inter'; color: var(--ink-2, #5a6359); min-height: 1.2em; }
+
+.po-soc-list { display: flex; flex-direction: column; gap: 0; }
+.po-soc-empty { margin: 0; padding: 28px 16px; text-align: center; font: 500 14px/1.5 'Inter'; color: var(--ink-2, #5a6359); background: #fff; border-radius: 16px; border: 1px dashed rgba(6,27,14,.12); }
+
+.po-soc-post {
+  display: grid; grid-template-columns: 40px 1fr; gap: 12px;
+  padding: 16px 14px; background: #fff; border-bottom: 1px solid rgba(6,27,14,.06);
+}
+.po-soc-post:first-child { border-radius: 16px 16px 0 0; }
+.po-soc-post:last-child { border-radius: 0 0 16px 16px; border-bottom: 0; }
+.po-soc-post.is-milestone { background: linear-gradient(135deg, rgba(125,160,93,.08), #fff 55%); }
+
+.po-soc-avatar {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg, #7da05d, #5a8540);
+  color: #fbf9f5; display: grid; place-items: center; font: 800 15px/1 'Inter';
+}
+.po-soc-meta { font: 500 12.5px/1.3 'Inter'; color: var(--ink-2, #5a6359); margin-bottom: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.po-soc-meta strong { font-weight: 800; color: var(--ink, #061b0e); font-size: 13.5px; }
+.po-soc-time { opacity: .55; }
+.po-soc-subject { opacity: .7; }
+.po-soc-chip {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  background: rgba(125,160,93,.18); color: #2d4a18;
+  font: 800 10px/1.4 'Inter'; letter-spacing: .06em; text-transform: uppercase;
+}
+.po-soc-text { margin: 0 0 8px; font: 500 14.5px/1.5 'Inter'; color: var(--ink, #061b0e); white-space: pre-wrap; }
+.po-soc-media-row { display: grid; gap: 6px; margin: 8px 0; }
+.po-soc-media { width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px; background: rgba(6,27,14,.04); }
+
+.po-soc-actions { display: flex; gap: 12px; margin-top: 4px; }
+.po-soc-react, .po-soc-comment-toggle {
+  border: 0; background: transparent; cursor: pointer;
+  font: 700 12.5px/1 'Inter'; color: var(--ink-2, #5a6359); padding: 6px 0;
+}
+.po-soc-react.on { color: #c2415a; }
+.po-soc-react:hover, .po-soc-comment-toggle:hover { color: var(--ink, #061b0e); }
+
+.po-soc-thread {
+  margin-top: 10px; padding: 10px 12px; background: rgba(6,27,14,.03); border-radius: 12px;
+}
+.po-soc-comment { margin-bottom: 10px; font: 500 13px/1.4 'Inter'; }
+.po-soc-comment strong { font-weight: 800; margin-right: 6px; }
+.po-soc-comment p { margin: 2px 0 0; }
+.po-soc-comment-form { display: flex; gap: 8px; margin-top: 8px; }
+.po-soc-comment-form input {
+  flex: 1; border: 1px solid rgba(6,27,14,.1); border-radius: 999px;
+  padding: 8px 12px; font: 500 13px/1.3 'Inter';
+}
+.po-soc-comment-form button {
+  border: 0; background: #061b0e; color: #fbf9f5; border-radius: 999px;
+  padding: 8px 14px; font: 700 12px/1 'Inter'; cursor: pointer;
+}
+.po-soc-signin {
+  margin-top: 10px; background: #061b0e; color: #fbf9f5; border: 0;
+  border-radius: 999px; padding: 10px 16px; font: 700 13px/1 'Inter'; cursor: pointer;
+}
+
+/* Tabs used on farm / plant profiles */
+.po-soc-tabs {
+  display: flex; gap: 6px; padding: 4px; background: rgba(6,27,14,.05);
+  border-radius: 999px; margin: 22px 0 18px; flex-wrap: wrap;
+}
+.po-soc-tab {
+  border: 0; background: transparent; cursor: pointer;
+  padding: 9px 16px; border-radius: 999px; font: 700 13px/1 'Inter';
+  color: var(--ink-2, #5a6359);
+}
+.po-soc-tab.active { background: #061b0e; color: #fbf9f5; }
+.po-soc-panel[hidden] { display: none !important; }

@@ -49,6 +49,13 @@ async function handler(req) {
       VALUES (${user.id}, ${farm_id})
       ON CONFLICT (user_id, farm_id) DO NOTHING
     `;
+    // Dual-write entity_follows for the unified social graph (best-effort)
+    try {
+      await sql`
+        INSERT INTO entity_follows (user_id, subject_type, subject_id)
+        VALUES (${user.id}, 'farm', ${farm_id})
+        ON CONFLICT DO NOTHING`;
+    } catch (_) { /* table may not exist pre-migrate */ }
     const countRow = await sql`SELECT COUNT(*)::int AS n FROM farm_follows WHERE farm_id = ${farm_id}`;
     return json({ following: true, count: countRow[0]?.n || 0 });
   }
@@ -61,6 +68,11 @@ async function handler(req) {
     if (!farm_id || !isUuid(farm_id)) return err(400, 'farm_id (UUID) required');
 
     await sql`DELETE FROM farm_follows WHERE user_id = ${user.id} AND farm_id = ${farm_id}`;
+    try {
+      await sql`
+        DELETE FROM entity_follows
+        WHERE user_id = ${user.id} AND subject_type = 'farm' AND subject_id = ${farm_id}`;
+    } catch (_) { /* pre-migrate */ }
     const countRow = await sql`SELECT COUNT(*)::int AS n FROM farm_follows WHERE farm_id = ${farm_id}`;
     return json({ following: false, count: countRow[0]?.n || 0 });
   }

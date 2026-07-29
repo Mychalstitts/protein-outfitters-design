@@ -20,6 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./theme.css">
 <link rel="stylesheet" href="./po-shell.css">
+<link rel="stylesheet" href="./po-social.css">
 <style>
 .listing-hero { position: relative; min-height: 64vh; display: flex; align-items: flex-end; background: #1a0d08 url('/img/angus.jpg') center/cover no-repeat; color: #fff; }
 .listing-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.10) 30%, rgba(0,0,0,0.78) 100%); z-index: 1; }
@@ -112,6 +113,8 @@
       <p class="po-eyebrow" style="margin-top: 36px;">Pick your share</p>
       <h3 class="po-h3" style="margin-bottom: 24px;">How much do you want?</h3>
       <div class="share-row" id="lgShareRow"></div>
+
+      <div id="lgJourney" style="margin-top: 48px;"></div>
     </div>
 
     <aside>
@@ -130,6 +133,7 @@
 <div id="po-shell-host"></div>
 <script src="./po-shell.js"></script>
 <script src="./po-api.js"></script>
+<script src="./po-social.js"></script>
 <script>
 (async () => {
   const params = new URLSearchParams(location.search);
@@ -353,6 +357,30 @@
     if (allInH) navReserve.dataset.priceH = allInH;
     if (allInW) navReserve.dataset.priceW = allInW;
   }
+
+  // Journey timeline (milestones + ranch notes for this animal)
+  try {
+    let canPost = false;
+    try {
+      const me = await window.PO_API.me();
+      // Farm owners can post; buyers use thanks via future CTA
+      if (me.user && l.farm_owner_id && me.user.id === l.farm_owner_id) canPost = true;
+      if (me.user && me.user.role === 'admin') canPost = true;
+      // Heuristic: producer who owns farm via myFarms if owner_id not on listing
+      if (!canPost && me.user && (me.user.role === 'producer' || me.user.role === 'admin') && l.farm_id) {
+        try {
+          const fr = await window.PO_API.myFarms();
+          canPost = (fr.farms || []).some(x => x.id === l.farm_id);
+        } catch (_) {}
+      }
+    } catch (_) {}
+    if (window.PO_SOCIAL) {
+      window.PO_SOCIAL.mountJourney(document.getElementById('lgJourney'), {
+        listingId: l.id,
+        canPost,
+      });
+    }
+  } catch (_) { /* journey optional */ }
 
   // ─── Resume reserve after magic-link auth ─────────────────────────
   // ?open_sheet=1&share=quarter (from auth next=) or sessionStorage po_pending_reserve

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Community · Protein Outfitters</title>
+<meta name="description" content="Follow ranches and plants. Walk the journey from pasture to freezer with the people who raise and cut your meat." />
+<meta property="og:title" content="Community · Protein Outfitters" />
+<meta property="og:description" content="Stories from ranches, plants, and the animals you reserve." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="stylesheet" href="/po-shell.css" />
+<link rel="stylesheet" href="/po-social.css" />
+<style>
+  body { background: var(--parchment, #fbf9f5); }
+  .cm-shell { max-width: 720px; margin: 0 auto; padding: 32px var(--shell-pad, 20px) 80px; }
+  .cm-head { margin-bottom: 22px; }
+  .cm-head h1 { margin: 0 0 8px; font: 900 clamp(32px, 5vw, 48px)/1.05 'Inter'; letter-spacing: -0.03em; }
+  .cm-head p { margin: 0; font: 500 15px/1.5 'Inter'; color: var(--ink-2, #5a6359); max-width: 48ch; }
+  .cm-modes { display: flex; gap: 6px; padding: 4px; background: rgba(6,27,14,.05); border-radius: 999px; margin-bottom: 18px; width: fit-content; }
+  .cm-modes button {
+    border: 0; background: transparent; cursor: pointer;
+    padding: 9px 16px; border-radius: 999px; font: 700 13px/1 'Inter'; color: var(--ink-2, #5a6359);
+  }
+  .cm-modes button.active { background: #061b0e; color: #fbf9f5; }
+</style>
+</head>
+<body>
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/discover">Discover</a>
+      <a href="/community" class="active">Community</a>
+      <a href="/producers">Producers</a>
+      <a href="/map">Map</a>
+    </div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<main class="cm-shell">
+  <div class="cm-head">
+    <p class="po-eyebrow" style="font:800 11px/1 'Inter';letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2);margin:0 0 10px;">Belonging</p>
+    <h1>People, pastures, plants.</h1>
+    <p>Follow the ranches you trust and walk each animal’s journey — from grass to check-in to freezer.</p>
+  </div>
+  <div class="cm-modes" role="tablist">
+    <button type="button" class="active" data-mode="following">Following</button>
+    <button type="button" data-mode="network">Network</button>
+  </div>
+  <div id="cmFeed"></div>
+</main>
+<div data-po-footer></div>
+<script src="/po-shell.js"></script>
+<script src="/po-api.js"></script>
+<script src="/po-social.js"></script>
+<script>
+(function () {
+  const feed = document.getElementById('cmFeed');
+  let mode = 'following';
+  function load() {
+    if (window.PO_SOCIAL) window.PO_SOCIAL.mountFeed(feed, { mode });
+  }
+  document.querySelectorAll('.cm-modes button').forEach(b => {
+    b.addEventListener('click', () => {
+      mode = b.dataset.mode;
+      document.querySelectorAll('.cm-modes button').forEach(x => x.classList.toggle('active', x === b));
+      load();
+    });
+  });
+  load();
+})();
+</script>
+</body>
+</html>

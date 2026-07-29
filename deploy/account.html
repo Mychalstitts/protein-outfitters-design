@@ -171,11 +171,20 @@
     <section class="ac-section" id="acFollowingSection">
       <div class="ac-section-head">
         <h2>Following</h2>
-        <a class="more" href="/producers">Discover more →</a>
+        <a class="more" href="/community">Open community feed →</a>
       </div>
       <div class="follow-grid" id="acFollowGrid">
         <div style="grid-column:1/-1;opacity:.55;font:500 14px/1.5 'Inter',system-ui,sans-serif;padding:12px 0;">Loading farms…</div>
       </div>
+    </section>
+
+    <section class="ac-section" id="acCommunitySection">
+      <div class="ac-section-head">
+        <h2>Your community</h2>
+        <a class="more" href="/community">See all →</a>
+      </div>
+      <link rel="stylesheet" href="/po-social.css" />
+      <div id="acCommunityFeed"></div>
     </section>
 
     <!-- Payment + delivery — managed via Stripe at checkout -->
@@ -199,6 +208,7 @@
 <div id="po-shell-host"></div>
 <script src="./po-shell.js"></script>
 <script src="./po-api.js"></script>
+<script src="./po-social.js"></script>
 <script>
 (async () => {
   const list = document.getElementById('acActiveList');
@@ -212,6 +222,7 @@
   if (!me.user) {
     banner.style.display = 'flex';
     document.getElementById('acFollowingSection')?.remove();
+    document.getElementById('acCommunitySection')?.remove();
     document.getElementById('acPaymentSection')?.remove();
     list.innerHTML = `<div style="text-align:center; padding:60px 20px;">
       <div style="font:700 20px/1.3 'Inter';margin-bottom:10px;">Sign in to see your reservations</div>
@@ -295,6 +306,11 @@
         </a>`;
       }).join('');
     }
+  }
+
+  // Community feed strip (animals you reserved + ranches you follow)
+  if (window.PO_SOCIAL && document.getElementById('acCommunityFeed')) {
+    window.PO_SOCIAL.mountFeed(document.getElementById('acCommunityFeed'), { mode: 'following' });
   }
 
   // ─── Referral box (under the standing card) ─────────────────

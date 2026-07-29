@@ -51,6 +51,17 @@ async function handler(req) {
     const both = await sql`SELECT COUNT(*) as n FROM reviews WHERE reservation_id = ${body.reservation_id}`;
     if (parseInt(both[0].n) >= 2) {
       await sql`UPDATE reviews SET revealed_at = NOW() WHERE reservation_id = ${body.reservation_id} AND revealed_at IS NULL`;
+      try {
+        const { emitMilestone } = await import('./_lib/social.js');
+        const resv = await sql`SELECT listing_id FROM reservations WHERE id = ${body.reservation_id} LIMIT 1`;
+        if (resv[0]?.listing_id) {
+          await emitMilestone({
+            listing_id: resv[0].listing_id,
+            milestone: 'review_unlocked',
+            author_id: user.id,
+          });
+        }
+      } catch (_) { /* social best-effort */ }
     }
 
     return json({ review: rev[0] });

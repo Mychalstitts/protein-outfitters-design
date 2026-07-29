@@ -190,6 +190,24 @@ async function handler(req) {
     const code = await newCheckinCode();
     await sql`INSERT INTO checkin_codes (code, booking_id) VALUES (${code}, ${booking.id})`;
 
+    try {
+      const { emitMilestone } = await import('./_lib/social.js');
+      const animal = await sql`SELECT number, breed, species FROM listings WHERE id = ${listing_id} LIMIT 1`;
+      const plant = await sql`SELECT name FROM processors WHERE id = ${processor_id} LIMIT 1`;
+      const a = animal[0];
+      const label = a ? `${a.number ? a.number + ' · ' : ''}${a.breed || a.species || 'animal'}` : 'animal';
+      await emitMilestone({
+        listing_id,
+        milestone: 'plant_booked',
+        author_id: user.id,
+        ctx: {
+          label,
+          plant: plant[0]?.name,
+          date: drop_off_date,
+        },
+      });
+    } catch (_) { /* social best-effort */ }
+
     return json({ booking, deposit, code });
   }
 
@@ -378,6 +396,15 @@ async function handler(req) {
             if (out.sent) buyersNotified++;
           } catch (e) { /* keep going */ }
         }
+        try {
+          const { emitMilestone } = await import('./_lib/social.js');
+          await emitMilestone({
+            listing_id: b.listing_id,
+            milestone: 'ready',
+            author_id: user.id,
+            ctx: { label: animalLabel, plant: b.processor_name },
+          });
+        } catch (_) { /* social best-effort */ }
       }
     }
 

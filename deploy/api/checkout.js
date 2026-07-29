@@ -106,6 +106,25 @@ async function handler(req) {
     RETURNING id`;
   const reservationId = rrows[0].id;
 
+  // Social: first sale / fully sold milestones + auto-follow ranch
+  try {
+    const { emitMilestone, autoFollowFarm, sharesFullySold } = await import('./_lib/social.js');
+    const label = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species || 'animal'}`;
+    const farmId = listing.farm_id_full || listing.farm_id;
+    // Count prior paid/pending reservations to detect first share
+    const prior = await sql`
+      SELECT COUNT(*)::int AS n FROM reservations
+      WHERE listing_id = ${listing_id} AND id <> ${reservationId}
+        AND status NOT IN ('cancelled','refunded')`;
+    if ((prior[0]?.n || 0) === 0) {
+      await emitMilestone({ listing_id, milestone: 'first_share_sold', ctx: { label } });
+    }
+    if (sharesFullySold(newShares)) {
+      await emitMilestone({ listing_id, milestone: 'fully_sold', ctx: { label } });
+    }
+    if (buyerId && farmId) await autoFollowFarm(buyerId, farmId);
+  } catch (_) { /* social best-effort */ }
+
   // ─── Auto-book the processor on first reservation ────────────
   // Decision Log #11: first purchaser locks the processor for everyone.
   // The booking row is what makes /processor's queue light up + gives the

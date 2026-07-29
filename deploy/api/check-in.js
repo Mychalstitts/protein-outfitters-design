@@ -10,6 +10,7 @@
 
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 import { sendLifecycleEmail } from './_lib/email.js';
+import { emitMilestone } from './_lib/social.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -93,6 +94,16 @@ async function handler(req) {
       if (out.sent) notified++;
     } catch (e) { /* keep going */ }
   }
+
+  await emitMilestone({
+    listing_id: c.listing_id,
+    milestone: 'checked_in',
+    author_id: user.id,
+    ctx: {
+      label: animalLabel,
+      plant: procRow[0].name,
+    },
+  });
 
   return json({
     ok: true,

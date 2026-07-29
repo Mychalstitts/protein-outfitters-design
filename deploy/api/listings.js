@@ -2,6 +2,7 @@
 //   GET  ?species=&practice=&certs=&priceMax=&distance=&zip=&q= → array of listings (with farm info)
 //   POST { ...listing } → create listing (auth + producer role required)
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
+import { emitMilestone } from './_lib/social.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -110,7 +111,17 @@ async function createListing(req) {
     VALUES (${body.farm_id}, ${number}, ${body.species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org}, ${feed_type}, ${finish_feed}, ${subbreed}, ${sex_detail}, ${antibiotics}, ${hormones})
     RETURNING *
   `;
-  return json({ listing: rows[0] });
+  const listing = rows[0];
+  if (listing && listing.status === 'active') {
+    const label = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species || 'animal'}`;
+    await emitMilestone({
+      listing_id: listing.id,
+      milestone: 'listed',
+      author_id: user.id,
+      ctx: { label },
+    });
+  }
+  return json({ listing });
 }
 
 export default nodejsHandler(handler);
