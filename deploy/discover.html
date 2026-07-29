@@ -9,8 +9,12 @@
   <meta property="og:title" content="Discover · Protein Outfitters" />
   <meta property="og:description" content="Filter the marketplace by species, breed, certifications, location, and price. Smart natural-language search powered by AI." />
   <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-  <link rel="stylesheet" href="/po-shell.css" />
+  <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./theme.css" />
+  <link rel="stylesheet" href="./po-shell.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
@@ -19,11 +23,14 @@
       --filter-bg: #fff;
       --filter-border: rgba(6,27,14,.08);
       --chip-bg: rgba(6,27,14,.06);
+      --parchment: var(--bg, #fbf9f5);
+      --ff-sans: 'Inter', system-ui, sans-serif;
+      --ease-spring: cubic-bezier(.2,.9,.3,1.4);
     }
     body{ background: var(--parchment); }
 
     .discover-search{
-      position: sticky; top: 0; z-index: 40;
+      position: sticky; top: 64px; z-index: 40;
       background: rgba(251,249,245,.92);
       backdrop-filter: saturate(180%) blur(20px);
       -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -140,6 +147,18 @@
   </style>
 </head>
 <body>
+  <div class="po-nav-wrap">
+    <nav class="po-nav" aria-label="Primary">
+      <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+      <div class="po-nav-links">
+        <a href="/discover" class="active">Browse</a>
+        <a href="/#how">How it works</a>
+        <a href="/producers">Farms</a>
+        <a href="/#partners">For partners</a>
+      </div>
+      <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/discover">Browse animals</a></div>
+    </nav>
+  </div>
   <main>
     <div class="discover-search">
       <form class="ds-bar" id="discoverSearch" role="search" aria-label="Search listings"
@@ -198,11 +217,10 @@
       </section>
     </section>
 
-    <div data-po-footer></div>
   </main>
-
-  <script src="/po-shell.js"></script>
-  <script src="/po-api.js"></script>
+  <div id="po-shell-host"></div>
+  <script src="./po-shell.js"></script>
+  <script src="./po-api.js"></script>
   <script>
     // Live listings from /api/listings — falls back to demo data if API unreachable.
     let LISTINGS = [];

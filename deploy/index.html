@@ -64,11 +64,16 @@ body { background: var(--bg); overflow-x: hidden; }
 }
 .po-mark img { width: 24px; height: 24px; display: block; }
 .po-nav-links {
-  display: flex; gap: 28px; align-items: center;
+  display: flex; gap: 6px; align-items: center;
   font-size: 14px; font-weight: 500;
+  margin-left: auto;
 }
-.po-nav-links a { color: var(--ink-2); text-decoration: none; transition: color .18s; }
-.po-nav-links a:hover { color: var(--ink); }
+.po-nav-links a {
+  color: var(--ink-2); text-decoration: none;
+  padding: 8px 12px; border-radius: 999px;
+  transition: color .18s, background .18s;
+}
+.po-nav-links a:hover { color: var(--ink); background: rgba(6,27,14,.05); }
 .po-nav-actions { display: flex; gap: 10px; align-items: center; }
 .po-nav-actions .btn--primary {
   background: var(--brand); color: #fbf9f5;
@@ -82,7 +87,7 @@ body { background: var(--bg); overflow-x: hidden; }
   font-size: 14px; font-weight: 500; color: var(--ink-2);
   text-decoration: none;
 }
-@media (max-width: 720px) { .po-nav-links { display: none; } }
+/* Mobile menu handled globally by po-shell (burger + drawer) */
 
 /* ---------- Hero ---------- */
 .hero {

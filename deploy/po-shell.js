@@ -69,10 +69,10 @@
       <div class="po-foot-mark"><img src="/brand/logo-monogram.svg" alt=""><span>Protein Outfitters</span></div>
       <p class="po-foot-meta">A whole animal, in three taps.<br>Nationwide marketplace · Born in Bemidji, MN.</p>
     </div>
-    <div><h4>Marketplace</h4><ul><li><a href="/discover">Discover</a></li><li><a href="/community">Community</a></li><li><a href="/producers">Producers</a></li><li><a href="/map">Farm map</a></li><li><a href="/hardware">Hardware</a></li></ul></div>
-    <div><h4>For partners</h4><ul><li><a href="/farmer">Ranch dashboard</a></li><li><a href="/processor">Plant dashboard</a></li><li><a href="/processor-saas">Plant plans</a></li><li><a href="/donation-flow">Donation Depot</a></li></ul></div>
-    <div><h4>Help &amp; policy</h4><ul><li><a href="/faq">FAQ</a></li><li><a href="/policies/refunds">Refund policy</a></li><li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li><li><a href="mailto:depot@proteinoutfitters.com">depot@proteinoutfitters.com</a></li></ul></div>
-    <div><h4>Company</h4><ul><li><a href="/account">Account</a></li><li><a href="/brand">Brand</a></li></ul></div>
+    <div><h4>Marketplace</h4><ul><li><a href="/discover">Browse animals</a></li><li><a href="/producers">Farms</a></li><li><a href="/map">Map</a></li><li><a href="/community">Community</a></li><li><a href="/#how">How it works</a></li></ul></div>
+    <div><h4>For partners</h4><ul><li><a href="/#partners">Partner hub</a></li><li><a href="/farmer">Ranch dashboard</a></li><li><a href="/processor">Plant dashboard</a></li><li><a href="/hardware">Processing systems</a></li><li><a href="/processor-saas">Plant plans</a></li><li><a href="/donation-flow">Donation Depot</a></li></ul></div>
+    <div><h4>Help &amp; policy</h4><ul><li><a href="/faq">FAQ</a></li><li><a href="/policies/refunds">Refunds</a></li><li><a href="/policies/privacy">Privacy</a></li><li><a href="/policies/terms">Terms</a></li><li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="/account">Account</a></li><li><a href="/brand">Brand</a></li><li><a href="/onboarding">Get started</a></li></ul></div>
   </div>
   <div class="po-foot-bottom"><span>© 2026 Protein Outfitters. All rights reserved.</span><span>Nationwide · HQ Bemidji, MN</span></div>
 </footer>`;
@@ -224,6 +224,102 @@
     document.addEventListener('DOMContentLoaded', hidePrototypeChrome);
   } else {
     hidePrototypeChrome();
+  }
+
+  /* ── Marketplace nav polish (Airbnb/Apple-level consistency) ──
+     - Add mobile burger + drawer to every .po-nav-wrap
+     - Mark active link from pathname
+     - Skip role hubs (farmer/processor/hardware/admin) which have their own IA
+  */
+  function enhanceMarketplaceNav() {
+    const path = (location.pathname || '/').replace(/\/$/, '') || '/';
+    const isRoleHub = /\/(farmer|processor|hardware|admin|list-animal|credentials|finance|processor-)/.test(path);
+    document.querySelectorAll('.po-nav-wrap').forEach((wrap) => {
+      if (wrap.dataset.poEnhanced === '1') return;
+      wrap.dataset.poEnhanced = '1';
+      const nav = wrap.querySelector('.po-nav') || wrap;
+      const links = wrap.querySelector('.po-nav-links');
+      const actions = wrap.querySelector('.po-nav-actions');
+
+      // Active state
+      if (links) {
+        links.querySelectorAll('a[href]').forEach((a) => {
+          try {
+            const href = a.getAttribute('href') || '';
+            if (!href || href.startsWith('#') || href.startsWith('mailto:')) return;
+            const u = new URL(href, location.origin);
+            const p = u.pathname.replace(/\/$/, '') || '/';
+            if (p !== '/' && (path === p || path.startsWith(p + '/'))) a.classList.add('active');
+            if (p === '/' && path === '/') a.classList.add('active');
+            if (p === '/#partners' || href === '/#partners') {
+              /* leave inactive unless hash */
+            }
+          } catch {}
+        });
+      }
+
+      if (isRoleHub) return; // role dashboards keep their own chrome
+
+      // Mobile burger
+      if (!wrap.querySelector('.po-nav-burger') && actions) {
+        const burger = document.createElement('button');
+        burger.type = 'button';
+        burger.className = 'po-nav-burger';
+        burger.setAttribute('aria-label', 'Open menu');
+        burger.setAttribute('aria-expanded', 'false');
+        burger.innerHTML = '<span></span><span></span><span></span>';
+        actions.appendChild(burger);
+
+        const drawer = document.createElement('div');
+        drawer.className = 'po-nav-drawer';
+        drawer.id = 'poNavDrawer';
+        drawer.setAttribute('role', 'dialog');
+        drawer.setAttribute('aria-label', 'Site menu');
+
+        const items = [];
+        if (links) {
+          links.querySelectorAll('a[href]').forEach((a) => {
+            items.push({ href: a.getAttribute('href'), text: a.textContent.trim() });
+          });
+        }
+        // Canonical marketplace extras if thin nav
+        const hasDiscover = items.some((i) => (i.href || '').includes('/discover'));
+        if (!hasDiscover) items.unshift({ href: '/discover', text: 'Browse animals' });
+        const hasFaq = items.some((i) => (i.href || '').includes('/faq'));
+        if (!hasFaq) items.push({ href: '/faq', text: 'Help & FAQ' });
+        items.push({ href: '/account', text: 'Sign in / Account' });
+
+        drawer.innerHTML = items.map((i) =>
+          `<a href="${i.href}">${i.text}<span>→</span></a>`
+        ).join('') +
+          `<a class="po-drawer-cta" href="/discover">Browse animals</a>` +
+          `<p class="po-drawer-meta">A whole animal, in three taps.<br>Nationwide · real farms · inspected plants.</p>`;
+        wrap.appendChild(drawer);
+
+        const close = () => {
+          burger.setAttribute('aria-expanded', 'false');
+          burger.setAttribute('aria-label', 'Open menu');
+          drawer.classList.remove('open');
+          document.body.classList.remove('po-nav-open');
+        };
+        const open = () => {
+          burger.setAttribute('aria-expanded', 'true');
+          burger.setAttribute('aria-label', 'Close menu');
+          drawer.classList.add('open');
+          document.body.classList.add('po-nav-open');
+        };
+        burger.addEventListener('click', () => {
+          if (drawer.classList.contains('open')) close(); else open();
+        });
+        drawer.querySelectorAll('a').forEach((a) => a.addEventListener('click', close));
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', enhanceMarketplaceNav);
+  } else {
+    enhanceMarketplaceNav();
   }
 
   let _reserveWired = false;

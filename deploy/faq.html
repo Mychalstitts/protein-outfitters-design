@@ -69,19 +69,23 @@
 }
 .cta-strip h2 { margin-bottom: var(--s-3); }
 .cta-strip p { color: var(--ink-2); max-width: 50ch; margin: 0 auto var(--s-6); }
-.cta-strip .row { justify-content: center; flex-wrap: wrap; }
+.cta-strip .row { justify-content: center; flex-wrap: wrap; gap: 12px; }
 </style>
 </head>
 <body>
 
-<header class="glass-nav">
-  <div class="container">
-    <nav class="row row--between" style="padding: 14px 0;">
-      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; text-decoration: none; color: inherit;">Protein Outfitters</a>
-      <span class="pill" style="font-size: 10px;">FAQ</span>
-    </nav>
-  </div>
-</header>
+<div class="po-nav-wrap">
+  <nav class="po-nav" aria-label="Primary">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/discover">Browse</a>
+      <a href="/#how">How it works</a>
+      <a href="/producers">Farms</a>
+      <a href="/faq" class="active">Help</a>
+    </div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/discover">Browse animals</a></div>
+  </nav>
+</div>
 
 <!-- ===== Hero ===== -->
 <section class="faq-hero">
