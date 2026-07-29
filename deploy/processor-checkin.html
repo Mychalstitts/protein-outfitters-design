@@ -56,14 +56,19 @@
 </head>
 <body>
 
-<header class="glass-nav">
-  <div class="container">
-    <nav class="row row--between" style="padding: 14px 0;">
-      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; text-decoration: none; color: inherit;">Protein Outfitters</a>
-      <span class="pill" style="font-size: 10px;">CHECK-IN</span>
-    </nav>
-  </div>
-</header>
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/processor">My plant</a>
+      <a href="/processor-schedule">Schedule</a>
+      <a href="/processor-pricing">Plant fees</a>
+      <a href="/processor-checkin" class="active">Check-in</a>
+      <a href="/processor-saas">Plant plans</a>
+    </div>
+    <div class="po-nav-actions"><a href="/processor" class="signin">Back to plant</a></div>
+  </nav>
+</div>
 
 <section class="ck-hero">
   <div class="container">
@@ -133,11 +138,11 @@ inputs.forEach((inp, i) => {
   });
 });
 
-// Prefill from ?code=NNNNNN — /processor-ops hands the code over this way, so
-// the operator doesn't have to type the same six digits twice.
+// Prefill from queue deep-links: ?code=NNNNNN · ?plant=slug · ?booking=id
+const checkinParams = new URLSearchParams(location.search);
 (function prefillCodeFromQuery() {
   try {
-    const q = new URLSearchParams(location.search).get('code') || '';
+    const q = checkinParams.get('code') || '';
     const digits = q.replace(/\D/g, '').slice(0, 6);
     if (digits.length !== 6) return;
     digits.split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
@@ -157,7 +162,12 @@ inputs.forEach((inp, i) => {
       scanBtn.disabled = true;
       return;
     }
-    procSelect.innerHTML = mine.map(p => `<option value="${p.slug}">${p.name}${p.city ? ' · ' + p.city : ''}</option>`).join('');
+    const preferred = (checkinParams.get('plant') || checkinParams.get('slug') || '').toLowerCase();
+    procSelect.innerHTML = mine.map(p => {
+      const sel = preferred && p.slug && p.slug.toLowerCase() === preferred ? ' selected' : '';
+      return `<option value="${p.slug}"${sel}>${p.name}${p.city ? ' · ' + p.city : ''}</option>`;
+    }).join('');
+    // If only one plant or a preferred slug matched, leave selection as-is
   } catch (e) {
     procSelect.innerHTML = '<option value="">Failed to load — refresh</option>';
     scanBtn.disabled = true;

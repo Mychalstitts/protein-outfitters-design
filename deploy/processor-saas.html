@@ -173,10 +173,11 @@
 <header class="glass-nav">
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
-      <a href="/" style="font-weight: 900; font-size: 16px; letter-spacing: -0.018em; text-transform: uppercase;">Protein Outfitters</a>
-      <div class="row gap-3 po-nav-actions">
+      <a href="/" style="font-weight: 900; font-size: 16px; letter-spacing: -0.018em; text-transform: uppercase; text-decoration:none;color:inherit;">Protein Outfitters</a>
+      <div class="row gap-3 po-nav-actions" style="align-items:center;flex-wrap:wrap;">
+        <a class="btn btn--ghost btn--sm" href="/processor" style="text-decoration:none;">My plant</a>
         <a class="btn btn--ghost btn--sm signin" href="/account">Sign in</a>
-        <a class="btn btn--primary btn--sm" href="/processor">For processors</a>
+        <a class="btn btn--primary btn--sm" href="/processor">Open dashboard</a>
       </div>
     </nav>
   </div>
@@ -220,11 +221,11 @@
         </div>
         <p class="tier-byline">Test the platform. Single-operator processors and lockers.</p>
         <ul class="tier-features">
-          <li>Up to 4 bookings/mo</li>
           <li>Marketplace listing</li>
-          <li>Drop-off check-in codes (single source of truth)</li>
+          <li>Drop-off check-in codes</li>
           <li>1 staff seat</li>
           <li>Email support</li>
+          <li>Soft launch — no hard booking cap yet</li>
         </ul>
         <button class="btn btn--secondary btn--block tier-cta" data-tier="free">Get started free</button>
       </div>
@@ -294,7 +295,7 @@
             <tr><th>Feature</th><th class="text-center">Free</th><th class="text-center">Standard</th><th class="text-center">Premium</th></tr>
           </thead>
           <tbody>
-            <tr><td>Animals per month</td><td class="text-center">4</td><td class="text-center">50</td><td class="text-center">Unlimited</td></tr>
+            <tr><td>Animals per month</td><td class="text-center">No hard cap yet</td><td class="text-center">50</td><td class="text-center">Unlimited</td></tr>
             <tr><td>Staff seats <span class="soon">Q4</span></td><td class="text-center">1</td><td class="text-center">5</td><td class="text-center">25</td></tr>
             <tr><td>Marketplace listing</td><td class="text-center check">✓</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
             <tr><td>Drop-off check-in codes</td><td class="text-center check">✓</td><td class="text-center check">✓</td><td class="text-center check">✓</td></tr>
@@ -402,7 +403,7 @@
         </div>
         <div class="faq-item">
           <h3>Is there a discount for non-profits or new plants?</h3>
-          <p>The first 25 processors who sign up get Standard at $49/mo for life. After that, we'll look at non-profit discounts case-by-case — email mychal@proteinoutfitters.com.</p>
+          <p>We review non-profit and early-plant discounts case-by-case — email <a href="mailto:mychal@proteinoutfitters.com">mychal@proteinoutfitters.com</a>. List prices are Standard $79/mo and Premium $199/mo (20% off annual).</p>
         </div>
         <div class="faq-item">
           <h3>Can I trial Premium?</h3>
@@ -695,13 +696,13 @@ document.getElementById('upgradePremiumBtn')?.addEventListener('click', function
 const TIERS = {
   free: {
     label: 'Free',
-    bookingsIncluded: 4,
+    bookingsIncluded: null,
     features: [
-      'Up to 4 bookings/mo',
       'Marketplace listing',
-      'Drop-off check-in codes (single source of truth)',
-      '1 staff seat<span class="soon">Q4</span>',
+      'Drop-off check-in codes',
+      '1 staff seat',
       'Email support',
+      'Soft launch — no hard booking cap yet',
     ],
   },
   standard: {
@@ -974,9 +975,12 @@ if (new URLSearchParams(location.search).get('page') === 'billing') {
   showPage('billing');
 }
 
-// If we came back from Stripe Checkout success, flash a toast
+// Stripe Checkout success → plant hub with setup checklist (not a dead end on billing)
 if (new URLSearchParams(location.search).get('subscribed') === '1') {
-  setTimeout(() => showToast('Subscription active! Setting up your account…'), 200);
+  setTimeout(() => {
+    showToast('Subscription active! Opening your plant setup checklist…');
+    window.location.href = '/processor?subscribed=1';
+  }, 600);
 }
 if (new URLSearchParams(location.search).get('canceled') === '1') {
   setTimeout(() => showToast('Checkout canceled — no charge.'), 200);
