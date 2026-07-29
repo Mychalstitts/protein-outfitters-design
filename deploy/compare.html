@@ -30,10 +30,22 @@
   </style>
 </head>
 <body>
+  <div class="po-nav-wrap">
+    <nav class="po-nav" aria-label="Primary">
+      <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+      <div class="po-nav-links">
+        <a href="/discover">Browse</a>
+        <a href="/map">Map</a>
+        <a href="/compare" class="active">Compare</a>
+        <a href="/#partners">For partners</a>
+      </div>
+      <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/map?layer=processors">Find plants</a></div>
+    </nav>
+  </div>
   <div class="cmp-shell">
     <header class="cmp-head">
-      <h1>Side by side</h1>
-      <p id="cmpSub">Pin processors from the map to compare them here.</p>
+      <h1>Compare plants</h1>
+      <p id="cmpSub">Pin processors from the map to compare inspection, species, and services side by side.</p>
       <div class="cmp-actions" id="cmpActions" hidden>
         <button class="btn-xl btn-xl--dark" id="cmpClear" type="button">Clear all</button>
         <a class="btn-xl btn-xl--primary" href="/map" style="text-decoration:none;">Add more on map →</a>

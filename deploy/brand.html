@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./po-shell.css">
 <style>
   .hero { padding: var(--s-16) 0 var(--s-10); text-align: center; }
   .grid-2 { display: grid; gap: var(--s-5); grid-template-columns: 1fr; padding-bottom: var(--s-8); }
@@ -34,7 +35,7 @@
   .nav-context .pill { background: var(--accent-soft); color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 12px; border-radius: var(--r-pill); }
 </style>
 <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<meta property="og:description" content="Protein Outfitters brand marks — nationwide whole-animal marketplace." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/" />
 <meta property="og:type" content="website" />
@@ -45,14 +46,17 @@
 </head>
 <body>
 
-<header class="glass-nav">
-  <div class="container">
-    <nav class="row row--between" style="padding: 14px 0;">
-      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; letter-spacing: -0.018em;">Protein Outfitters</a>
-      <span class="pill">Option B preview</span>
-    </nav>
-  </div>
-</header>
+<div class="po-nav-wrap">
+  <nav class="po-nav" aria-label="Primary">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/discover">Browse</a>
+      <a href="/brand" class="active">Brand</a>
+      <a href="/#partners">For partners</a>
+    </div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/">Home</a></div>
+  </nav>
+</div>
 
 <div class="container">
   <section class="hero">

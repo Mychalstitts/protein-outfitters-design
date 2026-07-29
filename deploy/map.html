@@ -47,9 +47,24 @@
   @media (max-width: 920px) { .map-frame { grid-template-columns: 1fr; grid-template-rows: 1fr 320px; } }
 
   /* Top header */
-  .map-top { background: var(--map-panel); padding: 14px 22px; display: flex; gap: 18px; align-items: center; border-bottom: 1px solid var(--map-line); }
-  .map-top a { color: var(--map-text); text-decoration: none; font: 800 14px/1 'Inter'; letter-spacing: -0.01em; }
-  .map-top .stats { margin-left: auto; display: flex; gap: 18px; font: 600 12px/1 'Inter'; color: var(--map-muted); flex-wrap: wrap; }
+  .map-top { background: var(--map-panel); padding: 12px 18px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid var(--map-line); flex-wrap: wrap; }
+  .map-top a { color: var(--map-text); text-decoration: none; font: 800 13px/1 'Inter'; letter-spacing: -0.01em; }
+  .map-top .map-brand { display: inline-flex; align-items: center; gap: 8px; font: 900 13px/1 'Inter'; letter-spacing: -0.02em; text-transform: uppercase; }
+  .map-top .map-brand img { width: 22px; height: 22px; border-radius: 5px; }
+  .map-top .map-links { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .map-top .map-links a {
+    font: 600 12px/1 'Inter'; color: var(--map-muted); padding: 7px 10px; border-radius: 999px;
+  }
+  .map-top .map-links a:hover { color: var(--map-text); background: rgba(255,255,255,.06); }
+  .map-top .map-links a.cta {
+    background: var(--po-green); color: #061b0e; font-weight: 800;
+  }
+  .map-top .map-links a.cta:hover { filter: brightness(1.06); }
+  .map-top .stats { margin-left: auto; display: flex; gap: 14px; font: 600 12px/1 'Inter'; color: var(--map-muted); flex-wrap: wrap; }
+  @media (max-width: 720px) {
+    .map-top .stats { width: 100%; order: 5; margin-left: 0; }
+    .map-top .map-links a:not(.cta) { display: none; }
+  }
   .map-search { display: flex; gap: 6px; align-items: center; margin-left: 8px; }
   .map-search input {
     width: min(160px, 28vw); padding: 7px 12px; border-radius: 999px;
@@ -258,11 +273,16 @@
 
 <div class="map-page">
   <header class="map-top">
-    <a href="/">PROTEIN OUTFITTERS</a>
-    <span style="opacity:.4;">·</span>
-    <span style="font-weight:600;color:var(--map-muted);">Atlas</span>
+    <a href="/" class="map-brand"><img src="/brand/logo-monogram.svg" alt="">Protein Outfitters</a>
+    <nav class="map-links" aria-label="Atlas">
+      <a href="/discover" class="cta">Browse animals</a>
+      <a href="/producers">Farms</a>
+      <a href="/map?layer=processors">Plants</a>
+      <a href="/compare">Compare</a>
+      <a href="/#partners">Partners</a>
+    </nav>
     <form class="map-search" id="mapSearchForm">
-      <input id="mapSearchInput" name="q" type="search" placeholder="ZIP or city" autocomplete="off" />
+      <input id="mapSearchInput" name="q" type="search" placeholder="ZIP, city, or state" autocomplete="off" />
       <button type="submit">Go</button>
     </form>
     <div class="stats" id="topStats"></div>
@@ -300,7 +320,10 @@
 
       <div class="map-side-foot">
         <span id="footStat">—</span>
-        <span style="margin-left:auto;"><a href="/discover" style="color:inherit;text-decoration:none;font-weight:700;">Browse listings →</a></span>
+        <span style="margin-left:auto;display:flex;gap:12px;align-items:center;">
+          <a href="/discover" style="color:inherit;text-decoration:none;font-weight:700;">Browse →</a>
+          <a href="/compare" style="color:var(--po-green-bright);text-decoration:none;font-weight:700;">Compare →</a>
+        </span>
       </div>
     </aside>
 

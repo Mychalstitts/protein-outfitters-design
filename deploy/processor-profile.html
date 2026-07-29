@@ -37,6 +37,18 @@
   </style>
 </head>
 <body>
+  <div class="po-nav-wrap">
+    <nav class="po-nav" aria-label="Primary">
+      <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+      <div class="po-nav-links">
+        <a href="/discover">Browse</a>
+        <a href="/map?layer=processors" class="active">Plants</a>
+        <a href="/compare">Compare</a>
+        <a href="/#partners">For partners</a>
+      </div>
+      <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/map?layer=processors">Open map</a></div>
+    </nav>
+  </div>
   <main>
     <div class="pp-cover" id="ppCover"></div>
     <section class="pp-shell">
@@ -95,8 +107,8 @@
       if (!r.ok) throw new Error('not found');
       data = await r.json();
     } catch {
-      document.getElementById('ppName').textContent = 'Processor not found';
-      document.getElementById('ppBio').textContent = 'No processor with this profile exists yet. Browse the map to find inspected plants near you.';
+      document.getElementById('ppName').textContent = 'Plant not found';
+      document.getElementById('ppBio').innerHTML = 'No plant with this profile exists yet. <a href="/map?layer=processors" style="color:var(--brand);font-weight:700;">Open the processor map →</a> or <a href="/compare" style="color:var(--brand);font-weight:700;">compare plants</a>.';
       return;
     }
 
