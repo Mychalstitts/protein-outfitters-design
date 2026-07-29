@@ -30,9 +30,12 @@
   .hw-nav-links { width: 100%; margin-left: 0; order: 3; }
 }
 
-.page-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: var(--r-3); box-shadow: var(--sh-0); max-width: 460px; margin: var(--s-6) auto; flex-wrap: wrap; }
-.page-tabs button { flex: 1; padding: 10px 12px; border-radius: var(--r-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-2); white-space: nowrap; }
-.page-tabs button.active { background: var(--brand); color: var(--ink-inverse); }
+/* Radio pills in quote form — selected state */
+.form-row .pill:has(input:checked) {
+  background: var(--brand);
+  color: var(--ink-inverse);
+  border-color: transparent;
+}
 
 /* Hero */
 .hw-hero {
@@ -1126,7 +1129,7 @@
             <textarea name="notes" class="textarea" placeholder="Tell us about your operation — current throughput, why now, anything specific you want covered on the call."></textarea>
           </div>
 
-          <button type="submit" class="btn btn--primary btn--xl btn--block mt-6" id="hwSubmitBtn">Submit &amp; schedule a call</button>
+          <button type="submit" class="btn btn--primary btn--xl btn--block mt-6" id="hwSubmitBtn">Submit quote request</button>
           <p class="text-faint text-center mt-3" style="font-size: 11px;">By submitting you agree to our privacy policy. We don't share your contact info with anyone.</p>
           <p id="hwSubmitStatus" style="text-align: center; margin-top: 8px; font-size: 12px;"></p>
         </form>
@@ -1416,34 +1419,20 @@ function showPage(p, sku) {
   if (sku && SKUS[sku]) applySku(sku);
   else if (p === 'detail') applySku(currentSku);
 
-  // Map legacy "config" to quote
+  // Legacy deep links from old configurator
   if (p === 'config') p = 'quote';
 
-  const map = ['catalog', 'detail', 'quote', 'schedule', 'confirm'];
-  map.forEach(id => {
+  const pages = ['catalog', 'detail', 'quote', 'schedule', 'confirm'];
+  pages.forEach(id => {
     const el = document.getElementById('page-' + id);
     if (el) el.classList.toggle('hidden', id !== p);
   });
-  // Hide removed config page if still in DOM
-  const cfg = document.getElementById('page-config');
-  if (cfg) cfg.classList.add('hidden');
 
+  // Nav highlight: Systems | Specs | Quote. Schedule/confirm sit under Quote.
+  const navKey = (p === 'schedule' || p === 'confirm') ? 'quote' : p;
   document.querySelectorAll('.hw-nav-links [data-nav]').forEach(b => {
-    const nav = b.getAttribute('data-nav');
-    const active = (p === 'confirm' || p === 'schedule')
-      ? (nav === 'quote' && p === 'schedule' ? false : nav === 'catalog' && p === 'catalog')
-      : nav === p || (p === 'schedule' && nav === 'quote');
-    // highlight: catalog / detail / quote; schedule highlights quote-adjacent primary CTA only
-    b.classList.toggle('active', nav === p || (p === 'schedule' && nav === 'quote' && false) || (p === 'confirm' && nav === 'quote'));
-    if (p === 'schedule' || p === 'confirm') {
-      b.classList.toggle('active', nav === 'quote');
-    }
+    b.classList.toggle('active', b.getAttribute('data-nav') === navKey);
   });
-  if (p === 'catalog') {
-    document.querySelectorAll('.hw-nav-links [data-nav]').forEach(b => {
-      b.classList.toggle('active', b.getAttribute('data-nav') === 'catalog');
-    });
-  }
 
   // URL deep-link
   try {
@@ -1457,14 +1446,17 @@ function showPage(p, sku) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Deep-link on load: ?page=quote&sku=ps1
+// Deep-link on load: ?page=detail&sku=ps1  or  ?sku=ps1  or  legacy ?page=config
 (function initHardwareDeepLink() {
   try {
     const u = new URL(location.href);
-    const page = u.searchParams.get('page') || 'catalog';
-    const sku = u.searchParams.get('sku') || 'mhu';
-    if (SKUS[sku]) currentSku = sku;
-    if (page !== 'catalog') showPage(page === 'config' ? 'quote' : page, currentSku);
+    let page = u.searchParams.get('page') || 'catalog';
+    const sku = u.searchParams.get('sku');
+    if (sku && SKUS[sku]) currentSku = sku;
+    if (page === 'config') page = 'quote';
+    // Bare ?sku= opens the matching detail page
+    if (page === 'catalog' && sku && SKUS[sku]) page = 'detail';
+    if (page !== 'catalog') showPage(page, currentSku);
     else applySku(currentSku);
   } catch (_) {
     applySku('mhu');
