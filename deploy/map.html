@@ -238,6 +238,9 @@
   .leaflet-popup-content p { margin: 0 0 4px; color: var(--map-muted); }
   .leaflet-popup-content .cta { display: inline-block; margin-top: 10px; padding: 8px 14px; border-radius: 999px; background: var(--po-green); color: #061b0e; font: 800 12px/1 'Inter'; text-decoration: none; }
   .leaflet-popup-content .cta.orange { background: var(--po-orange); color: #fff; }
+  .leaflet-popup-content .cta.ghost { background: transparent; color: var(--map-text); border: 1.5px solid var(--map-line); margin-left: 6px; }
+  .leaflet-popup-content .cta-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+  .leaflet-popup-content .cta-row .cta { margin-top: 0; margin-left: 0; }
   .leaflet-popup-tip { background: var(--map-panel) !important; }
 
   /* Legend overlays */
@@ -569,14 +572,23 @@
 
     let items = [];
     if (currentLayer === 'farms') {
-      items = DATA.farms.filter(f => inViewport(f.lat, f.lng)).map(f => ({
-        kind: 'farm',
-        title: f.name,
-        meta: `${f.city || ''}${f.state ? ', ' + f.state : ''}${f.listings_count ? ' · ' + f.listings_count + ' listing' + (f.listings_count === 1 ? '' : 's') : ''}`,
-        pills: (f.identity || []).slice(0, 2).map(t => ({ text: t.replace(/-/g, ' '), color: 'green' })),
-        lat: f.lat, lng: f.lng, link: f.slug ? '/farm/' + f.slug : null,
-        marker: lookupMarker('farms', f.lat, f.lng),
-      }));
+      items = DATA.farms.filter(f => inViewport(f.lat, f.lng)).map(f => {
+        const n = Number(f.listings_count) || 0;
+        // Prefer inventory deep-link when the farm has live animals; else farm profile.
+        const browse = (n > 0 && f.slug) ? '/discover?farm=' + encodeURIComponent(f.slug) : null;
+        const profile = f.slug ? '/farm/' + f.slug : null;
+        return {
+          kind: 'farm',
+          title: f.name,
+          meta: `${f.city || ''}${f.state ? ', ' + f.state : ''}${n ? ' · ' + n + ' listing' + (n === 1 ? '' : 's') : ''}`,
+          pills: (f.identity || []).slice(0, 2).map(t => ({ text: t.replace(/-/g, ' '), color: 'green' })),
+          lat: f.lat, lng: f.lng,
+          link: browse || profile,
+          profileLink: profile,
+          listingsCount: n,
+          marker: lookupMarker('farms', f.lat, f.lng),
+        };
+      });
     } else if (currentLayer === 'processors') {
       items = DATA.processors.filter(p => inViewport(p.lat, p.lng)).map(p => ({
         kind: 'processor',
@@ -625,9 +637,13 @@
     }
 
     el.innerHTML = items.map((item, i) => {
-      const cta = item.link
-        ? (item.kind === 'farm' ? 'Open farm →' : item.kind === 'processor' ? 'Open plant →' : 'Open →')
-        : (item.kind === 'opportunity' ? 'View ROI →' : 'Show on map →');
+      let cta = item.kind === 'opportunity' ? 'View ROI →' : 'Show on map →';
+      if (item.link) {
+        if (item.kind === 'farm' && item.listingsCount > 0) cta = 'Browse animals →';
+        else if (item.kind === 'farm') cta = 'Open farm →';
+        else if (item.kind === 'processor') cta = 'Open plant →';
+        else cta = 'Open →';
+      }
       return `
       <div class="list-item" data-i="${i}" data-lat="${item.lat}" data-lng="${item.lng}"${item.link ? ` data-link="${escapeHtml(item.link)}"` : ''}>
         <div class="list-icon ${item.kind}">${initials(item.title)}</div>
@@ -663,11 +679,17 @@
     for (const f of DATA.farms) {
       if (f.lat == null || f.lng == null) continue;
       const m = L.marker([f.lat, f.lng], { icon: avatarPin({ kind: 'farm', name: f.name, photoUrl: f.avatar_url, active: f.recent }) });
+      const n = Number(f.listings_count) || 0;
+      const browseHref = (n > 0 && f.slug) ? `/discover?farm=${encodeURIComponent(f.slug)}` : null;
+      const profileHref = f.slug ? `/farm/${encodeURIComponent(f.slug)}` : null;
+      const ctas = [];
+      if (browseHref) ctas.push(`<a class="cta" href="${browseHref}">Browse ${n} animal${n === 1 ? '' : 's'} →</a>`);
+      if (profileHref) ctas.push(`<a class="cta${browseHref ? ' ghost' : ''}" href="${profileHref}">${browseHref ? 'Farm profile' : 'Visit profile →'}</a>`);
       m.bindPopup(`
         <h4>${escapeHtml(f.name)}</h4>
         <p>${escapeHtml(f.city || '')}${f.state ? ', ' + escapeHtml(f.state) : ''}</p>
-        ${f.listings_count ? `<p>${f.listings_count} active listing${f.listings_count === 1 ? '' : 's'}</p>` : ''}
-        ${f.slug ? `<a class="cta" href="/farm/${encodeURIComponent(f.slug)}">Visit profile →</a>` : ''}`);
+        ${n ? `<p><strong>${n}</strong> active listing${n === 1 ? '' : 's'}</p>` : '<p style="opacity:.7">No live listings right now</p>'}
+        ${ctas.length ? `<div class="cta-row">${ctas.join('')}</div>` : ''}`);
       registerMarker('farms', f.lat, f.lng, m);
       layers.farms.addLayer(m);
     }

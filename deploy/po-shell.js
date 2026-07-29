@@ -89,13 +89,14 @@
     <div class="sheet-context"><div class="sheet-context-img" id="sheetContextImg"></div><div class="sheet-context-text"><p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p><p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p></div></div>
     <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><p style="font-size:13px;color:var(--ink-2);margin:0 0 12px;line-height:1.45;">One all-in $/lb. Deposit locks your place — balance at pickup on actual hanging weight.</p><div class="options" id="shareOptions"></div></section>
     <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Lock it in.</h3>
-      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Pay deposit + fees today. Secure checkout. Free cancel up to 21 days before harvest.</p>
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Deposit + processing + insurance today. Meat balance settles at pickup on actual hanging weight. Free cancel up to 21 days before harvest.</p>
       <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18.00</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
-      <div class="pay-stack"><button class="btn-pay btn-pay--card" id="payCard" style="order:-1">Continue to secure checkout →</button><button class="btn-pay btn-pay--apple" id="payApple" type="button">Pay deposit</button></div>
+      <p id="sheetCheckoutNote" style="font:500 12px/1.45 'Inter',system-ui,sans-serif;color:var(--ink-2);margin:12px 0 0;">You'll finish on Stripe Checkout — card details never touch our servers.</p>
+      <div class="pay-stack"><button class="btn-pay btn-pay--card" id="payCard" type="button" style="order:-1">Continue to secure checkout →</button><button class="btn-pay btn-pay--apple" id="payApple" type="button">Express pay (if available)</button></div>
       <ul class="sheet-trust" style="list-style:none;padding:14px 0 0;margin:12px 0 0;border-top:1px solid rgba(6,27,14,.08);display:grid;gap:8px;font:600 12px/1.35 'Inter',system-ui,sans-serif;color:var(--ink-2);">
-        <li>✓ Stripe secure checkout · card never hits our servers</li>
+        <li>✓ Deposit holds your share · balance at pickup</li>
         <li>✓ Free cancel up to 21 days before harvest</li>
-        <li>✓ Next step: build your cut sheet on your phone</li>
+        <li>✓ After pay: build your cut sheet on your phone</li>
       </ul>
     </section>
     <section class="sheet-step" data-step="3" hidden><div class="confirm"><div class="confirm-mark">✓</div><h3 id="confirmTitle">Reserved.</h3><p id="confirmBody">We just sent your reservation details and your cut sheet builder.</p></div></section>
@@ -399,16 +400,26 @@
         { key: 'w', glyph: '1', title: 'Whole animal', sub: '~440 lb of cuts · for serious operators', price: a.priceW }
       ].filter(o => o.price > 0);
       // Prices are all-in $/lb hanging weight — label so they never look like a lump total.
-      shareWrap.innerHTML = opts.map(o => `<button class="option" data-share="${o.key}" data-price="${o.price}"><span class="option-glyph">${o.glyph}</span><span class="option-text"><span class="option-title">${o.title}</span><span class="option-sub">${o.sub}</span></span><span class="option-price">${fmt(o.price)}<small style="display:block;font-size:10px;font-weight:600;opacity:.65;margin-top:2px">/lb all-in</small></span></button>`).join('');
+      if (!opts.length) {
+        shareWrap.innerHTML = '<div style="padding:16px;font:500 13.5px/1.45 var(--ff-sans);opacity:.75;">No share sizes priced yet on this animal. <a href="/discover" style="font-weight:700;color:inherit;">Browse other animals →</a></div>';
+        nextBtn.disabled = true;
+        return;
+      }
+      shareWrap.innerHTML = opts.map(o => `<button type="button" class="option" data-share="${o.key}" data-price="${o.price}" aria-pressed="false"><span class="option-glyph">${o.glyph}</span><span class="option-text"><span class="option-title">${o.title}</span><span class="option-sub">${o.sub}</span></span><span class="option-price">${fmt(o.price)}<small style="display:block;font-size:10px;font-weight:600;opacity:.65;margin-top:2px">/lb all-in</small></span></button>`).join('');
       shareWrap.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
-        shareWrap.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+        shareWrap.querySelectorAll('.option').forEach(b => {
+          b.classList.remove('selected');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('selected');
+        btn.setAttribute('aria-pressed', 'true');
         state.share = { key: btn.dataset.share, price: Number(btn.dataset.price) };
         nextBtn.disabled = false;
       }));
-      // Preselect share when opening from a listing share card or deep-link return.
-      if (preselectKey) {
-        const key = preselectKey === 'quarter' ? 'q' : preselectKey === 'half' ? 'h' : preselectKey === 'whole' ? 'w' : preselectKey;
+      // Preselect: deep-link share, single available size, or prior selection.
+      let key = preselectKey === 'quarter' ? 'q' : preselectKey === 'half' ? 'h' : preselectKey === 'whole' ? 'w' : preselectKey;
+      if (!key && opts.length === 1) key = opts[0].key;
+      if (key) {
         const match = shareWrap.querySelector(`.option[data-share="${key}"]`);
         if (match) match.click();
       }
@@ -463,7 +474,7 @@
       else {
         nextBtn.style.visibility = 'visible'; backBtn.style.visibility = 'visible';
         if (n === 1) { nextBtn.disabled = !state.share; nextBtn.textContent = 'Continue →'; }
-        if (n === 2) { nextBtn.disabled = false; nextBtn.textContent = 'Pay deposit →'; }
+        if (n === 2) { nextBtn.disabled = false; nextBtn.textContent = 'Continue to checkout →'; }
       }
       if (n === 2 && state.share) {
         // Reservation deposit model: deposit is a flat 10% of estimated meat cost (capped 50–500),
@@ -483,6 +494,11 @@
         const pickupLabel = document.getElementById('sumPickupLabel');
         if (pickupEl) pickupEl.textContent = `~${fmt(meatEstimate - deposit)}`;
         if (pickupLabel) pickupLabel.textContent = `Balance at pickup (~${lbs} lb cuts @ ${fmt(state.share.price)}/lb all-in, less deposit)`;
+        const note = document.getElementById('sheetCheckoutNote');
+        if (note && state.animal) {
+          const animalBit = state.animal.name ? ` for ${state.animal.name}` : '';
+          note.textContent = `Due today locks your ${shareLabel.toLowerCase()} share${animalBit}. You'll finish on Stripe Checkout — card details never touch our servers.`;
+        }
       }
     }
 
@@ -549,6 +565,9 @@
 
     window.PO_SHELL = { open, close };
 
+    const payApple = document.getElementById('payApple');
+    const payCard = document.getElementById('payCard');
+
     closeBtn?.addEventListener('click', close);
     backdrop?.addEventListener('click', close);
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && sheet.classList.contains('open')) close(); });
@@ -556,10 +575,13 @@
     nextBtn.addEventListener('click', async () => {
       if (state.step === 1) { setStep(2); return; }
       if (state.step === 2) {
-        // Submit reservation to /api/reservations
+        // Submit reservation to /api/checkout (Stripe deposit)
+        if (nextBtn.disabled && nextBtn.textContent.includes('Redirecting')) return;
         nextBtn.disabled = true;
+        if (payCard) payCard.disabled = true;
+        if (payApple) payApple.disabled = true;
         const origText = nextBtn.textContent;
-        nextBtn.textContent = 'Reserving…';
+        nextBtn.textContent = 'Starting checkout…';
 
         const shareKeyMap = { q: 'quarter', h: 'half', w: 'whole' };
         const share_size = shareKeyMap[state.share?.key] || 'half';
@@ -579,6 +601,8 @@
           // Deep-link back into this listing + open the sheet with the chosen share.
           if (window.PO_API && typeof window.PO_API.openAuth === 'function') {
             nextBtn.disabled = false; nextBtn.textContent = origText;
+            if (payCard) payCard.disabled = false;
+            if (payApple) payApple.disabled = false;
             const listingId = state.animal?.id;
             const shareKey = state.share?.key || '';
             const shareParam = shareKey === 'q' ? 'quarter' : shareKey === 'h' ? 'half' : shareKey === 'w' ? 'whole' : shareKey;
@@ -606,6 +630,8 @@
           email = prompt('Enter your email so we can confirm your reservation:');
           if (!email || !email.includes('@')) {
             nextBtn.disabled = false; nextBtn.textContent = origText;
+            if (payCard) payCard.disabled = false;
+            if (payApple) payApple.disabled = false;
             return;
           }
         }
@@ -630,19 +656,22 @@
           const data = await r.json().catch(() => ({}));
           if (!r.ok || !data.url) {
             nextBtn.disabled = false; nextBtn.textContent = origText;
+            if (payCard) payCard.disabled = false;
+            if (payApple) payApple.disabled = false;
             alert('Could not start checkout: ' + (data.error || ('HTTP ' + r.status)));
             return;
           }
+          nextBtn.textContent = 'Redirecting to Stripe…';
           // Hand off to Stripe-hosted checkout
           window.location.href = data.url;
         } catch (e) {
           nextBtn.disabled = false; nextBtn.textContent = origText;
+          if (payCard) payCard.disabled = false;
+          if (payApple) payApple.disabled = false;
           alert('Network error: ' + e.message);
         }
       }
     });
-    const payApple = document.getElementById('payApple');
-    const payCard = document.getElementById('payCard');
     payApple?.addEventListener('click', () => nextBtn?.click());
     payCard?.addEventListener('click', () => nextBtn?.click());
   }

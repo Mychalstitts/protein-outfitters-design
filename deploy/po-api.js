@@ -50,6 +50,24 @@
     myFarms: () => jsonFetch('/api/farms?owner=me'),
     farm: (slug) => jsonFetch('/api/farms?slug=' + encodeURIComponent(slug)),
     createFarm: (data) => jsonFetch('/api/farms', { method: 'POST', body: data }),
+    updateFarm: (slug, data) => jsonFetch('/api/farms?slug=' + encodeURIComponent(slug), { method: 'PATCH', body: data }),
+
+    // Multipart photo/PDF upload → Vercel Blob. Returns { ok, url, content_type, kind }.
+    // Does not use jsonFetch (must not force Content-Type: application/json on FormData).
+    upload: async (file, opts = {}) => {
+      if (!file) throw Object.assign(new Error('No file'), { status: 400 });
+      const fd = new FormData();
+      fd.append(opts.field || 'file', file);
+      const r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+      let data = null;
+      try { data = await r.json(); } catch { /* empty */ }
+      if (!r.ok) {
+        const e = new Error((data && data.error) || `HTTP ${r.status}`);
+        e.status = r.status; e.data = data;
+        throw e;
+      }
+      return data;
+    },
 
     // Farm follows — used by the Follow button on farm-profile.html
     farmFollowState: (farm_id) => jsonFetch('/api/farm-follow?farm_id=' + encodeURIComponent(farm_id)),

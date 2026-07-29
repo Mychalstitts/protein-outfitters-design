@@ -188,6 +188,10 @@
   }
 
   async function uploadPhoto(file) {
+    if (window.PO_API?.upload) {
+      const data = await window.PO_API.upload(file);
+      return data.url || data.href || data.downloadUrl;
+    }
     const fd = new FormData();
     fd.append('file', file);
     const r = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });

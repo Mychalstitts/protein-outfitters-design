@@ -660,14 +660,18 @@
       const files = [...(e.target.files || [])];
       for (const f of files) {
         if (S.photoUrls.length >= 8) break;
-        const fd = new FormData(); fd.append('file', f);
         try {
-          const r = await fetch('/api/upload', { method: 'POST', body: fd, credentials: 'include' });
-          const data = await r.json();
-          if (data.ok) S.photoUrls.push(data.url);
-          else if (data.error?.includes('Sign in')) { window.PO_API.openAuth('Sign in to upload photos', 'producer'); break; }
-          else alert('Upload failed: ' + (data.error || 'unknown'));
-        } catch (err) { alert('Upload error: ' + err.message); }
+          if (!window.PO_API?.upload) throw new Error('Upload helper not loaded');
+          const data = await window.PO_API.upload(f);
+          if (data?.url) S.photoUrls.push(data.url);
+          else alert('Upload failed: no URL returned');
+        } catch (err) {
+          if (err.status === 401 || /sign in/i.test(err.message || '')) {
+            window.PO_API?.openAuth?.('Sign in to upload photos', 'producer');
+            break;
+          }
+          alert('Upload failed: ' + (err.message || 'unknown'));
+        }
       }
       renderPhotoGrid();
       photoInput.value = '';

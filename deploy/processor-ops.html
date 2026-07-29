@@ -862,6 +862,12 @@ function showToast(msg) {
   if (!bookingsEl) return;
   const bookings = data.bookings || [];
 
+  // Signal live mode so operators know this is their plant, not the demo.
+  injectBanner({
+    text: `Live queue · signed in as ${me.email || 'processor'}. Demo data replaced with your bookings.`,
+    cta: null
+  });
+
   // Hide demo nodes; we'll inject real ones.
   bookingsEl.innerHTML = '';
   const eyebrowEl = bookingsEl.previousElementSibling;
@@ -870,11 +876,7 @@ function showToast(msg) {
   }
 
   if (!bookings.length) {
-    bookingsEl.innerHTML = `
-      <div style="padding:32px 20px;background:#fff;border-radius:14px;text-align:center;">
-        <div style="font:800 16px/1.4 'Inter';letter-spacing:-.02em;">Nothing on today's queue.</div>
-        <div style="font:500 13px/1.5 'Inter';opacity:.7;margin-top:6px;">When farmers schedule drop-offs, they'll appear here. Visit /processor-schedule to set your weekly capacity.</div>
-      </div>`;
+    bookingsEl.innerHTML = emptyQueueHtml('today');
     return;
   }
 
@@ -898,7 +900,7 @@ function showToast(msg) {
           bookingsEl.innerHTML = '';
           const items = d.bookings || d.cut_sheets || [];
           if (!items.length) {
-            bookingsEl.innerHTML = `<div style="padding:32px 20px;background:#fff;border-radius:14px;text-align:center;font:500 14px/1.5 'Inter';opacity:.7;">Nothing in ${view}.</div>`;
+            bookingsEl.innerHTML = emptyQueueHtml(view);
             return;
           }
           if (view === 'inbox') items.forEach(cs => bookingsEl.appendChild(renderCutSheet(cs)));
@@ -911,6 +913,40 @@ function showToast(msg) {
         }
       };
     });
+  }
+
+  // ── Empty states (live mode) ─────────────────────────
+  function emptyQueueHtml(view) {
+    const copy = {
+      today: {
+        title: "Nothing on today's queue",
+        body: 'When farmers book drop-offs, they land here with check-in codes and cut sheets.',
+      },
+      week: {
+        title: 'No bookings this week',
+        body: 'Open capacity on your schedule so nearby ranches can reserve a slot.',
+      },
+      month: {
+        title: 'Quiet month so far',
+        body: 'Publish weekly capacity and invite farms — demand follows a full calendar.',
+      },
+      inbox: {
+        title: 'No cut sheets waiting',
+        body: 'Buyer cut instructions appear here once a reserved share is paid and the sheet is submitted.',
+      },
+    };
+    const c = copy[view] || { title: 'Nothing here yet', body: 'Check back as bookings come in.' };
+    return `
+      <div style="padding:36px 22px;background:#fff;border-radius:16px;text-align:center;border:1px solid rgba(6,27,14,.06);">
+        <div style="width:52px;height:52px;margin:0 auto 14px;border-radius:14px;background:rgba(125,160,93,.14);display:grid;place-items:center;font-size:22px;" aria-hidden="true">🗓️</div>
+        <div style="font:800 17px/1.3 'Inter';letter-spacing:-.02em;color:#061b0e;">${c.title}</div>
+        <div style="font:500 13.5px/1.55 'Inter';color:rgba(6,27,14,.65);margin:8px auto 0;max-width:360px;">${c.body}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px;">
+          <a href="/processor-schedule" style="display:inline-flex;align-items:center;padding:11px 18px;border-radius:999px;background:#061b0e;color:#fbf9f5;font:700 13px/1 'Inter';text-decoration:none;">Set weekly capacity →</a>
+          <a href="/processor-checkin" style="display:inline-flex;align-items:center;padding:11px 18px;border-radius:999px;background:transparent;color:#061b0e;border:1.5px solid rgba(6,27,14,.14);font:700 13px/1 'Inter';text-decoration:none;">QR / code check-in</a>
+          <a href="/invite-partner" style="display:inline-flex;align-items:center;padding:11px 18px;border-radius:999px;background:transparent;color:#061b0e;border:1.5px solid rgba(6,27,14,.14);font:700 13px/1 'Inter';text-decoration:none;">Invite a farm</a>
+        </div>
+      </div>`;
   }
 
   // ── Render helpers ───────────────────────────────────

@@ -304,7 +304,7 @@
       render();
     }
 
-    const state = { species:'all', practice:new Set(), certs:new Set(), identity:new Set(), window:null, priceMin:null, priceMax:null, distance:200, instant:false, newOnly:false, sort:'best', saved:new Set(JSON.parse(localStorage.getItem('po_saved')||'[]')) };
+    const state = { species:'all', practice:new Set(), certs:new Set(), identity:new Set(), window:null, priceMin:null, priceMax:null, distance:200, instant:false, newOnly:false, sort:'best', farmSlug:null, farmName:null, saved:new Set(JSON.parse(localStorage.getItem('po_saved')||'[]')) };
 
     async function parseQuery(q) {
       try { const r = await fetch('/api/parse-search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query:q}) }); if (r.ok) return await r.json(); } catch(e) {}
@@ -345,6 +345,7 @@
 
     function applyFilters() {
       let r = LISTINGS.slice();
+      if (state.farmSlug) r = r.filter(l => l.farmSlug === state.farmSlug);
       if (state.species !== 'all') r = r.filter(l => l.species === state.species);
       if (state.practice.size) r = r.filter(l => l.practice.some(p => state.practice.has(p)));
       if (state.certs.size) r = r.filter(l => l.certs.some(c => state.certs.has(c)));
@@ -378,7 +379,20 @@
       const count = document.getElementById('resultsCount');
       const usingDefaultLoc = !localStorage.getItem('po_user_loc');
       const locLabel = usingDefaultLoc ? 'nationwide' : 'near you';
-      count.innerHTML = `${r.length} listing${r.length===1?'':'s'} <em>· ${locLabel}</em>`;
+      const farmBit = state.farmSlug
+        ? ` · <span style="color:var(--ink);font-weight:700;">${(state.farmName || state.farmSlug).replace(/[<>]/g,'')}</span> <button type="button" id="clearFarmFilter" style="margin-left:6px;border:0;background:rgba(6,27,14,.08);border-radius:999px;padding:3px 10px;font:700 11px/1 'Inter';cursor:pointer;color:var(--ink);">Clear farm</button>`
+        : '';
+      count.innerHTML = `${r.length} listing${r.length===1?'':'s'} <em>· ${locLabel}</em>${farmBit}`;
+      const clearFarmBtn = document.getElementById('clearFarmFilter');
+      if (clearFarmBtn) {
+        clearFarmBtn.onclick = () => {
+          state.farmSlug = null; state.farmName = null;
+          const u = new URL(location.href);
+          u.searchParams.delete('farm');
+          history.replaceState(null, '', u.pathname + (u.search || '') + u.hash);
+          render();
+        };
+      }
       grid.innerHTML = r.map(l => `
         <article class="listing-card" data-id="${l.id}" onclick="window.location='/listing?id=${l.id}'">
           <div class="lc-photo-wrap">
@@ -526,12 +540,21 @@
       const points = [];
       farms.forEach(f => {
         const m = L.marker([f.lat, f.lng], { icon: pinIcon });
+        const n = Number(f.listings_count) || 0;
+        const nameSafe = (f.name||'').replace(/[<>]/g,'');
+        const locSafe = ((f.city||'') + (f.state ? ', '+f.state : '')).replace(/[<>]/g,'');
+        const browse = (n > 0 && f.slug)
+          ? `<a href="/discover?farm=${encodeURIComponent(f.slug)}" style="display:inline-block;padding:6px 12px;border-radius:999px;background:#7da05d;color:#061b0e;font:700 11.5px/1 'Inter';text-decoration:none;margin-right:6px;">Browse ${n} animal${n===1?'':'s'} →</a>`
+          : '';
+        const profile = f.slug
+          ? `<a href="/farm/${encodeURIComponent(f.slug)}" style="display:inline-block;padding:6px 12px;border-radius:999px;background:#061b0e;color:#fbf9f5;font:700 11.5px/1 'Inter';text-decoration:none;">${browse ? 'Farm profile' : 'Visit profile →'}</a>`
+          : '';
         m.bindPopup(`
           <div style="font:500 13px/1.4 'Inter',sans-serif;">
-            <h4 style="font:800 14px/1.2 'Inter';margin:0 0 4px;">${(f.name||'').replace(/[<>]/g,'')}</h4>
-            <p style="margin:0 0 6px;color:#5a6359;">${(f.city||'')}${f.state ? ', '+f.state : ''}</p>
-            ${f.listings_count ? `<p style="margin:0 0 8px;"><strong>${f.listings_count}</strong> active listing${f.listings_count===1?'':'s'}</p>` : ''}
-            ${f.slug ? `<a href="/farm/${encodeURIComponent(f.slug)}" style="display:inline-block;padding:6px 12px;border-radius:999px;background:#061b0e;color:#fbf9f5;font:700 11.5px/1 'Inter';text-decoration:none;">Visit profile →</a>` : ''}
+            <h4 style="font:800 14px/1.2 'Inter';margin:0 0 4px;">${nameSafe}</h4>
+            <p style="margin:0 0 6px;color:#5a6359;">${locSafe}</p>
+            ${n ? `<p style="margin:0 0 8px;"><strong>${n}</strong> active listing${n===1?'':'s'}</p>` : '<p style="margin:0 0 8px;color:#5a6359;">No live listings right now</p>'}
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">${browse}${profile}</div>
           </div>`);
         discoverMarkers.addLayer(m);
         points.push([f.lat, f.lng]);
@@ -599,7 +622,15 @@
     if (params.get('q')) {
       document.getElementById('aiSearch').value = params.get('q');
     }
+    // Deep link from map farm pins: /discover?farm=<slug>
+    const farmParam = (params.get('farm') || '').trim();
+    if (farmParam) state.farmSlug = farmParam;
     loadListings().then(() => {
+      if (state.farmSlug) {
+        const match = LISTINGS.find(l => l.farmSlug === state.farmSlug);
+        if (match) state.farmName = match.farm;
+        render();
+      }
       if (params.get('q')) runAISearch(params.get('q'));
     });
   </script>

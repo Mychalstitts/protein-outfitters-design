@@ -32,7 +32,26 @@
 
 .fm-standing { background: var(--brand); color: #fbf9f5; border-radius: 22px; padding: 24px 26px; display: flex; flex-direction: column; gap: 16px; }
 .fm-standing-row { display: flex; align-items: center; gap: 16px; }
-.fm-standing-avatar { width: 56px; height: 56px; border-radius: 16px; background: url('/img/farmer.jpg') center/cover; flex-shrink: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+.fm-standing-avatar { width: 56px; height: 56px; border-radius: 16px; background: url('/img/farmer.jpg') center/cover; flex-shrink: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.18); position: relative; }
+.fm-standing-avatar.fm-photo-btn { border: 0; padding: 0; cursor: pointer; display: block; }
+.fm-standing-avatar.fm-photo-btn::after {
+  content: '📷'; position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px;
+  border-radius: 999px; background: #fbf9f5; color: #061b0e; font-size: 11px;
+  display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.fm-photo-strip {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid rgba(251,249,245,0.14);
+}
+.fm-photo-strip button, .fm-photo-strip label {
+  appearance: none; border: 1.5px dashed rgba(251,249,245,0.35); background: rgba(251,249,245,0.08);
+  color: #fbf9f5; border-radius: 999px; padding: 7px 12px; font: 700 11.5px/1 'Inter';
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.fm-photo-strip button:hover, .fm-photo-strip label:hover { background: rgba(251,249,245,0.16); }
+.fm-photo-strip button:disabled, .fm-photo-strip label[aria-busy="true"] { opacity: .55; cursor: wait; }
+.fm-photo-strip input[type="file"] { display: none; }
+.fm-photo-strip .ok { border-style: solid; border-color: rgba(125,160,93,.55); background: rgba(125,160,93,.22); }
 .fm-standing-meta .role { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
 .fm-standing-meta .name { margin: 4px 0 0; font-size: 18px; font-weight: 900; letter-spacing: -0.018em; color: #fbf9f5; }
 .fm-standing-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding-top: 14px; border-top: 1px solid rgba(251,249,245,0.18); }
@@ -155,7 +174,7 @@
       </div>
       <div class="fm-standing" id="fmStanding" style="display:none;">
         <div class="fm-standing-row">
-          <div class="fm-standing-avatar" id="fmFarmAvatar"></div>
+          <button type="button" class="fm-standing-avatar fm-photo-btn" id="fmFarmAvatar" title="Upload profile photo" aria-label="Upload farm profile photo"></button>
           <div class="fm-standing-meta">
             <p class="role" id="fmFarmRole">—</p>
             <p class="name" id="fmFarmName">—</p>
@@ -165,6 +184,11 @@
           <div class="fm-standing-stat"><div class="v" id="fmStatListings">—</div><div class="lab">Active listings</div></div>
           <div class="fm-standing-stat"><div class="v" id="fmStatReservations">—</div><div class="lab">Reservations</div></div>
           <div class="fm-standing-stat"><div class="v" id="fmStatRevenue">—</div><div class="lab">Earned</div></div>
+        </div>
+        <div class="fm-photo-strip" id="fmPhotoStrip" aria-label="Farm photos">
+          <label id="fmAvatarLabel"><input type="file" id="fmAvatarInput" accept="image/jpeg,image/png,image/webp" />Profile photo</label>
+          <label id="fmCoverLabel"><input type="file" id="fmCoverInput" accept="image/jpeg,image/png,image/webp" />Cover photo</label>
+          <span id="fmPhotoStatus" style="font:500 11.5px/1.3 'Inter';opacity:.75;align-self:center;"></span>
         </div>
         <!-- Profile completion meter (Airbnb-style nudge) — populated by JS -->
         <div id="fmCompletionMeter" style="display:none;margin-top:18px;padding:14px 18px;background:rgba(125,160,93,0.08);border-radius:12px;border:1px solid rgba(125,160,93,0.18);">
@@ -435,12 +459,70 @@ window.poStartConnect = async function(kind, id) {
       const av = document.getElementById('fmFarmAvatar');
       if (av) av.style.backgroundImage = `url(${JSON.stringify(primaryFarm.avatar_url)})`;
     }
+    const avatarLabel = document.getElementById('fmAvatarLabel');
+    const coverLabel = document.getElementById('fmCoverLabel');
+    if (avatarLabel && primaryFarm.avatar_url) avatarLabel.classList.add('ok');
+    if (coverLabel && primaryFarm.cover_url) coverLabel.classList.add('ok');
+
+    // ─── Inline farm photo upload (avatar + cover via Vercel Blob) ───
+    async function uploadFarmPhoto(kind, file) {
+      const status = document.getElementById('fmPhotoStatus');
+      const label = kind === 'cover' ? coverLabel : avatarLabel;
+      if (!file || !primaryFarm.slug) return;
+      if (!window.PO_API?.upload || !window.PO_API?.updateFarm) {
+        if (status) status.textContent = 'Upload helper not loaded — refresh and try again.';
+        return;
+      }
+      if (label) label.setAttribute('aria-busy', 'true');
+      if (status) status.textContent = 'Uploading…';
+      try {
+        const up = await window.PO_API.upload(file);
+        if (!up?.url) throw new Error('No URL returned');
+        const patch = kind === 'cover' ? { cover_url: up.url } : { avatar_url: up.url };
+        await window.PO_API.updateFarm(primaryFarm.slug, patch);
+        if (kind === 'cover') {
+          primaryFarm.cover_url = up.url;
+          if (coverLabel) coverLabel.classList.add('ok');
+        } else {
+          primaryFarm.avatar_url = up.url;
+          const av = document.getElementById('fmFarmAvatar');
+          if (av) av.style.backgroundImage = `url(${JSON.stringify(up.url)})`;
+          if (avatarLabel) avatarLabel.classList.add('ok');
+        }
+        if (status) status.textContent = kind === 'cover' ? 'Cover saved ✓' : 'Profile photo saved ✓';
+        // Refresh completion meter without full reload
+        try { renderCompletionMeter(); } catch (_) { /* first paint */ }
+      } catch (err) {
+        if (err.status === 401) {
+          window.PO_API.openAuth('Sign in to upload farm photos', 'producer');
+        } else if (status) {
+          status.textContent = 'Upload failed: ' + (err.message || 'unknown');
+        }
+      } finally {
+        if (label) label.removeAttribute('aria-busy');
+      }
+    }
+    const avInput = document.getElementById('fmAvatarInput');
+    const coverInput = document.getElementById('fmCoverInput');
+    const avBtn = document.getElementById('fmFarmAvatar');
+    if (avInput) avInput.addEventListener('change', () => {
+      const f = avInput.files && avInput.files[0];
+      if (f) uploadFarmPhoto('avatar', f);
+      avInput.value = '';
+    });
+    if (coverInput) coverInput.addEventListener('change', () => {
+      const f = coverInput.files && coverInput.files[0];
+      if (f) uploadFarmPhoto('cover', f);
+      coverInput.value = '';
+    });
+    if (avBtn && avInput) avBtn.addEventListener('click', () => avInput.click());
 
     // ─── Profile completion meter (Airbnb's host nudge) ─────────
     // Each item is worth a fixed % so the bar is easy to read. Total = 100.
+    function renderCompletionMeter() {
     const checks = [
-      { label: 'Add a profile photo',      done: !!primaryFarm.avatar_url,            link: '/credentials',   weight: 15, ifMissing: 'Profile photos drive 2× more buyer trust' },
-      { label: 'Add a cover photo',        done: !!primaryFarm.cover_url,             link: '/credentials',   weight: 10, ifMissing: '1280×720 banner that buyers see first' },
+      { label: 'Add a profile photo',      done: !!primaryFarm.avatar_url,            link: '#fmPhotoStrip',   weight: 15, ifMissing: 'Profile photos drive 2× more buyer trust' },
+      { label: 'Add a cover photo',        done: !!primaryFarm.cover_url,             link: '#fmPhotoStrip',   weight: 10, ifMissing: '1280×720 banner that buyers see first' },
       { label: 'Tell your farm story',     done: !!(primaryFarm.bio && primaryFarm.bio.length > 50), link: '/credentials', weight: 15, ifMissing: 'Buyers want to know who raises their meat' },
       { label: 'List at least one animal', done: allListings.length > 0,              link: '/list-animal',   weight: 25, ifMissing: 'No listings = no reservations' },
       { label: 'Add certifications',       done: (primaryFarm.certs || []).length > 0, link: '/credentials',   weight: 10, ifMissing: 'USDA Organic, Animal Welfare, etc.' },
@@ -482,6 +564,8 @@ window.poStartConnect = async function(kind, id) {
             </li>`).join('');
       }
     }
+    } // end renderCompletionMeter
+    renderCompletionMeter();
 
     // Greeting sub: count reservations + nearest harvest
     const upcomingHarvests = allListings.filter(l => l.expected_finish_date && new Date(l.expected_finish_date) > new Date()).sort((a,b) => new Date(a.expected_finish_date) - new Date(b.expected_finish_date));
