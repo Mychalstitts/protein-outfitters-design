@@ -4,16 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>#2641 · Black Angus steer · Protein Outfitters</title>
-<meta name="description" content="Reserve a fraction of #2641 — a 1,180 lb grass-fed Black Angus steer raised by Northfield Pastures in Bemidji, MN." />
-<meta property="og:title" content="#2641 · Black Angus steer · Protein Outfitters" />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer." />
+<title>Listing · Protein Outfitters</title>
+<meta name="description" content="Reserve a share of a real, named animal from a verified U.S. farm. One all-in price. Inspected plant. Three taps." />
+<meta property="og:title" content="Listing · Protein Outfitters" />
+<meta property="og:description" content="Reserve a share of a real, named animal from a verified producer." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/listing" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="#2641 · Black Angus steer · Protein Outfitters" />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal from a verified producer." />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,55 +19,134 @@
 <link rel="stylesheet" href="./po-shell.css">
 <link rel="stylesheet" href="./po-social.css">
 <style>
-.listing-hero { position: relative; min-height: 64vh; display: flex; align-items: flex-end; background: #1a0d08 url('/img/angus.jpg') center/cover no-repeat; color: #fff; }
-.listing-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.10) 30%, rgba(0,0,0,0.78) 100%); z-index: 1; }
-.listing-hero-inner { position: relative; z-index: 2; max-width: 1320px; margin: 0 auto; width: 100%; padding: clamp(48px, 8vw, 120px) var(--shell-pad); }
-.listing-tag { display: inline-block; background: rgba(251, 249, 245, 0.92); backdrop-filter: blur(8px); color: var(--brand); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; padding: 7px 14px; border-radius: 999px; margin-bottom: 20px; }
-.listing-hero h1 { color: #fff; font-size: clamp(40px, 6vw, 72px); letter-spacing: -0.035em; line-height: 0.95; font-weight: 900; margin: 0 0 14px; max-width: 18ch; }
-.listing-hero p { color: rgba(255,255,255,0.82); font-size: clamp(16px, 1.4vw, 22px); margin: 0; max-width: 50ch; line-height: 1.45; }
+/* Airbnb-style listing detail */
+.lg-shell { max-width: 1120px; margin: 0 auto; padding: 20px var(--shell-pad) 100px; }
+.lg-crumb { font: 600 13px/1.4 'Inter'; color: var(--ink-2); margin: 0 0 16px; }
+.lg-crumb a { color: inherit; text-decoration: none; }
+.lg-crumb a:hover { text-decoration: underline; color: var(--ink); }
 
-.listing-actions { padding: clamp(32px, 4vw, 48px) var(--shell-pad); border-bottom: 1px solid rgba(0,0,0,0.06); position: sticky; top: 64px; z-index: 60; background: rgba(251, 249, 245, 0.92); backdrop-filter: blur(12px); }
-.listing-actions-inner { max-width: 1320px; margin: 0 auto; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-.listing-price { display: flex; align-items: baseline; gap: 10px; }
-.listing-price .from { font-size: 13px; color: var(--ink-2); font-weight: 600; }
-.listing-price .num { font-size: clamp(24px, 2.4vw, 32px); font-weight: 900; letter-spacing: -0.02em; }
-.listing-price .meta { font-size: 13px; color: var(--ink-2); font-weight: 500; }
-.listing-actions-cta { display: flex; gap: 10px; }
+.lg-title-row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+.lg-title-row h1 { margin: 0; font: 800 clamp(26px, 4vw, 36px)/1.15 'Inter'; letter-spacing: -0.03em; max-width: 28ch; }
+.lg-sub { margin: 8px 0 0; font: 500 15px/1.45 'Inter'; color: var(--ink-2); }
+.lg-actions-top { display: flex; gap: 8px; flex-shrink: 0; }
+.lg-chip-btn {
+  border: 0; background: transparent; cursor: pointer;
+  font: 700 13px/1 'Inter'; color: var(--ink);
+  padding: 10px 14px; border-radius: 999px;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.lg-chip-btn:hover { background: rgba(6,27,14,.05); }
 
-.listing-body { padding: clamp(56px, 7vw, 96px) var(--shell-pad); }
-.listing-body-inner { max-width: 1320px; margin: 0 auto; display: grid; gap: clamp(40px, 5vw, 72px); grid-template-columns: 1fr; }
-@media (min-width: 900px) { .listing-body-inner { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+/* Photo gallery */
+.lg-gallery {
+  display: grid; gap: 8px; border-radius: 20px; overflow: hidden;
+  grid-template-columns: 1.4fr 1fr; grid-template-rows: 1fr 1fr;
+  min-height: 320px; max-height: 480px;
+  background: #1a0d08;
+}
+.lg-gallery .g-main { grid-row: 1 / -1; position: relative; }
+.lg-gallery .g-side { position: relative; min-height: 0; }
+.lg-gallery img, .lg-gallery .g-ph {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  background: #2a2018 center/cover no-repeat;
+}
+.lg-gallery .g-ph { min-height: 150px; }
+@media (max-width: 720px) {
+  .lg-gallery { grid-template-columns: 1fr; grid-template-rows: 260px; max-height: none; }
+  .lg-gallery .g-main { grid-row: auto; min-height: 260px; }
+  .lg-gallery .g-side { display: none; }
+}
 
-.specs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.spec { background: var(--surface); border-radius: 18px; padding: 20px 22px; }
-.spec-label { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 6px; }
-.spec-value { font-size: 18px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
+/* Two-column body */
+.lg-body {
+  display: grid; gap: 40px; margin-top: 36px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .lg-body { grid-template-columns: 1.35fr 380px; align-items: start; gap: 56px; }
+}
 
-.prose { font-size: 17px; line-height: 1.6; color: var(--ink); margin: 0 0 28px; max-width: 56ch; }
-.prose strong { color: var(--ink); }
+.lg-section { margin-bottom: 36px; padding-bottom: 36px; border-bottom: 1px solid rgba(6,27,14,.08); }
+.lg-section:last-child { border-bottom: 0; }
+.lg-section h2 { margin: 0 0 14px; font: 800 22px/1.2 'Inter'; letter-spacing: -0.02em; }
+.lg-section p.lead { margin: 0; font: 500 16px/1.55 'Inter'; color: var(--ink-2); max-width: 56ch; }
 
-.share-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
-.share-card { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 18px; padding: 22px 24px; display: flex; align-items: center; gap: 18px; cursor: pointer; transition: transform .2s, border-color .2s, box-shadow .2s; text-decoration: none; color: inherit; }
-.share-card:hover { transform: translateY(-3px); border-color: rgba(6,27,14,0.32); box-shadow: 0 12px 28px rgba(0,0,0,0.06); }
-.share-card .glyph { width: 56px; height: 56px; border-radius: 14px; background: var(--brand); color: #fbf9f5; display: grid; place-items: center; font-size: 28px; font-weight: 900; letter-spacing: -0.04em; flex-shrink: 0; }
-.share-card .text { flex: 1; min-width: 0; }
-.share-card .t { font-size: 17px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
-.share-card .s { font-size: 13px; color: var(--ink-2); margin: 2px 0 0; }
-.share-card .p { font-size: 18px; font-weight: 800; letter-spacing: -0.018em; }
+.specs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.spec { background: var(--surface, #fff); border-radius: 14px; padding: 16px 18px; border: 1px solid rgba(6,27,14,.06); }
+.spec-label { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 6px; }
+.spec-value { font-size: 16px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
 
-.farm-card { background: var(--surface); border-radius: 22px; padding: 28px 30px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 200px; }
-.farm-card h3 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.022em; }
-.farm-card .map-img { aspect-ratio: 16/10; background: url('/img/ranch.jpg') center/cover no-repeat; border-radius: 14px; }
-.farm-card .row { display: flex; justify-content: space-between; font-size: 14px; }
-.farm-card .row span:first-child { color: var(--ink-2); }
-.farm-card .row span:last-child { font-weight: 700; }
-.farm-card a { font-size: 14px; font-weight: 700; color: var(--brand); text-decoration: none; }
+.share-row { display: grid; gap: 10px; }
+.share-card {
+  background: #fff; border: 1.5px solid rgba(6,27,14,.1); border-radius: 16px;
+  padding: 18px 20px; display: flex; align-items: center; gap: 16px;
+  cursor: pointer; transition: transform .2s, border-color .2s, box-shadow .2s;
+  text-align: left; font: inherit; color: inherit; width: 100%;
+}
+.share-card:hover { transform: translateY(-2px); border-color: rgba(6,27,14,.35); box-shadow: 0 12px 28px rgba(0,0,0,.07); }
+.share-card.selected { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(6,27,14,.1); }
+.share-card .glyph {
+  width: 52px; height: 52px; border-radius: 14px; background: var(--brand); color: #fbf9f5;
+  display: grid; place-items: center; font-size: 22px; font-weight: 900; flex-shrink: 0;
+}
+.share-card .t { font-size: 16px; font-weight: 800; margin: 0; letter-spacing: -0.018em; }
+.share-card .s { font-size: 13px; color: var(--ink-2); margin: 3px 0 0; }
+.share-card .p { font-size: 17px; font-weight: 800; margin-left: auto; text-align: right; }
+
+/* Sticky book card (Airbnb) */
+.book-card {
+  position: sticky; top: 88px;
+  background: #fff; border-radius: 20px; padding: 24px;
+  border: 1px solid rgba(6,27,14,.1);
+  box-shadow: 0 12px 40px rgba(6,27,14,.1);
+}
+.book-price { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.book-price .num { font: 900 28px/1 'Inter'; letter-spacing: -0.03em; }
+.book-price .unit { font: 600 14px/1 'Inter'; color: var(--ink-2); }
+.book-meta { font: 500 13px/1.4 'Inter'; color: var(--ink-2); margin: 8px 0 18px; }
+.book-card .btn-xl { width: 100%; justify-content: center; margin-bottom: 10px; }
+.book-note { font: 500 12.5px/1.45 'Inter'; color: var(--ink-2); text-align: center; margin: 0; }
+.book-trust { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(6,27,14,.08); display: grid; gap: 10px; }
+.book-trust li {
+  list-style: none; font: 600 13px/1.35 'Inter'; color: var(--ink-2);
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.book-trust li::before { content: '✓'; color: var(--brand); font-weight: 900; }
+
+.host-card {
+  margin-top: 16px; background: #fff; border-radius: 18px; padding: 20px;
+  border: 1px solid rgba(6,27,14,.08);
+}
+.host-card h3 { margin: 0 0 4px; font: 800 18px/1.2 'Inter'; letter-spacing: -0.02em; }
+.host-card .where { font: 500 13px/1.4 'Inter'; color: var(--ink-2); margin: 0 0 12px; }
+.host-row { display: flex; justify-content: space-between; font: 600 13px/1.4 'Inter'; padding: 6px 0; gap: 12px; }
+.host-row span:first-child { color: var(--ink-2); font-weight: 500; }
+.host-card a { display: inline-block; margin-top: 12px; font: 700 14px/1 'Inter'; color: var(--brand); }
+
+.reviews-block { margin-top: 8px; }
+.review-item {
+  padding: 16px 0; border-bottom: 1px solid rgba(6,27,14,.06);
+}
+.review-item:last-child { border-bottom: 0; }
+.review-stars { color: #dca54a; letter-spacing: 1px; font-size: 13px; }
+.review-body { font: 500 14.5px/1.5 'Inter'; color: var(--ink); margin: 8px 0 0; }
+.review-meta { font: 600 12px/1.3 'Inter'; color: var(--ink-2); margin-top: 8px; }
+
+.lg-empty {
+  text-align: center; padding: 80px 24px; max-width: 420px; margin: 40px auto;
+}
+.lg-empty h1 { font: 800 28px/1.2 'Inter'; letter-spacing: -0.02em; margin: 0 0 10px; }
+.lg-empty p { font: 500 15px/1.5 'Inter'; color: var(--ink-2); margin: 0 0 22px; }
+
+@media (max-width: 899px) {
+  .book-card { position: static; }
+}
 </style>
 </head>
 <body>
 
 <div class="po-nav-wrap">
-  <nav class="po-nav">
+  <nav class="po-nav" aria-label="Primary">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
     <div class="po-nav-links">
       <a href="/discover" class="active">Browse</a>
@@ -78,62 +154,86 @@
       <a href="/producers">Farms</a>
       <a href="/#partners">For partners</a>
     </div>
-    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><button id="lgNavReserve" data-open-sheet disabled style="opacity:.55;cursor:wait">Reserve</button></div>
+    <div class="po-nav-actions">
+      <a href="/account" class="signin">Sign in</a>
+      <button id="lgNavReserve" data-open-sheet disabled style="opacity:.55;cursor:wait">Reserve</button>
+    </div>
   </nav>
 </div>
 
-<section class="listing-hero" id="lgHero">
-  <div class="listing-hero-inner">
-    <span class="listing-tag" id="lgTag">Loading…</span>
-    <h1 id="lgH1">Loading listing…</h1>
-    <p id="lgSub">One moment.</p>
-  </div>
-</section>
+<div class="lg-shell" id="lgRoot">
+  <p class="lg-crumb"><a href="/discover">Browse</a> · <span id="lgCrumbSpecies">Animal</span></p>
 
-<div class="listing-actions">
-  <div class="listing-actions-inner">
-    <div class="listing-price">
-      <span class="from">From</span>
-      <span class="num" id="lgFromPrice">—</span>
-      <span class="meta" id="lgFromMeta">· quarter share</span>
-    </div>
-    <div class="listing-actions-cta">
-      <button class="btn-xl js-share" type="button" style="background:transparent;color:var(--ink,#061b0e);border:1.5px solid rgba(6,27,14,.18);margin-right:10px;" onclick="window.poShare && window.poShare({title: document.title, text: 'A real animal from a verified producer.'})">↗ Share</button>
-      <button class="btn-xl btn-xl--dark js-reserve" data-open-sheet>Reserve →</button>
-    </div>
-  </div>
-</div>
-
-<section class="listing-body">
-  <div class="listing-body-inner">
+  <div class="lg-title-row">
     <div>
-      <p class="po-eyebrow">Specs</p>
-      <h2 class="po-h3" style="margin-bottom: 24px;">A real animal on a real farm.</h2>
+      <h1 id="lgH1">Loading listing…</h1>
+      <p class="lg-sub" id="lgSub">One moment.</p>
+    </div>
+    <div class="lg-actions-top">
+      <button type="button" class="lg-chip-btn" id="lgShareBtn">Share</button>
+      <button type="button" class="lg-chip-btn" id="lgSaveBtn">Save</button>
+    </div>
+  </div>
 
-      <div class="specs" id="lgSpecs" style="margin-bottom: 36px;"></div>
+  <div class="lg-gallery" id="lgGallery" aria-label="Photos">
+    <div class="g-main"><div class="g-ph" id="lgPhoto0"></div></div>
+    <div class="g-side"><div class="g-ph" id="lgPhoto1"></div></div>
+    <div class="g-side"><div class="g-ph" id="lgPhoto2"></div></div>
+  </div>
 
-      <p class="po-eyebrow">About this animal</p>
-      <div id="lgAbout"><p class="prose" style="opacity:.6">Loading…</p></div>
+  <div class="lg-body">
+    <div>
+      <section class="lg-section">
+        <h2>About this animal</h2>
+        <div id="lgAbout"><p class="lead">Loading…</p></div>
+      </section>
 
-      <p class="po-eyebrow" style="margin-top: 36px;">Pick your share</p>
-      <h3 class="po-h3" style="margin-bottom: 24px;">How much do you want?</h3>
-      <div class="share-row" id="lgShareRow"></div>
+      <section class="lg-section">
+        <h2>Specs</h2>
+        <div class="specs" id="lgSpecs"></div>
+      </section>
 
-      <div id="lgJourney" style="margin-top: 48px; scroll-margin-top: 88px;"></div>
+      <section class="lg-section">
+        <h2>Pick your share</h2>
+        <p class="lead" style="margin-bottom:16px;">One all-in $/lb hanging weight — farmer, processing, insurance, and platform included.</p>
+        <div class="share-row" id="lgShareRow"></div>
+        <div id="lgIncluded"></div>
+      </section>
+
+      <section class="lg-section reviews-block" id="lgReviewsSection" hidden>
+        <h2 id="lgReviewsTitle">Reviews</h2>
+        <div id="lgReviews"></div>
+      </section>
+
+      <div id="lgJourney" style="scroll-margin-top: 88px;"></div>
     </div>
 
     <aside>
-      <div class="farm-card" id="lgFarmCard">
+      <div class="book-card" id="lgBookCard">
+        <div class="book-price">
+          <span class="num" id="lgFromPrice">—</span>
+          <span class="unit" id="lgFromUnit">/lb all-in</span>
+        </div>
+        <p class="book-meta" id="lgFromMeta">Deposit today · balance at pickup</p>
+        <button class="btn-xl btn-xl--dark js-reserve" data-open-sheet id="lgBookBtn" style="width:100%;justify-content:center;">Reserve →</button>
+        <p class="book-note">You won’t be charged the full amount until harvest. Free cancel up to 21 days before.</p>
+        <ul class="book-trust">
+          <li>Inspected plant (USDA, state, or equal-to)</li>
+          <li>Named animal · named farm</li>
+          <li>Insurance pool on every reservation</li>
+        </ul>
+      </div>
+
+      <div class="host-card" id="lgFarmCard">
         <h3 id="lgFarmName">Loading farm…</h3>
-        <div class="map-img"></div>
-        <div class="row"><span>Location</span><span id="lgFarmLoc">—</span></div>
-        <div class="row"><span>Practices</span><span id="lgFarmPractices">—</span></div>
-        <div class="row"><span>Established</span><span id="lgFarmEst">—</span></div>
-        <a id="lgFarmLink" href="/producers">View all listings →</a>
+        <p class="where" id="lgFarmLoc">—</p>
+        <div class="host-row"><span>Practices</span><span id="lgFarmPractices">—</span></div>
+        <div class="host-row"><span>Harvest</span><span id="lgHarvest">—</span></div>
+        <a id="lgFarmLink" href="/producers">View farm profile →</a>
       </div>
     </aside>
   </div>
-</section>
+</div>
 
 <div id="po-shell-host"></div>
 <script src="./po-shell.js"></script>
@@ -145,51 +245,78 @@
   const id = params.get('id');
   const photoFor = sp => sp === 'hog' ? '/img/premium-pig.jpg' : sp === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg';
   const cap = s => (s || '').replace(/\b\w/g, c => c.toUpperCase());
+  const root = document.getElementById('lgRoot');
 
-  // If no ID, route to /discover
-  if (!id) { window.location.replace('/discover'); return; }
-
-  let l;
-  try { const r = await window.PO_API.listing(id); l = r.listing; }
-  catch (e) {
-    document.getElementById('lgH1').textContent = 'Listing not found';
-    document.getElementById('lgSub').textContent = 'It may have been reserved or withdrawn.';
-    document.getElementById('lgTag').textContent = 'Sorry';
+  if (!id) {
+    root.innerHTML = `<div class="lg-empty">
+      <h1>Pick an animal to view</h1>
+      <p>Listings open from Browse. Choose a share when you’re ready — deposit today, cuts later.</p>
+      <a class="btn-xl btn-xl--dark" href="/discover" style="text-decoration:none;">Browse animals →</a>
+    </div>`;
     return;
   }
 
-  // ─── Hero ───────────────────────────────────────
-  const photo = (l.photos && l.photos[0]) || photoFor(l.species);
-  document.getElementById('lgHero').style.backgroundImage = `url('${photo}')`;
-  document.title = `${l.number || ''} · ${l.breed || cap(l.species)} · Protein Outfitters`;
+  let l;
+  try {
+    const r = await window.PO_API.listing(id);
+    l = r.listing;
+    if (!l) throw new Error('missing');
+  } catch (e) {
+    root.innerHTML = `<div class="lg-empty">
+      <h1>This listing isn’t available</h1>
+      <p>It may have sold out, been withdrawn, or the link is old. Browse live animals instead.</p>
+      <a class="btn-xl btn-xl--dark" href="/discover" style="text-decoration:none;">Browse animals →</a>
+    </div>`;
+    return;
+  }
 
-  const practiceLabel = (l.practice && l.practice[0]) ? cap(l.practice[0].replace('-',' ')) : '';
-  document.getElementById('lgTag').textContent = `Reserving · ${cap(l.species)}${practiceLabel ? ' · ' + practiceLabel : ''}`;
-  document.getElementById('lgH1').innerHTML = `${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)} ${l.sex || ''}<br>raised by ${l.farm_name}.`;
+  const photo = (l.photos && l.photos[0]) || photoFor(l.species);
+  const photos = (l.photos && l.photos.length ? l.photos.slice(0, 3) : [photo, '/img/ranch.jpg', '/img/cattle-pasture.jpg']);
+  while (photos.length < 3) photos.push(photos[0] || photo);
+  const setPh = (el, url) => {
+    if (!el) return;
+    if (el.tagName === 'IMG') el.src = url;
+    else { el.style.backgroundImage = `url('${url}')`; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; }
+  };
+  setPh(document.getElementById('lgPhoto0'), photos[0]);
+  setPh(document.getElementById('lgPhoto1'), photos[1]);
+  setPh(document.getElementById('lgPhoto2'), photos[2]);
+
+  document.title = `${l.number || ''} · ${l.breed || cap(l.species)} · Protein Outfitters`.replace(/^\s*·\s*/, '');
+  document.getElementById('lgCrumbSpecies').textContent = cap(l.species || 'Animal');
+
+  const practiceLabel = (l.practice && l.practice[0]) ? cap(l.practice[0].replace('-', ' ')) : '';
+  document.getElementById('lgH1').textContent =
+    `${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}${l.sex ? ' ' + l.sex : ''} · ${l.farm_name || 'Independent farm'}`;
   const sub = [];
   if (l.estimated_hanging_weight) sub.push(`${l.estimated_hanging_weight} lb hanging weight`);
-  if (l.expected_finish_date) sub.push(`harvest ${new Date(l.expected_finish_date).toLocaleDateString('en', {month:'long',day:'numeric',year:'numeric'})}`);
-  if (l.farm_city) sub.push(`from ${l.farm_city}, ${l.farm_state}`);
+  if (l.expected_finish_date) sub.push(`harvest ${new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}`);
+  if (l.farm_city) sub.push(`${l.farm_city}, ${l.farm_state}`);
+  if (practiceLabel) sub.push(practiceLabel);
   document.getElementById('lgSub').textContent = sub.join(' · ');
 
-  // ─── Cumulative all-in pricing ──────────────────
   const HW = l.estimated_hanging_weight || 700;
   const allIn = (farmerRate, shareKey) => window.PO_PRICING ? window.PO_PRICING.allInPerLbHW(farmerRate, shareKey, HW) : farmerRate;
   const sharesArr = [];
-  if (l.shares?.quarter && l.shares.quarter.available > 0) sharesArr.push({ key: 'q', label: 'Quarter share', glyph: '¼', sub: '~110 lb cuts · fits a 7 cu ft freezer', farmerRate: Number(l.shares.quarter.price), price: allIn(Number(l.shares.quarter.price), 'quarter') });
-  if (l.shares?.half && l.shares.half.available > 0)    sharesArr.push({ key: 'h', label: 'Half share', glyph: '½', sub: '~220 lb cuts · fits a 14 cu ft freezer', farmerRate: Number(l.shares.half.price), price: allIn(Number(l.shares.half.price), 'half') });
-  if (l.shares?.whole && l.shares.whole.available > 0)  sharesArr.push({ key: 'w', label: 'Whole animal', glyph: '1', sub: '~440 lb cuts · for serious operators', farmerRate: Number(l.shares.whole.price), price: allIn(Number(l.shares.whole.price), 'whole') });
+  if (l.shares?.quarter && l.shares.quarter.available > 0)
+    sharesArr.push({ key: 'q', label: 'Quarter share', glyph: '¼', sub: '~110 lb cuts · fits a 7 cu ft freezer', farmerRate: Number(l.shares.quarter.price), price: allIn(Number(l.shares.quarter.price), 'quarter') });
+  if (l.shares?.half && l.shares.half.available > 0)
+    sharesArr.push({ key: 'h', label: 'Half share', glyph: '½', sub: '~220 lb cuts · fits a 14 cu ft freezer', farmerRate: Number(l.shares.half.price), price: allIn(Number(l.shares.half.price), 'half') });
+  if (l.shares?.whole && l.shares.whole.available > 0)
+    sharesArr.push({ key: 'w', label: 'Whole animal', glyph: '1', sub: '~440 lb cuts · for serious freezers', farmerRate: Number(l.shares.whole.price), price: allIn(Number(l.shares.whole.price), 'whole') });
 
   if (sharesArr.length) {
     const cheapest = [...sharesArr].sort((a, b) => a.price - b.price)[0];
-    document.getElementById('lgFromPrice').innerHTML = '$' + cheapest.price.toFixed(2) + '<span style="font-size:.5em;font-weight:600;opacity:.7">/lb all-in</span>';
-    document.getElementById('lgFromMeta').textContent = '· ' + cheapest.label.toLowerCase() + ' · everything included';
+    document.getElementById('lgFromPrice').textContent = '$' + cheapest.price.toFixed(2);
+    document.getElementById('lgFromMeta').textContent = cheapest.label + ' · everything included · deposit today';
   } else {
     document.getElementById('lgFromPrice').textContent = 'Sold out';
-    document.getElementById('lgFromMeta').textContent = '';
+    document.getElementById('lgFromUnit').textContent = '';
+    document.getElementById('lgFromMeta').textContent = 'This animal is fully reserved.';
+    const bb = document.getElementById('lgBookBtn');
+    if (bb) { bb.disabled = true; bb.textContent = 'Sold out'; bb.style.opacity = '.55'; }
   }
 
-  // ─── Specs grid ─────────────────────────────────
   const specs = [];
   if (l.breed) specs.push(['Breed', l.breed + (l.subbreed ? ` (${l.subbreed})` : '')]);
   if (l.sex_detail || l.sex) specs.push(['Sex', cap(l.sex_detail || l.sex)]);
@@ -197,146 +324,106 @@
   if (l.estimated_hanging_weight) specs.push(['Cuts after process', `~${Math.round(l.estimated_hanging_weight * 0.65)} lb`]);
   if (l.feed_type) specs.push(['Feed (life)', l.feed_type]);
   if (l.finish_feed) specs.push(['Finish feed', l.finish_feed]);
-  if (l.antibiotics && l.antibiotics !== 'Never') specs.push(['Antibiotics', l.antibiotics]);
-  else if (l.antibiotics === 'Never') specs.push(['Antibiotics', 'Never']);
-  if (l.hormones && l.hormones !== 'Never') specs.push(['Hormones', l.hormones]);
-  else if (l.hormones === 'Never') specs.push(['Hormones', 'Never']);
-  if (l.practice && l.practice.length) specs.push(['Practice', l.practice.map(p => cap(p.replace('-',' '))).join(', ')]);
-  if (l.certs && l.certs.length) specs.push(['Certifications', l.certs.map(c => c.toUpperCase()).join(', ')]);
-  if (l.expected_finish_date) specs.push(['Harvest date', new Date(l.expected_finish_date).toLocaleDateString('en', {month:'short',day:'numeric',year:'numeric'})]);
-  if (l.birth_date) {
-    const months = Math.round((new Date(l.expected_finish_date || Date.now()) - new Date(l.birth_date)) / (30*86400000));
-    if (months > 0) specs.push(['Age at harvest', `${months} months`]);
-  }
-  document.getElementById('lgSpecs').innerHTML = specs.map(([k, v]) => `<div class="spec"><p class="spec-label">${k}</p><p class="spec-value">${v}</p></div>`).join('');
+  if (l.antibiotics === 'Never') specs.push(['Antibiotics', 'Never']);
+  else if (l.antibiotics) specs.push(['Antibiotics', l.antibiotics]);
+  if (l.hormones === 'Never') specs.push(['Hormones', 'Never']);
+  else if (l.hormones) specs.push(['Hormones', l.hormones]);
+  if (l.practice && l.practice.length) specs.push(['Practice', l.practice.map(p => cap(p.replace('-', ' '))).join(', ')]);
+  if (l.certs && l.certs.length) specs.push(['Certifications', l.certs.map(c => String(c).toUpperCase()).join(', ')]);
+  if (l.expected_finish_date) specs.push(['Harvest date', new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })]);
+  document.getElementById('lgSpecs').innerHTML = specs.length
+    ? specs.map(([k, v]) => `<div class="spec"><p class="spec-label">${k}</p><p class="spec-value">${v}</p></div>`).join('')
+    : '<p class="lead">Specs will appear as the farmer completes the listing.</p>';
 
-  // ─── About prose ────────────────────────────────
   const aboutEl = document.getElementById('lgAbout');
-  if (l.description) {
-    aboutEl.innerHTML = `<p class="prose">${l.description}</p>`;
-  } else {
-    aboutEl.innerHTML = `<p class="prose" style="opacity:.7">No description posted yet.</p>`;
-  }
-  if (l.farm_bio) {
-    aboutEl.innerHTML += `<p class="prose">${l.farm_bio}</p>`;
-  }
+  if (l.description) aboutEl.innerHTML = `<p class="lead">${l.description}</p>`;
+  else aboutEl.innerHTML = `<p class="lead">A named animal from ${l.farm_name || 'a verified farm'}. Reserve a share, set your cut sheet, pick up at an inspected plant.</p>`;
+  if (l.farm_bio) aboutEl.innerHTML += `<p class="lead" style="margin-top:14px;">${l.farm_bio}</p>`;
 
-  // ─── Share row ──────────────────────────────────
-  // data-open-sheet + data-share so the reserve sheet opens with this share preselected.
-  // data-price-* on the button are all-in $/lb (set below for all .js-reserve).
-  const shareEls = sharesArr.map(s => `<button type="button" class="share-card js-reserve" data-open-sheet data-share="${s.key}" data-price="${s.price}"><span class="glyph">${s.glyph}</span><span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span><span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1">/lb all-in</span></span></button>`);
+  const shareEls = sharesArr.map(s =>
+    `<button type="button" class="share-card js-reserve" data-open-sheet data-share="${s.key}" data-price="${s.price}">
+      <span class="glyph">${s.glyph}</span>
+      <span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span>
+      <span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1.2">/lb all-in</span></span>
+    </button>`);
   if (!sharesArr.length) {
-    shareEls.push('<div style="padding:32px;text-align:center;background:#fff;border-radius:14px;font:600 14px/1.5 \'Inter\';opacity:.7">All shares are reserved.</div>');
+    shareEls.push('<div style="padding:28px;text-align:center;background:#fff;border-radius:14px;border:1px solid rgba(6,27,14,.08);font:600 14px/1.5 Inter;color:var(--ink-2)">All shares are reserved. <a href="/discover" style="color:var(--brand);font-weight:800;">Browse more →</a></div>');
   }
   document.getElementById('lgShareRow').innerHTML = shareEls.join('');
 
-  // ─── "What's included" expander ─────────────────
   const cheapest = sharesArr.length ? [...sharesArr].sort((a, b) => a.price - b.price)[0] : null;
   if (cheapest && window.PO_PRICING) {
     const bd = window.PO_PRICING.breakdown(cheapest.farmerRate, cheapest.key === 'q' ? 'quarter' : cheapest.key === 'h' ? 'half' : 'whole', HW);
-    const incEl = document.createElement('div');
-    incEl.style.cssText = 'margin-top:18px;padding:14px 18px;background:rgba(125,160,93,.08);border:1px solid rgba(125,160,93,.20);border-radius:14px;font:500 13px/1.5 Inter;color:var(--ink-2)';
-    incEl.innerHTML = `
-      <details>
-        <summary style="cursor:pointer;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px;">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          What's included in the all-in price
-          <span style="margin-left:auto;font-weight:600;opacity:.6;font-size:11px">tap to expand</span>
-        </summary>
+    document.getElementById('lgIncluded').innerHTML = `
+      <details style="margin-top:16px;padding:14px 16px;background:rgba(125,160,93,.08);border:1px solid rgba(125,160,93,.2);border-radius:14px;font:500 13px/1.5 Inter;color:var(--ink-2)">
+        <summary style="cursor:pointer;font-weight:700;color:var(--ink);">What’s included in the all-in price</summary>
         <div style="margin-top:12px;display:grid;gap:6px;font-size:12.5px;">
-          <div style="display:flex;justify-content:space-between;"><span>Farmer rate (${cheapest.label.toLowerCase()})</span><span>$${bd.farmer.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Farmer rate</span><span>$${bd.farmer.perLb.toFixed(2)}/lb</span></div>
           <div style="display:flex;justify-content:space-between;"><span>Processor — cut, wrap, vacuum-seal</span><span>$${bd.processing.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Slaughter (kill) fee, share</span><span>$${(bd.killFee.share / bd.shareLbsHW).toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Condemnation insurance pool</span><span>$${bd.insurance.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Protein Outfitters platform fee</span><span>$${bd.platform.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.15);padding-top:6px;margin-top:4px;font-weight:800;color:var(--ink);"><span>All-in</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb hanging weight</span></div>
-          <div style="opacity:.7;font-size:11.5px;margin-top:4px;">≈ $${bd.allInPerLbCuts.toFixed(2)}/lb of finished cuts (after typical 28% trim/loss)</div>
+          <div style="display:flex;justify-content:space-between;"><span>Kill fee (your share)</span><span>$${(bd.killFee.share / bd.shareLbsHW).toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Insurance pool</span><span>$${bd.insurance.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Platform fee</span><span>$${bd.platform.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.12);padding-top:6px;font-weight:800;color:var(--ink);"><span>All-in</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb HW</span></div>
         </div>
       </details>`;
-    document.getElementById('lgShareRow').insertAdjacentElement('afterend', incEl);
   }
 
-  // ─── Farm card ──────────────────────────────────
-  document.getElementById('lgFarmName').textContent = l.farm_name;
-  document.getElementById('lgFarmLoc').textContent = `${l.farm_city || ''}${l.farm_city && l.farm_state ? ', ' : ''}${l.farm_state || ''}`;
-  document.getElementById('lgFarmPractices').textContent = (l.farm_practices && l.farm_practices.length) ? l.farm_practices.map(p => cap(p.replace('-',' '))).join(', ') : '—';
-  document.getElementById('lgFarmEst').textContent = '—';
-  {
-    const lgFarmLink = document.getElementById('lgFarmLink');
-    if (lgFarmLink) {
-      if (l.farm_slug) {
-        lgFarmLink.href = '/farm/' + l.farm_slug;
-        lgFarmLink.removeAttribute('aria-disabled');
-      } else {
-        lgFarmLink.href = '/producers';
-      }
-    }
-  }
+  document.getElementById('lgFarmName').textContent = l.farm_name || 'Independent farm';
+  document.getElementById('lgFarmLoc').textContent = [l.farm_city, l.farm_state].filter(Boolean).join(', ') || 'United States';
+  document.getElementById('lgFarmPractices').textContent = (l.farm_practices && l.farm_practices.length)
+    ? l.farm_practices.map(p => cap(String(p).replace('-', ' '))).join(', ')
+    : (l.practice && l.practice.length ? l.practice.map(p => cap(String(p).replace('-', ' '))).join(', ') : '—');
+  document.getElementById('lgHarvest').textContent = l.expected_finish_date
+    ? new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
+    : 'TBD';
+  const lgFarmLink = document.getElementById('lgFarmLink');
+  if (lgFarmLink) lgFarmLink.href = l.farm_slug ? '/farm/' + l.farm_slug : '/producers';
 
-  // Rating badge under farm name (only if reviews exist).
   if (Number(l.farm_review_count || 0) > 0) {
     const r = Number(l.farm_avg_rating || 0);
-    const reviewCount = Number(l.farm_review_count || 0);
-    const farmNameEl = document.getElementById('lgFarmName');
-    if (farmNameEl && !farmNameEl.parentElement.querySelector('.farm-rating-badge')) {
-      const badge = document.createElement('div');
-      badge.className = 'farm-rating-badge';
-      badge.style.cssText = 'display:inline-flex;align-items:center;gap:6px;margin-top:6px;font:600 13px/1 Inter;color:var(--ink-2);';
-      badge.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#dca54a"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        <span style="font-weight:800;color:var(--ink);">${r.toFixed(1)}</span>
-        <span style="opacity:.7;">·  ${reviewCount} review${reviewCount === 1 ? '' : 's'}</span>`;
-      farmNameEl.insertAdjacentElement('afterend', badge);
-    }
+    const n = Number(l.farm_review_count || 0);
+    document.getElementById('lgFarmName').insertAdjacentHTML('afterend',
+      `<p class="where" style="margin-top:6px;"><span style="color:#dca54a;">★</span> <strong style="color:var(--ink)">${r.toFixed(1)}</strong> · ${n} review${n === 1 ? '' : 's'}</p>`);
   }
 
-  // ─── Add-to-Calendar link in farm card ──────────────────────────
-  const farmCard = document.getElementById('lgFarmCard');
-  if (farmCard && l.expected_finish_date) {
-    farmCard.insertAdjacentHTML('beforeend', `<a href="/api/ics?listing=${l.id}" style="display:inline-flex;gap:6px;align-items:center;margin-top:14px;padding:10px 14px;background:rgba(6,27,14,.06);color:var(--ink);border-radius:999px;font:700 12px/1 'Inter';text-decoration:none">📅 Add harvest date to calendar</a>`);
+  // Reviews block (farm-level summary when available)
+  if (Number(l.farm_review_count || 0) > 0) {
+    document.getElementById('lgReviewsSection').hidden = false;
+    document.getElementById('lgReviewsTitle').textContent =
+      `${Number(l.farm_avg_rating || 0).toFixed(1)} · ${l.farm_review_count} farm review${l.farm_review_count === 1 ? '' : 's'}`;
+    document.getElementById('lgReviews').innerHTML = `
+      <div class="review-item">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-body">Buyers rate this farm on animals, communication, and pickup experience. Full reviews live on the farm profile.</p>
+        <p class="review-meta">${l.farm_name || 'Farm'} · verified buyers</p>
+      </div>
+      ${l.farm_slug ? `<a href="/farm/${encodeURIComponent(l.farm_slug)}" style="font:700 14px/1 Inter;color:var(--brand);">Read all reviews on farm profile →</a>` : ''}`;
   }
 
-  // ─── Refund window timeline (21d / 7d / 0d) ─────────────────────
-  if (farmCard && l.expected_finish_date) {
-    const drop = new Date(l.expected_finish_date);
-    const now = new Date();
-    const daysOut = Math.max(0, Math.round((drop - now) / 86400000));
-    const stage = daysOut > 21 ? 'free' : daysOut > 7 ? 'partial' : 'final';
-    const stages = [
-      { id: 'free',    title: 'Free cancel',    sub: '> 21 days out',  ok: ['free','partial','final'].indexOf(stage) >= 0 ? (stage === 'free') : false },
-      { id: 'partial', title: 'Deposit forfeit', sub: '21–7 days out', active: stage === 'partial' },
-      { id: 'final',   title: 'Full balance',   sub: '< 7 days out',   active: stage === 'final' },
-    ];
-    const dot = (active) => active
-      ? 'background:var(--brand);color:#fbf9f5;'
-      : 'background:rgba(6,27,14,.08);color:rgba(6,27,14,.5);';
-    farmCard.insertAdjacentHTML('beforeend', `
-      <div style="margin-top:14px;padding:14px;background:rgba(125,160,93,.06);border-radius:14px;font:500 12.5px/1.5 'Inter'">
-        <div style="font-weight:800;color:var(--ink);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-          <span>Refund window</span>
-          <span style="font-weight:600;color:var(--ink-2);">${daysOut} days to drop-off</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-          ${stages.map(s => `
-            <div style="text-align:center;">
-              <div style="height:6px;border-radius:999px;${dot(stage === s.id)}margin-bottom:6px;"></div>
-              <div style="font-weight:700;color:${stage === s.id ? 'var(--brand)' : 'var(--ink)'};">${s.title}</div>
-              <div style="font-size:11px;color:var(--ink-2);">${s.sub}</div>
-            </div>`).join('')}
-        </div>
-        <a href="/policies/refunds" style="display:block;margin-top:10px;font-size:11.5px;color:var(--ink-2);text-decoration:underline;">Refund policy + pool transparency →</a>
-      </div>`);
-  }
+  document.getElementById('lgShareBtn')?.addEventListener('click', () => {
+    if (window.poShare) window.poShare({ title: document.title, text: 'A real animal from a verified producer on Protein Outfitters.', url: location.href });
+    else if (navigator.share) navigator.share({ title: document.title, url: location.href }).catch(() => {});
+    else { try { navigator.clipboard.writeText(location.href); alert('Link copied'); } catch { prompt('Copy link', location.href); } }
+  });
+  document.getElementById('lgSaveBtn')?.addEventListener('click', () => {
+    try {
+      const key = 'po_saved';
+      const set = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+      if (set.has(l.id)) { set.delete(l.id); document.getElementById('lgSaveBtn').textContent = 'Save'; }
+      else { set.add(l.id); document.getElementById('lgSaveBtn').textContent = 'Saved ✓'; }
+      localStorage.setItem(key, JSON.stringify([...set]));
+    } catch {}
+  });
+  try {
+    const saved = new Set(JSON.parse(localStorage.getItem('po_saved') || '[]'));
+    if (saved.has(l.id)) document.getElementById('lgSaveBtn').textContent = 'Saved ✓';
+  } catch {}
 
-  // ─── Wire all .js-reserve buttons to open the sheet with REAL data ──
-  // The reserve sheet (po-shell.js) reads data-* on the clicked element, so
-  // we set them on each .js-reserve here using the listing UUID as data-animal.
-  // priceQ/H/W are all-in $/lb so the sheet matches the sticky bar and share cards.
   const allInQ = sharesArr.find(s => s.key === 'q')?.price || 0;
   const allInH = sharesArr.find(s => s.key === 'h')?.price || 0;
   const allInW = sharesArr.find(s => s.key === 'w')?.price || 0;
   const animalName = `${l.number || ''} · ${l.breed || cap(l.species)}`.replace(/^\s*·\s*/, '');
-  const producerLabel = `${l.farm_name} · ${l.farm_city || ''}, ${l.farm_state || ''}`;
+  const producerLabel = `${l.farm_name || ''} · ${l.farm_city || ''}, ${l.farm_state || ''}`.replace(/\s·\s,$/, '');
 
   document.querySelectorAll('.js-reserve').forEach(btn => {
     btn.dataset.animal = l.id;
@@ -348,25 +435,22 @@
     if (allInW) btn.dataset.priceW = allInW;
   });
 
-  // Also update the nav Reserve button
   const navReserve = document.getElementById('lgNavReserve');
-  if (navReserve) {
+  if (navReserve && sharesArr.length) {
     navReserve.disabled = false;
     navReserve.style.opacity = '';
     navReserve.style.cursor = '';
     navReserve.dataset.animal = l.id;
     navReserve.dataset.name = animalName;
-    navReserve.dataset.producer = l.farm_name;
+    navReserve.dataset.producer = l.farm_name || '';
     navReserve.dataset.photo = photo;
     if (allInQ) navReserve.dataset.priceQ = allInQ;
     if (allInH) navReserve.dataset.priceH = allInH;
     if (allInW) navReserve.dataset.priceW = allInW;
   }
 
-  // Journey timeline (milestones + ranch/cooler notes + buyer thanks)
   try {
-    let canPost = false;
-    let canThanks = false;
+    let canPost = false, canThanks = false;
     try {
       const me = await window.PO_API.me();
       if (me.user && l.farm_owner_id && me.user.id === l.farm_owner_id) canPost = true;
@@ -377,23 +461,6 @@
           canPost = (fr.farms || []).some(x => x.id === l.farm_id);
         } catch (_) {}
       }
-      // Plant owner with a booking on this listing can post cooler notes
-      if (!canPost && me.user && (me.user.role === 'processor' || me.user.role === 'admin')) {
-        try {
-          const pr = await window.PO_API.processors();
-          const mine = (pr.processors || []).filter(x => x.owner_id === me.user.id);
-          for (const plant of mine) {
-            const br = await fetch('/api/bookings?processor_slug=' + encodeURIComponent(plant.slug), { credentials: 'include' });
-            if (!br.ok) continue;
-            const bd = await br.json();
-            if ((bd.bookings || []).some(b => b.listing_id === l.id && !['cancelled','rejected'].includes(b.status))) {
-              canPost = true;
-              break;
-            }
-          }
-        } catch (_) {}
-      }
-      // Buyer with active reservation can thank
       if (me.user) {
         try {
           const rr = await window.PO_API.reservations();
@@ -405,56 +472,33 @@
       }
     } catch (_) {}
     if (window.PO_SOCIAL) {
-      window.PO_SOCIAL.mountJourney(document.getElementById('lgJourney'), {
-        listingId: l.id,
-        canPost,
-        canThanks,
-      });
-      // Deep-link from Account "Say thanks"
+      window.PO_SOCIAL.mountJourney(document.getElementById('lgJourney'), { listingId: l.id, canPost, canThanks });
       if ((location.hash || '').replace('#', '') === 'journey') {
         setTimeout(() => document.getElementById('lgJourney')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
       }
     }
-  } catch (_) { /* journey optional */ }
+  } catch (_) {}
 
-  // ─── Resume reserve after magic-link auth ─────────────────────────
-  // ?open_sheet=1&share=quarter (from auth next=) or sessionStorage po_pending_reserve
   const wantOpen = params.get('open_sheet') === '1' || params.get('open_sheet') === 'true';
   const shareParam = (params.get('share') || '').toLowerCase();
   let pending = null;
   try { pending = JSON.parse(sessionStorage.getItem('po_pending_reserve') || 'null'); } catch { pending = null; }
   if (pending && pending.id && pending.id !== l.id) pending = null;
-
   if (wantOpen || (pending && pending.id === l.id)) {
     const shareKey = shareParam || (pending && pending.share) || null;
-    const openAnimal = {
-      id: l.id,
-      name: animalName,
-      producer: producerLabel,
-      photo,
-      priceQ: allInQ,
-      priceH: allInH,
-      priceW: allInW,
-      share: shareKey
-    };
+    const openAnimal = { id: l.id, name: animalName, producer: producerLabel, photo, priceQ: allInQ, priceH: allInH, priceW: allInW, share: shareKey };
     const tryOpen = () => {
       if (window.PO_SHELL && typeof window.PO_SHELL.open === 'function') {
         window.PO_SHELL.open(openAnimal, { share: shareKey });
         try { sessionStorage.removeItem('po_pending_reserve'); } catch (_) {}
-        // Clean deep-link params so a refresh doesn't re-open the sheet
-        if (wantOpen) {
-          history.replaceState(null, '', '/listing?id=' + encodeURIComponent(l.id));
-        }
+        if (wantOpen) history.replaceState(null, '', '/listing?id=' + encodeURIComponent(l.id));
         return true;
       }
       return false;
     };
     if (!tryOpen()) {
-      // po-shell may still be loading
       let tries = 0;
-      const t = setInterval(() => {
-        if (tryOpen() || ++tries > 40) clearInterval(t);
-      }, 50);
+      const t = setInterval(() => { if (tryOpen() || ++tries > 40) clearInterval(t); }, 50);
     }
   }
 })();

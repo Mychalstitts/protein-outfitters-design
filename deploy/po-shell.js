@@ -233,7 +233,30 @@
   */
   function enhanceMarketplaceNav() {
     const path = (location.pathname || '/').replace(/\/$/, '') || '/';
-    const isRoleHub = /\/(farmer|processor|hardware|admin|list-animal|credentials|finance|processor-)/.test(path);
+    const isRoleHub = /\/(farmer|processor|hardware|admin|list-animal|credentials|finance|processor-|onboarding|checkout|screens|trends)/.test(path)
+      || path.startsWith('/admin');
+
+    // Inject marketplace nav on public pages that still lack one
+    if (!isRoleHub && !document.querySelector('.po-nav-wrap, .hw-nav, header.glass-nav')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'po-nav-wrap';
+      wrap.innerHTML = `
+        <nav class="po-nav" aria-label="Primary">
+          <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+          <div class="po-nav-links">
+            <a href="/discover">Browse</a>
+            <a href="/#how">How it works</a>
+            <a href="/producers">Farms</a>
+            <a href="/#partners">For partners</a>
+          </div>
+          <div class="po-nav-actions">
+            <a href="/account" class="signin">Sign in</a>
+            <a class="po-nav-cta" href="/discover">Browse animals</a>
+          </div>
+        </nav>`;
+      document.body.insertBefore(wrap, document.body.firstChild);
+    }
+
     document.querySelectorAll('.po-nav-wrap').forEach((wrap) => {
       if (wrap.dataset.poEnhanced === '1') return;
       wrap.dataset.poEnhanced = '1';

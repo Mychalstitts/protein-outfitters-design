@@ -7,10 +7,15 @@
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-  <link rel="stylesheet" href="/po-shell.css" />
-  <link rel="stylesheet" href="/po-social.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./theme.css" />
+  <link rel="stylesheet" href="./po-shell.css" />
+  <link rel="stylesheet" href="./po-social.css" />
   <style>
-    body{ background: var(--parchment); }
+    body{ background: var(--bg, #fbf9f5); }
+    :root{ --parchment: var(--bg, #fbf9f5); }
     .farm-cover{ height: 320px; background: linear-gradient(135deg, var(--ink), #0e2c19); background-size: cover; background-position: center; position: relative; }
     .farm-cover::after{ content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.55)); }
     .farm-shell{ max-width: 1200px; margin: -64px auto 0; padding: 0 var(--shell-pad) 80px; position: relative; z-index: 2; }
@@ -46,6 +51,18 @@
   </style>
 </head>
 <body>
+  <div class="po-nav-wrap">
+    <nav class="po-nav" aria-label="Primary">
+      <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+      <div class="po-nav-links">
+        <a href="/discover">Browse</a>
+        <a href="/#how">How it works</a>
+        <a href="/producers" class="active">Farms</a>
+        <a href="/#partners">For partners</a>
+      </div>
+      <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/discover">Browse animals</a></div>
+    </nav>
+  </div>
   <main>
     <div class="farm-cover" id="fpCover"></div>
     <section class="farm-shell">
@@ -85,11 +102,11 @@
         <div id="fpWall"></div>
       </section>
     </section>
-    <div data-po-footer></div>
   </main>
-  <script src="/po-shell.js"></script>
-  <script src="/po-api.js"></script>
-  <script src="/po-social.js"></script>
+  <div id="po-shell-host"></div>
+  <script src="./po-shell.js"></script>
+  <script src="./po-api.js"></script>
+  <script src="./po-social.js"></script>
   <script>
   (async () => {
     const slug = (location.pathname.match(/\/farm\/([^\/]+)/) || [])[1];
@@ -139,7 +156,12 @@
     const titleEl = document.getElementById('fpListingsTitle');
     if (!listings.length) {
       titleEl.textContent = 'No listings yet';
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 24px;background:#fff;border-radius:14px;"><img src="/brand/logo-monogram.svg" alt="" width="56" height="56" style="display:block;margin:0 auto 14px;border-radius:13px;box-shadow:0 6px 18px rgba(6,27,14,.12);" /><div style="font:500 14px/1.5 'Inter';opacity:.7">This farm doesn't have any animals reserving right now.</div></div>`;
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 24px;background:#fff;border-radius:16px;border:1px solid rgba(6,27,14,.06);">
+        <img src="/brand/logo-monogram.svg" alt="" width="56" height="56" style="display:block;margin:0 auto 14px;border-radius:13px;opacity:.85" />
+        <div style="font:800 18px/1.3 'Inter';letter-spacing:-.02em;margin:0 0 8px;">No animals reserving right now</div>
+        <div style="font:500 14px/1.5 'Inter';opacity:.7;max-width:320px;margin:0 auto 18px;">Follow this ranch for updates, or browse other farms with live inventory.</div>
+        <a href="/discover" style="display:inline-block;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:12px 20px;font:700 13px/1 'Inter';">Browse animals →</a>
+      </div>`;
     } else {
       titleEl.textContent = listings.length === 1 ? '1 animal reserving' : `${listings.length} animals reserving`;
       grid.innerHTML = listings.map(l => {
