@@ -1117,16 +1117,17 @@
     return result;
   };
 
-  // ── Live activity ticker (FOMO) ───────────────────────────────
-  // Booking.com made billions on this — "Sarah from Brainerd just reserved a
-  // quarter share of #214 from Twin Pines Ranch · 4 minutes ago". Mounts to
-  // any element with data-po-activity-ticker. Auto-rotates every 6 seconds.
-  // Pages opt in by adding `<div data-po-activity-ticker></div>` anywhere; if
-  // none exists on a page that wants it, we mount in the bottom-left corner.
+  // ── Live activity ticker (FOMO) — OPT-IN ONLY ────────────────
+  // "Sarah reserved a quarter…" toast. Used to auto-mount on every page and
+  // felt like a random bottom popup on navigation. Now only mounts when a
+  // page explicitly opts in:
+  //   <body data-po-ticker="on">  OR  <div data-po-activity-ticker></div>
+  // Homepage / discover can opt in; everything else stays quiet.
   function installActivityTicker() {
-    // Skip on tiny pages where it'd feel intrusive (settings, admin, etc.)
-    const skipPaths = ['/settings', '/admin', '/admin-overview', '/admin-health', '/admin-bootstrap', '/admin-email', '/admin-ams-import', '/admin-fsis-import', '/processor-checkin', '/booking-confirmation', '/list-animal', '/cut-sheet', '/policies/privacy', '/policies/terms', '/policies/refunds', '/credentials'];
-    if (skipPaths.some(p => location.pathname.startsWith(p))) return;
+    const optIn =
+      document.body.getAttribute('data-po-ticker') === 'on' ||
+      !!document.querySelector('[data-po-activity-ticker]');
+    if (!optIn) return;
     if (document.body.getAttribute('data-po-ticker') === 'off') return;
 
     // Inject the ticker styles once
@@ -1142,12 +1143,13 @@
           box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
           font: 500 12.5px/1.45 'Inter', system-ui, sans-serif;
           backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-          transform: translateY(120%); opacity: 0;
-          transition: transform .45s cubic-bezier(.2,.85,.3,1.2), opacity .25s ease;
+          transform: translateY(120%); opacity: 0; visibility: hidden;
+          transition: transform .4s cubic-bezier(0.28, 0.11, 0.32, 1), opacity .25s ease, visibility .25s;
           cursor: pointer;
+          pointer-events: none;
         }
-        .po-ticker.show { transform: translateY(0); opacity: 1; }
-        .po-ticker.hide { transform: translateY(120%); opacity: 0; }
+        .po-ticker.show { transform: translateY(0); opacity: 1; visibility: visible; pointer-events: auto; }
+        .po-ticker.hide { transform: translateY(120%); opacity: 0; visibility: hidden; pointer-events: none; }
         .po-ticker-row { display: flex; gap: 9px; align-items: flex-start; }
         .po-ticker-emoji { font-size: 18px; line-height: 1.2; flex: 0 0 auto; }
         .po-ticker-body { flex: 1; min-width: 0; }
@@ -1160,9 +1162,9 @@
           .po-ticker { left: 12px; right: 12px; bottom: 12px; max-width: none; min-width: 0; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .po-ticker { transition: opacity .2s; transform: none; }
-          .po-ticker.show { opacity: 1; }
-          .po-ticker.hide { opacity: 0; }
+          .po-ticker { transition: opacity .2s, visibility .2s; transform: none; }
+          .po-ticker.show { opacity: 1; visibility: visible; }
+          .po-ticker.hide { opacity: 0; visibility: hidden; }
         }
       `;
       document.head.appendChild(style);
@@ -1171,12 +1173,14 @@
     // Build the DOM node (one ticker per page)
     let ticker = document.querySelector('.po-ticker');
     if (!ticker) {
+      const host = document.querySelector('[data-po-activity-ticker]');
       ticker = document.createElement('div');
       ticker.className = 'po-ticker';
       ticker.setAttribute('role', 'status');
       ticker.setAttribute('aria-live', 'polite');
       ticker.innerHTML = '<button class="po-ticker-close" aria-label="Dismiss">×</button><div class="po-ticker-row"><span class="po-ticker-emoji">🥩</span><div class="po-ticker-body"><div class="po-ticker-text"></div><div class="po-ticker-meta"></div></div></div>';
-      document.body.appendChild(ticker);
+      if (host) host.appendChild(ticker);
+      else document.body.appendChild(ticker);
     }
 
     const closeBtn = ticker.querySelector('.po-ticker-close');
