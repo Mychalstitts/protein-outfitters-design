@@ -100,13 +100,22 @@
 
 /* Tabs used on farm / plant profiles */
 .po-soc-tabs {
-  display: flex; gap: 6px; padding: 4px; background: rgba(6,27,14,.05);
-  border-radius: 999px; margin: 22px 0 18px; flex-wrap: wrap;
+  display: flex; gap: 4px; padding: 4px; background: rgba(6,27,14,.05);
+  border-radius: 999px; margin: 22px 0 8px; flex-wrap: wrap;
+  width: fit-content; max-width: 100%;
 }
 .po-soc-tab {
   border: 0; background: transparent; cursor: pointer;
-  padding: 9px 16px; border-radius: 999px; font: 700 13px/1 'Inter';
+  padding: 10px 18px; border-radius: 999px; font: 600 13.5px/1 'Inter', system-ui, sans-serif;
   color: var(--ink-2, #5a6359);
+  transition: background .18s ease, color .18s ease;
 }
+.po-soc-tab:hover:not(.active) { color: var(--ink, #061b0e); background: rgba(6,27,14,.04); }
 .po-soc-tab.active { background: #061b0e; color: #fbf9f5; }
 .po-soc-panel[hidden] { display: none !important; }
+
+/* Wall container defaults when host page wraps #fpWall */
+.po-soc .po-soc-list {
+  background: transparent;
+}
+.po-soc-body { min-width: 0; }

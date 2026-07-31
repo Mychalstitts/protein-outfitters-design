@@ -4,11 +4,11 @@
     "trailingSlash": false,
     "rewrites": [
         {
-            "source": "/farm/:slug",
+            "source": "/farm/:slug([^/.]+)",
             "destination": "/api/farm-meta?slug=:slug"
         },
         {
-            "source": "/p/:slug",
+            "source": "/p/:slug([^/.]+)",
             "destination": "/api/processor-meta?slug=:slug"
         }
     ],
