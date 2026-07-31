@@ -18,8 +18,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./theme.css">
-<link rel="stylesheet" href="./po-shell.css">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
 <style>
 .confirmed-shell { padding: clamp(64px, 9vw, 120px) var(--shell-pad) clamp(80px, 10vw, 120px); }
 .confirmed-inner { max-width: 880px; margin: 0 auto; }
@@ -126,8 +126,8 @@
 </section>
 
 <div id="po-shell-host"></div>
-<script src="./po-api.js"></script>
-<script src="./po-shell.js"></script>
+<script src="/po-api.js"></script>
+<script src="/po-shell.js"></script>
 <script>
   // Hydrate from ?reservation= / ?reservation_id= (post cut-sheet or deep link).
   // Stripe success_url goes to cut-sheet first; confirmed is the "you're done" hub.
@@ -157,7 +157,7 @@
         if (r.status === 401) {
           paintEmpty(
             'Sign in to see your reservation',
-            'Your receipt is also in your email. <a href="#" id="cfSignIn" style="font-weight:700;color:inherit">Sign in</a> to load it here.',
+            'Your receipt is also in your email. <a href="/account" class="signin" id="cfSignIn" style="font-weight:700;color:inherit">Sign in</a> to load it here.',
             'If you just paid, check your inbox — or sign in to Account.'
           );
           document.getElementById('cfSignIn')?.addEventListener('click', e => {

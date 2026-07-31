@@ -17,8 +17,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./theme.css">
-<link rel="stylesheet" href="./po-shell.css">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
 <style>
 .fm-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
 .fm-inner { max-width: 1320px; margin: 0 auto; }
@@ -158,7 +158,7 @@
       <a href="/finance">Finance</a>
       <a href="/reviews">Reviews</a>
     </div>
-    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a href="/list-animal" aria-label="List an animal" style="text-decoration:none;"><button type="button" tabindex="-1" aria-hidden="true">List an animal</button></a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/list-animal">List an animal</a></div>
   </nav>
 </div>
 
@@ -242,12 +242,12 @@
         <h4>List an animal</h4>
         <p>5-step wizard with auto-description.</p>
       </a>
-      <a href="#" id="fmPostWallLink" class="qa">
+      <a href="/community" id="fmPostWallLink" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#users"/></svg></span>
         <h4>Post to ranch wall</h4>
         <p>Share pasture notes with followers.</p>
       </a>
-      <a href="/map" class="qa">
+      <a href="/map?layer=processors" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
         <h4>Book a plant</h4>
         <p>Find capacity after shares fill — you assign the plant.</p>
@@ -323,8 +323,8 @@
 </section>
 
 <div id="po-shell-host"></div>
-<script src="./po-shell.js"></script>
-<script src="./po-api.js"></script>
+<script src="/po-shell.js"></script>
+<script src="/po-api.js"></script>
 <script>
 // Kick off Stripe Connect Express onboarding for the signed-in farmer's farm.
 // Called from the "Connect Stripe payouts" checklist item. Redirects to the

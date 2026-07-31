@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="/theme.css">
 
 <style>
 /* Three-pane responsive shell:
@@ -43,17 +43,24 @@ body { background: var(--surface-2); }
 .proc-sidebar h1 { font-size: var(--text-md); margin: 0 0 var(--s-1); }
 .proc-sidebar .sub { font-size: var(--text-xs); color: var(--ink-3); margin-bottom: var(--s-6); }
 .proc-sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+.proc-sidebar nav a,
 .proc-sidebar nav button {
   display: flex; align-items: center; gap: var(--s-3); padding: 10px 12px;
   border-radius: var(--r-2); font-size: var(--text-sm); font-weight: 600;
-  color: var(--ink-2); text-align: left; transition: background var(--dur-base);
+  color: var(--ink-2); text-align: left; text-decoration: none;
+  transition: background var(--dur-base); border: 0; background: transparent; cursor: pointer;
+  font-family: inherit;
 }
+.proc-sidebar nav a:hover,
 .proc-sidebar nav button:hover { background: var(--surface-2); color: var(--ink); }
+.proc-sidebar nav a.active,
 .proc-sidebar nav button.active { background: var(--brand); color: var(--ink-inverse); }
+.proc-sidebar nav a .count,
 .proc-sidebar nav button .count {
   margin-left: auto; font-size: 11px; padding: 2px 8px;
   background: var(--surface-2); border-radius: var(--r-pill); font-weight: 700;
 }
+.proc-sidebar nav a.active .count,
 .proc-sidebar nav button.active .count { background: rgba(255,255,255,0.2); color: var(--ink-inverse); }
 
 /* Main column */
@@ -289,14 +296,14 @@ body { background: var(--surface-2); }
     <h1>Hilltop Custom Meats</h1>
     <p class="sub">Processor dashboard</p>
     <nav>
-      <a href="/processor" aria-label="Today's queue, 3 items" aria-current="page"><button type="button" class="active" tabindex="-1" aria-hidden="true">📋 Today's queue <span class="count">3</span></button></a>
-      <a href="/processor-schedule" aria-label="Week schedule"><button type="button" tabindex="-1" aria-hidden="true">📅 Week</button></a>
-      <a href="/processor-schedule" aria-label="Month schedule"><button type="button" tabindex="-1" aria-hidden="true">📊 Month</button></a>
-      <a href="/notifications" aria-label="Inbox, 5 unread"><button type="button" tabindex="-1" aria-hidden="true">📥 Inbox <span class="count">5</span></button></a>
-      <a href="/processor" aria-label="Hanging cooler, 3 items"><button type="button" tabindex="-1" aria-hidden="true">❄️ Hanging cooler <span class="count">3</span></button></a>
-      <a href="/processor" aria-label="Ready for pickup, 2 items"><button type="button" tabindex="-1" aria-hidden="true">📦 Ready for pickup <span class="count">2</span></button></a>
-      <a href="/finance" aria-label="Earnings"><button type="button" tabindex="-1" aria-hidden="true">💸 Earnings</button></a>
-      <a href="/processor-config" aria-label="Configuration"><button type="button" tabindex="-1" aria-hidden="true">⚙️ Config</button></a>
+      <a href="/processor-ops" aria-label="Today's queue" aria-current="page" class="active">📋 Today's queue</a>
+      <a href="/processor-schedule" aria-label="Week schedule">📅 Week</a>
+      <a href="/processor-schedule" aria-label="Month schedule">📊 Month</a>
+      <a href="/notifications" aria-label="Inbox">📥 Inbox</a>
+      <a href="/processor-ops" aria-label="Hanging cooler">❄️ Cooler</a>
+      <a href="/processor-ops" aria-label="Ready for pickup">📦 Pickup</a>
+      <a href="/finance" aria-label="Earnings">💸 Earnings</a>
+      <a href="/processor-config" aria-label="Configuration">⚙️ Config</a>
     </nav>
   </aside>
 
@@ -806,8 +813,8 @@ function showToast(msg) {
 })();
 </script>
 <div id="po-shell-host"></div>
-<script src="./po-api.js"></script>
-<script src="./po-shell.js"></script>
+<script src="/po-api.js"></script>
+<script src="/po-shell.js"></script>
 
 <!-- ============================================================
      Live-mode bootstrap. Takes over the demo bookings list with real

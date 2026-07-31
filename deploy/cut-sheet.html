@@ -17,8 +17,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./theme.css">
-<link rel="stylesheet" href="./po-shell.css">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
 <style>
 .cs-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
 .cs-inner { max-width: 1320px; margin: 0 auto; display: grid; gap: clamp(24px, 3vw, 36px); grid-template-columns: 1fr; }
@@ -599,8 +599,8 @@
 </div>
 
 <div id="po-shell-host"></div>
-<script src="./po-api.js"></script>
-<script src="./po-shell.js"></script>
+<script src="/po-api.js"></script>
+<script src="/po-shell.js"></script>
 <script>
 (function () {
   'use strict';
@@ -867,7 +867,7 @@
       const urlId = params.get('reservation_id') || params.get('id') || params.get('reservation');
       const r = await fetch('/api/reservations', { credentials: 'include' });
       if (r.status === 401) {
-        setEmpty('Sign in to load your cut sheet', 'Your cut sheet is tied to a reservation. <a href="#" id="csSignInLink" style="font-weight:700;color:inherit">Sign in</a> or open Account to pick an order.');
+        setEmpty('Sign in to load your cut sheet', 'Your cut sheet is tied to a reservation. <a href="/account" class="signin" id="csSignInLink" style="font-weight:700;color:inherit">Sign in</a> or open Account to pick an order.');
         document.getElementById('csSignInLink')?.addEventListener('click', e => {
           e.preventDefault();
           window.PO_API?.openAuth('Sign in to build your cut sheet', 'buyer', {

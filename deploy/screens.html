@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="/theme.css">
 <style>
 .screens-hero { padding: var(--s-16) 0 var(--s-12); text-align: center; }
 .screens-grid { display: grid; gap: var(--s-5); padding-bottom: var(--s-20); grid-template-columns: 1fr; }
@@ -87,22 +87,22 @@
       <span class="desc">Geographic view of available animals.</span>
       <span class="source">Stitch</span>
     </a>
-    <a href="/listing" class="screen-tile">
+    <a href="/discover" class="screen-tile">
       <span class="label">Listing detail</span>
-      <span class="url">/listing</span>
-      <span class="desc">Grass-fed Angus steer master detail.</span>
+      <span class="url">/listing?id=…</span>
+      <span class="desc">Open any animal from Browse — listing detail + reserve sheet.</span>
       <span class="source">Stitch</span>
     </a>
-    <a href="/cuts" class="screen-tile">
+    <a href="/cut-sheet" class="screen-tile">
       <span class="label">Tailor your harvest</span>
-      <span class="url">/cuts</span>
-      <span class="desc">Custom cut sheet — Stitch design.</span>
+      <span class="url">/cut-sheet</span>
+      <span class="desc">Custom cut sheet builder.</span>
       <span class="source">Stitch</span>
     </a>
-    <a href="/checkout" class="screen-tile">
+    <a href="/discover" class="screen-tile">
       <span class="label">Checkout</span>
-      <span class="url">/checkout</span>
-      <span class="desc">Reserve and pay — Stitch design.</span>
+      <span class="url">/api/checkout</span>
+      <span class="desc">Reserve from Browse → Stripe deposit checkout.</span>
       <span class="source">Stitch</span>
     </a>
     <a href="/confirmed" class="screen-tile">

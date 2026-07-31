@@ -17,8 +17,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./theme.css">
-<link rel="stylesheet" href="./po-shell.css">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
 <style>
 .pr-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
 .pr-inner { max-width: 1320px; margin: 0 auto; }
@@ -127,7 +127,7 @@
       <a href="/processor-saas">Plant plans</a>
       <a href="/finance">Finance</a>
     </div>
-    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a href="/processor-checkin" aria-label="Check in an animal" style="text-decoration:none;"><button type="button" tabindex="-1" aria-hidden="true">Check in</button></a></div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/processor-checkin">Check in</a></div>
   </nav>
 </div>
 
@@ -259,8 +259,8 @@
 </section>
 
 <div id="po-shell-host"></div>
-<script src="./po-shell.js"></script>
-<script src="./po-api.js"></script>
+<script src="/po-shell.js"></script>
+<script src="/po-api.js"></script>
 <script>
 // Stripe Connect onboarding kickoff
 window.poStartConnect = async function(kind, id) {

@@ -350,6 +350,94 @@
     enhanceMarketplaceNav();
   }
 
+  /* ── Global click wiring for sensible destinations ───────────
+     - Sign in links → auth modal when signed out, /account when signed in
+     - Empty href="#" without handler → prevent dead scroll-to-top
+     - Known alias routes
+  */
+  function wireGlobalClicks() {
+    if (document.documentElement.dataset.poGlobalClicks === '1') return;
+    document.documentElement.dataset.poGlobalClicks = '1';
+
+    // Alias map for legacy / wrong paths
+    const ALIASES = {
+      '/checkout': '/discover',
+      '/cuts': '/cut-sheet',
+      '/produced': '/producers',
+      '/find-processors': '/map',
+      '/find-suppliers': '/discover',
+    };
+
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href]');
+      if (!a) return;
+      // Don't hijack modified clicks
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === '_blank') return;
+
+      let href = a.getAttribute('href') || '';
+
+      // Sign-in affordances → open auth when logged out
+      const isSignIn = a.classList.contains('signin')
+        || /sign\s*in/i.test((a.textContent || '').trim())
+        || (href === '/account' && a.classList.contains('signin'));
+      if (isSignIn && (href === '/account' || href === '#' || !href)) {
+        e.preventDefault();
+        (async () => {
+          try {
+            if (window.PO_API?.me) {
+              const me = await window.PO_API.me();
+              if (me?.user) {
+                location.href = '/account';
+                return;
+              }
+            }
+          } catch (_) { /* open auth */ }
+          if (window.PO_API?.openAuth) {
+            window.PO_API.openAuth('Sign in to Protein Outfitters', 'buyer', {
+              next: location.pathname + location.search + location.hash,
+            });
+          } else {
+            location.href = '/account';
+          }
+        })();
+        return;
+      }
+
+      // Dead # with no real fragment and no role=button intent
+      if (href === '#' && !a.hasAttribute('onclick') && !a.dataset.act) {
+        // Allow elements that are intentionally wired later (ids that JS sets)
+        if (!a.id) {
+          e.preventDefault();
+        }
+        return;
+      }
+
+      // Alias redirects
+      try {
+        if (href.startsWith('/') || href.startsWith(location.origin)) {
+          const u = new URL(href, location.origin);
+          const bare = u.pathname.replace(/\/$/, '') || '/';
+          if (ALIASES[bare]) {
+            e.preventDefault();
+            location.href = ALIASES[bare] + u.search + u.hash;
+            return;
+          }
+          // /listing without id → discover
+          if (bare === '/listing' && !u.searchParams.get('id')) {
+            e.preventDefault();
+            location.href = '/discover';
+            return;
+          }
+        }
+      } catch (_) { /* ignore */ }
+    }, true);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireGlobalClicks);
+  } else {
+    wireGlobalClicks();
+  }
+
   let _reserveWired = false;
 
   // Inject footer + sheet into body (skip if the page already has its own)
