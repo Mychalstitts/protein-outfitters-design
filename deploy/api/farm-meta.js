@@ -1,36 +1,20 @@
 // /api/farm-meta — server-rendered Open Graph card for /farm/:slug
 //
-// Why this exists:
-//   The /farm/:slug route is rewritten to a static SPA shell that has the
-//   same generic <meta og:*> tags for every farm. When someone shares a
-//   farm link in iMessage / Slack / Twitter / Facebook, the scraper sees
-//   the SPA shell (no JS executes for scrapers) and renders the generic
-//   site card — same image, same headline, every time. Useless for virality.
+// Always returns farm-profile.html with farm-specific meta, then JS hydrates.
+// Critical: under /farm/:slug the browser resolves relative ./theme.css as
+// /farm/theme.css — so we force root-absolute asset URLs in the served HTML.
 //
-// What this does:
-//   Always returns the full farm-profile.html SPA shell, but with the
-//   farm-specific Open Graph + Twitter meta tags spliced into <head>.
-//   Both bots and humans get the same response — bots read the meta,
-//   humans get the same HTML the SPA expects, then JS hydrates as normal.
-//   This means the CDN can cache the response by URL with no Vary on
-//   User-Agent, which is critical: branching on UA inside an Edge Function
-//   makes every cache lookup a coin flip and breaks viral previews.
-//
-// Wired in via vercel.json:
-//   { "source": "/farm/:slug", "destination": "/api/farm-meta?slug=:slug" }
+// Wired via vercel.json: /farm/:slug → /api/farm-meta?slug=:slug
 
+import fs from 'fs';
+import path from 'path';
 import { sql, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
 const SITE_ORIGIN = 'https://www.proteinoutfitters.com';
-// NOTE: og-image.svg is what the rest of the site uses today. SVG works in
-// modern previews (Slack, iMessage, Twitter) but is finicky on older
-// scrapers — generating a proper 1200x630 PNG at /brand/og-default.png is
-// a follow-up. Until then we match the existing convention.
 const DEFAULT_OG_IMAGE = SITE_ORIGIN + '/brand/og-image.svg';
 
-// HTML escape for safe meta values
 function esc(s) {
   return String(s ?? '')
     .replace(/&/g, '&amp;')
@@ -66,21 +50,26 @@ function buildMetaBlock(farm, slug) {
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${esc(cover)}">
 <link rel="canonical" href="${esc(url)}">
+<base href="/">
 <!-- end /api/farm-meta -->
 `;
 }
 
-// Strip the existing generic <title> and any og:* / twitter:* meta from the
-// SPA shell so our farm-specific block wins. Scrapers usually take the FIRST
-// match, but cleaning up the duplicates avoids any ambiguity and keeps the
-// served HTML clean.
 function scrubGenericMeta(html) {
   return html
     .replace(/<title>[\s\S]*?<\/title>/i, '')
     .replace(/<meta\s+name=["']description["'][\s\S]*?>/gi, '')
     .replace(/<meta\s+property=["']og:[^"']+["'][\s\S]*?>/gi, '')
     .replace(/<meta\s+name=["']twitter:[^"']+["'][\s\S]*?>/gi, '')
-    .replace(/<link\s+rel=["']canonical["'][\s\S]*?>/gi, '');
+    .replace(/<link\s+rel=["']canonical["'][\s\S]*?>/gi, '')
+    .replace(/<base\s[^>]*>/gi, '');
+}
+
+/** Force ./theme.css → /theme.css so nested /farm/:slug routes load CSS/JS. */
+function absolutizeAssets(html) {
+  return html
+    .replace(/\b(href|src)=["']\.\/([^"']+)["']/g, '$1="/$2"')
+    .replace(/\b(href|src)=["'](?!\/|https?:|data:|blob:|#|mailto:|tel:)([^"']+\.(?:css|js|svg|png|jpg|jpeg|webp|gif|woff2?))["']/gi, '$1="/$2"');
 }
 
 function injectIntoHead(html, block) {
@@ -90,18 +79,39 @@ function injectIntoHead(html, block) {
   return html.slice(0, idx) + block + html.slice(idx);
 }
 
+async function loadShellHtml() {
+  const candidates = [
+    path.join(process.cwd(), 'farm-profile.html'),
+    path.join(process.cwd(), 'deploy', 'farm-profile.html'),
+    path.join(process.cwd(), 'public', 'farm-profile.html'),
+  ];
+  for (const p of candidates) {
+    try {
+      return await fs.promises.readFile(p, 'utf8');
+    } catch { /* try next */ }
+  }
+  // Fallback: live origin (cache-busted) if file not bundled into the function
+  const r = await fetch(`${SITE_ORIGIN}/farm-profile.html?v=${Date.now()}`, {
+    redirect: 'follow',
+    cache: 'no-store',
+    headers: { 'Cache-Control': 'no-cache' },
+  });
+  if (!r.ok) return null;
+  return r.text();
+}
+
 async function handler(req) {
   const url = new URL(req.url, SITE_ORIGIN);
   const slug = url.searchParams.get('slug') || '';
 
-  // Fetch the SPA shell + farm record in parallel — both are cheap, neither
-  // depends on the other, no reason to serialize.
-  const [shellRes, farmRows] = await Promise.all([
-    fetch(`${SITE_ORIGIN}/farm-profile.html`, { redirect: 'follow' }).catch(() => null),
-    slug ? sql`SELECT name, bio, city, state, cover_url, avatar_url FROM farms WHERE slug = ${slug} LIMIT 1`.catch(() => []) : Promise.resolve([]),
+  const [shellHtmlRaw, farmRows] = await Promise.all([
+    loadShellHtml(),
+    slug
+      ? sql`SELECT name, bio, city, state, cover_url, avatar_url FROM farms WHERE slug = ${slug} LIMIT 1`.catch(() => [])
+      : Promise.resolve([]),
   ]);
 
-  if (!shellRes || !shellRes.ok) {
+  if (!shellHtmlRaw) {
     return new Response('Farm profile unavailable', { status: 502 });
   }
 
@@ -114,19 +124,17 @@ async function handler(req) {
     avatar_url: DEFAULT_OG_IMAGE,
   };
 
-  let shellHtml = await shellRes.text();
-  shellHtml = scrubGenericMeta(shellHtml);
+  let shellHtml = scrubGenericMeta(shellHtmlRaw);
+  shellHtml = absolutizeAssets(shellHtml);
   const finalHtml = injectIntoHead(shellHtml, buildMetaBlock(farm, slug));
 
   return new Response(finalHtml, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      // Cache aggressively at the edge keyed by URL — same response served
-      // to bots and humans, so no Vary needed. Farms don't change often;
-      // hitting fresh data on first request after edit is fine.
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
-    }
+      // Short edge cache so asset-path fixes ship quickly; still CDN-friendly
+      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=600',
+    },
   });
 }
 

@@ -4,105 +4,243 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Farm · Protein Outfitters</title>
-<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+  <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+  <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- Root-absolute assets: /farm/:slug rewrites break relative ./theme.css → /farm/theme.css -->
+  <!-- Always root-absolute: /farm/:slug breaks relative ./asset paths -->
   <link rel="stylesheet" href="/theme.css" />
   <link rel="stylesheet" href="/po-shell.css" />
   <link rel="stylesheet" href="/po-social.css" />
   <style>
-    body{ background: var(--bg, #fbf9f5); }
-    :root{ --parchment: var(--bg, #fbf9f5); }
-    .farm-cover{ height: min(42vw, 360px); min-height: 220px; background: linear-gradient(135deg, #061b0e, #0e2c19); background-size: cover; background-position: center; position: relative; }
-    .farm-cover::after{ content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.5)); }
-    .farm-shell{ max-width: 1120px; margin: -72px auto 0; padding: 0 var(--shell-pad, 24px) 96px; position: relative; z-index: 2; }
-    .farm-id{
-      display: grid; grid-template-columns: 96px 1fr auto; gap: 20px; align-items: center;
-      background: #fff; border-radius: 20px; padding: 22px 24px;
-      border: 1px solid rgba(6,27,14,.06); box-shadow: 0 8px 28px rgba(6,27,14,.08);
+    body { background: var(--bg, #fbf9f5); margin: 0; color: var(--ink, #061b0e); }
+    .farm-cover {
+      height: min(38vw, 320px); min-height: 200px; max-height: 360px;
+      background: #061b0e center/cover no-repeat;
+      position: relative;
+    }
+    .farm-cover::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.45) 100%);
+    }
+    .farm-shell {
+      max-width: 1120px; margin: 0 auto;
+      padding: 0 var(--shell-pad, 24px) 96px;
+      position: relative; z-index: 2;
+    }
+    .farm-id {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr) auto;
+      gap: 18px 20px;
+      align-items: center;
+      margin-top: -56px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px 22px;
+      border: 1px solid rgba(6,27,14,.07);
+      box-shadow: 0 10px 32px rgba(6,27,14,.08);
     }
     @media (max-width: 720px) {
-      .farm-id{ grid-template-columns: 72px 1fr; gap: 14px; padding: 18px; border-radius: 18px; }
-      .farm-actions{ grid-column: 1 / -1; }
-      .farm-id h1{ font-size: 24px !important; }
+      .farm-id {
+        grid-template-columns: 72px minmax(0, 1fr);
+        margin-top: -40px;
+        padding: 16px;
+      }
+      .farm-actions { grid-column: 1 / -1; justify-content: stretch; }
+      .farm-actions .btn-follow { flex: 1; justify-content: center; }
     }
-    .farm-avatar{
-      width: 96px; height: 96px; border-radius: 50%;
+    .farm-avatar {
+      width: 88px; height: 88px; border-radius: 50%;
       background: #061b0e center/cover no-repeat;
-      display: grid; place-items: center; color: #fbf9f5;
-      font: 700 30px/1 'Inter', system-ui, sans-serif;
-      flex-shrink: 0; overflow: hidden;
+      display: grid; place-items: center;
+      color: #fbf9f5; font: 700 28px/1 'Inter', system-ui, sans-serif;
+      border: 3px solid #fff; box-shadow: 0 2px 8px rgba(6,27,14,.12);
+      overflow: hidden;
     }
-    @media (max-width: 720px) { .farm-avatar{ width: 72px; height: 72px; font-size: 24px; } }
-    .farm-id h1{ margin: 0; font: 700 clamp(24px, 3vw, 32px)/1.15 'Inter', system-ui, sans-serif; letter-spacing: -.02em; color: var(--ink, #061b0e); }
-    .farm-id p{ margin: 6px 0 0; color: var(--ink-2, rgba(6,27,14,.65)); font: 500 14px/1.45 'Inter', system-ui, sans-serif; }
-    .farm-actions{ display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-follow, .btn-share{
-      background: rgba(6,27,14,.06); color: var(--ink, #061b0e); border: 0;
-      padding: 10px 16px; border-radius: 999px; font: 600 13px/1 'Inter', system-ui, sans-serif; cursor: pointer;
+    @media (max-width: 720px) { .farm-avatar { width: 72px; height: 72px; font-size: 22px; } }
+    .farm-id-text { min-width: 0; }
+    .farm-id h1 {
+      margin: 0;
+      font: 700 clamp(22px, 3vw, 30px)/1.15 'Inter', system-ui, sans-serif;
+      letter-spacing: -0.02em;
+      color: var(--ink, #061b0e);
+      overflow-wrap: anywhere;
+    }
+    .farm-id .farm-loc {
+      margin: 6px 0 0;
+      font: 500 14px/1.45 'Inter', system-ui, sans-serif;
+      color: var(--ink-2, rgba(6,27,14,.65));
+    }
+    .farm-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .btn-follow, .btn-share {
+      appearance: none; border: 0; cursor: pointer;
+      padding: 11px 16px; border-radius: 999px;
+      font: 600 13px/1 'Inter', system-ui, sans-serif;
+      background: rgba(6,27,14,.06); color: var(--ink, #061b0e);
+      transition: background .18s ease, color .18s ease;
+      white-space: nowrap;
+    }
+    .btn-follow:hover, .btn-share:hover { background: rgba(6,27,14,.1); }
+    .btn-follow.followed { background: #061b0e; color: #fbf9f5; }
+    .btn-follow:disabled { opacity: .55; cursor: wait; }
+
+    .farm-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px; margin-top: 16px;
+    }
+    @media (max-width: 720px) {
+      .farm-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .farm-stat {
+      background: #fff; border-radius: 14px; padding: 14px 16px;
+      border: 1px solid rgba(6,27,14,.06);
+    }
+    .farm-stat .num {
+      font: 700 22px/1 'Inter', system-ui, sans-serif;
+      letter-spacing: -0.02em; color: var(--ink, #061b0e);
+    }
+    .farm-stat .lab {
+      margin-top: 6px;
+      font: 600 11px/1.3 'Inter', system-ui, sans-serif;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--ink-2, rgba(6,27,14,.6));
+    }
+
+    .farm-tabs {
+      display: flex; gap: 4px; flex-wrap: wrap;
+      margin: 28px 0 0; padding: 4px;
+      background: rgba(6,27,14,.05);
+      border-radius: 999px; width: fit-content; max-width: 100%;
+    }
+    .farm-tab {
+      appearance: none; border: 0; cursor: pointer;
+      padding: 10px 18px; border-radius: 999px;
+      font: 600 13.5px/1 'Inter', system-ui, sans-serif;
+      color: var(--ink-2, rgba(6,27,14,.65));
+      background: transparent;
       transition: background .18s ease, color .18s ease;
     }
-    .btn-follow:hover, .btn-share:hover{ background: rgba(6,27,14,.1); }
-    .btn-follow.followed{ background: var(--ink, #061b0e); color: #fbf9f5; }
-    .farm-stats{ display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 20px; }
-    .farm-stat{ background: #fff; border-radius: 14px; padding: 16px 18px; border: 1px solid rgba(6,27,14,.06); }
-    .farm-stat .num{ font: 700 24px/1 'Inter', system-ui, sans-serif; color: var(--ink, #061b0e); letter-spacing: -.02em; }
-    .farm-stat .lab{ font: 600 11px/1.3 'Inter', system-ui, sans-serif; color: var(--ink-2, rgba(6,27,14,.6)); margin-top: 6px; letter-spacing: .06em; text-transform: uppercase; }
-    .farm-section{ margin-top: 32px; }
-    .farm-section h2{ font: 700 24px/1.2 'Inter', system-ui, sans-serif; letter-spacing: -.02em; color: var(--ink, #061b0e); margin: 0 0 14px; }
-    .farm-section > p.farm-section-lead{
-      font: 500 15px/1.55 'Inter', system-ui, sans-serif; color: var(--ink-2, rgba(6,27,14,.65));
-      margin: 0 0 18px; max-width: 52ch;
+    .farm-tab:hover:not(.active) { color: var(--ink, #061b0e); background: rgba(6,27,14,.04); }
+    .farm-tab.active { background: #061b0e; color: #fbf9f5; }
+    .farm-tab .tab-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: 6px; min-width: 18px; height: 18px; padding: 0 6px;
+      border-radius: 999px; font-size: 11px; font-weight: 700;
+      background: rgba(255,255,255,.18);
     }
-    .listings-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-    .product{
-      background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid rgba(6,27,14,.06);
-      cursor: pointer; transition: box-shadow .22s ease, border-color .22s ease;
-      display: flex; flex-direction: column; padding: 0; text-align: left; font: inherit; color: inherit; width: 100%;
-    }
-    .product:hover{ box-shadow: 0 8px 24px rgba(6,27,14,.08); border-color: rgba(6,27,14,.1); }
-    .product-photo{ aspect-ratio: 4/3; background-size: cover; background-position: center; position: relative; background-color: #1a0d08; }
-    .product-tag{ position: absolute; top: 12px; left: 12px; background: rgba(251,249,245,.94); padding: 5px 10px; border-radius: 999px; font: 600 11px/1 'Inter', system-ui, sans-serif; color: var(--ink, #061b0e); }
-    .product-meta{ padding: 14px 16px 16px; }
-    .product-eyebrow{ font: 600 11px/1 'Inter'; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3, rgba(6,27,14,.5)); }
-    .product-name{ font: 700 16px/1.3 'Inter'; color: var(--ink, #061b0e); margin: 6px 0; letter-spacing: -.015em; }
-    .product-detail{ font: 500 13px/1.45 'Inter'; color: var(--ink-2, rgba(6,27,14,.65)); margin: 0 0 10px; }
-    .product-foot{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .product-price{ font: 600 14px/1 'Inter'; color: var(--ink, #061b0e); }
-    .product-cta{ font: 600 13px/1 'Inter'; color: var(--ink, #061b0e); opacity: .7; }
-    .farm-bio{
-      background: #fff; border-radius: 18px; padding: 26px 28px;
-      line-height: 1.6; font: 500 15px/1.6 'Inter', system-ui, sans-serif;
-      color: var(--ink, #061b0e); border: 1px solid rgba(6,27,14,.06);
-    }
-    .cert-grid{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-    .cert-chip{ padding: 7px 12px; background: rgba(6,27,14,.06); color: var(--ink, #061b0e); border: 0; border-radius: 999px; font: 600 12px/1 'Inter', system-ui, sans-serif; }
-    .cert-chip.identity{ background: rgba(6,27,14,.06); color: var(--ink, #061b0e); }
+    .farm-tab:not(.active) .tab-count { background: rgba(6,27,14,.08); color: var(--ink, #061b0e); }
 
-    /* Community wall — contain posts in a proper card */
-    #fpWall.po-soc,
-    #fpWall{
+    .farm-panel { margin-top: 28px; display: none; }
+    .farm-panel.active { display: block; }
+    .farm-panel h2 {
+      margin: 0 0 12px;
+      font: 700 22px/1.2 'Inter', system-ui, sans-serif;
+      letter-spacing: -0.02em;
+    }
+    .farm-lead {
+      margin: 0 0 18px; max-width: 52ch;
+      font: 500 15px/1.55 'Inter', system-ui, sans-serif;
+      color: var(--ink-2, rgba(6,27,14,.65));
+    }
+
+    .farm-bio {
+      background: #fff; border-radius: 18px; padding: 24px 26px;
+      border: 1px solid rgba(6,27,14,.06);
+      font: 500 15px/1.65 'Inter', system-ui, sans-serif;
+      color: var(--ink, #061b0e);
+      white-space: pre-wrap;
+    }
+    .cert-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .cert-chip {
+      padding: 7px 12px; border-radius: 999px;
+      background: rgba(6,27,14,.06); color: var(--ink, #061b0e);
+      font: 600 12px/1 'Inter', system-ui, sans-serif;
+    }
+
+    .listings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .product {
+      appearance: none; border: 1px solid rgba(6,27,14,.06); background: #fff;
+      border-radius: 16px; overflow: hidden; padding: 0; margin: 0;
+      display: flex; flex-direction: column; text-align: left;
+      font: inherit; color: inherit; cursor: pointer; width: 100%;
+      transition: box-shadow .2s ease, border-color .2s ease;
+    }
+    .product:hover { box-shadow: 0 8px 24px rgba(6,27,14,.08); border-color: rgba(6,27,14,.1); }
+    .product-photo {
+      aspect-ratio: 4/3; background: #1a0d08 center/cover no-repeat; position: relative;
+    }
+    .product-tag {
+      position: absolute; top: 12px; left: 12px;
+      background: rgba(251,249,245,.94); padding: 5px 10px; border-radius: 999px;
+      font: 600 11px/1 'Inter', system-ui, sans-serif;
+    }
+    .product-meta { padding: 14px 16px 16px; }
+    .product-eyebrow {
+      font: 600 11px/1 'Inter'; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--ink-3, rgba(6,27,14,.5));
+    }
+    .product-name {
+      font: 700 16px/1.3 'Inter'; margin: 6px 0; letter-spacing: -0.015em;
+    }
+    .product-detail {
+      font: 500 13px/1.45 'Inter'; color: var(--ink-2, rgba(6,27,14,.65)); margin: 0 0 10px;
+    }
+    .product-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .product-price { font: 600 14px/1 'Inter'; }
+    .product-cta { font: 600 13px/1 'Inter'; opacity: .7; }
+
+    .farm-empty {
+      text-align: center; padding: 48px 24px;
+      background: #fff; border-radius: 16px;
+      border: 1px solid rgba(6,27,14,.06);
+    }
+    .farm-empty img { display: block; margin: 0 auto 14px; border-radius: 13px; opacity: .85; }
+    .farm-empty h3 {
+      margin: 0 0 8px; font: 700 18px/1.3 'Inter'; letter-spacing: -0.02em;
+    }
+    .farm-empty p {
+      margin: 0 auto 18px; max-width: 320px;
+      font: 500 14px/1.5 'Inter'; color: var(--ink-2, rgba(6,27,14,.65));
+    }
+    .farm-empty a {
+      display: inline-flex; align-items: center;
+      background: #061b0e; color: #fbf9f5; text-decoration: none;
+      border-radius: 999px; padding: 12px 20px; font: 600 13px/1 'Inter';
+    }
+
+    #fpWall {
       background: #fff;
       border: 1px solid rgba(6,27,14,.06);
       border-radius: 18px;
       overflow: hidden;
-      min-height: 120px;
+      min-height: 140px;
     }
-    #fpWall .po-soc-composer{
-      margin: 0; border: 0; border-bottom: 1px solid rgba(6,27,14,.06); border-radius: 0;
+    #fpWall .po-soc-composer {
+      margin: 0; border: 0; border-radius: 0;
+      border-bottom: 1px solid rgba(6,27,14,.06);
       box-shadow: none;
     }
-    #fpWall .po-soc-list{ margin: 0; }
-    #fpWall .po-soc-empty{
+    #fpWall .po-soc-empty {
       border: 0; border-radius: 0; background: transparent;
       padding: 48px 24px; margin: 0;
     }
-    #fpWall .po-soc-post{ padding: 18px 20px; }
-    #fpWall .po-soc-post:last-child{ border-bottom: 0; }
+    #fpWall .po-soc-post { padding: 18px 20px; }
+    #fpWall .po-soc-post:last-child { border-bottom: 0; }
+
+    .farm-error {
+      max-width: 520px; margin: 48px auto; padding: 32px 24px;
+      text-align: center; background: #fff; border-radius: 18px;
+      border: 1px solid rgba(6,27,14,.08);
+    }
+    .farm-error h1 { margin: 0 0 10px; font: 700 24px/1.2 'Inter'; }
+    .farm-error p { margin: 0 0 18px; color: var(--ink-2, rgba(6,27,14,.65)); font: 500 14.5px/1.5 'Inter'; }
   </style>
 </head>
 <body>
@@ -115,236 +253,326 @@
         <a href="/producers" class="active">Farms</a>
         <a href="/#partners">For partners</a>
       </div>
-      <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/discover">Browse animals</a></div>
+      <div class="po-nav-actions">
+        <a href="/account" class="signin">Sign in</a>
+        <a class="po-nav-cta" href="/discover">Browse animals</a>
+      </div>
     </nav>
   </div>
-  <main>
-    <div class="farm-cover" id="fpCover"></div>
-    <section class="farm-shell">
-      <div class="farm-id">
-        <div class="farm-avatar" id="fpAvatar">F</div>
-        <div>
+
+  <main id="fpMain">
+    <div class="farm-cover" id="fpCover" role="img" aria-label="Farm cover"></div>
+    <div class="farm-shell">
+      <header class="farm-id">
+        <div class="farm-avatar" id="fpAvatar" aria-hidden="true">F</div>
+        <div class="farm-id-text">
           <h1 id="fpName">Loading…</h1>
-          <p id="fpLoc">—</p>
+          <p class="farm-loc" id="fpLoc">—</p>
         </div>
         <div class="farm-actions">
-          <button class="btn-follow" id="fpFollow">+ Follow</button>
-          <button class="btn-share">Share</button>
+          <button type="button" class="btn-follow" id="fpFollow">+ Follow</button>
+          <button type="button" class="btn-share" id="fpShare">Share</button>
         </div>
+      </header>
+
+      <div class="farm-stats" id="fpStats" aria-live="polite"></div>
+
+      <div class="farm-tabs" role="tablist" aria-label="Farm sections">
+        <button type="button" class="farm-tab active" role="tab" id="tab-story" data-tab="story" aria-selected="true" aria-controls="panel-story">Story</button>
+        <button type="button" class="farm-tab" role="tab" id="tab-animals" data-tab="animals" aria-selected="false" aria-controls="panel-animals">Animals <span class="tab-count" id="tabAnimalsCount" hidden>0</span></button>
+        <button type="button" class="farm-tab" role="tab" id="tab-community" data-tab="community" aria-selected="false" aria-controls="panel-community">Community</button>
       </div>
 
-      <div class="farm-stats" id="fpStats"></div>
-
-      <div class="po-soc-tabs" role="tablist" aria-label="Farm sections">
-        <button type="button" class="po-soc-tab active" data-tab="story" role="tab" aria-selected="true">Story</button>
-        <button type="button" class="po-soc-tab" data-tab="animals" role="tab" aria-selected="false">Animals</button>
-        <button type="button" class="po-soc-tab" data-tab="community" role="tab" aria-selected="false">Community</button>
-      </div>
-
-      <section class="farm-section po-soc-panel" data-panel="story">
+      <section class="farm-panel active" role="tabpanel" id="panel-story" data-panel="story" aria-labelledby="tab-story">
         <h2>About</h2>
         <div class="farm-bio" id="fpBio">Loading…</div>
       </section>
 
-      <section class="farm-section po-soc-panel" data-panel="animals" hidden>
+      <section class="farm-panel" role="tabpanel" id="panel-animals" data-panel="animals" aria-labelledby="tab-animals" hidden>
         <h2 id="fpListingsTitle">Active listings</h2>
         <div class="listings-grid" id="fpGrid"></div>
       </section>
 
-      <section class="farm-section po-soc-panel" data-panel="community" hidden id="community">
+      <section class="farm-panel" role="tabpanel" id="panel-community" data-panel="community" aria-labelledby="tab-community" hidden>
         <h2>Community</h2>
-        <p class="farm-section-lead">Updates from this ranch — harvest notes, pasture photos, and the animals you follow.</p>
+        <p class="farm-lead">Updates from this ranch — harvest notes, pasture photos, and the animals you follow.</p>
         <div id="fpWall" class="po-soc" aria-live="polite"></div>
       </section>
-    </section>
+    </div>
   </main>
+
   <div id="po-shell-host"></div>
-  <script src="/po-shell.js"></script>
   <script src="/po-api.js"></script>
+  <script src="/po-shell.js"></script>
   <script src="/po-social.js"></script>
   <script>
   (async () => {
-    const slug = (location.pathname.match(/\/farm\/([^\/]+)/) || [])[1];
-    if (!slug) { window.location.replace('/producers'); return; }
-    const cap = s => (s || '').replace(/\b\w/g, c => c.toUpperCase());
-    const photoFor = sp => sp === 'hog' ? '/img/premium-pig.jpg' : sp === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg';
+    'use strict';
+    const slug = (location.pathname.match(/\/farm\/([^\/?#]+)/) || [])[1];
+    if (!slug) { location.replace('/producers'); return; }
 
-    let data;
-    try { data = await window.PO_API.farm(slug); }
-    catch (e) {
-      document.getElementById('fpName').textContent = 'Farm not found';
-      document.getElementById('fpBio').textContent = 'No farm with slug "' + slug + '" exists yet. Check the URL or browse all producers.';
+    const $ = (id) => document.getElementById(id);
+    const cap = (s) => (s || '').replace(/\b\w/g, (c) => c.toUpperCase());
+    const photoFor = (sp) =>
+      sp === 'hog' ? '/img/premium-pig.jpg'
+      : sp === 'lamb' ? '/img/premium-sheep.jpg'
+      : '/img/cattle-pasture.jpg';
+    const safeUrl = (u) => String(u || '').replace(/'/g, '%27').replace(/"/g, '%22');
+
+    function showFatal(title, bodyHtml) {
+      const main = $('fpMain');
+      if (!main) return;
+      main.innerHTML = `<div class="farm-error"><h1>${title}</h1><p>${bodyHtml}</p>
+        <a href="/producers" style="display:inline-flex;padding:12px 20px;border-radius:999px;background:#061b0e;color:#fbf9f5;font:600 13px/1 Inter;text-decoration:none;">Browse farms →</a></div>`;
+    }
+
+    // Wait briefly for PO_API if scripts are still parsing
+    if (!window.PO_API) {
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    if (!window.PO_API || typeof window.PO_API.farm !== 'function') {
+      showFatal('Couldn’t load this farm', 'Scripts failed to load. Check your connection and refresh.');
       return;
     }
+
+    let data;
+    try {
+      data = await window.PO_API.farm(slug);
+    } catch (e) {
+      showFatal(
+        'Farm not found',
+        'No farm with this profile exists yet. Try the producers directory or browse live animals.'
+      );
+      return;
+    }
+
     const f = data.farm;
+    if (!f) {
+      showFatal('Farm not found', 'This profile isn’t available.');
+      return;
+    }
+
     document.title = f.name + ' · Protein Outfitters';
 
-    if (f.cover_url) {
-      const cover = document.getElementById('fpCover');
-      cover.style.backgroundImage = `url('${String(f.cover_url).replace(/'/g, '%27')}')`;
-    }
-    const av = document.getElementById('fpAvatar');
+    // Cover + avatar
+    if (f.cover_url) $('fpCover').style.backgroundImage = `url('${safeUrl(f.cover_url)}')`;
+    const av = $('fpAvatar');
     if (f.avatar_url) {
-      av.style.backgroundImage = `url('${String(f.avatar_url).replace(/'/g, '%27')}')`;
+      av.style.backgroundImage = `url('${safeUrl(f.avatar_url)}')`;
       av.textContent = '';
     } else {
       av.textContent = (f.name || '?').charAt(0).toUpperCase();
     }
 
-    document.getElementById('fpName').textContent = f.name;
+    $('fpName').textContent = f.name || 'Farm';
     const locParts = [f.city, f.state].filter(Boolean).join(', ');
-    document.getElementById('fpLoc').textContent = locParts + (f.established_year ? ' · Established ' + f.established_year : '');
+    $('fpLoc').textContent =
+      (locParts || 'United States') +
+      (f.established_year ? ' · Est. ' + f.established_year : '');
 
-    document.getElementById('fpBio').textContent = f.bio || 'This farm hasn\'t added a bio yet.';
-
-    // Stats
-    const listings = data.listings || [];
-    const stats = [
-      { num: listings.length, lab: 'Active listings' },
-      { num: f.established_year ? (new Date().getFullYear() - f.established_year) + ' yrs' : '—', lab: 'Producing since ' + (f.established_year || '?') },
-      { num: (f.practices || []).length, lab: 'Practices' },
-      { num: (f.certs || []).length, lab: 'Certifications' }
-    ];
-    document.getElementById('fpStats').innerHTML = stats.map(s => `<div class="farm-stat"><div class="num">${s.num}</div><div class="lab">${s.lab}</div></div>`).join('');
-
-    // Practices + certs + identity chips below bio
+    // Bio + chips
+    const bio = $('fpBio');
+    bio.textContent = f.bio || f.story || "This farm hasn’t added a bio yet.";
     const chipParts = [];
-    (f.practices || []).forEach(p => chipParts.push(`<span class="cert-chip">${cap(p.replace('-', ' '))}</span>`));
-    (f.certs || []).forEach(c => chipParts.push(`<span class="cert-chip">${c.toUpperCase()}</span>`));
-    (f.identity || []).forEach(i => chipParts.push(`<span class="cert-chip identity">${cap(i)}-owned</span>`));
-    if (chipParts.length) document.getElementById('fpBio').insertAdjacentHTML('beforeend', `<div class="cert-grid">${chipParts.join('')}</div>`);
+    (f.practices || []).forEach((p) => chipParts.push(`<span class="cert-chip">${cap(String(p).replace(/-/g, ' '))}</span>`));
+    (f.certs || []).forEach((c) => chipParts.push(`<span class="cert-chip">${String(c).toUpperCase()}</span>`));
+    (f.identity || []).forEach((i) => chipParts.push(`<span class="cert-chip">${cap(i)}-owned</span>`));
+    if (chipParts.length) {
+      bio.insertAdjacentHTML('beforeend', `<div class="cert-grid">${chipParts.join('')}</div>`);
+    }
 
-    // Listings
-    const grid = document.getElementById('fpGrid');
-    const titleEl = document.getElementById('fpListingsTitle');
-    const browseFarmHref = slug ? `/discover?farm=${encodeURIComponent(slug)}` : '/discover';
+    // Stats + listings
+    const listings = Array.isArray(data.listings) ? data.listings : [];
+    const years =
+      f.established_year && Number(f.established_year)
+        ? new Date().getFullYear() - Number(f.established_year) + ' yrs'
+        : '—';
+    $('fpStats').innerHTML = [
+      { num: listings.length, lab: 'Active listings' },
+      { num: years, lab: f.established_year ? 'Producing since ' + f.established_year : 'Years producing' },
+      { num: (f.practices || []).length || '—', lab: 'Practices' },
+      { num: (f.certs || []).length || '—', lab: 'Certifications' },
+    ].map((s) => `<div class="farm-stat"><div class="num">${s.num}</div><div class="lab">${s.lab}</div></div>`).join('');
+
+    const countEl = $('tabAnimalsCount');
+    if (listings.length) {
+      countEl.hidden = false;
+      countEl.textContent = String(listings.length);
+    }
+
+    const grid = $('fpGrid');
+    const titleEl = $('fpListingsTitle');
+    const browseFarmHref = `/discover?farm=${encodeURIComponent(slug)}`;
+
     if (!listings.length) {
       titleEl.textContent = 'No listings yet';
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 24px;background:#fff;border-radius:16px;border:1px solid rgba(6,27,14,.06);">
-        <img src="/brand/logo-monogram.svg" alt="" width="56" height="56" style="display:block;margin:0 auto 14px;border-radius:13px;opacity:.85" />
-        <div style="font:800 18px/1.3 'Inter';letter-spacing:-.02em;margin:0 0 8px;">No animals reserving right now</div>
-        <div style="font:500 14px/1.5 'Inter';opacity:.7;max-width:320px;margin:0 auto 18px;">Follow this ranch for updates, or browse other farms with live inventory.</div>
-        <a href="/discover" style="display:inline-block;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:12px 20px;font:700 13px/1 'Inter';">Browse animals →</a>
+      grid.innerHTML = `<div class="farm-empty" style="grid-column:1/-1">
+        <img src="/brand/logo-monogram.svg" alt="" width="56" height="56" />
+        <h3>No animals reserving right now</h3>
+        <p>Follow this ranch for updates, or browse other farms with live inventory.</p>
+        <a href="/discover">Browse animals →</a>
       </div>`;
     } else {
-      titleEl.innerHTML = `${listings.length === 1 ? '1 animal reserving' : `${listings.length} animals reserving`} <a href="${browseFarmHref}" style="font:700 13px/1 'Inter';color:var(--brand,#061b0e);text-decoration:none;margin-left:10px;white-space:nowrap;">See all on Browse →</a>`;
-      grid.innerHTML = listings.map(l => {
+      titleEl.innerHTML = `${listings.length} animal${listings.length === 1 ? '' : 's'} reserving
+        <a href="${browseFarmHref}" style="font:600 13px/1 Inter;color:#061b0e;text-decoration:none;margin-left:10px;white-space:nowrap;">See all on Browse →</a>`;
+      grid.innerHTML = listings.map((l) => {
         const photo = (l.photos && l.photos[0]) || photoFor(l.species);
-        const farmerRate = Number(l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0);
-        const shareKey = l.shares?.quarter?.available > 0 ? 'quarter' : l.shares?.half?.available > 0 ? 'half' : 'whole';
+        const farmerRate = Number(
+          l.shares?.quarter?.price || l.shares?.half?.price || l.shares?.whole?.price || l.price_per_lb || 0
+        );
+        const shareKey = l.shares?.quarter?.available > 0 ? 'quarter'
+          : l.shares?.half?.available > 0 ? 'half' : 'whole';
         const hw = l.estimated_hanging_weight || 700;
-        const allIn = window.PO_PRICING ? window.PO_PRICING.allInPerLbHW(farmerRate, shareKey, hw) : farmerRate;
-        const practiceLabel = (l.practice && l.practice[0]) ? cap(l.practice[0].replace('-', ' ')) : '';
-        return `<button class="product" onclick="window.location='/listing?id=${l.id}'">
-          <div class="product-photo" style="background-image:url('${photo}');"><span class="product-tag">Reserving</span></div>
+        const allIn = window.PO_PRICING
+          ? window.PO_PRICING.allInPerLbHW(farmerRate, shareKey, hw)
+          : farmerRate;
+        const practiceLabel = (l.practice && l.practice[0])
+          ? cap(String(l.practice[0]).replace(/-/g, ' '))
+          : '';
+        const harvest = l.expected_finish_date
+          ? new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric' })
+          : 'TBD';
+        const name = `${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}`;
+        return `<button type="button" class="product" data-listing="${l.id}">
+          <div class="product-photo" style="background-image:url('${safeUrl(photo)}')"><span class="product-tag">Reserving</span></div>
           <div class="product-meta">
             <span class="product-eyebrow">${cap(l.species)}${practiceLabel ? ' · ' + practiceLabel : ''}</span>
-            <h3 class="product-name">${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}</h3>
-            <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
-            <div class="product-foot"><span class="product-price">From <strong>$${Number(allIn).toFixed(2)}</strong><span style="font-weight:600;opacity:.6;font-size:12px">/lb all-in</span></span><span class="product-cta">Reserve →</span></div>
+            <h3 class="product-name">${name.replace(/[<>]/g, '')}</h3>
+            <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${harvest}</p>
+            <div class="product-foot">
+              <span class="product-price">From <strong>$${Number(allIn).toFixed(2)}</strong><span style="font-weight:600;opacity:.55;font-size:12px">/lb all-in</span></span>
+              <span class="product-cta">Reserve →</span>
+            </div>
           </div>
         </button>`;
       }).join('');
+      grid.querySelectorAll('[data-listing]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          location.href = '/listing?id=' + encodeURIComponent(btn.dataset.listing);
+        });
+      });
     }
 
-    // Follow button — backed by /api/farm-follow (farm_follows table)
-    const fb = document.getElementById('fpFollow');
-    function paintFollow(state) {
-      fb.classList.toggle('followed', !!state.following);
-      const countSuffix = state.count > 0 ? ` · ${state.count}` : '';
-      fb.innerHTML = (state.following ? '✓ Following' : '+ Follow') + countSuffix;
-      fb.dataset.following = state.following ? '1' : '';
+    // ── Tabs ──────────────────────────────────────────────
+    let wallMounted = false;
+    function activateTab(name, { pushHash = true } = {}) {
+      if (!['story', 'animals', 'community'].includes(name)) name = 'story';
+      document.querySelectorAll('.farm-tab').forEach((t) => {
+        const on = t.dataset.tab === name;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      document.querySelectorAll('.farm-panel').forEach((p) => {
+        const on = p.dataset.panel === name;
+        p.classList.toggle('active', on);
+        p.hidden = !on;
+      });
+      if (pushHash) {
+        const next = '#' + name;
+        if (location.hash !== next) history.replaceState(null, '', next);
+      }
+      if (name === 'community' && !wallMounted && window.PO_SOCIAL) {
+        wallMounted = true;
+        mountCommunity();
+      }
     }
-    // Initial state — public read, no auth required (returns following=false if signed-out).
-    try {
-      const init = await window.PO_API.farmFollowState(f.id);
-      paintFollow(init);
-    } catch (_) { paintFollow({ following: false, count: 0 }); }
 
-    fb.addEventListener('click', async () => {
-      // Need to be signed in to follow / unfollow
+    async function mountCommunity() {
+      const wall = $('fpWall');
+      if (!wall || !window.PO_SOCIAL) return;
+      let canPost = false;
       try {
         const me = await window.PO_API.me();
-        if (!me || !me.user) {
-          window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer');
+        canPost = !!(me.user && (me.user.id === f.owner_id || me.user.role === 'admin'));
+      } catch (_) {}
+      window.PO_SOCIAL.mountWall(wall, {
+        subjectType: 'farm',
+        subjectId: f.id,
+        canPost,
+        placeholder: "What's happening on the land today?",
+        emptyText: 'No posts yet — follow this ranch and check back for harvest updates.',
+      });
+    }
+
+    document.querySelectorAll('.farm-tab').forEach((tab) => {
+      tab.addEventListener('click', () => activateTab(tab.dataset.tab));
+    });
+
+    // Deep-link: #community / #animals / #story (prefix match for typos)
+    function tabFromHash() {
+      const h = (location.hash || '').replace(/^#/, '').toLowerCase();
+      if (!h) return null;
+      return ['community', 'animals', 'story'].find((t) => h === t || h.startsWith(t)) || null;
+    }
+    const initial = tabFromHash() || (listings.length ? 'animals' : 'story');
+    activateTab(initial, { pushHash: !!tabFromHash() });
+    window.addEventListener('hashchange', () => {
+      const t = tabFromHash();
+      if (t) activateTab(t, { pushHash: false });
+    });
+
+    // ── Follow ────────────────────────────────────────────
+    const fb = $('fpFollow');
+    function paintFollow(state) {
+      if (!fb) return;
+      const following = !!state.following;
+      fb.classList.toggle('followed', following);
+      const n = Number(state.count) || 0;
+      fb.textContent = (following ? '✓ Following' : '+ Follow') + (n > 0 ? ' · ' + n : '');
+      fb.dataset.following = following ? '1' : '';
+    }
+    try {
+      paintFollow(await window.PO_API.farmFollowState(f.id));
+    } catch (_) {
+      paintFollow({ following: false, count: 0 });
+    }
+
+    fb?.addEventListener('click', async () => {
+      try {
+        const me = await window.PO_API.me();
+        if (!me?.user) {
+          window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer', { next: location.pathname + location.hash });
           return;
         }
       } catch (_) {
-        window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer');
+        window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer', { next: location.pathname + location.hash });
         return;
       }
-      const wasFollowing = fb.dataset.following === '1';
-      // Optimistic UI
+      const was = fb.dataset.following === '1';
+      const prevCount = parseInt((fb.textContent.match(/\d+/) || ['0'])[0], 10) || 0;
       fb.disabled = true;
-      paintFollow({ following: !wasFollowing, count: parseInt((fb.textContent.match(/\d+/) || ['0'])[0]) + (wasFollowing ? -1 : 1) });
+      paintFollow({ following: !was, count: Math.max(0, prevCount + (was ? -1 : 1)) });
       try {
-        const res = wasFollowing
+        const res = was
           ? await window.PO_API.unfollowFarm(f.id)
           : await window.PO_API.followFarm(f.id);
         paintFollow(res);
       } catch (e) {
-        // Roll back on error
-        paintFollow({ following: wasFollowing, count: parseInt((fb.textContent.match(/\d+/) || ['0'])[0]) + (wasFollowing ? 1 : -1) });
-        if (e.status === 401) window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer');
+        paintFollow({ following: was, count: prevCount });
+        if (e.status === 401) {
+          window.PO_API.openAuth('Sign in to follow ' + f.name, 'buyer', { next: location.pathname + location.hash });
+        }
       } finally {
         fb.disabled = false;
       }
     });
 
-    // Tabs: Story · Animals · Community
-    function activateTab(name) {
-      const tab = document.querySelector(`.po-soc-tab[data-tab="${name}"]`);
-      if (!tab) return;
-      document.querySelectorAll('.po-soc-tab').forEach(t => {
-        t.classList.toggle('active', t === tab);
-        t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
-      });
-      document.querySelectorAll('.po-soc-panel').forEach(p => {
-        p.hidden = p.dataset.panel !== name;
-      });
-      if (name === 'community' && window.PO_SOCIAL && !document.getElementById('fpWall').dataset.mounted) {
-        document.getElementById('fpWall').dataset.mounted = '1';
-        (async () => {
-          let canPost = false;
-          try {
-            const me = await window.PO_API.me();
-            canPost = !!(me.user && (me.user.id === f.owner_id || me.user.role === 'admin'));
-          } catch (_) {}
-          window.PO_SOCIAL.mountWall(document.getElementById('fpWall'), {
-            subjectType: 'farm',
-            subjectId: f.id,
-            canPost,
-            placeholder: "What's happening on the land today?",
-            emptyText: 'No posts yet — follow this ranch and check back for harvest updates.',
-          });
-        })();
-      }
-    }
-    document.querySelectorAll('.po-soc-tab').forEach(tab => {
-      tab.addEventListener('click', () => activateTab(tab.dataset.tab));
-    });
-    // Hash deep-links: #community, #animals, #story (and #communitythis typos → community)
-    const hashRaw = (location.hash || '').replace(/^#/, '').toLowerCase();
-    const hashTab = ['community', 'animals', 'story'].find(t => hashRaw === t || hashRaw.startsWith(t)) || null;
-    if (hashTab) activateTab(hashTab);
-    window.addEventListener('hashchange', () => {
-      const h = (location.hash || '').replace(/^#/, '').toLowerCase();
-      const t = ['community', 'animals', 'story'].find(x => h === x || h.startsWith(x));
-      if (t) activateTab(t);
-    });
-
-    // Share button — Web Share API with copy-to-clipboard fallback
-    document.querySelectorAll('.btn-share').forEach(sb => sb.addEventListener('click', async () => {
-      const url = location.href;
-      const title = (document.querySelector('.farm-id h1')?.textContent || 'Farm on Protein Outfitters').trim();
+    // ── Share ─────────────────────────────────────────────
+    $('fpShare')?.addEventListener('click', async () => {
+      const url = location.origin + location.pathname;
+      const title = f.name + ' on Protein Outfitters';
       try {
-        if (navigator.share) { await navigator.share({ title, url }); return; }
+        if (navigator.share) {
+          await navigator.share({ title, url });
+          return;
+        }
         await navigator.clipboard.writeText(url);
-        const orig = sb.textContent;
-        sb.textContent = '✓ Link copied';
-        setTimeout(() => { sb.textContent = orig; }, 1600);
-      } catch (e) { /* user cancelled */ }
-    }));
+        const btn = $('fpShare');
+        const orig = btn.textContent;
+        btn.textContent = '✓ Link copied';
+        setTimeout(() => { btn.textContent = orig; }, 1600);
+      } catch (_) { /* cancelled */ }
+    });
   })();
   </script>
 </body>

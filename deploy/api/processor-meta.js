@@ -1,6 +1,9 @@
 // /api/processor-meta — server-rendered Open Graph for /p/:slug
-// Same pattern as farm-meta.js: splice processor-specific meta into the SPA shell.
+// Same pattern as farm-meta.js: splice meta into the SPA shell and force
+// root-absolute asset URLs so nested /p/:slug routes load CSS/JS.
 
+import fs from 'fs';
+import path from 'path';
 import { sql, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
@@ -41,6 +44,7 @@ function buildMetaBlock(proc, slug) {
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${esc(cover)}">
 <link rel="canonical" href="${esc(url)}">
+<base href="/">
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -64,7 +68,14 @@ function scrubGenericMeta(html) {
     .replace(/<meta\s+name=["']description["'][\s\S]*?>/gi, '')
     .replace(/<meta\s+property=["']og:[^"']+["'][\s\S]*?>/gi, '')
     .replace(/<meta\s+name=["']twitter:[^"']+["'][\s\S]*?>/gi, '')
-    .replace(/<link\s+rel=["']canonical["'][\s\S]*?>/gi, '');
+    .replace(/<link\s+rel=["']canonical["'][\s\S]*?>/gi, '')
+    .replace(/<base\s[^>]*>/gi, '');
+}
+
+function absolutizeAssets(html) {
+  return html
+    .replace(/\b(href|src)=["']\.\/([^"']+)["']/g, '$1="/$2"')
+    .replace(/\b(href|src)=["'](?!\/|https?:|data:|blob:|#|mailto:|tel:)([^"']+\.(?:css|js|svg|png|jpg|jpeg|webp|gif|woff2?))["']/gi, '$1="/$2"');
 }
 
 function injectIntoHead(html, block) {
@@ -74,16 +85,38 @@ function injectIntoHead(html, block) {
   return html.slice(0, idx) + block + html.slice(idx);
 }
 
+async function loadShellHtml() {
+  const candidates = [
+    path.join(process.cwd(), 'processor-profile.html'),
+    path.join(process.cwd(), 'deploy', 'processor-profile.html'),
+    path.join(process.cwd(), 'public', 'processor-profile.html'),
+  ];
+  for (const p of candidates) {
+    try {
+      return await fs.promises.readFile(p, 'utf8');
+    } catch { /* try next */ }
+  }
+  const r = await fetch(`${SITE_ORIGIN}/processor-profile.html?v=${Date.now()}`, {
+    redirect: 'follow',
+    cache: 'no-store',
+    headers: { 'Cache-Control': 'no-cache' },
+  });
+  if (!r.ok) return null;
+  return r.text();
+}
+
 async function handler(req) {
   const url = new URL(req.url, SITE_ORIGIN);
   const slug = url.searchParams.get('slug') || '';
 
-  const [shellRes, procRows] = await Promise.all([
-    fetch(`${SITE_ORIGIN}/processor-profile.html`, { redirect: 'follow' }).catch(() => null),
-    slug ? sql`SELECT name, bio, city, state, zip, cover_url, avatar_url, inspection FROM processors WHERE slug = ${slug} LIMIT 1`.catch(() => []) : Promise.resolve([]),
+  const [shellHtmlRaw, procRows] = await Promise.all([
+    loadShellHtml(),
+    slug
+      ? sql`SELECT name, bio, city, state, zip, cover_url, avatar_url, inspection FROM processors WHERE slug = ${slug} LIMIT 1`.catch(() => [])
+      : Promise.resolve([]),
   ]);
 
-  if (!shellRes || !shellRes.ok) {
+  if (!shellHtmlRaw) {
     return new Response('Processor profile unavailable', { status: 502 });
   }
 
@@ -94,15 +127,15 @@ async function handler(req) {
     cover_url: DEFAULT_OG_IMAGE, avatar_url: DEFAULT_OG_IMAGE,
   };
 
-  let shellHtml = await shellRes.text();
-  shellHtml = scrubGenericMeta(shellHtml);
+  let shellHtml = scrubGenericMeta(shellHtmlRaw);
+  shellHtml = absolutizeAssets(shellHtml);
   const finalHtml = injectIntoHead(shellHtml, buildMetaBlock(proc, slug));
 
   return new Response(finalHtml, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
+      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=600',
     },
   });
 }
