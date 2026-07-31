@@ -12,13 +12,13 @@
 <style>
   body { background: #fbf9f5; color: var(--ink); }
   .fi-shell { max-width: 920px; margin: 0 auto; padding: 32px var(--shell-pad) 80px; }
-  h1 { font: 900 clamp(32px, 4vw, 44px)/1.05 var(--ff-sans); letter-spacing:-0.022em; margin: 0 0 14px; }
-  .eyebrow { font: 800 12px/1 var(--ff-sans); letter-spacing:.18em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 10px; }
+  h1 { font: 800 clamp(32px, 4vw, 44px)/1.05 var(--ff-sans); letter-spacing:-0.022em; margin: 0 0 14px; }
+  .eyebrow { font: 800 12px/1 var(--ff-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 10px; }
   p.lead { font: 500 16px/1.55 var(--ff-sans); color: var(--ink-2); margin: 0 0 24px; max-width: 640px; }
 
   .step-card { background: #fff; border-radius: 18px; padding: 22px 24px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
   .step-card h3 { font: 800 17px/1.3 var(--ff-sans); letter-spacing: -0.01em; margin: 0 0 8px; display:flex; align-items:center; gap:10px; }
-  .step-card h3 .num { display:inline-grid; place-items:center; width:28px; height:28px; border-radius:50%; background: var(--po-pasture, #7da05d); color:#fbf9f5; font: 900 13px/1 var(--ff-sans); }
+  .step-card h3 .num { display:inline-grid; place-items:center; width:28px; height:28px; border-radius:50%; background: var(--po-pasture, #7da05d); color:#fbf9f5; font: 800 13px/1 var(--ff-sans); }
   .step-card p { font: 500 14px/1.5 var(--ff-sans); color: var(--ink-2); margin: 0 0 8px; }
   .step-card a { color: var(--ink); font-weight: 700; }
   .step-card pre { background: rgba(6,27,14,.04); border-radius: 10px; padding: 10px 12px; font: 500 12.5px/1.5 ui-monospace, Menlo, monospace; overflow-x: auto; margin: 8px 0 0; }
@@ -28,7 +28,7 @@
   textarea:focus, input[type=file]:focus { outline: 0; border-color: var(--po-pasture, #7da05d); background:#fff; }
 
   .submit { background: #061b0e; color: #fbf9f5; border: 0; border-radius: 999px; padding: 14px 24px; font: 700 15px/1 var(--ff-sans); cursor: pointer; margin-top: 12px; transition: transform .15s; }
-  .submit:hover:not(:disabled) { transform: translateY(-1px); }
+  .submit:hover:not(:disabled) { /* craft: no lift */ }
   .submit:disabled { opacity: .55; cursor: wait; }
 
   .out { margin-top: 20px; }
@@ -37,7 +37,7 @@
   .ok-card p { margin: 0; font: 500 13.5px/1.5 var(--ff-sans); color: var(--ink-2); }
   .stat-row { display: flex; gap: 24px; margin: 12px 0 8px; flex-wrap: wrap; }
   .stat-row > div { font: 600 13px/1.3 var(--ff-sans); }
-  .stat-row strong { font-weight: 900; font-size: 22px; display: block; color: var(--ink); }
+  .stat-row strong { font-weight: 800; font-size: 22px; display: block; color: var(--ink); }
   .err-card { background: rgba(176,74,58,.12); border: 1px solid rgba(176,74,58,.3); border-radius: 14px; padding: 18px 22px; color: #7d2e22; }
   .state-list { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
   .state-pill { background: rgba(6,27,14,.05); padding: 4px 10px; border-radius: 999px; font: 700 12px/1 var(--ff-sans); letter-spacing: .04em; }

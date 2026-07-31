@@ -24,7 +24,7 @@
 .pp-inner { max-width: 1200px; margin: 0 auto; display: grid; gap: clamp(24px, 3vw, 36px); grid-template-columns: 1fr; }
 @media (min-width: 1100px) { .pp-inner { grid-template-columns: 1fr 360px; align-items: start; } }
 
-.pp-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
+.pp-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
 .pp-lead { font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 24px; }
 
 .market-hint {
@@ -52,7 +52,7 @@
 @media (min-width: 700px) { .fee-row { grid-template-columns: 1.4fr auto auto; } }
 .fee-meta h4 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.018em; }
 .fee-meta p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
-.fee-suggested { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.10em; text-transform: uppercase; color: var(--brand); margin-top: 6px; }
+.fee-suggested { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand); margin-top: 6px; }
 
 .fee-input-wrap { display: flex; align-items: center; gap: 8px; background: var(--accent-soft); border: 1px solid rgba(6,27,14,0.12); border-radius: 12px; padding: 6px 12px; transition: background .2s, border-color .2s; }
 .fee-input-wrap.custom { background: #fff; border-color: rgba(0,0,0,0.10); }
@@ -78,8 +78,8 @@
 
 .pp-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; justify-content: space-between; }
 .pp-status { flex-basis: 100%; margin: 10px 0 0; font-size: 12px; color: var(--ink-2); text-align: right; }
-.btn-primary { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 14px 28px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; border-radius: 999px; transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s; }
-.btn-primary:hover { transform: scale(1.04); background: #0a2614; }
+.btn-primary { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 14px 28px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; border-radius: 999px; transition: transform .25s cubic-bezier(0.28, 0.11, 0.32, 1), background .2s; }
+.btn-primary:hover { transform: none; /* craft */ background: #0a2614; }
 .btn-ghost { background: transparent; color: var(--ink-2); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; padding: 14px 22px; font-size: 14px; font-weight: 600; border-radius: 999px; transition: background .2s, color .2s; }
 .btn-ghost:hover { background: var(--surface); color: var(--ink); }
 
@@ -88,8 +88,8 @@
 
 /* Revenue calculator (sticky sidebar) */
 .rev-card-wrap { position: sticky; top: 80px; }
-.rev-card { background: var(--brand); color: #fbf9f5; border-radius: 24px; padding: 28px; box-shadow: 0 16px 40px rgba(6,27,14,0.18); }
-.rev-card h4 { margin: 0 0 16px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(251,249,245,0.6); }
+.rev-card { background: var(--brand); color: #fbf9f5; border-radius: 24px; padding: 28px; box-shadow: 0 8px 24px rgba(6,27,14,0.08); }
+.rev-card h4 { margin: 0 0 16px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,249,245,0.6); }
 .rev-row { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid rgba(251,249,245,0.18); font-size: 14px; }
 .rev-row:first-of-type { border-top: 0; padding-top: 0; }
 .rev-row .k { color: rgba(251,249,245,0.7); }
@@ -312,8 +312,8 @@
         <div class="rev-msg" id="revMsg">Based on a 1,180 lb steer with 720 lb hanging weight. Assumes vacuum seal + boneless on chuck/round + 110 lb to grind.</div>
 
         <div style="margin-top: 18px;">
-          <p style="margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(251,249,245,0.6);">Capacity at full booking</p>
-          <p style="margin: 0; font-size: 24px; font-weight: 900; letter-spacing: -0.025em;" id="rRev">$30,792 <span style="font-size: 13px; opacity: .7; font-weight: 700;">/ week</span></p>
+          <p style="margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,249,245,0.6);">Capacity at full booking</p>
+          <p style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.025em;" id="rRev">$30,792 <span style="font-size: 13px; opacity: .7; font-weight: 700;">/ week</span></p>
           <p style="margin: 4px 0 0; font-size: 12px; color: rgba(251,249,245,0.7);" id="rRevSub">6 beef × 4 work-days × $1,283 average</p>
         </div>
       </div>

@@ -114,7 +114,7 @@ body { background: var(--surface-2); }
   box-shadow: 0 -12px 40px rgba(6,27,14,.18);
   padding: 12px 18px calc(24px + env(safe-area-inset-bottom));
   transform: translateY(110%);
-  transition: transform .32s cubic-bezier(.2,.9,.3,1.05);
+  transition: transform .32s cubic-bezier(0.28, 0.11, 0.32, 1);
 }
 .proc-inspector-sheet.open { transform: translateY(0); }
 .proc-inspector-sheet .sheet-handle {
@@ -146,13 +146,13 @@ body { background: var(--surface-2); }
   transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
   margin-bottom: 8px;
 }
-.booking:hover { transform: translateY(-1px); box-shadow: var(--sh-2); }
+.booking:hover { /* craft: no lift */ box-shadow: var(--sh-2); }
 .booking.is-selected { box-shadow: var(--sh-2), inset 0 0 0 2px var(--brand); }
 .state-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 .state-dot.scheduled { background: transparent; border: 2px solid var(--ink-3); }
 .state-dot.active { background: var(--accent); box-shadow: 0 0 0 4px rgba(47,125,73,0.18); }
 .state-dot.checked { background: var(--accent); position: relative; }
-.state-dot.checked::after { content: '✓'; color: white; font-size: 8px; font-weight: 900;
+.state-dot.checked::after { content: '✓'; color: white; font-size: 8px; font-weight: 800;
   position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); line-height: 1; }
 .state-dot.overdue { background: var(--warn); }
 .booking-title { font-size: var(--text-base); font-weight: 700; letter-spacing: var(--tracking-snug); }
@@ -216,7 +216,7 @@ body { background: var(--surface-2); }
 @keyframes scan { 0%,100% { top: 8%; } 50% { top: 92%; } }
 @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 .success-icon { width: 80px; height: 80px; border-radius: 50%; background: white; color: var(--accent);
-  display: grid; place-items: center; font-size: 40px; font-weight: 900; margin: 0 auto var(--s-5); }
+  display: grid; place-items: center; font-size: 40px; font-weight: 800; margin: 0 auto var(--s-5); }
 
 /* Farmer views */
 .farmer-page { max-width: 460px; margin: 0 auto; padding: var(--s-5); display: none; }

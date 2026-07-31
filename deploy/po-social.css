@@ -1,7 +1,7 @@
 /* PO Social — walls, journey, feed */
 .po-soc { font-family: 'Inter', system-ui, sans-serif; color: var(--ink, #061b0e); }
 .po-soc-journey-head { margin-bottom: 16px; }
-.po-soc-journey-head h3 { margin: 0 0 4px; font: 800 20px/1.2 'Inter'; letter-spacing: -0.02em; }
+.po-soc-journey-head h3 { margin: 0 0 4px; font: 700 20px/1.2 'Inter'; letter-spacing: -0.02em; }
 .po-soc-journey-head p { margin: 0; font: 500 13.5px/1.45 'Inter'; color: var(--ink-2, #5a6359); }
 
 .po-soc-composer {
@@ -37,11 +37,11 @@
 }
 .po-soc-post:first-child { border-radius: 16px 16px 0 0; }
 .po-soc-post:last-child { border-radius: 0 0 16px 16px; border-bottom: 0; }
-.po-soc-post.is-milestone { background: linear-gradient(135deg, rgba(125,160,93,.08), #fff 55%); }
-.po-soc-post.is-private { background: linear-gradient(135deg, rgba(6,27,14,.04), #fff 50%); border-left: 3px solid rgba(6,27,14,.2); }
-.po-soc-post.is-thanks { background: linear-gradient(135deg, rgba(212,165,74,.12), #fff 55%); }
-.po-soc-chip--private { background: rgba(6,27,14,.1); color: #061b0e; }
-.po-soc-chip--thanks { background: rgba(212,165,74,.25); color: #6b4a10; }
+.po-soc-post.is-milestone { background: #fff; border-left: 3px solid rgba(6,27,14,.18); }
+.po-soc-post.is-private { background: #fff; border-left: 3px solid rgba(6,27,14,.12); }
+.po-soc-post.is-thanks { background: #fff; border-left: 3px solid rgba(6,27,14,.18); }
+.po-soc-chip--private { background: rgba(6,27,14,.08); color: #061b0e; }
+.po-soc-chip--thanks { background: rgba(6,27,14,.08); color: #061b0e; }
 .po-soc-vis select {
   font: 600 11.5px/1 'Inter'; border: 1px solid rgba(6,27,14,.12); border-radius: 999px;
   padding: 7px 10px; background: #fff; color: var(--ink-2, #5a6359); max-width: 200px;
@@ -54,17 +54,17 @@
 
 .po-soc-avatar {
   width: 40px; height: 40px; border-radius: 12px;
-  background: linear-gradient(135deg, #7da05d, #5a8540);
-  color: #fbf9f5; display: grid; place-items: center; font: 800 15px/1 'Inter';
+  background: #061b0e;
+  color: #fbf9f5; display: grid; place-items: center; font: 700 14px/1 'Inter';
 }
 .po-soc-meta { font: 500 12.5px/1.3 'Inter'; color: var(--ink-2, #5a6359); margin-bottom: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
-.po-soc-meta strong { font-weight: 800; color: var(--ink, #061b0e); font-size: 13.5px; }
+.po-soc-meta strong { font-weight: 700; color: var(--ink, #061b0e); font-size: 13.5px; }
 .po-soc-time { opacity: .55; }
 .po-soc-subject { opacity: .7; }
 .po-soc-chip {
   display: inline-block; padding: 2px 8px; border-radius: 999px;
-  background: rgba(125,160,93,.18); color: #2d4a18;
-  font: 800 10px/1.4 'Inter'; letter-spacing: .06em; text-transform: uppercase;
+  background: rgba(6,27,14,.08); color: #061b0e;
+  font: 600 10px/1.4 'Inter'; letter-spacing: .04em; text-transform: uppercase;
 }
 .po-soc-text { margin: 0 0 8px; font: 500 14.5px/1.5 'Inter'; color: var(--ink, #061b0e); white-space: pre-wrap; }
 .po-soc-media-row { display: grid; gap: 6px; margin: 8px 0; }
@@ -75,7 +75,7 @@
   border: 0; background: transparent; cursor: pointer;
   font: 700 12.5px/1 'Inter'; color: var(--ink-2, #5a6359); padding: 6px 0;
 }
-.po-soc-react.on { color: #c2415a; }
+.po-soc-react.on { color: #061b0e; }
 .po-soc-react:hover, .po-soc-comment-toggle:hover { color: var(--ink, #061b0e); }
 
 .po-soc-thread {

@@ -28,23 +28,23 @@
 .role-switch button { flex: 1; background: transparent; border: 0; padding: 9px 16px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; border-radius: 999px; transition: background .25s, color .25s; }
 .role-switch button.active { background: var(--brand); color: #fbf9f5; }
 
-.fn-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
+.fn-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
 .fn-lead { font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 32px; }
 
 /* Wallet hero */
-.wallet { background: var(--brand); color: #fbf9f5; border-radius: 28px; padding: clamp(28px, 3vw, 40px); margin-bottom: 24px; box-shadow: 0 16px 40px rgba(6,27,14,0.18); position: relative; overflow: hidden; }
+.wallet { background: var(--brand); color: #fbf9f5; border-radius: 28px; padding: clamp(28px, 3vw, 40px); margin-bottom: 24px; box-shadow: 0 8px 24px rgba(6,27,14,0.08); position: relative; overflow: hidden; }
 .wallet::before { content: ''; position: absolute; top: -40%; right: -20%; width: 60%; height: 200%; background: radial-gradient(circle, rgba(207,233,211,0.10) 0%, rgba(207,233,211,0) 60%); pointer-events: none; }
 .wallet-grid { display: grid; gap: clamp(20px, 3vw, 32px); grid-template-columns: 1fr; align-items: end; position: relative; z-index: 1; }
 @media (min-width: 800px) { .wallet-grid { grid-template-columns: 1.5fr 1fr; } }
-.wallet-balance .lab { font-size: 12px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0 0 6px; }
-.wallet-balance .v { font-size: clamp(48px, 7vw, 84px); font-weight: 900; letter-spacing: -0.04em; line-height: 1; color: #fbf9f5; }
+.wallet-balance .lab { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0 0 6px; }
+.wallet-balance .v { font-size: clamp(48px, 7vw, 84px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: #fbf9f5; }
 .wallet-balance .cur { font-size: 0.45em; font-weight: 700; opacity: 0.7; vertical-align: 0.6em; margin-right: 4px; }
 .wallet-pending { font-size: 13px; color: rgba(251,249,245,0.75); margin: 14px 0 0; line-height: 1.5; }
 .wallet-pending strong { color: #cfe9d3; font-weight: 800; }
 
 .wallet-actions { display: flex; flex-direction: column; gap: 10px; }
-.wallet-cta { background: #fbf9f5; color: var(--brand); border: 0; padding: 16px 24px; border-radius: 14px; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s; }
-.wallet-cta:hover { transform: translateY(-2px); background: #fff; }
+.wallet-cta { background: #fbf9f5; color: var(--brand); border: 0; padding: 16px 24px; border-radius: 14px; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: transform .25s cubic-bezier(0.28, 0.11, 0.32, 1), background .2s; }
+.wallet-cta:hover { /* craft: no lift */ background: #fff; }
 .wallet-cta .ico { width: 18px; height: 18px; }
 .wallet-cta-secondary { background: rgba(251,249,245,0.10); color: #fbf9f5; }
 .wallet-cta-secondary:hover { background: rgba(251,249,245,0.16); }
@@ -53,8 +53,8 @@
 .stats-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); margin-bottom: 32px; }
 @media (min-width: 800px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
 .stat-card { background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
-.stat-card .lab { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
-.stat-card .v { font-size: 26px; font-weight: 900; letter-spacing: -0.025em; margin: 6px 0 6px; line-height: 1; color: var(--ink); }
+.stat-card .lab { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+.stat-card .v { font-size: 26px; font-weight: 800; letter-spacing: -0.025em; margin: 6px 0 6px; line-height: 1; color: var(--ink); }
 .stat-card .delta { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 99px; margin-bottom: 10px; }
 .stat-card .delta.up { background: var(--accent-soft); color: var(--brand); }
 .stat-card .delta.dn { background: #fee2e2; color: #ba1a1a; }
@@ -63,7 +63,7 @@
 /* Section heads */
 .fn-section { margin-bottom: clamp(32px, 4vw, 44px); }
 .fn-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
-.fn-section-head h2 { margin: 0; font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; letter-spacing: -0.025em; }
+.fn-section-head h2 { margin: 0; font-size: clamp(22px, 2.4vw, 28px); font-weight: 700; letter-spacing: -0.025em; }
 .fn-section-head p { margin: 0; font-size: 13px; color: var(--ink-2); }
 .fn-section-head a.more { font-size: 13px; font-weight: 700; color: var(--accent-2); text-decoration: none; }
 .fn-section-head a.more:hover { color: var(--brand); text-decoration: underline; }
@@ -85,7 +85,7 @@
 .row-l .meta p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
 .row-l .stat-cell { text-align: right; font-size: 14px; font-weight: 800; letter-spacing: -0.014em; }
 .row-l .stat-cell .sub { display: block; font-size: 11px; font-weight: 600; color: var(--ink-3); margin-top: 2px; }
-.row-l .pill-status { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
+.row-l .pill-status { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
 .pill-status.released { background: var(--accent-soft); color: var(--brand); }
 .pill-status.pending { background: #f5e1ad; color: #7a5a08; }
 .pill-status.scheduled { background: #fef3c7; color: #7a5a08; }
@@ -104,13 +104,13 @@
 .bank-meta { flex: 1; min-width: 0; }
 .bank-meta h4 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -0.018em; }
 .bank-meta p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); }
-.bank-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; background: var(--brand); color: #fbf9f5; }
+.bank-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; background: var(--brand); color: #fbf9f5; }
 
 /* Tax/docs */
 .docs-grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
 @media (min-width: 700px) { .docs-grid { grid-template-columns: 1fr 1fr 1fr; } }
-.doc-card { background: #fff; border-radius: 18px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); transition: transform .25s cubic-bezier(.2,.9,.3,1.4), box-shadow .25s; cursor: pointer; }
-.doc-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+.doc-card { background: #fff; border-radius: 18px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); transition: transform .25s cubic-bezier(0.28, 0.11, 0.32, 1), box-shadow .25s; cursor: pointer; }
+.doc-card:hover { /* craft: no lift */ box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
 .doc-glyph { width: 40px; height: 40px; border-radius: 11px; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; flex-shrink: 0; }
 .doc-glyph .ico { width: 20px; height: 20px; }
 .doc-meta h4 { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: -0.014em; }
@@ -277,11 +277,11 @@
       <div class="card-block">
         <div class="row-l" style="grid-template-columns: 60px 1fr 80px 80px 80px 100px; align-items: center;">
           <div></div>
-          <div class="meta" style="color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;">Listing</div>
-          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;">Views</div>
-          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;">Saves</div>
-          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;">Reserved</div>
-          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;">Conv</div>
+          <div class="meta" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Listing</div>
+          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Views</div>
+          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Saves</div>
+          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Reserved</div>
+          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Conv</div>
         </div>
         <div class="row-l" style="grid-template-columns: 60px 1fr 80px 80px 80px 100px;">
           <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>

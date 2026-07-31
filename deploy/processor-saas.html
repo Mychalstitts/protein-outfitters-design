@@ -42,13 +42,13 @@
   box-shadow: var(--sh-1);
   transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
 }
-.tier:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
+.tier:hover { /* craft: no lift */ box-shadow: var(--sh-2); }
 .tier.is-popular {
   background: var(--brand-grad); color: var(--ink-inverse);
   box-shadow: var(--sh-3);
-  transform: scale(1.02);
+  transform: none; /* craft */
 }
-.tier.is-popular:hover { transform: scale(1.02) translateY(-2px); }
+.tier.is-popular:hover { /* craft: no bounce */ box-shadow: 0 8px 24px rgba(6,27,14,0.08); }
 .tier-popular-badge {
   position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
   background: var(--accent); color: white; padding: 4px 14px;
@@ -57,13 +57,13 @@
 }
 .tier-name { font-size: var(--text-md); font-weight: 800; letter-spacing: var(--tracking-snug); margin: 0; opacity: 0.95; }
 .tier-price { display: flex; align-items: baseline; gap: 6px; }
-.tier-price .num { font-size: var(--text-5xl); font-weight: 900; letter-spacing: var(--tracking-tight); line-height: 1; }
+.tier-price .num { font-size: var(--text-5xl); font-weight: 800; letter-spacing: var(--tracking-tight); line-height: 1; }
 .tier-price .unit { font-size: var(--text-sm); opacity: 0.7; }
 .tier-price .strike { font-size: var(--text-base); text-decoration: line-through; opacity: 0.5; margin-left: 4px; font-weight: 600; }
 .tier-byline { font-size: var(--text-sm); opacity: 0.85; margin: -4px 0 0; }
 .tier-features { list-style: none; padding: 0; margin: var(--s-3) 0 0; display: flex; flex-direction: column; gap: 10px; }
 .tier-features li { display: flex; align-items: flex-start; gap: var(--s-2); font-size: var(--text-sm); }
-.tier-features li::before { content: '✓'; color: var(--accent); font-weight: 900; flex-shrink: 0; margin-top: 1px; }
+.tier-features li::before { content: '✓'; color: var(--accent); font-weight: 800; flex-shrink: 0; margin-top: 1px; }
 .tier.is-popular .tier-features li::before { color: white; }
 .tier-cta { margin-top: auto; }
 
@@ -77,7 +77,7 @@
 .rm-col.is-next { border-top-color: rgba(0,0,0,0.14); }
 .rm-status { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .rm-status h3 { margin: 0; font-size: var(--text-md); font-weight: 800; letter-spacing: var(--tracking-snug); }
-.rm-when { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.rm-when { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
 .rm-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: var(--text-sm); line-height: 1.5; }
 .rm-list li { padding-left: 22px; position: relative; }
 .rm-list li::before { position: absolute; left: 0; top: 0; font-weight: 800; }
@@ -151,7 +151,7 @@
 .compare-table th { font-size: var(--text-xs); font-weight: 800; text-transform: uppercase; letter-spacing: var(--tracking-extra-wide); color: var(--ink-3); }
 .compare-table tr { border-bottom: 1px solid var(--hairline); }
 .compare-table tr:last-child { border: 0; }
-.compare-table .check { color: var(--accent); font-weight: 900; }
+.compare-table .check { color: var(--accent); font-weight: 800; }
 .compare-table .x { color: var(--ink-3); }
 
 .tier-status .badge.is-alert { background: #c62828; color: #fff; }
@@ -173,7 +173,7 @@
 <header class="glass-nav">
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
-      <a href="/" style="font-weight: 900; font-size: 16px; letter-spacing: -0.018em; text-transform: uppercase; text-decoration:none;color:inherit;">Protein Outfitters</a>
+      <a href="/" style="font-weight: 700; font-size: 14px; letter-spacing: -0.02em; text-transform: none; text-decoration:none;color:inherit;">Protein Outfitters</a>
       <div class="row gap-3 po-nav-actions" style="align-items:center;flex-wrap:wrap;">
         <a class="btn btn--ghost btn--sm" href="/processor" style="text-decoration:none;">My plant</a>
         <a class="btn btn--ghost btn--sm signin" href="/account">Sign in</a>

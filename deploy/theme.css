@@ -354,7 +354,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- Hover lift utility ---------- */
 .lift { transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
-.lift:hover { transform: translateY(-3px); box-shadow: var(--sh-3); }
+.lift:hover { /* craft: no card lift */ box-shadow: var(--sh-3); }
 
 /* ---------- Animal product tile ---------- */
 .tile {
@@ -366,7 +366,7 @@ a { color: inherit; text-decoration: none; }
   display: flex; flex-direction: column;
   transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
 }
-.tile:hover { transform: translateY(-4px); box-shadow: var(--sh-3); }
+.tile:hover { /* craft: no card lift */ box-shadow: var(--sh-3); }
 .tile-photo {
   aspect-ratio: 4/5;
   background-size: cover; background-position: center;
@@ -509,7 +509,7 @@ a { color: inherit; text-decoration: none; }
 .text-over { color: var(--over); }
 .font-bold { font-weight: 700; }
 .font-extrabold { font-weight: 800; }
-.font-black { font-weight: 900; }
+.font-black { font-weight: 800; }
 
 /* ---------- Responsive grid breakpoints ---------- */
 @media (max-width: 1100px) {

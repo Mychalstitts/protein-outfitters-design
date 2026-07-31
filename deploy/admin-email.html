@@ -23,7 +23,7 @@
   .em-side { background: #fff; border-radius: 18px; box-shadow: 0 4px 18px rgba(6,27,14,.05); padding: 8px; max-height: calc(100vh - 80px); overflow-y: auto; position: sticky; top: 16px; }
   .em-side h2 { font: 800 13px/1 'Inter'; padding: 14px 16px 10px; margin: 0; color: var(--ink-2, #5a6359); letter-spacing: .04em; text-transform: uppercase; }
   .em-side .group { padding: 0 8px 12px; }
-  .em-side .group-label { font: 700 10.5px/1 'Inter'; color: rgba(6,27,14,.5); letter-spacing: .12em; text-transform: uppercase; padding: 8px 8px 6px; }
+  .em-side .group-label { font: 700 10.5px/1 'Inter'; color: rgba(6,27,14,.5); letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 8px 6px; }
   .em-side button.tpl { width: 100%; text-align: left; padding: 10px 12px; border-radius: 10px; background: transparent; border: 0; font: 600 12.5px/1.35 'Inter'; color: var(--ink, #061b0e); cursor: pointer; display: block; }
   .em-side button.tpl:hover { background: rgba(6,27,14,.05); }
   .em-side button.tpl.active { background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); }
@@ -36,18 +36,18 @@
   .em-toolbar input { padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(6,27,14,.12); background: #fff; font: 500 12.5px/1 'Inter'; min-width: 220px; }
   .em-toolbar button { padding: 9px 16px; border-radius: 10px; border: 0; background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); font: 700 12.5px/1 'Inter'; cursor: pointer; }
   .em-toolbar button.ghost { background: rgba(6,27,14,.06); color: var(--ink, #061b0e); }
-  .em-toolbar button:hover { transform: translateY(-1px); }
+  .em-toolbar button:hover { background: rgba(6,27,14,0.06); }
 
   .em-body { padding: 16px; min-height: 60vh; background: #f5f1e8; }
   .em-frame { width: 100%; height: 70vh; border: 0; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(6,27,14,.06); }
   .em-empty { display: grid; place-items: center; padding: 80px 20px; color: var(--ink-2, #5a6359); text-align: center; }
-  .em-empty h3 { font: 900 18px/1.2 'Inter'; color: var(--ink, #061b0e); margin: 0 0 6px; }
+  .em-empty h3 { font: 800 18px/1.2 'Inter'; color: var(--ink, #061b0e); margin: 0 0 6px; }
 
   .em-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: 999px; background: var(--ink, #061b0e); color: var(--ink-inverse, #fbf9f5); font: 700 13px/1 'Inter'; opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s; }
   .em-toast.on { opacity: 1; transform: translateX(-50%) translateY(-4px); }
 
   .auth-required { padding: 80px 20px; text-align: center; }
-  .auth-required h2 { font: 900 22px/1.2 'Inter'; margin: 0 0 8px; }
+  .auth-required h2 { font: 800 22px/1.2 'Inter'; margin: 0 0 8px; }
   .auth-required p { font: 500 14px/1.5 'Inter'; color: var(--ink-2, #5a6359); margin: 0 0 24px; }
 </style>
 </head>
@@ -57,7 +57,7 @@
 <header class="glass-nav">
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
-      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; text-decoration: none; color: inherit;">Protein Outfitters</a>
+      <a href="/" style="font-weight: 700; font-size: 14px; text-transform: none; text-decoration: none; color: inherit;">Protein Outfitters</a>
       <div class="po-nav-actions"><a href="/admin-overview" style="font-weight:700;font-size:13px;text-decoration:none;color:inherit;">Admin overview</a></div>
     </nav>
   </div>

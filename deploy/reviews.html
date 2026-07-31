@@ -22,7 +22,7 @@
 <style>
 .rv-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
 .rv-inner { max-width: 1100px; margin: 0 auto; }
-.rv-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
+.rv-h1 { font-size: clamp(32px, 4.5vw, 56px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.0; margin: 0 0 12px; max-width: 22ch; }
 .rv-lead { font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 60ch; margin: 0 0 28px; }
 
 /* Standing card */
@@ -30,9 +30,9 @@
 @media (min-width: 800px) { .standing { grid-template-columns: 1.2fr 1fr; align-items: center; } }
 .standing-id { display: flex; align-items: center; gap: 18px; }
 .standing-avatar { width: 76px; height: 76px; border-radius: 22px; background: url('/img/farmer.jpg') center/cover; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
-.standing-meta .role { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
-.standing-meta .name { margin: 4px 0 6px; font-size: 24px; font-weight: 900; letter-spacing: -0.02em; color: #fbf9f5; }
-.standing-meta .stars { font-size: 32px; font-weight: 900; letter-spacing: -0.02em; }
+.standing-meta .role { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,249,245,0.6); margin: 0; }
+.standing-meta .name { margin: 4px 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: #fbf9f5; }
+.standing-meta .stars { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
 .standing-meta .stars .star { color: #f5e1ad; }
 .standing-meta .stars .meta { font-size: 13px; font-weight: 600; color: rgba(251,249,245,0.7); margin-left: 8px; vertical-align: 4px; }
 
@@ -40,7 +40,7 @@
 .subrate { display: flex; align-items: center; gap: 12px; }
 .subrate .lab { font-size: 12px; font-weight: 700; color: rgba(251,249,245,0.7); width: 110px; flex-shrink: 0; }
 .subrate .bar { flex: 1; height: 6px; background: rgba(251,249,245,0.14); border-radius: 99px; overflow: hidden; }
-.subrate .bar > span { display: block; height: 100%; background: #cfe9d3; border-radius: 99px; transition: width .8s cubic-bezier(.2,.9,.3,1.05); }
+.subrate .bar > span { display: block; height: 100%; background: #cfe9d3; border-radius: 99px; transition: width .8s cubic-bezier(0.28, 0.11, 0.32, 1); }
 .subrate .num { font-size: 13px; font-weight: 800; min-width: 32px; text-align: right; }
 
 /* Tabs */
@@ -62,18 +62,18 @@
 .pending-meta { flex: 1; min-width: 0; }
 .pending-meta h4 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.018em; }
 .pending-meta p { margin: 2px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
-.pending-pill { background: #f5e1ad; color: #7a5a08; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+.pending-pill { background: #f5e1ad; color: #7a5a08; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
 
 /* Star input */
 .stars-input { display: flex; gap: 4px; margin: 6px 0 18px; }
 .stars-input button {
   background: transparent; border: 0; padding: 4px; cursor: pointer;
   font-size: 30px; line-height: 1; color: rgba(0,0,0,0.16);
-  transition: transform .25s cubic-bezier(.2,.9,.3,1.4), color .2s;
+  transition: transform .25s cubic-bezier(0.28, 0.11, 0.32, 1), color .2s;
 }
 .stars-input button.lit { color: #f5b400; }
-.stars-input button:hover { transform: scale(1.18); }
-.stars-input button:active { transform: scale(1.05); }
+.stars-input button:hover { color: #d39c1f; }
+.stars-input button:active { transform: none; /* craft */ }
 
 .subgrid { display: grid; gap: 10px; grid-template-columns: 1fr; margin-bottom: 16px; }
 @media (min-width: 600px) { .subgrid { grid-template-columns: 1fr 1fr; } }
@@ -82,7 +82,7 @@
 .subrow .stars-mini { display: flex; gap: 2px; }
 .subrow .stars-mini button { background: transparent; border: 0; padding: 2px; cursor: pointer; font-size: 16px; line-height: 1; color: rgba(0,0,0,0.16); transition: transform .2s, color .2s; }
 .subrow .stars-mini button.lit { color: #f5b400; }
-.subrow .stars-mini button:hover { transform: scale(1.2); }
+.subrow .stars-mini button:hover { color: #d39c1f; }
 
 .review-text {
   width: 100%; min-height: 80px; resize: vertical;
@@ -95,8 +95,8 @@
 
 .pending-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .privacy-note { font-size: 11px; color: var(--ink-3); display: flex; align-items: center; gap: 6px; }
-.btn-submit { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 12px 22px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; border-radius: 999px; transition: transform .25s cubic-bezier(.2,.9,.3,1.4), background .2s; }
-.btn-submit:hover { transform: scale(1.04); background: #0a2614; }
+.btn-submit { background: var(--brand); color: #fbf9f5; border: 0; cursor: pointer; padding: 12px 22px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; border-radius: 999px; transition: transform .25s cubic-bezier(0.28, 0.11, 0.32, 1), background .2s; }
+.btn-submit:hover { transform: none; /* craft */ background: #0a2614; }
 .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Received review */
@@ -126,7 +126,7 @@
 .received-stars { display: flex; gap: 2px; font-size: 16px; color: #f5b400; }
 .received-text { font-size: 14px; line-height: 1.6; color: var(--ink); margin: 0; }
 .received-foot { display: flex; gap: 14px; padding-top: 12px; margin-top: 12px; border-top: 1px solid rgba(0,0,0,0.06); font-size: 12px; color: var(--ink-3); }
-.received-tag { background: var(--accent-soft); color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+.received-tag { background: var(--accent-soft); color: var(--brand); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
 
 /* Buyer reputation alert (when reviewing incoming reservation) */
 .rep-alert {
@@ -226,7 +226,7 @@
   body.innerHTML = `
     <div style="display:grid;gap:14px;">
       <div style="background:#fff;border-radius:18px;padding:24px 26px;">
-        <p style="font:800 11px/1 'Inter';letter-spacing:.16em;text-transform:uppercase;color:rgba(6,27,14,.55);margin:0 0 6px;">Reviews you can leave</p>
+        <p style="font:800 11px/1 'Inter';letter-spacing: 0.08em;text-transform:uppercase;color:rgba(6,27,14,.55);margin:0 0 6px;">Reviews you can leave</p>
         <h3 style="font:800 22px/1.2 'Inter';letter-spacing:-0.02em;margin:0 0 6px;">${completed.length} ready · ${inFlight.length} after pickup</h3>
         <p style="font:500 14px/1.5 'Inter';color:rgba(6,27,14,.7);margin:0;">${completed.length === 0 ? "You'll be able to rate the farmer + processor for each reservation once it's delivered." : 'Tap to rate the farmer and processor for each completed reservation.'}</p>
       </div>

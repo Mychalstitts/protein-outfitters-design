@@ -247,7 +247,7 @@ body { background: var(--bg); overflow-x: hidden; }
 .po-nav-burger span {
   display: block; width: 16px; height: 1.5px; background: var(--ink);
   border-radius: 2px; position: absolute; left: 13px;
-  transition: transform .28s cubic-bezier(.2,.9,.3,1.2), opacity .2s, top .28s;
+  transition: transform .28s cubic-bezier(0.28, 0.11, 0.32, 1), opacity .2s, top .28s;
 }
 .po-nav-burger span:nth-child(1) { top: 15px; }
 .po-nav-burger span:nth-child(2) { top: 20px; }
@@ -262,11 +262,11 @@ body { background: var(--bg); overflow-x: hidden; }
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   padding: 12px var(--shell-pad) 40px;
   flex-direction: column; gap: 4px; overflow-y: auto;
-  animation: poDrawerIn .28s cubic-bezier(.2,.9,.3,1.05);
+  animation: poDrawerIn .28s cubic-bezier(0.28, 0.11, 0.32, 1);
 }
 .po-nav-drawer.open { display: flex; }
 @keyframes poDrawerIn {
-  from { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 0; /* craft: no card lift */ }
   to { opacity: 1; transform: translateY(0); }
 }
 .po-nav-drawer a {
@@ -385,7 +385,7 @@ img[loading="lazy"] { content-visibility: auto; }
 /* --- Reserve sheet --- */
 .sheet-backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(6, 27, 14, 0.45); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity .35s ease; }
 .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 101; background: var(--bg); border-top-left-radius: 32px; border-top-right-radius: 32px; max-height: 92vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform .42s cubic-bezier(.2,.9,.3,1.05); box-shadow: 0 -32px 64px rgba(6,27,14,0.18); pointer-events: none; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 101; background: var(--bg); border-top-left-radius: 32px; border-top-right-radius: 32px; max-height: 92vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform .42s cubic-bezier(0.28, 0.11, 0.32, 1); box-shadow: 0 -32px 64px rgba(6,27,14,0.18); pointer-events: none; }
 .sheet.open { transform: translateY(0); pointer-events: auto; }
 @media (min-width: 900px) { .sheet { left: 50%; right: auto; bottom: 24px; transform: translateX(-50%) translateY(120%); width: min(640px, calc(100vw - 48px)); border-radius: 28px; max-height: min(86vh, 820px); } .sheet.open { transform: translateX(-50%) translateY(0); } }
 .sheet-grip { width: 36px; height: 4px; background: var(--surface-2); border-radius: 99px; margin: 12px auto 0; }
@@ -472,7 +472,7 @@ img[loading="lazy"] { content-visibility: auto; }
 .poc-dots span{ width: 7px; height: 7px; border-radius: 50%; background: rgba(6,27,14,.4); animation: pocBlink 1.2s infinite ease-in-out; }
 .poc-dots span:nth-child(2){ animation-delay: .2s; }
 .poc-dots span:nth-child(3){ animation-delay: .4s; }
-@keyframes pocBlink{ 0%,80%,100%{ opacity: .3; transform: translateY(0); } 40%{ opacity: 1; transform: translateY(-3px); } }
+@keyframes pocBlink{ 0%,80%,100%{ opacity: .3; transform: translateY(0); } 40%{ opacity: 1; /* craft: no card lift */ } }
 
 .poc-form{ display: flex; gap: 8px; align-items: center; padding: 12px 14px; border-top: 1px solid rgba(6,27,14,.06); background: #fff; }
 .poc-input{ flex: 1; border: 1px solid rgba(6,27,14,.08); border-radius: 999px; padding: 10px 16px; font: 500 13.5px/1.4 var(--ff-sans); color: var(--ink, #061b0e); outline: none; transition: border-color .15s ease; }
@@ -555,3 +555,65 @@ img[loading="lazy"] { content-visibility: auto; }
 .listing-card::after{ display: none; }
 
 .lc-badge:not(.organic):not(.usda):not([data-cert]){ background: rgba(251,249,245,.94); color: var(--brand, #061b0e); }
+
+/* ============================================================
+   SITEWIDE CRAFT LOCKDOWN — every page inherits quiet taste
+   ============================================================ */
+html { color-scheme: light; }
+body {
+  background: var(--bg, #fbf9f5);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Never bounce primary interactive chrome */
+.btn-xl:hover,
+.btn-pay:hover,
+.btn-primary:hover,
+.btn-submit:hover,
+.sheet-next:hover,
+.wiz-next:hover,
+.ds-go-btn:hover,
+.po-nav-actions button:hover,
+.po-nav-actions a.po-nav-cta:hover {
+  transform: none !important;
+}
+
+/* Cards: soft edge, no carnival lift */
+.product:hover,
+.listing-card:hover,
+.farm-card:hover,
+.farm-card-wrap:hover,
+.partner-card:hover,
+.share-card:hover,
+.sku:hover,
+.tier:hover,
+.qa:hover,
+.doc-card:hover,
+.screen-tile:hover,
+.next-card:hover {
+  transform: none !important;
+}
+
+/* Eyebrows / labels — restrained tracking sitewide when classed */
+.po-eyebrow,
+.section-eyebrow,
+.eye,
+[class*="-eyebrow"],
+[class*="eyebrow"] {
+  letter-spacing: 0.08em !important;
+  font-weight: 600 !important;
+}
+
+/* Prefer parchment badges over candy when both apply */
+.lc-badge.organic,
+.lc-badge.usda {
+  background: rgba(251,249,245,.94) !important;
+  color: var(--brand, #061b0e) !important;
+}
+
+/* Selection / focus rings stay brand forest, never neon */
+::selection {
+  background: rgba(6, 27, 14, 0.14);
+  color: inherit;
+}

@@ -20,7 +20,7 @@
   text-decoration: none; color: inherit;
   box-shadow: var(--sh-0); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
 }
-.screen-tile:hover { transform: translateY(-3px); box-shadow: var(--sh-3); }
+.screen-tile:hover { /* craft: no card lift */ box-shadow: var(--sh-3); }
 .screen-tile .label { font-size: var(--text-md); font-weight: 800; letter-spacing: var(--tracking-snug); }
 .screen-tile .url { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent-2); }
 .screen-tile .desc { font-size: var(--text-sm); color: var(--ink-2); margin-top: 2px; }
@@ -45,7 +45,7 @@
 <header class="glass-nav">
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
-      <a href="/" style="font-weight: 900; font-size: 16px; text-transform: uppercase; letter-spacing: -0.018em;">Protein Outfitters</a>
+      <a href="/" style="font-weight: 700; font-size: 14px; text-transform: none; letter-spacing: -0.018em;">Protein Outfitters</a>
       <span class="pill">All screens</span>
     </nav>
   </div>

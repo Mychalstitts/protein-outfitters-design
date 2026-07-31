@@ -25,15 +25,15 @@
 .confirmed-inner { max-width: 880px; margin: 0 auto; }
 .confirmed-hero { text-align: center; margin-bottom: clamp(48px, 6vw, 72px); }
 .confirmed-mark { width: 96px; height: 96px; border-radius: 50%; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; margin: 0 auto 24px; font-size: 44px; }
-.confirmed-h1 { margin: 0; font-size: clamp(40px, 5.5vw, 72px); letter-spacing: -0.035em; line-height: 0.96; font-weight: 900; color: var(--ink); }
+.confirmed-h1 { margin: 0; font-size: clamp(40px, 5.5vw, 72px); letter-spacing: -0.035em; line-height: 0.96; font-weight: 700; color: var(--ink); }
 .confirmed-sub { margin: 16px auto 0; max-width: 50ch; color: var(--ink-2); font-size: var(--po-lead); line-height: 1.5; }
 
 .summary-card { background: #fff; border-radius: 28px; padding: clamp(28px, 3vw, 40px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 28px; }
 .summary-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
-.summary-head .res-id { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
-.summary-head .res-num { font-size: 22px; font-weight: 900; letter-spacing: -0.022em; margin: 4px 0 0; }
-.summary-head .total-label { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); margin: 0; text-align: right; }
-.summary-head .total-num { font-size: 22px; font-weight: 900; letter-spacing: -0.022em; margin: 4px 0 0; text-align: right; color: var(--brand); }
+.summary-head .res-id { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+.summary-head .res-num { font-size: 22px; font-weight: 800; letter-spacing: -0.022em; margin: 4px 0 0; }
+.summary-head .total-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 0; text-align: right; }
+.summary-head .total-num { font-size: 22px; font-weight: 800; letter-spacing: -0.022em; margin: 4px 0 0; text-align: right; color: var(--brand); }
 .product-block { display: flex; gap: 18px; padding: 18px; background: var(--surface); border-radius: 18px; align-items: center; }
 .product-block-img { width: 84px; height: 84px; border-radius: 16px; background: url('/img/angus.jpg') center/cover; flex-shrink: 0; }
 .product-block h4 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.018em; }
@@ -42,8 +42,8 @@
 .next-grid { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 32px; }
 @media (min-width: 720px) { .next-grid { grid-template-columns: repeat(3, 1fr); } }
 .next-card { background: var(--surface); border-radius: 22px; padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; transition: transform .2s, background .2s; }
-.next-card:hover { transform: translateY(-3px); background: var(--surface-2); }
-.next-num { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; color: var(--ink-2); }
+.next-card:hover { /* craft: no card lift */ background: var(--surface-2); }
+.next-num { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: var(--ink-2); }
 .next-h { font-size: 18px; font-weight: 800; letter-spacing: -0.018em; margin: 0; }
 .next-p { font-size: 14px; color: var(--ink-2); line-height: 1.55; margin: 0; }
 .next-cta { font-size: 14px; font-weight: 700; color: var(--brand); margin-top: 4px; }
