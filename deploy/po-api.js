@@ -52,6 +52,24 @@
     createFarm: (data) => jsonFetch('/api/farms', { method: 'POST', body: data }),
     updateFarm: (slug, data) => jsonFetch('/api/farms?slug=' + encodeURIComponent(slug), { method: 'PATCH', body: data }),
 
+    // Social
+    socialPosts: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return jsonFetch('/api/social-posts' + (q ? '?' + q : ''));
+    },
+    createSocialPost: (data) => jsonFetch('/api/social-posts', { method: 'POST', body: data }),
+    deleteSocialPost: (id) => jsonFetch('/api/social-posts?id=' + encodeURIComponent(id), { method: 'DELETE' }),
+    socialFeed: (mode = 'network', limit = 40) =>
+      jsonFetch('/api/social-feed?mode=' + encodeURIComponent(mode) + '&limit=' + limit),
+    reactToPost: (post_id, emoji = 'heart') =>
+      jsonFetch('/api/social-reactions', { method: 'POST', body: { post_id, emoji } }),
+    socialComments: (post_id) =>
+      jsonFetch('/api/social-comments?post_id=' + encodeURIComponent(post_id)),
+    createSocialComment: (post_id, body) =>
+      jsonFetch('/api/social-comments', { method: 'POST', body: { post_id, body } }),
+    deleteSocialComment: (id) =>
+      jsonFetch('/api/social-comments?id=' + encodeURIComponent(id), { method: 'DELETE' }),
+
     // Multipart photo/PDF upload → Vercel Blob. Returns { ok, url, content_type, kind }.
     // Does not use jsonFetch (must not force Content-Type: application/json on FormData).
     upload: async (file, opts = {}) => {

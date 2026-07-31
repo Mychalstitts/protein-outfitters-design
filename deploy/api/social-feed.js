@@ -1,10 +1,14 @@
 // /api/social-feed — GET ?mode=following|network
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
+import { ensureSocialSchema } from './_lib/social.js';
 
 export const config = { runtime: 'nodejs' };
 
 async function handler(req) {
   if (req.method !== 'GET') return err(405, 'GET only');
+  try { await ensureSocialSchema(); } catch (e) {
+    return err(500, 'Social schema unavailable: ' + String(e.message || e).slice(0, 120));
+  }
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const mode = url.searchParams.get('mode') || 'following';
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '40', 10), 60);
@@ -91,6 +95,7 @@ async function handler(req) {
   return json({
     posts: rows.map(p => ({
       id: p.id,
+      author_id: p.author_id,
       author_name: p.author_name || (p.kind === 'milestone' ? 'Protein Outfitters' : 'Member'),
       author_avatar: p.author_avatar,
       subject_type: p.subject_type,
@@ -105,6 +110,7 @@ async function handler(req) {
       reaction_counts: reactMap[p.id] || {},
       my_reactions: myMap[p.id] || [],
       comment_count: cMap[p.id] || 0,
+      can_delete: !!(user && (user.id === p.author_id || user.role === 'admin') && p.kind !== 'milestone'),
     })),
   });
 }

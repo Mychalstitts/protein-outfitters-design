@@ -3,19 +3,31 @@
 //   POST { subject_type, subject_id, body, media_urls?, listing_id?, kind?, visibility? }
 //   DELETE ?id=
 import { sql, currentUser, err, json, isUuid, nodejsHandler } from './_lib/db.js';
+import { ensureSocialSchema } from './_lib/social.js';
 
 export const config = { runtime: 'nodejs' };
 
-async function canPostOn(user, subject_type, subject_id) {
+async function canPostOn(user, subject_type, subject_id, { allowCommunityNotes = false } = {}) {
   if (!user) return false;
   if (user.role === 'admin') return true;
   if (subject_type === 'farm') {
-    const r = await sql`SELECT 1 FROM farms WHERE id = ${subject_id} AND owner_id = ${user.id} LIMIT 1`;
-    return !!r[0];
+    const owner = await sql`SELECT 1 FROM farms WHERE id = ${subject_id} AND owner_id = ${user.id} LIMIT 1`;
+    if (owner[0]) return true;
+    // Signed-in members may leave a public community note on a farm wall
+    if (allowCommunityNotes) {
+      const exists = await sql`SELECT 1 FROM farms WHERE id = ${subject_id} LIMIT 1`;
+      return !!exists[0];
+    }
+    return false;
   }
   if (subject_type === 'processor') {
-    const r = await sql`SELECT 1 FROM processors WHERE id = ${subject_id} AND owner_id = ${user.id} LIMIT 1`;
-    return !!r[0];
+    const owner = await sql`SELECT 1 FROM processors WHERE id = ${subject_id} AND owner_id = ${user.id} LIMIT 1`;
+    if (owner[0]) return true;
+    if (allowCommunityNotes) {
+      const exists = await sql`SELECT 1 FROM processors WHERE id = ${subject_id} LIMIT 1`;
+      return !!exists[0];
+    }
+    return false;
   }
   if (subject_type === 'listing') {
     // Farm owner
@@ -113,6 +125,8 @@ async function enrichPosts(rows, user) {
     author_avatar: p.author_avatar || null,
     subject_type: p.subject_type,
     subject_id: p.subject_id,
+    subject_name: p.subject_name || null,
+    subject_slug: p.subject_slug || null,
     listing_id: p.listing_id,
     kind: p.kind,
     milestone: p.milestone,
@@ -123,10 +137,14 @@ async function enrichPosts(rows, user) {
     reaction_counts: reactMap[p.id] || {},
     my_reactions: myMap[p.id] || [],
     comment_count: cMap[p.id] || 0,
+    can_delete: !!(user && (user.id === p.author_id || user.role === 'admin') && p.kind !== 'milestone'),
   }));
 }
 
 async function handler(req) {
+  try { await ensureSocialSchema(); } catch (e) {
+    return err(500, 'Social schema unavailable: ' + String(e.message || e).slice(0, 120));
+  }
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const user = await currentUser(req);
 
@@ -175,8 +193,24 @@ async function handler(req) {
         ORDER BY p.created_at DESC
         LIMIT ${limit}`;
     } else {
+      // Global public network feed (community)
       rows = await sql`
-        SELECT p.*, u.name AS author_name, u.avatar_url AS author_avatar
+        SELECT p.*, u.name AS author_name, u.avatar_url AS author_avatar,
+               CASE
+                 WHEN p.subject_type = 'farm' THEN (SELECT name FROM farms WHERE id = p.subject_id)
+                 WHEN p.subject_type = 'processor' THEN (SELECT name FROM processors WHERE id = p.subject_id)
+                 WHEN p.subject_type = 'listing' THEN (
+                   SELECT COALESCE(l.number || ' · ', '') || COALESCE(l.breed, l.species, 'animal')
+                   FROM listings l WHERE l.id = p.subject_id
+                 )
+                 WHEN p.subject_type = 'user' THEN u.name
+                 ELSE NULL
+               END AS subject_name,
+               CASE
+                 WHEN p.subject_type = 'farm' THEN (SELECT slug FROM farms WHERE id = p.subject_id)
+                 WHEN p.subject_type = 'processor' THEN (SELECT slug FROM processors WHERE id = p.subject_id)
+                 ELSE NULL
+               END AS subject_slug
         FROM social_posts p
         LEFT JOIN users u ON u.id = p.author_id
         WHERE p.visibility = 'public'
@@ -217,8 +251,17 @@ async function handler(req) {
         return err(403, 'Thanks open after you have an active reservation on this animal');
       }
     } else {
-      const ok = await canPostOn(user, subject_type, subject_id);
-      if (!ok) return err(403, 'You can only post on profiles you own (or animals at your plant)');
+      // Farm/plant walls accept public notes from any signed-in member;
+      // listing cooler notes stay owner/plant-only; user posts = self only.
+      const allowCommunityNotes = (subject_type === 'farm' || subject_type === 'processor')
+        && kind !== 'milestone'
+        && (body.visibility !== 'participants');
+      const ok = await canPostOn(user, subject_type, subject_id, { allowCommunityNotes });
+      if (!ok) {
+        return err(403, subject_type === 'listing'
+          ? 'Only the ranch or plant can post on this animal journey'
+          : 'You can only post on your own profile or a real farm/plant wall');
+      }
     }
 
     const text = (body.body || '').trim();

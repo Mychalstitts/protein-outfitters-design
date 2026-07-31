@@ -1,11 +1,15 @@
 // /api/social-reactions — POST toggle heart; DELETE remove
 import { sql, currentUser, err, json, isUuid, nodejsHandler } from './_lib/db.js';
+import { ensureSocialSchema } from './_lib/social.js';
 
 export const config = { runtime: 'nodejs' };
 
 const ALLOWED = new Set(['heart', 'fire', 'clap', 'pray']);
 
 async function handler(req) {
+  try { await ensureSocialSchema(); } catch (e) {
+    return err(500, 'Social schema unavailable: ' + String(e.message || e).slice(0, 120));
+  }
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');

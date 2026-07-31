@@ -1,5 +1,6 @@
 /* ============================================================
-   PO Social — journey timelines + profile walls + following feed
+   PO Social — real posts, hearts, comments, photo upload
+   Walls (farm/plant), journey (listing), community feed
    ============================================================ */
 (function () {
   'use strict';
@@ -38,6 +39,15 @@
     return (name || '?').trim().charAt(0).toUpperCase();
   }
 
+  function subjectHref(p) {
+    if (p.subject_type === 'farm' && p.subject_slug) return '/farm/' + encodeURIComponent(p.subject_slug);
+    if (p.subject_type === 'processor' && p.subject_slug) return '/p/' + encodeURIComponent(p.subject_slug);
+    if (p.listing_id || (p.subject_type === 'listing' && p.subject_id)) {
+      return '/listing?id=' + encodeURIComponent(p.listing_id || p.subject_id);
+    }
+    return null;
+  }
+
   function renderPost(p, opts = {}) {
     const isMile = p.kind === 'milestone';
     const isThanks = p.kind === 'thanks';
@@ -45,7 +55,9 @@
     const hearts = (p.reaction_counts && p.reaction_counts.heart) || 0;
     const mine = (p.my_reactions || []).includes('heart');
     const media = (p.media_urls || []).map(u =>
-      `<img class="po-soc-media" src="${esc(u)}" alt="" loading="lazy" />`
+      `<a class="po-soc-media-link" href="${esc(u)}" target="_blank" rel="noopener">
+         <img class="po-soc-media" src="${esc(u)}" alt="" loading="lazy" />
+       </a>`
     ).join('');
     let chip = '';
     if (isMile && p.milestone) {
@@ -55,25 +67,35 @@
     } else if (isPrivate) {
       chip = `<span class="po-soc-chip po-soc-chip--private">Participants only</span>`;
     }
-    const subject = opts.showSubject && p.subject_name
-      ? `<span class="po-soc-subject"> · ${esc(p.subject_name)}</span>`
+    let subject = '';
+    if (opts.showSubject && p.subject_name) {
+      const href = subjectHref(p);
+      subject = href
+        ? `<a class="po-soc-subject" href="${esc(href)}"> · ${esc(p.subject_name)}</a>`
+        : `<span class="po-soc-subject"> · ${esc(p.subject_name)}</span>`;
+    }
+    const canDelete = !!p.can_delete;
+    const avatarStyle = p.author_avatar
+      ? ` style="background-image:url('${esc(p.author_avatar)}');background-size:cover;background-position:center"`
       : '';
 
     return `<article class="po-soc-post${isMile ? ' is-milestone' : ''}${isPrivate ? ' is-private' : ''}${isThanks ? ' is-thanks' : ''}" data-post-id="${esc(p.id)}">
-      <div class="po-soc-avatar" aria-hidden="true">${esc(initial(p.author_name))}</div>
+      <div class="po-soc-avatar"${avatarStyle} aria-hidden="true">${p.author_avatar ? '' : esc(initial(p.author_name))}</div>
       <div class="po-soc-body">
         <div class="po-soc-meta">
           <strong>${esc(p.author_name || 'Member')}</strong>${subject}
           <span class="po-soc-time">${esc(timeAgo(p.created_at))}</span>
           ${chip}
+          ${canDelete ? `<button type="button" class="po-soc-delete" data-delete="${esc(p.id)}" aria-label="Delete post">Delete</button>` : ''}
         </div>
         ${p.body ? `<p class="po-soc-text">${esc(p.body)}</p>` : ''}
         ${media ? `<div class="po-soc-media-row">${media}</div>` : ''}
         <div class="po-soc-actions">
-          <button type="button" class="po-soc-react${mine ? ' on' : ''}" data-react="${esc(p.id)}" aria-label="Appreciate">
-            ♥ <span data-count>${hearts || ''}</span>
+          <button type="button" class="po-soc-react${mine ? ' on' : ''}" data-react="${esc(p.id)}" aria-pressed="${mine ? 'true' : 'false'}" aria-label="Like">
+            <span class="po-soc-heart" aria-hidden="true">${mine ? '♥' : '♡'}</span>
+            <span data-count>${hearts || ''}</span>
           </button>
-          <button type="button" class="po-soc-comment-toggle" data-comments="${esc(p.id)}">
+          <button type="button" class="po-soc-comment-toggle" data-comments="${esc(p.id)}" aria-expanded="false">
             Comment${p.comment_count ? ' · ' + p.comment_count : ''}
           </button>
         </div>
@@ -82,28 +104,79 @@
     </article>`;
   }
 
-  function wirePostActions(root) {
+  async function apiJson(url, opts = {}) {
+    const r = await fetch(url, {
+      credentials: 'include',
+      headers: opts.body ? { 'Content-Type': 'application/json', ...(opts.headers || {}) } : (opts.headers || {}),
+      ...opts,
+      body: opts.body && typeof opts.body !== 'string' ? JSON.stringify(opts.body) : opts.body,
+    });
+    let data = null;
+    try { data = await r.json(); } catch { /* empty */ }
+    if (!r.ok) {
+      const e = new Error((data && data.error) || ('HTTP ' + r.status));
+      e.status = r.status;
+      e.data = data;
+      throw e;
+    }
+    return data;
+  }
+
+  function wirePostActions(root, { onChanged } = {}) {
     root.querySelectorAll('[data-react]').forEach(btn => {
       if (btn._wired) return;
       btn._wired = true;
       btn.addEventListener('click', async () => {
         const id = btn.dataset.react;
+        const wasOn = btn.classList.contains('on');
+        const countEl = btn.querySelector('[data-count]');
+        const heartEl = btn.querySelector('.po-soc-heart');
+        const prev = parseInt(countEl?.textContent || '0', 10) || 0;
+        // Optimistic
+        btn.classList.toggle('on', !wasOn);
+        btn.setAttribute('aria-pressed', wasOn ? 'false' : 'true');
+        if (heartEl) heartEl.textContent = wasOn ? '♡' : '♥';
+        if (countEl) {
+          const n = Math.max(0, prev + (wasOn ? -1 : 1));
+          countEl.textContent = n ? String(n) : '';
+        }
         try {
-          const r = await fetch('/api/social-reactions', {
+          const data = await apiJson('/api/social-reactions', {
             method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ post_id: id, emoji: 'heart' }),
+            body: { post_id: id, emoji: 'heart' },
           });
-          if (r.status === 401) {
-            window.PO_API?.openAuth?.('Sign in to appreciate this', 'buyer');
-            return;
-          }
-          const data = await r.json();
           btn.classList.toggle('on', !!data.reacted);
-          const c = btn.querySelector('[data-count]');
-          if (c) c.textContent = data.count ? String(data.count) : '';
-        } catch (_) { /* ignore */ }
+          btn.setAttribute('aria-pressed', data.reacted ? 'true' : 'false');
+          if (heartEl) heartEl.textContent = data.reacted ? '♥' : '♡';
+          if (countEl) countEl.textContent = data.count ? String(data.count) : '';
+        } catch (err) {
+          // roll back
+          btn.classList.toggle('on', wasOn);
+          btn.setAttribute('aria-pressed', wasOn ? 'true' : 'false');
+          if (heartEl) heartEl.textContent = wasOn ? '♥' : '♡';
+          if (countEl) countEl.textContent = prev ? String(prev) : '';
+          if (err.status === 401) {
+            window.PO_API?.openAuth?.('Sign in to like this', 'buyer', { next: location.pathname + location.hash });
+          }
+        }
+      });
+    });
+
+    root.querySelectorAll('[data-delete]').forEach(btn => {
+      if (btn._wired) return;
+      btn._wired = true;
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this post?')) return;
+        const id = btn.dataset.delete;
+        try {
+          await apiJson('/api/social-posts?id=' + encodeURIComponent(id), { method: 'DELETE' });
+          const article = btn.closest('.po-soc-post');
+          article?.remove();
+          onChanged?.();
+        } catch (err) {
+          if (err.status === 401) window.PO_API?.openAuth?.('Sign in to delete', 'buyer');
+          else alert(err.message || 'Could not delete');
+        }
       });
     });
 
@@ -114,48 +187,21 @@
         const id = btn.dataset.comments;
         const thread = root.querySelector(`[data-thread="${id}"]`);
         if (!thread) return;
-        if (!thread.hidden && thread.dataset.loaded) {
+
+        if (!thread.hidden && thread.dataset.open === '1') {
           thread.hidden = true;
+          thread.dataset.open = '0';
+          btn.setAttribute('aria-expanded', 'false');
           return;
         }
+
         thread.hidden = false;
-        thread.innerHTML = '<p class="po-soc-empty">Loading…</p>';
+        thread.dataset.open = '1';
+        btn.setAttribute('aria-expanded', 'true');
+        thread.innerHTML = '<p class="po-soc-empty">Loading comments…</p>';
+
         try {
-          const r = await fetch('/api/social-comments?post_id=' + encodeURIComponent(id), { credentials: 'include' });
-          const data = await r.json();
-          const comments = data.comments || [];
-          thread.dataset.loaded = '1';
-          thread.innerHTML = comments.map(c => `
-            <div class="po-soc-comment">
-              <strong>${esc(c.author_name)}</strong>
-              <span class="po-soc-time">${esc(timeAgo(c.created_at))}</span>
-              <p>${esc(c.body)}</p>
-            </div>`).join('') + `
-            <form class="po-soc-comment-form" data-post="${esc(id)}">
-              <input name="body" type="text" maxlength="1000" placeholder="Add a kind word…" required />
-              <button type="submit">Post</button>
-            </form>`;
-          thread.querySelector('form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = e.target.body;
-            const text = input.value.trim();
-            if (!text) return;
-            const res = await fetch('/api/social-comments', {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ post_id: id, body: text }),
-            });
-            if (res.status === 401) {
-              window.PO_API?.openAuth?.('Sign in to comment', 'buyer');
-              return;
-            }
-            if (!res.ok) return;
-            input.value = '';
-            delete thread.dataset.loaded;
-            btn.click();
-            btn.click();
-          });
+          await renderThread(thread, id, btn);
         } catch (_) {
           thread.innerHTML = '<p class="po-soc-empty">Could not load comments.</p>';
         }
@@ -163,12 +209,84 @@
     });
   }
 
+  async function renderThread(thread, postId, toggleBtn) {
+    const data = await apiJson('/api/social-comments?post_id=' + encodeURIComponent(postId));
+    const comments = data.comments || [];
+    const me = await window.PO_API?.me?.().catch(() => ({ user: null }));
+    const uid = me?.user?.id;
+
+    thread.innerHTML = `
+      <div class="po-soc-comment-list">
+        ${comments.length
+          ? comments.map(c => `
+            <div class="po-soc-comment" data-comment-id="${esc(c.id)}">
+              <div class="po-soc-comment-head">
+                <strong>${esc(c.author_name)}</strong>
+                <span class="po-soc-time">${esc(timeAgo(c.created_at))}</span>
+                ${uid && c.author_id === uid
+                  ? `<button type="button" class="po-soc-comment-del" data-del-comment="${esc(c.id)}">Delete</button>`
+                  : ''}
+              </div>
+              <p>${esc(c.body)}</p>
+            </div>`).join('')
+          : '<p class="po-soc-thread-empty">No comments yet — be the first.</p>'}
+      </div>
+      <form class="po-soc-comment-form" data-post="${esc(postId)}">
+        <input name="body" type="text" maxlength="1000" placeholder="Add a comment…" autocomplete="off" required />
+        <button type="submit">Post</button>
+      </form>
+      <p class="po-soc-status" data-cstatus></p>`;
+
+    if (toggleBtn) {
+      toggleBtn.textContent = 'Comment' + (comments.length ? ' · ' + comments.length : '');
+    }
+
+    thread.querySelectorAll('[data-del-comment]').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Delete this comment?')) return;
+        try {
+          await apiJson('/api/social-comments?id=' + encodeURIComponent(b.dataset.delComment), { method: 'DELETE' });
+          await renderThread(thread, postId, toggleBtn);
+        } catch (err) {
+          alert(err.message || 'Could not delete');
+        }
+      });
+    });
+
+    const form = thread.querySelector('form');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = form.body;
+      const text = (input.value || '').trim();
+      if (!text) return;
+      const status = thread.querySelector('[data-cstatus]');
+      const submit = form.querySelector('[type="submit"]');
+      submit.disabled = true;
+      try {
+        await apiJson('/api/social-comments', {
+          method: 'POST',
+          body: { post_id: postId, body: text },
+        });
+        input.value = '';
+        await renderThread(thread, postId, toggleBtn);
+      } catch (err) {
+        if (err.status === 401) {
+          window.PO_API?.openAuth?.('Sign in to comment', 'buyer', { next: location.pathname + location.hash });
+        } else if (status) {
+          status.textContent = err.message || 'Could not post comment';
+        }
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  }
+
   function composerHtml(placeholder, opts = {}) {
     const vis = opts.allowParticipants
       ? `<label class="po-soc-vis">
           <select name="visibility">
-            <option value="public">Public on journey</option>
-            <option value="participants">Participants only (cooler / floor)</option>
+            <option value="public">Public</option>
+            <option value="participants">Participants only</option>
           </select>
         </label>`
       : '';
@@ -176,13 +294,14 @@
       <textarea name="body" rows="3" maxlength="2000" placeholder="${esc(placeholder)}"></textarea>
       <div class="po-soc-composer-foot">
         <label class="po-soc-photo-btn">
-          <input type="file" name="photo" accept="image/*" hidden />
+          <input type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
           + Photo
         </label>
         <span class="po-soc-photo-name" data-photo-name></span>
         ${vis}
         <button type="submit" class="po-soc-submit">Share →</button>
       </div>
+      <div class="po-soc-photo-preview" data-photo-preview hidden></div>
       <p class="po-soc-status" data-status></p>
     </form>`;
   }
@@ -201,14 +320,26 @@
   }
 
   function wireComposer(form, { subjectType, subjectId, listingId, kind, onPosted, defaultVisibility }) {
-    let pendingUrl = null;
     const fileInput = form.querySelector('input[type="file"]');
     const nameEl = form.querySelector('[data-photo-name]');
+    const preview = form.querySelector('[data-photo-preview]');
     const status = form.querySelector('[data-status]');
+
     fileInput?.addEventListener('change', () => {
       const f = fileInput.files?.[0];
       if (nameEl) nameEl.textContent = f ? f.name : '';
+      if (preview) {
+        if (f && f.type.startsWith('image/')) {
+          const url = URL.createObjectURL(f);
+          preview.hidden = false;
+          preview.innerHTML = `<img src="${url}" alt="" />`;
+        } else {
+          preview.hidden = true;
+          preview.innerHTML = '';
+        }
+      }
     });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const body = form.body.value.trim();
@@ -224,15 +355,15 @@
       try {
         let media_urls = [];
         if (file) {
+          if (status) status.textContent = 'Uploading photo…';
           const url = await uploadPhoto(file);
           if (url) media_urls = [url];
-        } else if (pendingUrl) media_urls = [pendingUrl];
+        }
         const visibility = form.visibility?.value || defaultVisibility || 'public';
-        const r = await fetch('/api/social-posts', {
+        if (status) status.textContent = 'Posting…';
+        const data = await apiJson('/api/social-posts', {
           method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          body: {
             subject_type: subjectType,
             subject_id: subjectId,
             listing_id: listingId || undefined,
@@ -241,26 +372,21 @@
             kind: kind || (media_urls.length ? 'photo' : 'update'),
             visibility,
             cooler: visibility === 'participants',
-          }),
+          },
         });
-        if (r.status === 401) {
-          window.PO_API?.openAuth?.('Sign in to post', 'buyer');
-          return;
-        }
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(data.error || 'Could not post');
         form.body.value = '';
         if (fileInput) fileInput.value = '';
         if (nameEl) nameEl.textContent = '';
-        pendingUrl = null;
-        if (status) {
-          status.textContent = visibility === 'participants'
-            ? 'Shared with participants only (buyers, farm, plant).'
-            : 'Shared.';
-        }
+        if (preview) { preview.hidden = true; preview.innerHTML = ''; }
+        if (status) status.textContent = 'Shared.';
         onPosted?.(data.post);
       } catch (err) {
-        if (status) status.textContent = err.message;
+        if (err.status === 401) {
+          window.PO_API?.openAuth?.('Sign in to post', 'buyer', { next: location.pathname + location.hash });
+          if (status) status.textContent = 'Sign in required to post.';
+        } else if (status) {
+          status.textContent = err.message || 'Could not post';
+        }
       } finally {
         btn.disabled = false;
         btn.textContent = 'Share →';
@@ -270,11 +396,33 @@
 
   async function mountWall(el, opts = {}) {
     if (!el) return;
-    const { subjectType, subjectId, canPost = false, emptyText } = opts;
+    const { subjectType, subjectId, canPost = false, emptyText, allowVisitorNote = false } = opts;
     el.classList.add('po-soc');
+
+    // Anyone signed in can post a public note on farm/plant walls.
+    // Owners get the same composer (canPost flag used for placeholder copy).
+    let me = { user: null };
+    try { me = await window.PO_API?.me?.() || { user: null }; } catch { me = { user: null }; }
+    const signedIn = !!me.user;
+    const openWall = (subjectType === 'farm' || subjectType === 'processor');
+    const showComposer = canPost || (openWall && signedIn) || allowVisitorNote;
+
+    let note = '';
+    if (!signedIn && openWall) {
+      note = `<p class="po-soc-hint"><button type="button" class="po-soc-signin-inline" data-signin>Sign in</button> to post, like, and comment on this wall.</p>`;
+    } else if (signedIn && openWall && !canPost) {
+      note = `<p class="po-soc-hint">Leave a public note — the ranch will see it here.</p>`;
+    }
+
     el.innerHTML = `
-      ${canPost ? composerHtml(opts.placeholder || "What's happening on the land today?") : ''}
-      <div class="po-soc-list" data-list><p class="po-soc-empty">Loading community…</p></div>`;
+      ${note}
+      ${showComposer ? composerHtml(opts.placeholder || (canPost ? "What's happening on the land today?" : 'Leave a note for this ranch…')) : ''}
+      <div class="po-soc-list" data-list><p class="po-soc-empty">Loading…</p></div>`;
+
+    el.querySelector('[data-signin]')?.addEventListener('click', () => {
+      window.PO_API?.openAuth?.('Sign in for community', 'buyer', { next: location.pathname + location.hash });
+    });
+
     const list = el.querySelector('[data-list]');
     const form = el.querySelector('.po-soc-composer');
     if (form) {
@@ -284,21 +432,20 @@
         onPosted: () => mountWall(el, opts),
       });
     }
+
     try {
-      const r = await fetch(
-        `/api/social-posts?subject_type=${encodeURIComponent(subjectType)}&subject_id=${encodeURIComponent(subjectId)}&limit=40`,
-        { credentials: 'include' }
+      const data = await apiJson(
+        `/api/social-posts?subject_type=${encodeURIComponent(subjectType)}&subject_id=${encodeURIComponent(subjectId)}&limit=40`
       );
-      const data = await r.json();
       const posts = data.posts || [];
       if (!posts.length) {
         list.innerHTML = `<p class="po-soc-empty">${esc(emptyText || 'No posts yet — be the first voice here.')}</p>`;
         return;
       }
       list.innerHTML = posts.map(p => renderPost(p)).join('');
-      wirePostActions(list);
-    } catch (_) {
-      list.innerHTML = '<p class="po-soc-empty">Community feed unavailable.</p>';
+      wirePostActions(list, { onChanged: () => mountWall(el, opts) });
+    } catch (err) {
+      list.innerHTML = `<p class="po-soc-empty">${esc(err.message || 'Community feed unavailable.')}</p>`;
     }
   }
 
@@ -334,45 +481,34 @@
       const body = msg.trim();
       if (!body) return;
       try {
-        const r = await fetch('/api/social-posts', {
+        await apiJson('/api/social-posts', {
           method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          body: {
             subject_type: 'listing',
             subject_id: listingId,
             listing_id: listingId,
             kind: 'thanks',
             body,
             visibility: 'public',
-          }),
+          },
         });
-        if (r.status === 401) {
-          window.PO_API?.openAuth?.('Sign in to say thanks', 'buyer');
-          return;
-        }
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(data.error || 'Could not post');
         mountJourney(el, opts);
       } catch (err) {
-        alert(err.message);
+        if (err.status === 401) window.PO_API?.openAuth?.('Sign in to say thanks', 'buyer');
+        else alert(err.message);
       }
     });
     try {
-      const r = await fetch(
-        `/api/social-posts?listing_id=${encodeURIComponent(listingId)}&limit=50`,
-        { credentials: 'include' }
-      );
-      const data = await r.json();
+      const data = await apiJson(`/api/social-posts?listing_id=${encodeURIComponent(listingId)}&limit=50`);
       const posts = data.posts || [];
       if (!posts.length) {
         list.innerHTML = `<p class="po-soc-empty">When this animal sells and heads to the plant, the journey appears here.</p>`;
         return;
       }
       list.innerHTML = posts.map(p => renderPost(p)).join('');
-      wirePostActions(list);
-    } catch (_) {
-      list.innerHTML = '<p class="po-soc-empty">Journey unavailable.</p>';
+      wirePostActions(list, { onChanged: () => mountJourney(el, opts) });
+    } catch (err) {
+      list.innerHTML = `<p class="po-soc-empty">${esc(err.message || 'Journey unavailable.')}</p>`;
     }
   }
 
@@ -380,29 +516,64 @@
     if (!el) return;
     const mode = opts.mode || 'network';
     el.classList.add('po-soc');
-    el.innerHTML = `<div class="po-soc-list" data-list><p class="po-soc-empty">Loading…</p></div>`;
+
+    let me = { user: null };
+    try { me = await window.PO_API?.me?.() || { user: null }; } catch { me = { user: null }; }
+
+    const composer = me.user
+      ? composerHtml(opts.placeholder || 'Share an update with the Protein Outfitters community…')
+      : `<div class="po-soc-signin-card">
+           <p>Sign in to post, like, and comment.</p>
+           <button type="button" class="po-soc-signin" data-feed-signin>Sign in →</button>
+         </div>`;
+
+    el.innerHTML = `
+      ${composer}
+      <div class="po-soc-list" data-list><p class="po-soc-empty">Loading…</p></div>`;
+
+    el.querySelector('[data-feed-signin]')?.addEventListener('click', () => {
+      window.PO_API?.openAuth?.('Sign in for your community feed', 'buyer', { next: '/community' });
+    });
+
+    const form = el.querySelector('.po-soc-composer');
+    if (form && me.user) {
+      wireComposer(form, {
+        subjectType: 'user',
+        subjectId: me.user.id,
+        onPosted: () => mountFeed(el, opts),
+      });
+    }
+
     const list = el.querySelector('[data-list]');
     try {
-      const r = await fetch(`/api/social-feed?mode=${encodeURIComponent(mode)}&limit=40`, { credentials: 'include' });
-      if (r.status === 401 && mode === 'following') {
-        list.innerHTML = `<p class="po-soc-empty">Sign in to see ranches and plants you follow. <button type="button" class="po-soc-signin">Sign in</button></p>`;
-        list.querySelector('.po-soc-signin')?.addEventListener('click', () => {
-          window.PO_API?.openAuth?.('Sign in for your community feed', 'buyer', { next: location.pathname });
-        });
-        return;
+      let data;
+      if (mode === 'following') {
+        const r = await fetch(`/api/social-feed?mode=following&limit=40`, { credentials: 'include' });
+        if (r.status === 401) {
+          list.innerHTML = `<p class="po-soc-empty">Sign in to see ranches and plants you follow.
+            <button type="button" class="po-soc-signin" data-follow-signin>Sign in</button></p>`;
+          list.querySelector('[data-follow-signin]')?.addEventListener('click', () => {
+            window.PO_API?.openAuth?.('Sign in for your community feed', 'buyer', { next: '/community' });
+          });
+          return;
+        }
+        data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Feed failed');
+      } else {
+        // Network = all public posts
+        data = await apiJson('/api/social-posts?limit=40');
       }
-      const data = await r.json();
       const posts = data.posts || [];
       if (!posts.length) {
         list.innerHTML = `<p class="po-soc-empty">${mode === 'following'
-          ? 'Follow ranches and plants to fill this feed — or reserve an animal to join its journey.'
-          : 'No community posts yet. Farms and plants will share here as animals move.'}</p>`;
+          ? 'Follow ranches and plants to fill this feed — or open Network to see public posts.'
+          : 'No community posts yet. Be the first to share an update above.'}</p>`;
         return;
       }
       list.innerHTML = posts.map(p => renderPost(p, { showSubject: true })).join('');
-      wirePostActions(list);
-    } catch (_) {
-      list.innerHTML = '<p class="po-soc-empty">Feed unavailable.</p>';
+      wirePostActions(list, { onChanged: () => mountFeed(el, opts) });
+    } catch (err) {
+      list.innerHTML = `<p class="po-soc-empty">${esc(err.message || 'Feed unavailable.')}</p>`;
     }
   }
 

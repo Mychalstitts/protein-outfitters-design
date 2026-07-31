@@ -1,6 +1,83 @@
 // Social layer helpers — milestones + safe best-effort emit.
 // Never throw into the calling request path; lifecycle must stay intact.
-import { sql } from './db.js';
+import { sql, rawQuery } from './db.js';
+
+// Lazy DDL so production can accept posts/likes/comments even if /api/migrate
+// hasn't been run since the social layer landed.
+let _socialSchemaReady = null;
+export async function ensureSocialSchema() {
+  if (_socialSchemaReady) return _socialSchemaReady;
+  _socialSchemaReady = (async () => {
+    const stmts = [
+      `CREATE TABLE IF NOT EXISTS farm_follows (
+         user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+         farm_id    UUID NOT NULL REFERENCES farms(id) ON DELETE CASCADE,
+         created_at TIMESTAMPTZ DEFAULT NOW(),
+         PRIMARY KEY (user_id, farm_id)
+       )`,
+      `CREATE INDEX IF NOT EXISTS farm_follows_farm_idx ON farm_follows(farm_id)`,
+      `CREATE TABLE IF NOT EXISTS entity_follows (
+         user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+         subject_type TEXT NOT NULL CHECK (subject_type IN ('farm','processor')),
+         subject_id   UUID NOT NULL,
+         created_at   TIMESTAMPTZ DEFAULT NOW(),
+         PRIMARY KEY (user_id, subject_type, subject_id)
+       )`,
+      `CREATE INDEX IF NOT EXISTS entity_follows_subject_idx ON entity_follows(subject_type, subject_id)`,
+      `CREATE TABLE IF NOT EXISTS social_posts (
+         id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+         author_id    UUID REFERENCES users(id) ON DELETE SET NULL,
+         subject_type TEXT NOT NULL CHECK (subject_type IN ('farm','processor','listing','user')),
+         subject_id   UUID NOT NULL,
+         listing_id   UUID REFERENCES listings(id) ON DELETE CASCADE,
+         kind         TEXT NOT NULL DEFAULT 'update'
+                      CHECK (kind IN ('update','photo','milestone','thanks')),
+         milestone    TEXT,
+         body         TEXT,
+         media_urls   TEXT[] DEFAULT '{}',
+         visibility   TEXT NOT NULL DEFAULT 'public'
+                      CHECK (visibility IN ('public','followers','participants')),
+         created_at   TIMESTAMPTZ DEFAULT NOW(),
+         updated_at   TIMESTAMPTZ DEFAULT NOW()
+       )`,
+      `CREATE INDEX IF NOT EXISTS social_posts_subject_idx ON social_posts(subject_type, subject_id, created_at DESC)`,
+      `CREATE INDEX IF NOT EXISTS social_posts_listing_idx ON social_posts(listing_id, created_at DESC)`,
+      `CREATE INDEX IF NOT EXISTS social_posts_author_idx ON social_posts(author_id, created_at DESC)`,
+      `CREATE TABLE IF NOT EXISTS social_reactions (
+         post_id    UUID NOT NULL REFERENCES social_posts(id) ON DELETE CASCADE,
+         user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+         emoji      TEXT NOT NULL DEFAULT 'heart'
+                    CHECK (emoji IN ('heart','fire','clap','pray')),
+         created_at TIMESTAMPTZ DEFAULT NOW(),
+         PRIMARY KEY (post_id, user_id, emoji)
+       )`,
+      `CREATE INDEX IF NOT EXISTS social_reactions_post_idx ON social_reactions(post_id)`,
+      `CREATE TABLE IF NOT EXISTS social_comments (
+         id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+         post_id    UUID NOT NULL REFERENCES social_posts(id) ON DELETE CASCADE,
+         author_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+         body       TEXT NOT NULL,
+         created_at TIMESTAMPTZ DEFAULT NOW()
+       )`,
+      `CREATE INDEX IF NOT EXISTS social_comments_post_idx ON social_comments(post_id, created_at)`,
+    ];
+    for (const s of stmts) {
+      try { await rawQuery(s); } catch (e) {
+        // Don't cache a partial failure — retry next request
+        _socialSchemaReady = null;
+        throw e;
+      }
+    }
+    return true;
+  })();
+  try {
+    await _socialSchemaReady;
+  } catch (e) {
+    _socialSchemaReady = null;
+    throw e;
+  }
+  return true;
+}
 
 export const MILESTONE_COPY = {
   listed: (ctx) => (ctx.label ? `${ctx.label} is now reserving.` : 'A new animal is reserving.'),

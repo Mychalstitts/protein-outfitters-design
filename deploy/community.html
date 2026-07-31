@@ -5,29 +5,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Community · Protein Outfitters</title>
-<meta name="description" content="Follow ranches and plants. Walk the journey from pasture to freezer with the people who raise and cut your meat." />
+<meta name="description" content="Follow ranches and plants. Post updates, like, and comment — real community around real animals." />
 <meta property="og:title" content="Community · Protein Outfitters" />
 <meta property="og:description" content="Stories from ranches, plants, and the animals you reserve." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css" />
 <link rel="stylesheet" href="/po-shell.css" />
 <link rel="stylesheet" href="/po-social.css" />
 <style>
-  body { background: var(--parchment, #fbf9f5); }
-  .cm-shell { max-width: 720px; margin: 0 auto; padding: 32px var(--shell-pad, 20px) 80px; }
-  .cm-head { margin-bottom: 22px; }
-  .cm-head h1 { margin: 0 0 8px; font: 800 clamp(32px, 5vw, 48px)/1.05 'Inter'; letter-spacing: -0.03em; }
-  .cm-head p { margin: 0; font: 500 15px/1.5 'Inter'; color: var(--ink-2, #5a6359); max-width: 48ch; }
-  .cm-modes { display: flex; gap: 6px; padding: 4px; background: rgba(6,27,14,.05); border-radius: 999px; margin-bottom: 18px; width: fit-content; }
+  body { background: var(--bg, #fbf9f5); margin: 0; }
+  .cm-shell { max-width: 680px; margin: 0 auto; padding: 28px var(--shell-pad, 20px) 100px; }
+  .cm-head { margin-bottom: 20px; }
+  .cm-head .eye {
+    font: 600 11px/1 'Inter'; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-3, #8b9590); margin: 0 0 10px;
+  }
+  .cm-head h1 {
+    margin: 0 0 8px;
+    font: 700 clamp(28px, 5vw, 40px)/1.08 'Inter'; letter-spacing: -0.03em;
+    color: var(--ink, #061b0e);
+  }
+  .cm-head p {
+    margin: 0; font: 500 15px/1.5 'Inter';
+    color: var(--ink-2, #5a6359); max-width: 46ch;
+  }
+  .cm-modes {
+    display: flex; gap: 4px; padding: 4px;
+    background: rgba(6,27,14,.05); border-radius: 999px;
+    margin: 0 0 18px; width: fit-content; max-width: 100%;
+  }
   .cm-modes button {
     border: 0; background: transparent; cursor: pointer;
-    padding: 9px 16px; border-radius: 999px; font: 700 13px/1 'Inter'; color: var(--ink-2, #5a6359);
+    padding: 10px 16px; border-radius: 999px;
+    font: 600 13px/1 'Inter'; color: var(--ink-2, #5a6359);
   }
   .cm-modes button.active { background: #061b0e; color: #fbf9f5; }
+  #cmFeed { min-height: 200px; }
+  #cmFeed.po-soc {
+    background: #fff;
+    border: 1px solid rgba(6,27,14,.06);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  #cmFeed .po-soc-composer {
+    margin: 0; border: 0; border-radius: 0;
+    border-bottom: 1px solid rgba(6,27,14,.06);
+    box-shadow: none;
+  }
+  #cmFeed .po-soc-list { margin: 0; }
+  #cmFeed .po-soc-empty { border: 0; border-radius: 0; background: transparent; }
+  #cmFeed .po-soc-signin-card {
+    padding: 20px 22px; border-bottom: 1px solid rgba(6,27,14,.06);
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+  }
+  #cmFeed .po-soc-signin-card p { margin: 0; font: 500 14px/1.45 'Inter'; color: var(--ink-2); }
 </style>
 </head>
 <body>
 <div class="po-nav-wrap">
-  <nav class="po-nav">
+  <nav class="po-nav" aria-label="Primary">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
     <div class="po-nav-links">
       <a href="/discover">Browse</a>
@@ -35,37 +74,51 @@
       <a href="/producers">Farms</a>
       <a href="/#partners">For partners</a>
     </div>
-    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/discover">Browse animals</a></div>
+    <div class="po-nav-actions">
+      <a href="/account" class="signin">Sign in</a>
+      <a class="po-nav-cta" href="/discover">Browse animals</a>
+    </div>
   </nav>
 </div>
 
 <main class="cm-shell">
-  <div class="cm-head">
-    <p class="po-eyebrow" style="font:800 11px/1 'Inter';letter-spacing: 0.08em;text-transform:uppercase;color:var(--ink-2);margin:0 0 10px;">Belonging</p>
+  <header class="cm-head">
+    <p class="eye">Community</p>
     <h1>People, pastures, plants.</h1>
-    <p>Follow the ranches you trust and walk each animal’s journey — from grass to check-in to freezer.</p>
+    <p>Post updates, like, and comment. Follow ranches you trust — or browse the whole network.</p>
+  </header>
+  <div class="cm-modes" role="tablist" aria-label="Feed mode">
+    <button type="button" data-mode="network" class="active" role="tab" aria-selected="true">Network</button>
+    <button type="button" data-mode="following" role="tab" aria-selected="false">Following</button>
   </div>
-  <div class="cm-modes" role="tablist">
-    <button type="button" class="active" data-mode="following">Following</button>
-    <button type="button" data-mode="network">Network</button>
-  </div>
-  <div id="cmFeed"></div>
+  <div id="cmFeed" aria-live="polite"></div>
 </main>
-<div data-po-footer></div>
-<script src="/po-shell.js"></script>
+
+<div id="po-shell-host"></div>
 <script src="/po-api.js"></script>
+<script src="/po-shell.js"></script>
 <script src="/po-social.js"></script>
 <script>
 (function () {
   const feed = document.getElementById('cmFeed');
-  let mode = 'following';
+  // Default to network so visitors see real posts without signing in
+  let mode = 'network';
   function load() {
-    if (window.PO_SOCIAL) window.PO_SOCIAL.mountFeed(feed, { mode });
+    if (!window.PO_SOCIAL) {
+      feed.innerHTML = '<p class="po-soc-empty" style="padding:32px;text-align:center;">Loading community…</p>';
+      setTimeout(load, 80);
+      return;
+    }
+    window.PO_SOCIAL.mountFeed(feed, { mode });
   }
   document.querySelectorAll('.cm-modes button').forEach(b => {
     b.addEventListener('click', () => {
       mode = b.dataset.mode;
-      document.querySelectorAll('.cm-modes button').forEach(x => x.classList.toggle('active', x === b));
+      document.querySelectorAll('.cm-modes button').forEach(x => {
+        const on = x === b;
+        x.classList.toggle('active', on);
+        x.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
       load();
     });
   });
