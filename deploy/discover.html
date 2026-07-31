@@ -88,24 +88,24 @@
     .sort-select:focus{ outline: none; border-color: var(--ink); }
 
     .listing-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-    .listing-card{ background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--filter-border); transition: all .25s var(--ease-spring); cursor: pointer; display: flex; flex-direction: column; }
-    .listing-card:hover{ transform: translateY(-4px); box-shadow: 0 16px 40px rgba(6,27,14,.12); }
+    .listing-card{ background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--filter-border); transition: box-shadow .22s ease, border-color .22s ease; cursor: pointer; display: flex; flex-direction: column; }
+    .listing-card:hover{ box-shadow: 0 8px 24px rgba(6,27,14,.08); border-color: rgba(6,27,14,.12); }
     .lc-photo-wrap{ position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--chip-bg); }
-    .lc-photo{ width: 100%; height: 100%; object-fit: cover; transition: transform .4s var(--ease-spring); }
-    .listing-card:hover .lc-photo{ transform: scale(1.04); }
-    .lc-heart{ position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.9); border: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s var(--ease-spring); backdrop-filter: blur(8px); }
-    .lc-heart svg{ width: 18px; height: 18px; color: var(--ink); }
-    .lc-heart:hover{ transform: scale(1.1); background: #fff; }
-    .lc-heart.saved svg{ color: #c2415a; fill: #c2415a; }
+    .lc-photo{ width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+    .listing-card:hover .lc-photo{ transform: scale(1.02); }
+    .lc-heart{ position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: rgba(251,249,245,.94); border: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s ease; backdrop-filter: blur(10px); }
+    .lc-heart svg{ width: 17px; height: 17px; color: var(--ink); }
+    .lc-heart:hover{ background: #fff; }
+    .lc-heart.saved svg{ color: #061b0e; fill: #061b0e; }
     .lc-badges{ position: absolute; top: 12px; left: 12px; display: flex; flex-wrap: wrap; gap: 5px; max-width: calc(100% - 60px); }
-    .lc-badge{ background: rgba(255,255,255,.92); backdrop-filter: blur(8px); padding: 4px 9px; border-radius: 999px; font: 700 10px/1 var(--ff-sans); letter-spacing: .04em; color: var(--ink); display: inline-flex; align-items: center; gap: 3px; }
+    .lc-badge{ background: rgba(251,249,245,.94); backdrop-filter: blur(10px); padding: 4px 9px; border-radius: 999px; font: 600 10px/1 var(--ff-sans); letter-spacing: .04em; color: var(--brand); display: inline-flex; align-items: center; gap: 3px; }
     .lc-badge svg{ width: 10px; height: 10px; }
-    .lc-badge.organic{ background: rgba(125,160,93,.95); color: #fff; }
-    .lc-badge.usda{ background: rgba(193,53,55,.95); color: #fff; }
+    .lc-badge.organic{ background: rgba(251,249,245,.94); color: var(--brand); }
+    .lc-badge.usda{ background: rgba(251,249,245,.94); color: var(--brand); }
     .lc-body{ padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
     .lc-row1{ display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-    .lc-name{ font: 700 16px/1.25 var(--ff-sans); color: var(--ink); }
-    .lc-price{ font: 700 16px/1 var(--ff-sans); color: var(--ink); white-space: nowrap; }
+    .lc-name{ font: 600 15.5px/1.3 var(--ff-sans); color: var(--ink); letter-spacing: -0.015em; }
+    .lc-price{ font: 600 15px/1 var(--ff-sans); color: var(--ink); white-space: nowrap; }
     .lc-price em{ font-weight: 500; font-style: normal; opacity: .55; font-size: 12px; }
     .lc-farm{ font: 500 12.5px/1.3 var(--ff-sans); opacity: .6; }
     .lc-farm a{ color: inherit; text-decoration: none; }

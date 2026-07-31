@@ -38,8 +38,8 @@
 
 /* Producer cards */
 .farm-grid { display: grid; gap: clamp(20px, 2vw, 28px); grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-.farm-card { background: #fff; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s; }
-.farm-card:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(0,0,0,0.10); }
+.farm-card { background: #fff; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; border: 1px solid rgba(6,27,14,.06); box-shadow: none; transition: box-shadow .22s ease, border-color .22s ease; }
+.farm-card:hover { box-shadow: 0 8px 24px rgba(6,27,14,.08); border-color: rgba(6,27,14,.1); }
 .farm-cover { aspect-ratio: 16/10; background-color: #1a0d08; background-size: cover; background-position: center; position: relative; }
 .farm-avatar { position: absolute; bottom: -28px; left: 22px; width: 64px; height: 64px; border-radius: 18px; background: #fff; padding: 4px; box-shadow: 0 8px 18px rgba(0,0,0,0.16); }
 .farm-avatar > div { width: 100%; height: 100%; border-radius: 14px; background-size: cover; background-position: center; }
@@ -53,23 +53,23 @@
 .farm-tag { background: var(--accent-soft); color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
 .farm-live-pill {
   position: absolute; top: 14px; left: 14px; z-index: 2;
-  background: rgba(125,160,93,.95); color: #061b0e; font: 800 11px/1 'Inter';
-  letter-spacing: .04em; text-transform: uppercase; padding: 7px 11px; border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(6,27,14,.18);
+  background: rgba(251,249,245,.94); color: #061b0e; font: 600 11px/1 'Inter';
+  letter-spacing: .04em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px;
+  backdrop-filter: blur(10px);
 }
 .farm-card-ctas {
   display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 22px; margin-top: -4px;
 }
 .farm-card-ctas a {
   display: inline-flex; align-items: center; padding: 9px 14px; border-radius: 999px;
-  font: 700 12.5px/1 'Inter'; text-decoration: none;
+  font: 600 12.5px/1 'Inter'; text-decoration: none;
 }
 .farm-card-ctas .cta-primary { background: #061b0e; color: #fbf9f5; }
-.farm-card-ctas .cta-ghost { background: transparent; color: #061b0e; border: 1.5px solid rgba(6,27,14,.12); }
-.farm-card-wrap { background: #fff; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
-  transition: transform .35s cubic-bezier(.2,.9,.3,1.4), box-shadow .35s; }
-.farm-card-wrap:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(0,0,0,0.10); }
+.farm-card-ctas .cta-ghost { background: transparent; color: #061b0e; border: 1px solid rgba(6,27,14,.12); }
+.farm-card-wrap { background: #fff; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column;
+  border: 1px solid rgba(6,27,14,.06); box-shadow: none;
+  transition: box-shadow .22s ease, border-color .22s ease; }
+.farm-card-wrap:hover { box-shadow: 0 8px 24px rgba(6,27,14,.08); border-color: rgba(6,27,14,.1); }
 .farm-card-wrap .farm-cover-link { display: block; text-decoration: none; color: inherit; flex: 1; }
 
 /* Hero map embed */
