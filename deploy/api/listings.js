@@ -28,7 +28,7 @@ async function handler(req) {
 async function listListings(url) {
   const species = url.searchParams.get('species');
   const status = url.searchParams.get('status') || 'active';
-  const limit = Math.min(parseInt(url.searchParams.get('limit') || '60'), 200);
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '100', 10) || 100, 300);
 
   let rows;
   if (species && species !== 'all') {
@@ -66,6 +66,30 @@ async function listListings(url) {
   return json({ listings: rows });
 }
 
+const ALLOWED_SPECIES = new Set(['cattle', 'hog', 'lamb', 'sheep', 'poultry', 'bison', 'goat', 'venison']);
+const ALLOWED_STATUS = new Set(['active', 'draft', 'withdrawn']);
+const SHARE_KEYS = ['whole', 'half', 'quarter', 'eighth'];
+
+function normalizeShares(raw, pricePerLb) {
+  const base = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+  const defaults = {
+    whole:   { available: 1, reserved: 0, price: pricePerLb },
+    half:    { available: 2, reserved: 0, price: pricePerLb },
+    quarter: { available: 4, reserved: 0, price: pricePerLb },
+  };
+  const out = {};
+  for (const key of SHARE_KEYS) {
+    const src = base[key] || defaults[key];
+    if (!src) continue;
+    const price = Number(src.price ?? pricePerLb ?? 0);
+    const available = Math.max(0, Math.min(32, parseInt(src.available ?? defaults[key]?.available ?? 0, 10) || 0));
+    const reserved = Math.max(0, parseInt(src.reserved ?? 0, 10) || 0);
+    if (!Number.isFinite(price) || price < 0) continue;
+    out[key] = { available, reserved, price: Math.round(price * 100) / 100 };
+  }
+  return out;
+}
+
 async function createListing(req) {
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
@@ -77,27 +101,53 @@ async function createListing(req) {
   if (!body.farm_id) return err(400, 'farm_id required');
   if (!body.species) return err(400, 'species required');
 
+  const species = String(body.species).toLowerCase().trim();
+  if (!ALLOWED_SPECIES.has(species)) {
+    return err(400, `species must be one of: ${[...ALLOWED_SPECIES].join(', ')}`);
+  }
+
   // Verify farm ownership
   const farms = await sql`SELECT id FROM farms WHERE id = ${body.farm_id} AND owner_id = ${user.id} LIMIT 1`;
   if (!farms[0]) return err(403, 'You do not own that farm');
 
-  const number = body.number || null;
-  const breed = body.breed || null;
-  const sex = body.sex || null;
+  const number = body.number ? String(body.number).slice(0, 64) : null;
+  const breed = body.breed ? String(body.breed).slice(0, 120) : null;
+  const sex = body.sex ? String(body.sex).toLowerCase().slice(0, 40) : null;
   const birth_date = body.birth_date || null;
   const expected_finish_date = body.expected_finish_date || null;
-  const current_weight = body.current_weight || null;
-  const estimated_finish_weight = body.estimated_finish_weight || null;
-  const estimated_hanging_weight = body.estimated_hanging_weight || null;
-  const price_per_lb = body.price_per_lb || null;
-  const description = body.description || null;
-  const practice = body.practice || [];
-  const certs = body.certs || [];
-  const shares = body.shares || {};
-  const photos = body.photos || [];
-  const status = body.status || 'active';
+  const current_weight = body.current_weight != null ? Number(body.current_weight) : null;
+  const estimated_finish_weight = body.estimated_finish_weight != null ? Number(body.estimated_finish_weight) : null;
+  const estimated_hanging_weight = body.estimated_hanging_weight != null ? Number(body.estimated_hanging_weight) : null;
+  const price_per_lb = body.price_per_lb != null ? Number(body.price_per_lb) : null;
+  const description = body.description ? String(body.description).slice(0, 4000) : null;
+  const practice = Array.isArray(body.practice) ? body.practice.map(String).slice(0, 20) : [];
+  const certs = Array.isArray(body.certs) ? body.certs.map(String).slice(0, 20) : [];
+  const photos = Array.isArray(body.photos) ? body.photos.map(String).filter(u => /^https?:\/\//i.test(u) || u.startsWith('/')).slice(0, 12) : [];
+  const status = ALLOWED_STATUS.has(body.status) ? body.status : 'active';
   const donate_to_foodbank = !!body.donate_to_foodbank;
   const donation_recipient_org = body.donation_recipient_org || null;
+
+  // Active listings must be sellable: positive price + at least one share with inventory.
+  if (status === 'active') {
+    if (!Number.isFinite(price_per_lb) || price_per_lb <= 0) {
+      return err(400, 'price_per_lb must be greater than 0 to publish');
+    }
+    if (price_per_lb > 200) {
+      return err(400, 'price_per_lb looks unrealistic (max $200/lb)');
+    }
+  }
+
+  const shares = normalizeShares(body.shares, price_per_lb || 0);
+  if (status === 'active') {
+    const hasInventory = SHARE_KEYS.some(k => shares[k] && shares[k].available > 0 && shares[k].price > 0);
+    if (!hasInventory) {
+      return err(400, 'At least one share size needs available inventory and a price > 0');
+    }
+  }
+
+  if (estimated_hanging_weight != null && (!Number.isFinite(estimated_hanging_weight) || estimated_hanging_weight <= 0 || estimated_hanging_weight > 5000)) {
+    return err(400, 'estimated_hanging_weight must be between 1 and 5000 lb');
+  }
 
   const feed_type   = body.feed_type   || null;
   const finish_feed = body.finish_feed || null;
@@ -108,18 +158,20 @@ async function createListing(req) {
 
   const rows = await sql`
     INSERT INTO listings (farm_id, number, species, breed, sex, birth_date, expected_finish_date, current_weight, estimated_finish_weight, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, photos, status, donate_to_foodbank, donation_recipient_org, feed_type, finish_feed, subbreed, sex_detail, antibiotics, hormones)
-    VALUES (${body.farm_id}, ${number}, ${body.species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org}, ${feed_type}, ${finish_feed}, ${subbreed}, ${sex_detail}, ${antibiotics}, ${hormones})
+    VALUES (${body.farm_id}, ${number}, ${species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org}, ${feed_type}, ${finish_feed}, ${subbreed}, ${sex_detail}, ${antibiotics}, ${hormones})
     RETURNING *
   `;
   const listing = rows[0];
   if (listing && listing.status === 'active') {
     const label = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species || 'animal'}`;
-    await emitMilestone({
-      listing_id: listing.id,
-      milestone: 'listed',
-      author_id: user.id,
-      ctx: { label },
-    });
+    try {
+      await emitMilestone({
+        listing_id: listing.id,
+        milestone: 'listed',
+        author_id: user.id,
+        ctx: { label },
+      });
+    } catch (_) { /* social best-effort */ }
   }
   return json({ listing });
 }

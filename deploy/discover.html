@@ -222,11 +222,9 @@
   <script src="/po-shell.js"></script>
   <script src="/po-api.js"></script>
   <script>
-    // Live listings from /api/listings — falls back to demo data if API unreachable.
+    // Live listings from /api/listings only — never inject demo animals.
     let LISTINGS = [];
-    const FALLBACK_LISTINGS = [
-      { id:'l1', name:'#118 · Half Black Angus', farm:'Northfield Pastures', farmSlug:'northfield-pastures', species:'cattle', practice:['grass-fed','regenerative'], certs:['organic','aga','amwa'], identity:['family'], priceLb:7.85, distance:42, ready:'2026-07-15', img:'/img/cattle-pasture.jpg', new:true, instant:true }
-    ];
+    let LOAD_ERROR = null;
 
     // ── User location for distance computation ──
     // Cached in localStorage once granted so we don't re-prompt on every visit.
@@ -294,12 +292,13 @@
       };
     }
     async function loadListings() {
+      LOAD_ERROR = null;
       try {
-        const r = await window.PO_API.listings({ limit: 60 });
+        const r = await window.PO_API.listings({ limit: 100 });
         LISTINGS = (r.listings || []).map(listingFromRow);
-        if (!LISTINGS.length) LISTINGS = FALLBACK_LISTINGS;
-      } catch {
-        LISTINGS = FALLBACK_LISTINGS;
+      } catch (e) {
+        LISTINGS = [];
+        LOAD_ERROR = (e && e.message) || 'Could not load listings';
       }
       render();
     }
@@ -419,16 +418,37 @@
         </article>
       `).join('');
       if (r.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:64px 24px;background:#fff;border-radius:18px;border:1px solid var(--filter-border);">
-          <img src="/brand/logo-monogram.svg" alt="" width="68" height="68" style="display:block;margin:0 auto 18px;border-radius:16px;box-shadow:0 8px 24px rgba(6,27,14,.12);" />
-          <div style="font:800 22px/1.25 var(--ff-sans);letter-spacing:-.02em;margin-bottom:8px;">No animals match that search</div>
-          <div style="opacity:.65;font:500 14.5px/1.5 var(--ff-sans);max-width:400px;margin:0 auto 20px;">Widen distance, clear a certification, or save this search — we’ll email you when something lands.</div>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
-            <button type="button" class="ds-go-btn" onclick="document.getElementById('clearFilters')?.click()">Clear filters</button>
-            <button type="button" class="ds-go-btn" style="background:transparent;color:var(--ink);border:1.5px solid rgba(6,27,14,.15);" onclick="document.getElementById('saveSearchBtn')?.click()">Save this search</button>
-            <a href="/producers" style="display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font:700 14px/1 var(--ff-sans);color:var(--ink);text-decoration:none;border:1.5px solid rgba(6,27,14,.12);">Meet farms →</a>
-          </div>
-        </div>`;
+        const hasFilters = state.species !== 'all' || state.practice.size || state.certs.size || state.identity.size || state.priceMin !== null || state.priceMax !== null || state.window || state.farmSlug || state.instant || state.newOnly || state.distance < 500;
+        if (LOAD_ERROR) {
+          grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:64px 24px;background:#fff;border-radius:18px;border:1px solid var(--filter-border);">
+            <img src="/brand/logo-monogram.svg" alt="" width="68" height="68" style="display:block;margin:0 auto 18px;border-radius:16px;box-shadow:0 8px 24px rgba(6,27,14,.12);" />
+            <div style="font:800 22px/1.25 var(--ff-sans);letter-spacing:-.02em;margin-bottom:8px;">Marketplace temporarily unavailable</div>
+            <div style="opacity:.65;font:500 14.5px/1.5 var(--ff-sans);max-width:400px;margin:0 auto 20px;">We couldn't load live animals. Check your connection and try again — we never show placeholder livestock.</div>
+            <button type="button" class="ds-go-btn" onclick="loadListings()">Retry →</button>
+          </div>`;
+        } else if (!LISTINGS.length) {
+          grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:64px 24px;background:#fff;border-radius:18px;border:1px solid var(--filter-border);">
+            <img src="/brand/logo-monogram.svg" alt="" width="68" height="68" style="display:block;margin:0 auto 18px;border-radius:16px;box-shadow:0 8px 24px rgba(6,27,14,.12);" />
+            <div style="font:800 22px/1.25 var(--ff-sans);letter-spacing:-.02em;margin-bottom:8px;">No animals listed yet</div>
+            <div style="opacity:.65;font:500 14.5px/1.5 var(--ff-sans);max-width:420px;margin:0 auto 20px;">We're onboarding ranches nationwide. Be first in your county — list animals in about 90 seconds, or invite a farm you trust.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+              <a href="/list-animal" class="ds-go-btn" style="text-decoration:none;">List an animal →</a>
+              <a href="/invite-partner" style="display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font:700 14px/1 var(--ff-sans);color:var(--ink);text-decoration:none;border:1.5px solid rgba(6,27,14,.12);">Invite a farm →</a>
+              <a href="/map" style="display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font:700 14px/1 var(--ff-sans);color:var(--ink);text-decoration:none;border:1.5px solid rgba(6,27,14,.12);">Find a processor →</a>
+            </div>
+          </div>`;
+        } else {
+          grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:64px 24px;background:#fff;border-radius:18px;border:1px solid var(--filter-border);">
+            <img src="/brand/logo-monogram.svg" alt="" width="68" height="68" style="display:block;margin:0 auto 18px;border-radius:16px;box-shadow:0 8px 24px rgba(6,27,14,.12);" />
+            <div style="font:800 22px/1.25 var(--ff-sans);letter-spacing:-.02em;margin-bottom:8px;">No animals match that search</div>
+            <div style="opacity:.65;font:500 14.5px/1.5 var(--ff-sans);max-width:400px;margin:0 auto 20px;">${hasFilters ? 'Widen distance, clear a certification, or save this search — we’ll email you when something lands.' : 'Try adjusting filters or browse all farms.'}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+              <button type="button" class="ds-go-btn" onclick="document.getElementById('clearFilters')?.click()">Clear filters</button>
+              <button type="button" class="ds-go-btn" style="background:transparent;color:var(--ink);border:1.5px solid rgba(6,27,14,.15);" onclick="document.getElementById('saveSearchBtn')?.click()">Save this search</button>
+              <a href="/producers" style="display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font:700 14px/1 var(--ff-sans);color:var(--ink);text-decoration:none;border:1.5px solid rgba(6,27,14,.12);">Meet farms →</a>
+            </div>
+          </div>`;
+        }
       }
       const anyFilter = state.species !== 'all' || state.practice.size || state.certs.size || state.identity.size || state.priceMin !== null || state.priceMax !== null || state.window;
       document.getElementById('savedBanner').style.display = anyFilter ? 'flex' : 'none';

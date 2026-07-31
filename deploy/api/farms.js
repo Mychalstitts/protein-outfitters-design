@@ -3,6 +3,7 @@
 //   POST  → create new farm (auth required, role auto-upgrades to producer)
 //   GET ?slug=northfield-pastures → single farm
 import { sql, rawQuery, currentUser, err, json, slugify, nodejsHandler } from './_lib/db.js';
+import { geocode } from './_lib/geocode.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -50,9 +51,24 @@ async function handler(req) {
       await sql`UPDATE users SET role = 'producer' WHERE id = ${user.id}`;
     }
 
+    const city = body.city ? String(body.city).trim().slice(0, 80) : null;
+    const state = body.state ? String(body.state).trim().toUpperCase().slice(0, 2) : null;
+    const zip = body.zip ? String(body.zip).trim().slice(0, 12) : null;
+    if (state && !/^[A-Z]{2}$/.test(state)) return err(400, 'state must be a 2-letter US code');
+
+    // Best-effort geocode so the farm appears on the national map immediately.
+    let lat = body.lat != null ? Number(body.lat) : null;
+    let lng = body.lng != null ? Number(body.lng) : null;
+    if ((lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) && (city || state || zip)) {
+      try {
+        const geo = await geocode({ city, state, zip });
+        if (geo) { lat = geo.lat; lng = geo.lng; }
+      } catch (_) { /* non-fatal */ }
+    }
+
     const rows = await sql`
-      INSERT INTO farms (owner_id, slug, name, bio, story, city, state, zip, practices, certs, identity, cover_url, avatar_url, established_year)
-      VALUES (${user.id}, ${slug}, ${body.name}, ${body.bio || null}, ${body.story || null}, ${body.city || null}, ${body.state || null}, ${body.zip || null}, ${body.practices || []}, ${body.certs || []}, ${body.identity || []}, ${body.cover_url || null}, ${body.avatar_url || null}, ${body.established_year || null})
+      INSERT INTO farms (owner_id, slug, name, bio, story, city, state, zip, lat, lng, practices, certs, identity, cover_url, avatar_url, established_year)
+      VALUES (${user.id}, ${slug}, ${String(body.name).trim().slice(0, 160)}, ${body.bio || null}, ${body.story || null}, ${city}, ${state}, ${zip}, ${lat}, ${lng}, ${body.practices || []}, ${body.certs || []}, ${body.identity || []}, ${body.cover_url || null}, ${body.avatar_url || null}, ${body.established_year || null})
       RETURNING *
     `;
     return json({ farm: rows[0] });

@@ -545,8 +545,11 @@
         <div class="wiz-published">
           <div class="mark">✓</div>
           <h2>Listed.</h2>
-          <p id="publishedBody">#2641 is live on the marketplace. We'll text the moment your first reserve hits.</p>
-          <a href="/farm/northfield-pastures" class="btn-xl btn-xl--dark">View on your ranch profile →</a>
+          <p id="publishedBody">Your animal is live on the marketplace. We'll notify you when the first reserve hits.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:8px;">
+            <a id="publishedListingLink" href="/discover" class="btn-xl btn-xl--dark">View listing →</a>
+            <a id="publishedFarmLink" href="/farmer" class="btn-xl" style="background:transparent;color:var(--ink);border:1.5px solid rgba(6,27,14,.15);">My ranch →</a>
+          </div>
         </div>
       </section>
 
@@ -615,13 +618,19 @@
 
   back.addEventListener('click', () => { if (n > 1) setStep(n - 1, 'back'); });
   next.addEventListener('click', async () => {
-    if (n < 5) { setStep(n + 1, 'forward'); return; }
+    if (n < 5) {
+      if (!validateStep(n)) return;
+      setStep(n + 1, 'forward');
+      return;
+    }
     if (n === 5) {
+      if (!validateStep(5)) return;
       // Publish — save to DB
       next.disabled = true;
       next.textContent = 'Publishing…';
       try {
-        await publishListing();
+        const result = await publishListing();
+        showPublished(result);
         setStep(6, 'forward');
       } catch (e) {
         next.disabled = false;
@@ -637,6 +646,53 @@
       }
     }
   });
+
+  function validateStep(step) {
+    if (step === 1) {
+      if (!S.species) { alert('Pick a species to continue.'); return false; }
+      return true;
+    }
+    if (step === 4) {
+      const wholePrice = parseFloat(document.getElementById('priceWhole')?.value || S.priceWhole || 0);
+      const halfPrice = parseFloat(document.getElementById('priceHalf')?.value || S.priceHalf || 0);
+      const quarterPrice = parseFloat(document.getElementById('priceQuarter')?.value || S.priceQuarter || 0);
+      const best = halfPrice || wholePrice || quarterPrice;
+      if (!best || best <= 0) {
+        alert('Set a price per pound greater than $0 before continuing. Buyers need a real price to reserve.');
+        return false;
+      }
+      if (best > 200) {
+        alert('Price looks too high (max $200/lb). Double-check your hanging-weight rate.');
+        return false;
+      }
+      return true;
+    }
+    if (step === 5) {
+      const wholePrice = parseFloat(document.getElementById('priceWhole')?.value || S.priceWhole || 0);
+      const halfPrice = parseFloat(document.getElementById('priceHalf')?.value || S.priceHalf || 0);
+      const quarterPrice = parseFloat(document.getElementById('priceQuarter')?.value || S.priceQuarter || 0);
+      if (!(halfPrice || wholePrice || quarterPrice)) {
+        alert('Set share pricing before publishing.');
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  function showPublished(result) {
+    const listing = result?.listing || result;
+    const id = listing?.id;
+    const farmSlug = listing?.farm_slug;
+    const body = document.getElementById('publishedBody');
+    const listingLink = document.getElementById('publishedListingLink');
+    const farmLink = document.getElementById('publishedFarmLink');
+    if (body) {
+      body.textContent = `${S.animalId || listing?.number || 'This animal'} is live on the marketplace. Share the listing link with buyers — reservations open immediately.`;
+    }
+    if (listingLink && id) listingLink.href = '/listing?id=' + encodeURIComponent(id);
+    if (farmLink) farmLink.href = farmSlug ? '/farm/' + encodeURIComponent(farmSlug) : '/farmer';
+  }
 
   // ============ PHOTO UPLOAD ============
   const photoInput = document.getElementById('photoInput');
@@ -696,14 +752,31 @@
   }
 
   async function promptCreateFarm() {
-    const name = prompt("Looks like you don't have a farm profile yet. What's the name of your farm?\n\n(You'll be able to add a bio, location, and certifications after publishing.)");
+    const name = prompt("Looks like you don't have a farm profile yet.\n\nFarm / ranch name:");
     if (!name || !name.trim()) return;
+    const city = prompt('City (required for the national map):') || '';
+    if (!city.trim()) {
+      alert('City is required so buyers can find you on the map.');
+      return;
+    }
+    const state = (prompt('State (2-letter code, e.g. TX, MT, IA):') || '').trim().toUpperCase().slice(0, 2);
+    if (!/^[A-Z]{2}$/.test(state)) {
+      alert('Enter a valid 2-letter US state code (e.g. TX).');
+      return;
+    }
+    const zip = (prompt('ZIP code (optional but recommended):') || '').trim().slice(0, 12) || null;
     try {
-      const r = await window.PO_API.createFarm({ name: name.trim(), state: 'MN', city: 'Bemidji' });
+      const r = await window.PO_API.createFarm({
+        name: name.trim(),
+        city: city.trim(),
+        state,
+        zip,
+      });
       // Now retry publish
       next.disabled = true;
       next.textContent = 'Publishing…';
-      await publishListing(r.farm.id);
+      const result = await publishListing(r.farm.id);
+      showPublished({ ...result, listing: { ...(result?.listing || {}), farm_slug: r.farm.slug } });
       setStep(6, 'forward');
     } catch (e) {
       alert('Could not create farm: ' + e.message);
@@ -756,7 +829,16 @@
       antibiotics: S.antibiotics || null,
       hormones:    S.hormones   || null,
     };
-    return await window.PO_API.createListing(body);
+    const created = await window.PO_API.createListing(body);
+    // Attach farm slug when we can so the success CTA links to the public ranch.
+    if (created?.listing && !created.listing.farm_slug) {
+      try {
+        const farms = await window.PO_API.myFarms();
+        const f = (farms.farms || []).find(x => x.id === farm_id);
+        if (f) created.listing.farm_slug = f.slug;
+      } catch (_) { /* ignore */ }
+    }
+    return created;
   }
 
   function toIsoDate(human) {

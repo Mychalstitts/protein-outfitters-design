@@ -60,7 +60,39 @@ async function handler(req) {
       if (!rows[0]) return err(404, 'Processor not found');
       return json({ processor: rows[0] });
     }
-    const rows = await sql`SELECT * FROM processors ORDER BY created_at DESC LIMIT 60`;
+    const owner = url.searchParams.get('owner');
+    if (owner === 'me') {
+      const user = await currentUser(req);
+      if (!user) return err(401, 'Sign in required');
+      const rows = await sql`SELECT * FROM processors WHERE owner_id = ${user.id} ORDER BY created_at`;
+      return json({ processors: rows });
+    }
+    const state = (url.searchParams.get('state') || '').toUpperCase().slice(0, 2);
+    const q = (url.searchParams.get('q') || '').trim().slice(0, 80);
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '100', 10) || 100, 300);
+    const claimable = url.searchParams.get('claimable') === '1';
+
+    let rows;
+    if (state && q) {
+      const like = `%${q}%`;
+      rows = claimable
+        ? await sql`SELECT id, slug, name, city, state, zip, inspection, phone, lat, lng, owner_id, created_at FROM processors WHERE owner_id IS NULL AND state = ${state} AND name ILIKE ${like} ORDER BY name LIMIT ${limit}`
+        : await sql`SELECT id, slug, name, city, state, zip, inspection, phone, lat, lng, owner_id, created_at FROM processors WHERE state = ${state} AND name ILIKE ${like} ORDER BY name LIMIT ${limit}`;
+    } else if (state) {
+      rows = claimable
+        ? await sql`SELECT id, slug, name, city, state, zip, inspection, phone, lat, lng, owner_id, created_at FROM processors WHERE owner_id IS NULL AND state = ${state} ORDER BY name LIMIT ${limit}`
+        : await sql`SELECT id, slug, name, city, state, zip, inspection, phone, lat, lng, owner_id, created_at FROM processors WHERE state = ${state} ORDER BY name LIMIT ${limit}`;
+    } else if (q) {
+      const like = `%${q}%`;
+      rows = claimable
+        ? await sql`SELECT id, slug, name, city, state, zip, inspection, phone, lat, lng, owner_id, created_at FROM processors WHERE owner_id IS NULL AND name ILIKE ${like} ORDER BY name LIMIT ${limit}`
+        : await sql`SELECT id, slug, name, city, state, zip, inspection, phone, lat, lng, owner_id, created_at FROM processors WHERE name ILIKE ${like} ORDER BY name LIMIT ${limit}`;
+    } else if (claimable) {
+      rows = await sql`SELECT id, slug, name, city, state, zip, inspection, phone, lat, lng, owner_id, created_at FROM processors WHERE owner_id IS NULL ORDER BY created_at DESC LIMIT ${limit}`;
+    } else {
+      // Default list stays compact for dashboards; use ?state= or ?q= for national search.
+      rows = await sql`SELECT * FROM processors ORDER BY created_at DESC LIMIT ${limit}`;
+    }
     return json({ processors: rows });
   }
 
@@ -69,6 +101,43 @@ async function handler(req) {
     if (!user) return err(401, 'Sign in required');
     let body;
     try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
+
+    // Claim an existing unowned plant (FSIS/MPA import) instead of creating a duplicate.
+    if (body.claim_id || body.claim_slug) {
+      const target = body.claim_id
+        ? await sql`SELECT * FROM processors WHERE id = ${body.claim_id} LIMIT 1`
+        : await sql`SELECT * FROM processors WHERE slug = ${body.claim_slug} LIMIT 1`;
+      if (!target[0]) return err(404, 'Processor not found');
+      if (target[0].owner_id && target[0].owner_id !== user.id) {
+        return err(409, 'This plant is already claimed by another account');
+      }
+      if (user.role === 'buyer') {
+        await sql`UPDATE users SET role = 'processor' WHERE id = ${user.id}`;
+      }
+      // Ensure slug for plants imported without one
+      let plantSlug = target[0].slug;
+      if (!plantSlug) {
+        plantSlug = slugify(target[0].name || 'plant');
+        let n = 0;
+        while (true) {
+          const trial = n === 0 ? plantSlug : `${plantSlug}-${n}`;
+          const exists = await sql`SELECT 1 FROM processors WHERE slug = ${trial} AND id <> ${target[0].id} LIMIT 1`;
+          if (!exists[0]) { plantSlug = trial; break; }
+          n++;
+          if (n > 50) return err(500, 'Could not allocate slug');
+        }
+      }
+      const rows = await sql`
+        UPDATE processors
+        SET owner_id = ${user.id},
+            slug = ${plantSlug},
+            updated_at = NOW()
+        WHERE id = ${target[0].id} AND (owner_id IS NULL OR owner_id = ${user.id})
+        RETURNING *`;
+      if (!rows[0]) return err(409, 'Could not claim plant — it may have just been claimed');
+      return json({ processor: rows[0], claimed: true });
+    }
+
     if (!body.name) return err(400, 'name required');
     let s = slugify(body.slug || body.name);
     let n = 0;
@@ -82,12 +151,32 @@ async function handler(req) {
     if (user.role === 'buyer') {
       await sql`UPDATE users SET role = 'processor' WHERE id = ${user.id}`;
     }
+    // If an unowned plant with the same name+state exists, claim it instead of duplicating.
+    const stateNorm = body.state ? String(body.state).trim().toUpperCase().slice(0, 2) : null;
+    if (stateNorm) {
+      const match = await sql`
+        SELECT id FROM processors
+        WHERE owner_id IS NULL
+          AND state = ${stateNorm}
+          AND lower(name) = ${String(body.name).trim().toLowerCase()}
+        LIMIT 1`;
+      if (match[0]) {
+        const claimed = await sql`
+          UPDATE processors
+          SET owner_id = ${user.id}, slug = COALESCE(slug, ${s}), city = COALESCE(city, ${body.city || null}),
+              zip = COALESCE(zip, ${body.zip || null}), inspection = COALESCE(inspection, ${body.inspection || null}),
+              updated_at = NOW()
+          WHERE id = ${match[0].id} AND owner_id IS NULL
+          RETURNING *`;
+        if (claimed[0]) return json({ processor: claimed[0], claimed: true });
+      }
+    }
     const rows = await sql`
       INSERT INTO processors (owner_id, slug, name, city, state, zip, inspection, capabilities, base_fees, per_lb_fees, schedule, bio)
-      VALUES (${user.id}, ${s}, ${body.name}, ${body.city || null}, ${body.state || null}, ${body.zip || null}, ${body.inspection || null}, ${body.capabilities || {}}, ${body.base_fees || {}}, ${body.per_lb_fees || {}}, ${body.schedule || {}}, ${body.bio || null})
+      VALUES (${user.id}, ${s}, ${body.name}, ${body.city || null}, ${stateNorm}, ${body.zip || null}, ${body.inspection || null}, ${body.capabilities || {}}, ${body.base_fees || {}}, ${body.per_lb_fees || {}}, ${body.schedule || {}}, ${body.bio || null})
       RETURNING *
     `;
-    return json({ processor: rows[0] });
+    return json({ processor: rows[0], claimed: false });
   }
 
   if (req.method === 'PATCH') {

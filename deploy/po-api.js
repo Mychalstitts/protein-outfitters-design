@@ -103,9 +103,17 @@
     payouts: () => jsonFetch('/api/payouts'),
     transferToBank: (role, amount_cents) => jsonFetch('/api/payouts', { method: 'POST', body: amount_cents ? { role, amount_cents } : { role } }),
 
-    processors: () => jsonFetch('/api/processors'),
+    processors: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return jsonFetch('/api/processors' + (q ? '?' + q : ''));
+    },
+    myProcessors: () => jsonFetch('/api/processors?owner=me'),
     processor: (slug) => jsonFetch('/api/processors?slug=' + encodeURIComponent(slug)),
     createProcessor: (data) => jsonFetch('/api/processors', { method: 'POST', body: data }),
+    claimProcessor: (claim) => jsonFetch('/api/processors', {
+      method: 'POST',
+      body: typeof claim === 'string' ? { claim_id: claim } : claim,
+    }),
     updateProcessor: (slug, data) => jsonFetch('/api/processors?slug=' + encodeURIComponent(slug), { method: 'PATCH', body: data }),
 
     // Processor daily ops dashboard

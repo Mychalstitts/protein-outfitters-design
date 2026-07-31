@@ -219,77 +219,105 @@ async function handler(req) {
   }
 
   // 2. Create Stripe Checkout Session
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-  const origin = req.headers.get('origin') || 'https://www.proteinoutfitters.com';
-  const shareLabel = share_size === 'whole' ? 'Whole animal' : share_size === 'half' ? 'Half share' : share_size === 'quarter' ? 'Quarter share' : 'Eighth share';
-  const animalLabel = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species} · ${listing.farm_name}`;
-
-  // ── Apply referral credit ────────────────────────────────────
-  // If the buyer is signed in and has a credit balance from a successful
-  // referral, knock it off the deposit. Cap at depositCents-100 so Stripe
-  // still has at least $1 to charge (Stripe rejects $0 sessions). The
-  // amount actually consumed is stamped into metadata; the webhook
-  // decrements the user's balance only after payment succeeds, so a
-  // failed/cancelled checkout doesn't burn the credit.
-  let appliedCreditCents = 0;
-  let finalDepositCents = depositCents;
-  if (user?.id) {
-    const balRow = await sql`SELECT referral_credit_cents FROM users WHERE id = ${user.id} LIMIT 1`;
-    const available = Math.max(0, Number(balRow[0]?.referral_credit_cents || 0));
-    if (available > 0) {
-      const cap = Math.max(0, depositCents - 100);
-      appliedCreditCents = Math.min(available, cap);
-      finalDepositCents = depositCents - appliedCreditCents;
+  // Share inventory was already decremented above. If Stripe fails, restore it
+  // and cancel the pending reservation so buyers never lose stock to a dead session.
+  async function releaseHold(reason) {
+    try {
+      const restore = JSON.parse(JSON.stringify(shares));
+      if (restore[share_size]) {
+        restore[share_size].available = (restore[share_size].available || 0) + 1;
+        restore[share_size].reserved = Math.max(0, (restore[share_size].reserved || 0) - 1);
+      }
+      await sql`UPDATE listings SET shares = ${restore}, updated_at = NOW() WHERE id = ${listing_id}`;
+      await sql`UPDATE reservations SET status = 'cancelled', updated_at = NOW() WHERE id = ${reservationId}`;
+      console.error('Checkout hold released:', reason, reservationId);
+    } catch (e) {
+      console.error('Failed to release checkout hold:', e.message);
     }
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    payment_method_types: ['card'],
-    customer_email: buyer_email,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: 'usd',
-          unit_amount: finalDepositCents,
-          product: PRICING.DEPOSIT_PRODUCT_ID,
+  let session;
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const origin = req.headers.get('origin') || 'https://www.proteinoutfitters.com';
+    const shareLabel = share_size === 'whole' ? 'Whole animal' : share_size === 'half' ? 'Half share' : share_size === 'quarter' ? 'Quarter share' : 'Eighth share';
+    const animalLabel = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species} · ${listing.farm_name}`;
+
+    // ── Apply referral credit ────────────────────────────────────
+    // If the buyer is signed in and has a credit balance from a successful
+    // referral, knock it off the deposit. Cap at depositCents-100 so Stripe
+    // still has at least $1 to charge (Stripe rejects $0 sessions). The
+    // amount actually consumed is stamped into metadata; the webhook
+    // decrements the user's balance only after payment succeeds, so a
+    // failed/cancelled checkout doesn't burn the credit.
+    let appliedCreditCents = 0;
+    let finalDepositCents = depositCents;
+    if (user?.id) {
+      const balRow = await sql`SELECT referral_credit_cents FROM users WHERE id = ${user.id} LIMIT 1`;
+      const available = Math.max(0, Number(balRow[0]?.referral_credit_cents || 0));
+      if (available > 0) {
+        const cap = Math.max(0, depositCents - 100);
+        appliedCreditCents = Math.min(available, cap);
+        finalDepositCents = depositCents - appliedCreditCents;
+      }
+    }
+
+    if (finalDepositCents < 50) {
+      await releaseHold('deposit too small');
+      return err(400, 'Deposit amount too small to charge');
+    }
+
+    session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      customer_email: buyer_email,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'usd',
+            unit_amount: finalDepositCents,
+            product: PRICING.DEPOSIT_PRODUCT_ID,
+          },
         },
-      },
-      { quantity: 1, price: PRICING.PROCESSING_PRICE_ID },
-      { quantity: 1, price: PRICING.INSURANCE_PRICE_ID },
-    ],
-    metadata: {
-      reservation_id: reservationId,
-      listing_id,
-      share_size,
-      farm_slug: listing.farm_slug,
-      farm_name: listing.farm_name,
-      animal_number: listing.number || '',
-      meat_estimate_cents: String(meatEstimateCents),
-      hanging_weight_lbs: String(hangingWeight),
-      buyer_user_id: buyerId || '',
-      referral_credit_cents: String(appliedCreditCents),
-    },
-    payment_intent_data: {
-      description: `${shareLabel} · ${animalLabel} (deposit + processing + insurance)`,
+        { quantity: 1, price: PRICING.PROCESSING_PRICE_ID },
+        { quantity: 1, price: PRICING.INSURANCE_PRICE_ID },
+      ],
       metadata: {
         reservation_id: reservationId,
         listing_id,
         share_size,
-        farm_stripe_account_id: listing.farm_stripe_account_id || '',
-        processor_stripe_account_id: processorStripeAccount || '',
+        farm_slug: listing.farm_slug,
+        farm_name: listing.farm_name,
+        animal_number: listing.number || '',
+        meat_estimate_cents: String(meatEstimateCents),
+        hanging_weight_lbs: String(hangingWeight),
+        buyer_user_id: buyerId || '',
+        referral_credit_cents: String(appliedCreditCents),
       },
-      statement_descriptor_suffix: 'PO RESERVE',
-      // transfer_group lets us issue Stripe Transfers from the platform balance
-      // to the farmer's and processor's connected accounts after payment settles.
-      // Webhook-driven payout logic should: total amount → farmer share + processor share + platform retain.
-      transfer_group: transferGroup,
-    },
-    success_url: `${origin}/cut-sheet?reservation=${reservationId}&paid=1`,
-    cancel_url: `${origin}/listing?id=${listing_id}&cancelled=1`,
-    automatic_tax: { enabled: false },
-  });
+      payment_intent_data: {
+        description: `${shareLabel} · ${animalLabel} (deposit + processing + insurance)`,
+        metadata: {
+          reservation_id: reservationId,
+          listing_id,
+          share_size,
+          farm_stripe_account_id: listing.farm_stripe_account_id || '',
+          processor_stripe_account_id: processorStripeAccount || '',
+        },
+        statement_descriptor_suffix: 'PO RESERVE',
+        // transfer_group lets us issue Stripe Transfers from the platform balance
+        // to the farmer's and processor's connected accounts after payment settles.
+        // Webhook-driven payout logic should: total amount → farmer share + processor share + platform retain.
+        transfer_group: transferGroup,
+      },
+      success_url: `${origin}/cut-sheet?reservation=${reservationId}&paid=1`,
+      cancel_url: `${origin}/listing?id=${listing_id}&cancelled=1`,
+      automatic_tax: { enabled: false },
+    });
+  } catch (stripeErr) {
+    await releaseHold(stripeErr.message || 'stripe session failed');
+    return err(502, 'Payment session failed: ' + (stripeErr.message || 'unknown').slice(0, 160));
+  }
 
   return json({ url: session.url, reservation_id: reservationId, session_id: session.id });
 }

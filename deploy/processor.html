@@ -166,9 +166,23 @@
       <div class="pr-section-head">
         <h2>Set up your plant</h2>
       </div>
-      <div id="prClaimCard" style="background:#fff;border-radius:22px;padding:28px 26px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 14px rgba(0,0,0,.04);max-width:560px;">
-        <p style="margin:0 0 18px;font:500 15px/1.5 'Inter';color:var(--ink-2);">Claim a processor profile so farmers can book drop-offs and fees can land in your bank. Takes about a minute.</p>
+      <div id="prClaimCard" style="background:#fff;border-radius:22px;padding:28px 26px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 14px rgba(0,0,0,.04);max-width:640px;">
+        <p style="margin:0 0 18px;font:500 15px/1.5 'Inter';color:var(--ink-2);">Most USDA and state plants are already on our map. Search and claim yours — or create a new profile if you're not listed yet.</p>
+
+        <!-- Search existing unowned plants -->
+        <div style="display:grid;gap:10px;margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid rgba(6,27,14,.08);">
+          <p style="margin:0;font:800 12px/1 'Inter';letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);">Claim a plant already on the map</p>
+          <div style="display:grid;grid-template-columns:1fr 88px auto;gap:10px;">
+            <input id="prSearchQ" type="search" placeholder="Plant name…" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;" />
+            <input id="prSearchState" maxlength="2" placeholder="ST" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;text-transform:uppercase;" />
+            <button type="button" id="prSearchBtn" style="background:rgba(6,27,14,.08);color:var(--ink);border:0;border-radius:999px;padding:12px 18px;font:700 14px/1 'Inter';cursor:pointer;">Search</button>
+          </div>
+          <div id="prSearchResults" style="display:grid;gap:8px;"></div>
+          <p id="prSearchStatus" style="margin:0;font:500 13px/1.4 'Inter';color:var(--ink-2);min-height:1.2em;"></p>
+        </div>
+
         <form id="prClaimForm" style="display:grid;gap:12px;">
+          <p style="margin:0;font:800 12px/1 'Inter';letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);">Or create a new plant profile</p>
           <label style="display:grid;gap:6px;font:700 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);">
             Plant name
             <input name="name" required placeholder="e.g. Northland Custom Meats" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;" />
@@ -176,11 +190,11 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <label style="display:grid;gap:6px;font:700 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);">
               City
-              <input name="city" placeholder="Bemidji" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;" />
+              <input name="city" placeholder="Your city" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;" />
             </label>
             <label style="display:grid;gap:6px;font:700 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);">
               State
-              <input name="state" maxlength="2" placeholder="MN" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;text-transform:uppercase;" />
+              <input name="state" maxlength="2" placeholder="TX" required style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;text-transform:uppercase;" />
             </label>
           </div>
           <label style="display:grid;gap:6px;font:700 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);">
@@ -195,9 +209,9 @@
           <p id="prClaimStatus" style="margin:0;font:500 13px/1.4 'Inter';color:var(--ink-2);min-height:1.2em;"></p>
           <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
             <button type="submit" id="prClaimBtn" style="background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer;">Create plant →</button>
-            <a href="/map" style="font:700 13px/1 'Inter';color:var(--accent-2);">Find your plant on the map →</a>
+            <a href="/map" style="font:700 13px/1 'Inter';color:var(--accent-2);">Browse plants on the map →</a>
           </div>
-          <p style="margin:4px 0 0;font:500 12px/1.45 'Inter';color:var(--ink-3);">After create: set <a href="/processor-schedule" style="color:inherit;font-weight:700;">schedule</a>, <a href="/processor-pricing" style="color:inherit;font-weight:700;">plant fees</a>, and optional <a href="/credentials" style="color:inherit;font-weight:700;">certs</a>.</p>
+          <p style="margin:4px 0 0;font:500 12px/1.45 'Inter';color:var(--ink-3);">After claim: set <a href="/processor-schedule" style="color:inherit;font-weight:700;">schedule</a>, <a href="/processor-pricing" style="color:inherit;font-weight:700;">plant fees</a>, and optional <a href="/credentials" style="color:inherit;font-weight:700;">certs</a>.</p>
         </form>
       </div>
     </section>
@@ -395,13 +409,74 @@ window.openMarkReady = function(bookingId, listingId, label) {
 
   let myProcessors = [];
   try {
-    const r = await window.PO_API.processors();
-    myProcessors = (r.processors || []).filter(p => p.owner_id === me.user.id);
+    if (window.PO_API.myProcessors) {
+      const r = await window.PO_API.myProcessors();
+      myProcessors = r.processors || [];
+    } else {
+      const r = await window.PO_API.processors();
+      myProcessors = (r.processors || []).filter(p => p.owner_id === me.user.id);
+    }
   } catch {}
 
   const sub = document.getElementById('prGreetSub');
 
-  // ─── Claim form ──────────────────────────────────────────────
+  // ─── Search + claim existing FSIS/MPA plants ─────────────────
+  const searchBtn = document.getElementById('prSearchBtn');
+  const searchResults = document.getElementById('prSearchResults');
+  const searchStatus = document.getElementById('prSearchStatus');
+  async function runPlantSearch() {
+    const q = (document.getElementById('prSearchQ')?.value || '').trim();
+    const state = (document.getElementById('prSearchState')?.value || '').trim().toUpperCase().slice(0, 2);
+    if (!q && !state) {
+      if (searchStatus) searchStatus.textContent = 'Enter a plant name and/or state.';
+      return;
+    }
+    if (searchStatus) searchStatus.textContent = 'Searching…';
+    if (searchResults) searchResults.innerHTML = '';
+    try {
+      const params = { claimable: '1', limit: 20 };
+      if (q) params.q = q;
+      if (state) params.state = state;
+      const r = await window.PO_API.processors(params);
+      const list = r.processors || [];
+      if (!list.length) {
+        if (searchStatus) searchStatus.textContent = 'No unclaimed plants matched. Create a new profile below.';
+        return;
+      }
+      if (searchStatus) searchStatus.textContent = `${list.length} plant${list.length === 1 ? '' : 's'} ready to claim:`;
+      if (searchResults) {
+        searchResults.innerHTML = list.map(p => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.1);background:#fbf9f5;">
+            <div style="min-width:0;">
+              <div style="font:700 14px/1.3 'Inter';color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(p.name || 'Plant').replace(/[<>]/g,'')}</div>
+              <div style="font:500 12px/1.3 'Inter';color:var(--ink-2);margin-top:2px;">${[p.city, p.state].filter(Boolean).join(', ') || 'Location TBD'}${p.inspection ? ' · ' + String(p.inspection).toUpperCase() : ''}</div>
+            </div>
+            <button type="button" data-claim-id="${p.id}" style="flex-shrink:0;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:10px 16px;font:700 13px/1 'Inter';cursor:pointer;">Claim →</button>
+          </div>
+        `).join('');
+        searchResults.querySelectorAll('[data-claim-id]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            btn.disabled = true; btn.textContent = 'Claiming…';
+            try {
+              await window.PO_API.claimProcessor({ claim_id: btn.dataset.claimId });
+              if (searchStatus) searchStatus.textContent = 'Plant claimed. Loading dashboard…';
+              location.reload();
+            } catch (err) {
+              btn.disabled = false; btn.textContent = 'Claim →';
+              if (searchStatus) searchStatus.textContent = 'Claim failed: ' + err.message;
+            }
+          });
+        });
+      }
+    } catch (err) {
+      if (searchStatus) searchStatus.textContent = 'Search failed: ' + err.message;
+    }
+  }
+  if (searchBtn) searchBtn.addEventListener('click', runPlantSearch);
+  document.getElementById('prSearchQ')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runPlantSearch(); } });
+  document.getElementById('prSearchState')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runPlantSearch(); } });
+
+  // ─── Claim form (create new) ─────────────────────────────────
   const claimForm = document.getElementById('prClaimForm');
   if (claimForm) {
     claimForm.addEventListener('submit', async (e) => {
@@ -414,11 +489,14 @@ window.openMarkReady = function(bookingId, listingId, label) {
       const status = document.getElementById('prClaimStatus');
       const btn = document.getElementById('prClaimBtn');
       if (!name) { status.textContent = 'Plant name is required.'; return; }
+      if (!/^[A-Z]{2}$/.test(state)) { status.textContent = 'Enter a 2-letter state code.'; return; }
       btn.disabled = true; btn.textContent = 'Creating…';
       status.textContent = '';
       try {
-        await window.PO_API.createProcessor({ name, inspection, city, state });
-        status.textContent = 'Plant created. Loading dashboard…';
+        const r = await window.PO_API.createProcessor({ name, inspection, city, state });
+        status.textContent = r.claimed
+          ? 'Matched an existing plant and claimed it. Loading…'
+          : 'Plant created. Loading dashboard…';
         location.reload();
       } catch (err) {
         status.textContent = 'Could not create plant: ' + err.message;
