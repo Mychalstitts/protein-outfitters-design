@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Join Protein Outfitters — Farms &amp; processors nationwide</title>
+<meta name="description" content="List real animals and get paid when buyers reserve. Claim your plant and fill the rail. The nationwide marketplace for U.S. farms and inspected meat processors." />
+<meta property="og:title" content="Join Protein Outfitters — Farms &amp; processors" />
+<meta property="og:description" content="Producers list named animals by the share. Plants claim their profile and take booked drop-offs. Live payments. Real inventory." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/join" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Join Protein Outfitters" />
+<meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
+<style>
+  body { background: #fbf9f5; color: var(--ink); }
+  .join-shell { max-width: 1080px; margin: 0 auto; padding: clamp(40px, 6vw, 88px) var(--shell-pad) 100px; }
+  .join-eyebrow { font: 800 12px/1 'Inter'; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 14px; }
+  .join-h1 { font: 800 clamp(36px, 5.5vw, 56px)/1.05 'Inter'; letter-spacing: -.03em; margin: 0 0 16px; max-width: 16ch; }
+  .join-lead { font: 500 18px/1.55 'Inter'; color: var(--ink-2); margin: 0 0 28px; max-width: 52ch; }
+  .join-stats { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 0 0 40px; }
+  .join-stat { font: 600 13px/1.3 'Inter'; color: var(--ink-2); padding: 8px 14px; border-radius: 999px; background: #fff; border: 1px solid rgba(6,27,14,.08); }
+  .join-stat strong { color: var(--ink); font-weight: 800; }
+  .join-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
+  @media (min-width: 800px) { .join-grid { grid-template-columns: 1fr 1fr; } }
+  .join-card {
+    background: #fff; border-radius: 24px; padding: clamp(28px, 4vw, 36px);
+    box-shadow: 0 1px 2px rgba(6,27,14,.03), 0 8px 28px rgba(6,27,14,.05);
+    border: 1px solid rgba(6,27,14,.06);
+    display: flex; flex-direction: column; gap: 14px;
+    transition: border-color .2s ease, box-shadow .25s ease;
+  }
+  .join-card:hover { border-color: rgba(6,27,14,.14); box-shadow: 0 1px 2px rgba(6,27,14,.03), 0 12px 32px rgba(6,27,14,.08); }
+  .join-card .role { font: 800 11px/1 'Inter'; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); }
+  .join-card h2 { font: 800 26px/1.15 'Inter'; letter-spacing: -.02em; margin: 0; }
+  .join-card p { font: 500 15px/1.55 'Inter'; color: var(--ink-2); margin: 0; }
+  .join-card ul { margin: 4px 0 8px; padding: 0 0 0 18px; font: 500 14.5px/1.55 'Inter'; color: var(--ink-2); }
+  .join-card ul li { margin: 0 0 6px; }
+  .join-card .cta {
+    margin-top: auto; display: inline-flex; align-items: center; justify-content: center;
+    background: #061b0e; color: #fbf9f5; text-decoration: none;
+    border-radius: 999px; padding: 14px 22px; font: 700 14.5px/1 'Inter';
+    align-self: flex-start;
+  }
+  .join-card .cta.secondary { background: transparent; color: var(--ink); border: 1.5px solid rgba(6,27,14,.14); }
+  .join-card .cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; }
+  .join-how { margin-top: 56px; }
+  .join-how h3 { font: 800 22px/1.2 'Inter'; letter-spacing: -.02em; margin: 0 0 18px; }
+  .how-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .how-grid { grid-template-columns: repeat(3, 1fr); } }
+  .how-step {
+    background: rgba(6,27,14,.03); border-radius: 18px; padding: 20px 22px;
+  }
+  .how-step .n { font: 800 12px/1 'Inter'; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); margin-bottom: 8px; }
+  .how-step h4 { font: 700 16px/1.3 'Inter'; margin: 0 0 6px; }
+  .how-step p { font: 500 14px/1.5 'Inter'; color: var(--ink-2); margin: 0; }
+  .join-foot {
+    margin-top: 48px; padding: 28px; border-radius: 20px;
+    background: #061b0e; color: #fbf9f5;
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between;
+  }
+  .join-foot p { margin: 0; font: 500 15px/1.45 'Inter'; max-width: 42ch; opacity: .92; }
+  .join-foot a {
+    background: #fbf9f5; color: #061b0e; text-decoration: none;
+    border-radius: 999px; padding: 12px 20px; font: 700 14px/1 'Inter'; white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/discover">Reserve</a>
+      <a href="/map">Map</a>
+      <a href="/producers">Farms</a>
+      <a href="/join" class="active">Join</a>
+    </div>
+    <div class="po-nav-actions">
+      <a href="/account" class="signin">Sign in</a>
+      <a href="/list-animal" class="btn--primary" style="text-decoration:none;">List an animal</a>
+    </div>
+  </nav>
+</div>
+
+<main class="join-shell">
+  <p class="join-eyebrow">Nationwide network</p>
+  <h1 class="join-h1">Join the marketplace built for real animals.</h1>
+  <p class="join-lead">Cattlemen, ranchers, and inspected plants across the U.S. list inventory, take deposits, and book drop-offs in one place — the way a modern locker and direct-to-consumer beef program should work.</p>
+
+  <div class="join-stats" id="joinStats" aria-live="polite">
+    <span class="join-stat">Loading network…</span>
+  </div>
+
+  <div class="join-grid">
+    <article class="join-card" id="pathProducer">
+      <span class="role">Farms &amp; ranches</span>
+      <h2>List animals. Get paid when shares sell.</h2>
+      <p>Publish a quarter, half, or whole of a named animal. Buyers reserve with a card deposit. You drop off at a booked plant and get paid through Stripe Connect.</p>
+      <ul>
+        <li>Live listing in about 90 seconds</li>
+        <li>Share inventory tracked automatically</li>
+        <li>Public ranch profile buyers can follow</li>
+        <li>No marketplace cut on your meat price — platform fee is separate</li>
+      </ul>
+      <div class="cta-row">
+        <a class="cta" href="/list-animal">List an animal →</a>
+        <a class="cta secondary" href="/farmer">Open ranch hub</a>
+      </div>
+    </article>
+
+    <article class="join-card" id="pathProcessor">
+      <span class="role">Processors &amp; lockers</span>
+      <h2>Claim your plant. Fill the rail.</h2>
+      <p>Most USDA and state plants are already on our map from public registries. Search, claim yours, set fees and capacity — farmers book drop-offs with deposit held until check-in.</p>
+      <ul>
+        <li>Claim existing FSIS / association listings</li>
+        <li>Schedule, capacity, and plant fees</li>
+        <li>6-digit dock check-in codes</li>
+        <li>Optional plant software plans when you’re ready</li>
+      </ul>
+      <div class="cta-row">
+        <a class="cta" href="/processor">Claim your plant →</a>
+        <a class="cta secondary" href="/map">Browse the map</a>
+      </div>
+    </article>
+  </div>
+
+  <section class="join-how">
+    <h3>How it works in the real world</h3>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="n">Step 1</div>
+        <h4>Sign in with email</h4>
+        <p>Magic link — no password. Choose producer or processor when you join.</p>
+      </div>
+      <div class="how-step">
+        <div class="n">Step 2</div>
+        <h4>Publish or claim</h4>
+        <p>Farms create a ranch profile and list animals. Plants claim their map row and set fees.</p>
+      </div>
+      <div class="how-step">
+        <div class="n">Step 3</div>
+        <h4>Money and meat move</h4>
+        <p>Buyers pay a deposit. You get the booking, the cut sheet, and the dock workflow.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="join-foot">
+    <p>Represent a cattlemen’s association, Farm Bureau, or processor group? We’ll white-glove onboard your members.</p>
+    <a href="mailto:hello@proteinoutfitters.com?subject=Association%20partnership%20%E2%80%94%20Protein%20Outfitters">Talk to us →</a>
+  </div>
+
+  <p style="margin:28px 0 0;font:500 14px/1.5 'Inter';color:var(--ink-2);">
+    Already a buyer?
+    <a href="/discover" style="color:var(--brand);font-weight:700;text-decoration:none;">Browse animals →</a>
+    &nbsp;·&nbsp;
+    <a href="/invite-partner" style="color:var(--brand);font-weight:700;text-decoration:none;">Invite a farm or plant →</a>
+  </p>
+</main>
+
+<div id="po-shell-host"></div>
+<script src="/po-shell.js"></script>
+<script src="/po-api.js"></script>
+<script>
+(function () {
+  // Deep-link ?as=producer|processor|farm|plant highlights the right path
+  const as = (new URLSearchParams(location.search).get('as') || '').toLowerCase();
+  if (as === 'processor' || as === 'plant') {
+    document.getElementById('pathProcessor')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (as === 'producer' || as === 'farm' || as === 'farmer') {
+    document.getElementById('pathProducer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Live network counts from map-data
+  (async () => {
+    const el = document.getElementById('joinStats');
+    try {
+      const r = await fetch('/api/map-data');
+      const d = await r.json();
+      const farms = d.counts?.farms ?? (d.farms || []).length;
+      const procs = d.counts?.processors ?? (d.processors || []).length;
+      let listings = null;
+      try {
+        const lr = await fetch('/api/listings?limit=1');
+        const ld = await lr.json();
+        // Count not returned; show qualitative if we have inventory
+        listings = (ld.listings || []).length > 0;
+      } catch {}
+      el.innerHTML = `
+        <span class="join-stat"><strong>${Number(farms).toLocaleString()}</strong> farms on the map</span>
+        <span class="join-stat"><strong>${Number(procs).toLocaleString()}</strong> processors listed</span>
+        <span class="join-stat"><strong>Live</strong> payments · Stripe Checkout</span>
+        ${listings ? '<span class="join-stat"><strong>Animals</strong> open for reserve now</span>' : '<span class="join-stat">Supply open · list your first animal</span>'}
+      `;
+    } catch {
+      el.innerHTML = `
+        <span class="join-stat"><strong>Nationwide</strong> farm + plant network</span>
+        <span class="join-stat"><strong>Live</strong> deposits via Stripe</span>
+      `;
+    }
+  })();
+})();
+</script>
+</body>
+</html>

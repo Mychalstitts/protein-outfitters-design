@@ -326,7 +326,7 @@
         <p class="lead">Three feed questions and a birth date. We'll calculate the predicted finish weight and harvest date in real time.</p>
 
         <div class="row-2">
-          <div class="field"><label>Birth date</label><input type="date" id="birthDate" value="2024-03-15"></div>
+          <div class="field"><label>Birth date</label><input type="date" id="birthDate"></div>
           <div class="field"><label>Current live weight (lb · optional)</label><input type="number" id="currentWeight" placeholder="auto-calculated" min="0"></div>
         </div>
 
@@ -425,23 +425,14 @@
 
         <div class="row-2">
           <div class="field">
-            <label>Pasture / Location</label>
-            <select id="location">
-              <option>Bemidji, MN · Beltrami County</option>
-              <option>Brainerd, MN · Crow Wing County</option>
-              <option>Park Rapids, MN · Hubbard County</option>
-              <option>Cass Lake, MN · Cass County</option>
-              <option>Other (search)</option>
-            </select>
+            <label>Pasture / Location note (optional)</label>
+            <input id="location" type="text" placeholder="e.g. North 80 rotational pasture · your county" />
+            <span class="help">Farm city/state come from your ranch profile. This note can go in the description.</span>
           </div>
           <div class="field">
-            <label>Processor pairing</label>
-            <select id="processor">
-              <option>Plant 04 · Bemidji, MN (12 mi)</option>
-              <option>Plant 17 · Cass Lake, MN (38 mi)</option>
-              <option>Plant 22 · Brainerd, MN (62 mi)</option>
-              <option>Buyer chooses (pricing varies)</option>
-            </select>
+            <label>Preferred plant (optional)</label>
+            <input id="processor" type="text" placeholder="e.g. buyer chooses · or name a plant you use" />
+            <span class="help">Buyers pick the processor at reserve. Note a preferred plant if you already haul there.</span>
           </div>
         </div>
       </section>
@@ -456,7 +447,7 @@
           <span class="market-hint-ico"><svg class="ico ico-lg" style="color: var(--brand);" aria-hidden="true"><use href="/icons.svg#lightbulb"/></svg></span>
           <span class="market-hint-text">
             <strong id="marketTitle">Industry-suggested · Grass-fed Black Angus</strong>
-            <span id="marketSub">$12.50/lb take-home · 2026 average for direct-to-consumer in MN/WI/ND/SD</span>
+            <span id="marketSub">$12.50/lb take-home · 2026 U.S. direct-to-consumer average (adjust for your region)</span>
           </span>
         </div>
 
@@ -574,15 +565,15 @@
     species: 'beef',
     breed: 'Black Angus',
     sex: 'Steer',
-    animalId: '#2641',
-    birthDate: '2024-03-15',
+    animalId: '',
+    birthDate: '',
     feedType: '100% grass + hay',
     finishFeed: '100% grass',
     antibiotics: 'Never',
     hormones: 'Never',
     certs: [],
-    location: 'Bemidji, MN · Beltrami County',
-    processor: 'Plant 04 · Bemidji, MN (12 mi)'
+    location: '',
+    processor: ''
   };
 
   // ============ STEP NAVIGATION (slide animations) ============
@@ -1078,10 +1069,20 @@
   }
 
   // ============ AUTO-GENERATED DESCRIPTION ============
+  function locLabel(s) {
+    const t = (s.location || '').trim();
+    if (!t) return 'our ranch';
+    return t.split(' · ')[0];
+  }
+  function plantLabel(s) {
+    const t = (s.processor || '').trim();
+    if (!t) return 'a local inspected plant';
+    return t.split(' (')[0];
+  }
   const TEMPLATES = [
-    (s, h, take) => `${s.animalId || 'This animal'} was born ${niceDate(s.birthDate)} on ${s.location.split(' · ')[0]}, raised by hand from day one. He's a ${s.breed.toLowerCase()} ${s.sex.toLowerCase()}, finished on ${s.finishFeed.toLowerCase()} after a life on ${s.feedType.toLowerCase()}.${s.antibiotics === 'Never' ? ' No antibiotics.' : ''}${s.hormones === 'Never' ? ' No growth hormones.' : ''} Predicted to dress out at ${target(s).toLocaleString()} lb live, with roughly ${take} lb of take-home cuts. Harvest is scheduled for ${h} at ${s.processor.split(' (')[0]}.`,
-    (s, h, take) => `Meet ${s.animalId || 'this animal'} — a ${s.breed.toLowerCase()} ${s.sex.toLowerCase()} born ${niceDate(s.birthDate)}. Raised on ${s.feedType.toLowerCase()} and finished on ${s.finishFeed.toLowerCase()}, this is the kind of animal you can taste the pasture in. ${s.antibiotics === 'Never' ? 'Never received antibiotics. ' : ''}${s.hormones === 'Never' ? 'Never given growth hormones. ' : ''}Estimated finish weight is ${target(s).toLocaleString()} lb live, dressing out to about ${take} lb of cuts. Harvest at ${s.processor.split(' (')[0]} on ${h}.`,
-    (s, h, take) => `${s.breed} ${s.sex.toLowerCase()} from ${s.location.split(' · ')[0]}. Born ${niceDate(s.birthDate)}. Lifetime feed: ${s.feedType.toLowerCase()}. Final 60–90 days on ${s.finishFeed.toLowerCase()}. ${s.antibiotics === 'Never' && s.hormones === 'Never' ? 'Antibiotic- and hormone-free.' : ''} Predicted finish: ${target(s).toLocaleString()} lb live → ${take} lb of cuts, harvested ${h} at ${s.processor.split(' (')[0]}.`
+    (s, h, take) => `${s.animalId || 'This animal'} was born ${niceDate(s.birthDate)} on ${locLabel(s)}, raised by hand from day one. A ${s.breed.toLowerCase()} ${s.sex.toLowerCase()}, finished on ${s.finishFeed.toLowerCase()} after a life on ${s.feedType.toLowerCase()}.${s.antibiotics === 'Never' ? ' No antibiotics.' : ''}${s.hormones === 'Never' ? ' No growth hormones.' : ''} Predicted to dress out at ${target(s).toLocaleString()} lb live, with roughly ${take} lb of take-home cuts. Harvest is scheduled for ${h} at ${plantLabel(s)}.`,
+    (s, h, take) => `Meet ${s.animalId || 'this animal'} — a ${s.breed.toLowerCase()} ${s.sex.toLowerCase()} born ${niceDate(s.birthDate)}. Raised on ${s.feedType.toLowerCase()} and finished on ${s.finishFeed.toLowerCase()}, this is the kind of animal you can taste the pasture in. ${s.antibiotics === 'Never' ? 'Never received antibiotics. ' : ''}${s.hormones === 'Never' ? 'Never given growth hormones. ' : ''}Estimated finish weight is ${target(s).toLocaleString()} lb live, dressing out to about ${take} lb of cuts. Harvest at ${plantLabel(s)} on ${h}.`,
+    (s, h, take) => `${s.breed} ${s.sex.toLowerCase()} from ${locLabel(s)}. Born ${niceDate(s.birthDate)}. Lifetime feed: ${s.feedType.toLowerCase()}. Final 60–90 days on ${s.finishFeed.toLowerCase()}. ${s.antibiotics === 'Never' && s.hormones === 'Never' ? 'Antibiotic- and hormone-free.' : ''} Predicted finish: ${target(s).toLocaleString()} lb live → ${take} lb of cuts, harvested ${h} at ${plantLabel(s)}.`
   ];
   let templateIdx = 0;
 

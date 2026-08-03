@@ -1,37 +1,41 @@
-# Producer cold email — Apollo-ready
-*For outbound to MN/WI/ND/SD ranches and farms with direct-to-consumer interest. Three-touch sequence.*
+# Producer cold email — nationwide
+*For outbound to U.S. ranches and farms with direct-to-consumer interest. Three-touch sequence. Link every CTA to https://www.proteinoutfitters.com/join?as=producer*
 
 ## ICP for this sequence
-- Ranches/farms within 180 miles of Bemidji, MN.
-- 50–500 head OR known DTC presence (farmers markets, herd shares, freezer beef Facebook groups).
-- Owner or operations decision-maker.
-- USDA-eligible or already shipping cross-state.
+- Cow-calf, stocker, or finish operations selling freezer beef / herd shares / farmers-market meat.
+- 25–2,000 head OR known DTC presence (Facebook groups, CSA, farm stores).
+- Owner or operations decision-maker in any U.S. state.
+- Can access a USDA, state-inspected, or equal-to plant within reasonable haul distance.
 
 ## Touch 1 — cold email · Day 0
 
 **Subject lines (A/B):**
 1. {first_name}, a question about your {company_name} freezer beef
-2. {first_name} — moving freezer beef without the spreadsheet?
+2. {first_name} — sell whole/half shares without the spreadsheet?
 
 **Body:**
 ```
 {first_name},
 
-Stittsworth Meats out of Bemidji here. We just launched Protein Outfitters — the platform we wish existed when we started selling whole and half beef to families in the Northland.
+I'm Mychal with Protein Outfitters — a live marketplace where families reserve a quarter, half, or whole of a *named* animal from your ranch, pay a deposit up front, and pick up at a local inspected plant.
 
-It does three things:
-• Buyers reserve a quarter, half, or whole. They pick the cuts. They pay up front.
-• You ship the animal to a USDA processor on your list. We handle the QR check-in.
-• You get paid the day after pickup. No phone tag. No paper cut sheets.
+What you get:
+• List an animal in about 90 seconds — share inventory tracked for you
+• Buyers pay deposit by card (Stripe). You set $/lb hanging weight
+• Drop-off books into a plant on our map (2,300+ plants listed nationwide)
+• Ranch profile buyers can follow and re-order from
 
-We're onboarding 12 producers across MN, WI, ND, and SD this quarter. {company_name} fits the profile.
+We're onboarding producers through cattlemen's associations and farm networks across the country. {company_name} fits the profile.
 
-Would 20 minutes next week make sense? I'll show you the producer dashboard and we can talk numbers.
+Start here (free): https://www.proteinoutfitters.com/join?as=producer
+Or list your first animal: https://www.proteinoutfitters.com/list-animal
 
-— Mychal Stittsworth
+Would 15 minutes next week make sense? I'll walk the producer dashboard with you.
+
+— Mychal Stitts
    Founder · Protein Outfitters
    www.proteinoutfitters.com
-   {phone_number}
+   hello@proteinoutfitters.com
 ```
 
 ## Touch 2 — bump · Day 4
@@ -42,7 +46,9 @@ Would 20 minutes next week make sense? I'll show you the producer dashboard and 
 ```
 {first_name} — bumping this in case it got buried.
 
-If freezer beef is more than 10% of your revenue, this conversation is worth the 20 minutes. Three early producers have moved 100% of their direct-to-consumer animals through us in the last 60 days.
+If direct freezer beef is more than a side project, this is worth 15 minutes. Producers list real animals; buyers reserve shares; plants take booked drop-offs. No demo inventory — when you publish, you're live.
+
+Join page: https://www.proteinoutfitters.com/join?as=producer
 
 Easiest day next week?
 ```
@@ -55,22 +61,24 @@ Easiest day next week?
 ```
 {first_name},
 
-I'll stop pinging. If freezer beef isn't a focus for you right now, no worries.
+I'll stop pinging. If freezer beef isn't a focus right now, no worries.
 
-If it ever becomes one, www.proteinoutfitters.com or my cell {phone_number}.
+When it is: https://www.proteinoutfitters.com/join?as=producer
+Or reply with a plant you already use — we'll invite them too.
 
 — Mychal
 ```
 
-## Apollo configuration notes
-- Sequence name: `PO Producer Outreach v1`
-- Sender: mychal@proteinoutfitters.com (after domain verification + warmup)
-- Send window: Tue–Thu, 9:00–11:00 AM Central
-- Reply detection: route any reply to mychal@ and pause sequence
-- Throttle: 50 sends/day per sender during warmup, 100/day after week 2
+## Apollo / outreach configuration
+- Sequence name: `PO Producer Nationwide v2`
+- Sender: mychal@proteinoutfitters.com (domain verified + warmed)
+- Send window: Tue–Thu, local morning for recipient timezone when known; else 9–11 AM Central
+- Reply detection: pause sequence on any reply
+- Throttle: 50/day warmup, 100–150/day after week 2
+- UTM on links: `?as=producer&utm_source=apollo&utm_campaign=producer_v2`
 
-## Subject line A/B test plan
-Touch 1 alone, 50/50 split, n=100 sends per variant before declaring. Track open rate (target > 40%) and reply rate (target > 8%).
+## Subject line A/B
+Touch 1 only, 50/50, n≥100 per variant. Targets: open > 35%, reply > 6%.
 
-## Producer-side referral hook (Touch 1 footnote, optional)
-> "If {company_name} isn't a fit, do you know one ranch in your network that should hear about this? We pay a $250 referral on any producer who lists 3+ animals."
+## Referral footnote (optional on Touch 1)
+> Know another ranch that should list? Send them https://www.proteinoutfitters.com/join?as=producer — we treat member intros from associations as priority onboard.

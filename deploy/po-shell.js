@@ -366,6 +366,10 @@
       '/produced': '/producers',
       '/find-processors': '/map',
       '/find-suppliers': '/discover',
+      '/become-a-host': '/join',
+      '/for-producers': '/join?as=producer',
+      '/for-processors': '/join?as=processor',
+      '/partners': '/join',
     };
 
     document.addEventListener('click', (e) => {

@@ -69,12 +69,18 @@ Open **https://www.proteinoutfitters.com/admin-health** as an admin. Target **sc
 
 ## Outreach channels (suggested order)
 
-1. **State cattlemen’s / pork / sheep associations** — processor + producer dual CTA: map claim + list animals  
-2. **County extension / Farm Bureau / Young Farmers**  
-3. **Custom processors** already on map — “Claim your plant” email (invite-partner)  
-4. **Local food co-ops & buying clubs** — buyer discover + reserve  
+1. **State cattlemen’s / pork / sheep associations** — dual CTA:  
+   - Producers: https://www.proteinoutfitters.com/join?as=producer  
+   - Processors: https://www.proteinoutfitters.com/join?as=processor  
+2. **County extension / Farm Bureau / Young Farmers** — same join page  
+3. **Custom processors** already on map — claim email (`docs/13`) or `/invite-partner`  
+4. **Local food co-ops & buying clubs** — buyer `/discover`  
 
-Cold copy lives in `docs/04 Launch Comms — Producer Cold Email.md` (refresh Bemidji-only language to “nationwide” if needed before send).
+Cold copy:
+- Producers: `docs/04 Launch Comms — Producer Cold Email.md` (nationwide)
+- Processors: `docs/13 Launch Comms — Processor Cold Email.md`
+
+Member landing: **https://www.proteinoutfitters.com/join**
 
 ---
 

@@ -78,6 +78,8 @@ const REQUIRED_STRIPE_EVENTS = [
 const CRONS_EXPECTED = [
   { path: '/api/email-tick',                schedule: '0 14 * * *',    purpose: 'Daily lifecycle email sweep (C2 / C4 / F4 / P3 / F11)' },
   { path: '/api/annual-donor-acknowledgment', schedule: '0 15 15 1 *', purpose: 'Yearly D3 consolidated tax letter (Jan 15)' },
+  { path: '/api/cron-geocode',              schedule: '30 14 * * *',   purpose: 'Geocode farms/processors missing lat/lng for the national map' },
+  { path: '/api/cron-sweep-pending',        schedule: '*/15 * * * *',  purpose: 'Release abandoned checkout inventory (pending holds with no payment)' },
 ];
 
 // Wrap a promise with a timeout so a slow upstream doesn't hang the whole function.

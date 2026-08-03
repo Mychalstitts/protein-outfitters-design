@@ -8,6 +8,9 @@
     <url><loc>https://www.proteinoutfitters.com/hardware</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
     <url><loc>https://www.proteinoutfitters.com/donation-flow</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
     <url><loc>https://www.proteinoutfitters.com/processor-saas</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <url><loc>https://www.proteinoutfitters.com/join</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+    <url><loc>https://www.proteinoutfitters.com/list-animal</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+    <url><loc>https://www.proteinoutfitters.com/invite-partner</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
     <url><loc>https://www.proteinoutfitters.com/farmer</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
     <url><loc>https://www.proteinoutfitters.com/processor</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
     <url><loc>https://www.proteinoutfitters.com/faq</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
