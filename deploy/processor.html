@@ -424,6 +424,15 @@ window.openMarkReady = function(bookingId, listingId, label) {
   const searchBtn = document.getElementById('prSearchBtn');
   const searchResults = document.getElementById('prSearchResults');
   const searchStatus = document.getElementById('prSearchStatus');
+
+  // Deep-link from map: /processor?claim_id=…&q=…&state=…
+  const urlParams = new URLSearchParams(location.search);
+  const deepClaimId = urlParams.get('claim_id');
+  const deepQ = urlParams.get('q');
+  const deepState = urlParams.get('state');
+  if (deepQ && document.getElementById('prSearchQ')) document.getElementById('prSearchQ').value = deepQ;
+  if (deepState && document.getElementById('prSearchState')) document.getElementById('prSearchState').value = deepState.slice(0, 2).toUpperCase();
+
   async function runPlantSearch() {
     const q = (document.getElementById('prSearchQ')?.value || '').trim();
     const state = (document.getElementById('prSearchState')?.value || '').trim().toUpperCase().slice(0, 2);
@@ -475,6 +484,24 @@ window.openMarkReady = function(bookingId, listingId, label) {
   if (searchBtn) searchBtn.addEventListener('click', runPlantSearch);
   document.getElementById('prSearchQ')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runPlantSearch(); } });
   document.getElementById('prSearchState')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runPlantSearch(); } });
+
+  // One-click claim when arriving from the map with claim_id
+  if (deepClaimId && myProcessors.length === 0) {
+    if (searchStatus) searchStatus.textContent = 'Claiming plant from map…';
+    try {
+      await window.PO_API.claimProcessor({ claim_id: deepClaimId });
+      if (searchStatus) searchStatus.textContent = 'Plant claimed. Loading dashboard…';
+      history.replaceState(null, '', '/processor');
+      location.reload();
+      return;
+    } catch (err) {
+      if (searchStatus) searchStatus.textContent = 'Could not auto-claim: ' + err.message + ' — search below or try again.';
+      // Fall through to search results for the prefilled name/state
+      if (deepQ || deepState) runPlantSearch();
+    }
+  } else if ((deepQ || deepState) && myProcessors.length === 0) {
+    runPlantSearch();
+  }
 
   // ─── Claim form (create new) ─────────────────────────────────
   const claimForm = document.getElementById('prClaimForm');

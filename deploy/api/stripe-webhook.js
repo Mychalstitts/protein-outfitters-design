@@ -247,9 +247,41 @@ async function handler(req) {
               processor_name: row.processor_name,
               drop_off_date: row.expected_finish_date,
               deposit_amount: row.deposit_amount,
+              dedupKey: `C1::${reservationId}`,
             });
           }
         } catch (emailErr) { console.error('C1 email failed:', emailErr); }
+
+        // Notify the farmer that a paid share just landed (idempotent per reservation)
+        try {
+          const farmerRows = await sql`
+            SELECT u.email, u.name, f.id AS farm_id, l.id AS listing_id,
+                   r.share_size, r.buyer_name, r.buyer_email,
+                   l.number, l.breed, l.species
+            FROM reservations r
+            JOIN listings l ON l.id = r.listing_id
+            JOIN farms f ON f.id = l.farm_id
+            JOIN users u ON u.id = f.owner_id
+            WHERE r.id = ${reservationId}
+            LIMIT 1`;
+          if (farmerRows[0]?.email) {
+            const m = farmerRows[0];
+            const frac = m.share_size === 'whole' ? 'whole animal'
+              : m.share_size === 'half' ? 'half share'
+              : m.share_size === 'quarter' ? 'quarter share' : 'share';
+            const label = `${m.number ? m.number + ' · ' : ''}${m.breed || m.species || 'animal'}`;
+            await sendLifecycleEmail('F2.first_sale_pick_processor', {
+              to: m.email,
+              farmer_name: m.name,
+              farm_id: m.farm_id,
+              listing_id: m.listing_id,
+              animal_label: label,
+              fraction_pretty: frac,
+              buyer_first: (m.buyer_name || m.buyer_email || 'A buyer').split(/\s|@/)[0],
+              dedupKey: `F2paid::${reservationId}`,
+            });
+          }
+        } catch (fEmailErr) { console.error('Farmer sale email failed:', fEmailErr); }
         break;
       }
 

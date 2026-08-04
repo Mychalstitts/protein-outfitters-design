@@ -92,7 +92,12 @@
     followFarm:     (farm_id) => jsonFetch('/api/farm-follow', { method: 'POST', body: { farm_id } }),
     unfollowFarm:   (farm_id) => jsonFetch('/api/farm-follow?farm_id=' + encodeURIComponent(farm_id), { method: 'DELETE' }),
 
-    reservations: () => jsonFetch('/api/reservations'),
+    reservations: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return jsonFetch('/api/reservations' + (q ? '?' + q : ''));
+    },
+    producerReservations: () => jsonFetch('/api/reservations?for=producer'),
+    reservation: (id) => jsonFetch('/api/reservations?id=' + encodeURIComponent(id)),
     reserve: (data) => jsonFetch('/api/reservations', { method: 'POST', body: data }),
 
     // Cut sheets — used by /cut-sheet to file real cut instructions for a reservation

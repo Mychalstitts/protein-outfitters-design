@@ -700,13 +700,27 @@
     for (const p of DATA.processors) {
       if (p.lat == null || p.lng == null) continue;
       const m = L.marker([p.lat, p.lng], { icon: avatarPin({ kind: 'processor', name: p.name, active: p.recent }) });
+      const claimQs = new URLSearchParams();
+      if (p.id) claimQs.set('claim_id', p.id);
+      if (p.name) claimQs.set('q', p.name);
+      if (p.state) claimQs.set('state', p.state);
+      const claimHref = '/processor?' + claimQs.toString();
+      const profileCta = p.slug
+        ? `<a class="cta" href="/p/${encodeURIComponent(p.slug)}">View profile →</a>`
+        : '';
+      const claimCta = p.claimable !== false
+        ? `<a class="cta${profileCta ? ' ghost' : ''}" href="${claimHref}">Claim this plant →</a>`
+        : `<span style="font:600 11px/1.3 'Inter';opacity:.7;margin-top:6px;display:inline-block;">Already claimed</span>`;
       m.bindPopup(`
         <h4>${escapeHtml(p.name)}</h4>
         <p>${escapeHtml(p.city || '')}${p.state ? ', ' + escapeHtml(p.state) : ''}</p>
         ${p.inspection ? `<p>Inspection: <strong>${escapeHtml(p.inspection.toUpperCase())}</strong></p>` : ''}
         ${(p.species && p.species.length) ? `<p>Species: ${p.species.map(escapeHtml).join(', ')}</p>` : ''}
-        ${p.slug ? `<a class="cta" href="/p/${encodeURIComponent(p.slug)}">View profile →</a>` : ''}
-        <button class="cta" style="margin-left:6px;border:0;cursor:pointer;" type="button" data-compare-id="${escapeHtml(p.id)}">+ Compare</button>`);
+        <div class="cta-row">
+          ${profileCta}
+          ${claimCta}
+          <button class="cta ghost" style="border:0;cursor:pointer;" type="button" data-compare-id="${escapeHtml(p.id)}">+ Compare</button>
+        </div>`);
       m.on('popupopen', () => {
         const btn = m.getPopup()?.getElement()?.querySelector('[data-compare-id]');
         if (btn) btn.onclick = () => pinToCompare(btn.getAttribute('data-compare-id'), p.name);

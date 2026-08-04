@@ -17,12 +17,65 @@ async function handler(req) {
   if (req.method === 'GET') {
     const user = await currentUser(req);
     if (!user) return err(401, 'Sign in required');
+
+    // Single reservation by id — buyer, farm owner, plant owner, or admin
+    const id = url.searchParams.get('id');
+    if (id) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+        return err(404, 'Reservation not found');
+      }
+      const rows = await sql`
+        SELECT r.*, l.species, l.breed, l.number, l.photos, l.expected_finish_date, l.estimated_hanging_weight,
+               f.id as farm_id, f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state,
+               f.owner_id as farm_owner_id,
+               p.id as processor_id_resolved, p.name as processor_name, p.city as processor_city, p.state as processor_state,
+               p.owner_id as processor_owner_id
+        FROM reservations r
+        JOIN listings l ON l.id = r.listing_id
+        JOIN farms f ON f.id = l.farm_id
+        LEFT JOIN processors p ON p.id = r.processor_id
+        WHERE r.id = ${id}
+        LIMIT 1`;
+      const row = rows[0];
+      if (!row) return err(404, 'Reservation not found');
+      const allowed = user.role === 'admin'
+        || row.buyer_id === user.id
+        || row.buyer_email === user.email
+        || row.farm_owner_id === user.id
+        || row.processor_owner_id === user.id;
+      if (!allowed) return err(403, 'Not your reservation');
+      // Strip owner ids from public response
+      const { farm_owner_id, processor_owner_id, ...safe } = row;
+      return json({ reservation: safe });
+    }
+
+    // Producer sales feed — all reservations against farms they own
+    const forRole = (url.searchParams.get('for') || '').toLowerCase();
+    if (forRole === 'producer' || forRole === 'farm') {
+      const rows = await sql`
+        SELECT r.*, l.species, l.breed, l.number, l.photos, l.expected_finish_date,
+               f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state,
+               p.name as processor_name, p.city as processor_city, p.state as processor_state
+        FROM reservations r
+        JOIN listings l ON l.id = r.listing_id
+        JOIN farms f ON f.id = l.farm_id
+        LEFT JOIN processors p ON p.id = r.processor_id
+        WHERE f.owner_id = ${user.id}
+          AND r.status NOT IN ('cancelled', 'refunded')
+        ORDER BY r.created_at DESC
+        LIMIT 100`;
+      return json({ reservations: rows, role: 'producer' });
+    }
+
+    // Default: buyer's own reservations
     const rows = await sql`
       SELECT r.*, l.species, l.breed, l.number, l.photos, l.expected_finish_date,
-             f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state
+             f.slug as farm_slug, f.name as farm_name, f.city as farm_city, f.state as farm_state,
+             p.name as processor_name, p.city as processor_city, p.state as processor_state
       FROM reservations r
       JOIN listings l ON l.id = r.listing_id
       JOIN farms f ON f.id = l.farm_id
+      LEFT JOIN processors p ON p.id = r.processor_id
       WHERE r.buyer_id = ${user.id} OR r.buyer_email = ${user.email}
       ORDER BY r.created_at DESC
     `;

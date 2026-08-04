@@ -65,7 +65,7 @@ async function loadFarms() {
 async function loadProcessors() {
   const rows = await sql`
     SELECT p.id, p.slug, p.name, p.city, p.state, p.zip, p.lat, p.lng,
-           p.bio, p.inspection, p.capabilities, p.cover_url
+           p.bio, p.inspection, p.capabilities, p.cover_url, p.owner_id
     FROM processors p
     ORDER BY p.created_at DESC`;
   const out = [];
@@ -84,6 +84,7 @@ async function loadProcessors() {
       lat, lng,
       inspection: p.inspection,
       species,
+      claimable: !p.owner_id,
     });
   }
   return out;
