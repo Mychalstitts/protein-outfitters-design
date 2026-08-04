@@ -409,8 +409,11 @@
       grid.innerHTML = `<div class="farm-empty" style="grid-column:1/-1">
         <img src="/brand/logo-monogram.svg" alt="" width="56" height="56" />
         <h3>No animals reserving right now</h3>
-        <p>Follow this ranch for updates, or browse other farms with live inventory.</p>
-        <a href="/discover">Browse animals →</a>
+        <p>Follow this ranch for updates, browse other farms, or — if this is your ranch — list an animal in about 90 seconds.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:4px;">
+          <a href="/discover">Browse animals →</a>
+          <a href="/list-animal" style="background:transparent;color:#061b0e;border:1.5px solid rgba(6,27,14,.14);">List an animal →</a>
+        </div>
       </div>`;
     } else {
       titleEl.innerHTML = `${listings.length} animal${listings.length === 1 ? '' : 's'} reserving

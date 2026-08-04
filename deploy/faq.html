@@ -102,6 +102,7 @@
     <button class="active" data-grp="buyer">For buyers</button>
     <button data-grp="farmer">For farmers</button>
     <button data-grp="processor">For processors</button>
+    <button data-grp="association">For associations</button>
     <button data-grp="institution">For institutions</button>
     <button data-grp="general">General</button>
   </div>
@@ -206,6 +207,36 @@
     </details>
   </div>
 
+  <!-- ===== ASSOCIATIONS / NETWORKS ===== -->
+  <div class="faq-list hidden" data-grp="association">
+
+    <details class="faq-item"><summary>What is Protein Outfitters for cattlemen’s associations and farm networks?</summary>
+      <div class="faq-body">A live U.S. marketplace where member farms list real animals by the share, buyers pay a deposit by card, and inspected plants claim their profile for booked drop-offs. You get a single member link — no custom app — that routes producers to list inventory and processors to claim plants already on our national map (~2,300 plants from public registries).</div>
+    </details>
+
+    <details class="faq-item"><summary>What link should we send members?</summary>
+      <div class="faq-body">One landing page covers both paths:<br><br>
+        <strong>Everyone:</strong> <a href="/join">proteinoutfitters.com/join</a><br>
+        <strong>Producers only:</strong> <a href="/join?as=producer">/join?as=producer</a><br>
+        <strong>Processors only:</strong> <a href="/join?as=processor">/join?as=processor</a><br>
+        <strong>Map of plants:</strong> <a href="/map">/map</a> (tap a pin → Claim this plant)<br><br>
+        Association one-pager: <a href="/for-associations">/for-associations</a>
+      </div>
+    </details>
+
+    <details class="faq-item"><summary>Is this a demo or a real product?</summary>
+      <div class="faq-body">Live production marketplace. Real listings, magic-link auth, Stripe Checkout deposits, reservation inventory, plant claim for unowned FSIS/association rows, cut sheets, and lifecycle email. We do <strong>not</strong> show placeholder animals when inventory is empty.</div>
+    </details>
+
+    <details class="faq-item"><summary>What does it cost our members?</summary>
+      <div class="faq-body"><strong>Farms:</strong> free to list. Platform fee is a small $/lb hanging amount on the buyer’s all-in price — not taken out of the farmer’s posted rate. <strong>Plants:</strong> free marketplace claim + check-in; optional paid plant software plans at <a href="/processor-saas">/processor-saas</a> for calendars, multi-seat ops, and higher volume.</div>
+    </details>
+
+    <details class="faq-item"><summary>Can we co-brand or white-glove onboard a member class?</summary>
+      <div class="faq-body">Yes. Email <a href="mailto:hello@proteinoutfitters.com?subject=Association%20partnership">hello@proteinoutfitters.com</a> with your association name, state(s), and member count. We’ll prioritize map claim for your plants and a short webinar walkthrough for producers.</div>
+    </details>
+  </div>
+
   <!-- ===== INSTITUTIONS ===== -->
   <div class="faq-list hidden" data-grp="institution">
 
@@ -261,6 +292,7 @@
     <div class="row gap-3">
       <a class="btn btn--primary btn--xl" href="mailto:hello@proteinoutfitters.com?subject=Question%20from%20FAQ">Email support</a>
       <a class="btn btn--secondary btn--xl" href="/discover">Browse animals</a>
+      <a class="btn btn--secondary btn--xl" href="/join">Join as farm or plant</a>
     </div>
   </div>
 
@@ -286,7 +318,7 @@
   }));
   // Deep-link: /faq#buyer (and farmer/producer/processor/institution/general)
   const hashRaw = (location.hash || '').replace(/^#/, '').toLowerCase();
-  const hashAlias = { producer: 'farmer', producers: 'farmer', buyer: 'buyer', plant: 'processor' };
+  const hashAlias = { producer: 'farmer', producers: 'farmer', buyer: 'buyer', plant: 'processor', association: 'association', associations: 'association', cattlemen: 'association', network: 'association' };
   const hash = hashAlias[hashRaw] || hashRaw;
   if (hash) showGrp(hash);
   window.addEventListener('hashchange', () => {

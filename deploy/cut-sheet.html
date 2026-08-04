@@ -865,33 +865,56 @@
     try {
       const params = new URLSearchParams(location.search);
       const urlId = params.get('reservation_id') || params.get('id') || params.get('reservation');
-      const r = await fetch('/api/reservations', { credentials: 'include' });
-      if (r.status === 401) {
-        setEmpty('Sign in to load your cut sheet', 'Your cut sheet is tied to a reservation. <a href="/account" class="signin" id="csSignInLink" style="font-weight:700;color:inherit">Sign in</a> or open Account to pick an order.');
-        document.getElementById('csSignInLink')?.addEventListener('click', e => {
-          e.preventDefault();
-          window.PO_API?.openAuth('Sign in to build your cut sheet', 'buyer', {
-            next: location.pathname + location.search
-          });
-        });
-        return;
-      }
-      if (!r.ok) {
-        setEmpty('Couldn’t load reservation', 'Try again from <a href="/account" style="font-weight:700;color:inherit">your account</a>.');
-        return;
-      }
-      const { reservations = [] } = await r.json();
-      const active = reservations.filter(x => !['cancelled', 'refunded'].includes(x.status));
-      const res = (urlId && reservations.find(x => x.id === urlId)) || (active.length === 1 ? active[0] : null);
-      if (!res) {
-        if (urlId) {
-          setEmpty('Reservation not found', 'This link may be expired or for another account. <a href="/account" style="font-weight:700;color:inherit">Open Account</a> or <a href="/discover" style="font-weight:700;color:inherit">reserve an animal</a>.');
-        } else if (active.length > 1) {
-          setEmpty('Pick a reservation', `You have ${active.length} active reservations. <a href="/account" style="font-weight:700;color:inherit">Choose one in Account</a> to open its cut sheet.`);
-        } else {
-          setEmpty('No reservation yet', 'Cut sheets are built after you reserve. <a href="/discover" style="font-weight:700;color:inherit">Browse animals →</a>');
+
+      // Prefer direct ?id= fetch (works for buyer after Stripe redirect)
+      let res = null;
+      if (urlId && window.PO_API?.reservation) {
+        try {
+          const one = await window.PO_API.reservation(urlId);
+          res = one.reservation || null;
+        } catch (e) {
+          if (e.status === 401) {
+            setEmpty('Sign in to load your cut sheet', 'Your cut sheet is tied to a reservation. <a href="/account" class="signin" id="csSignInLink" style="font-weight:700;color:inherit">Sign in</a> or open Account to pick an order.');
+            document.getElementById('csSignInLink')?.addEventListener('click', e2 => {
+              e2.preventDefault();
+              window.PO_API?.openAuth('Sign in to build your cut sheet', 'buyer', {
+                next: location.pathname + location.search
+              });
+            });
+            return;
+          }
         }
-        return;
+      }
+
+      if (!res) {
+        const r = await fetch('/api/reservations', { credentials: 'include' });
+        if (r.status === 401) {
+          setEmpty('Sign in to load your cut sheet', 'Your cut sheet is tied to a reservation. <a href="/account" class="signin" id="csSignInLink" style="font-weight:700;color:inherit">Sign in</a> or open Account to pick an order.');
+          document.getElementById('csSignInLink')?.addEventListener('click', e => {
+            e.preventDefault();
+            window.PO_API?.openAuth('Sign in to build your cut sheet', 'buyer', {
+              next: location.pathname + location.search
+            });
+          });
+          return;
+        }
+        if (!r.ok) {
+          setEmpty('Couldn’t load reservation', 'Try again from <a href="/account" style="font-weight:700;color:inherit">your account</a>.');
+          return;
+        }
+        const { reservations = [] } = await r.json();
+        const active = reservations.filter(x => !['cancelled', 'refunded'].includes(x.status));
+        res = (urlId && reservations.find(x => x.id === urlId)) || (active.length === 1 ? active[0] : null);
+        if (!res) {
+          if (urlId) {
+            setEmpty('Reservation not found', 'This link may be expired or for another account. <a href="/account" style="font-weight:700;color:inherit">Open Account</a> or <a href="/discover" style="font-weight:700;color:inherit">reserve an animal</a>.');
+          } else if (active.length > 1) {
+            setEmpty('Pick a reservation', `You have ${active.length} active reservations. <a href="/account" style="font-weight:700;color:inherit">Choose one in Account</a> to open its cut sheet.`);
+          } else {
+            setEmpty('No reservation yet', 'Cut sheets are built after you reserve. <a href="/discover" style="font-weight:700;color:inherit">Browse animals →</a>');
+          }
+          return;
+        }
       }
       const shareLabel = { quarter: 'Quarter', half: 'Half', whole: 'Whole' }[res.share_size] || 'Share';
       const lb = { quarter: 110, half: 220, whole: 440 }[res.share_size] || 110;

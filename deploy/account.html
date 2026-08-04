@@ -261,10 +261,12 @@
   // throughout this function (cut-sheet badge, sub-greeting, list render).
   // Declaring them here fixes a temporal-dead-zone ReferenceError that used
   // to throw at the cut-sheet badge and abort the entire reservations render.
+  // pending = hold before Stripe completes; treat as active but call out payment
   const activeNow = reservations.filter(r => !['picked-up','cancelled','refunded'].includes(r.status));
   const past = reservations.filter(r => ['picked-up','cancelled','refunded'].includes(r.status));
   const hasCutSheet = r => !!(r && r.cut_sheet && (typeof r.cut_sheet !== 'object' || Object.keys(r.cut_sheet).length > 0));
-  const totalSpend = reservations.reduce((s,r) => s + Number(r.total_estimate || 0), 0);
+  const paidLike = r => !['pending','cancelled','refunded'].includes(r.status);
+  const totalSpend = reservations.filter(paidLike).reduce((s,r) => s + Number(r.total_estimate || r.deposit_amount || 0), 0);
   const farmSet = new Set(reservations.map(r => r.farm_slug || r.farm_name).filter(Boolean));
   const setText = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
   setText('acStatActive', activeNow.length);
@@ -401,7 +403,7 @@
 
   const photoFor = sp => sp === 'hog' ? '/img/premium-pig.jpg' : sp === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg';
   const labelShare = s => s === 'whole' ? 'Whole' : s === 'half' ? 'Half' : s === 'quarter' ? 'Quarter' : 'Eighth';
-  const labelStatus = s => ({pending:'Pending', 'deposit-paid':'Deposit paid', paid:'Paid', processing:'In processing', ready:'Ready for pickup', 'picked-up':'Picked up', cancelled:'Cancelled', refunded:'Refunded'}[s] || s);
+  const labelStatus = s => ({pending:'Awaiting payment', 'deposit-paid':'Deposit paid', paid:'Paid', processing:'In processing', ready:'Ready for pickup', 'picked-up':'Picked up', cancelled:'Cancelled', refunded:'Refunded'}[s] || s);
 
   // Render PAST orders with "Reserve again" (Amazon-style reorder)
   if (past.length) {
@@ -431,7 +433,10 @@
     ? activeNow.map(r => {
     // Per-status action affordances on the right side of the row.
     let actions = '';
-    if (r.status === 'ready') {
+    if (r.status === 'pending') {
+      actions = `<a class="res-cta" href="/listing?id=${encodeURIComponent(r.listing_id)}&open_sheet=1&share=${encodeURIComponent(r.share_size || '')}" style="background:#a65f10;color:#fff;text-decoration:none;border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';">Complete payment →</a>
+                 <span style="font:500 11px/1.3 'Inter';color:var(--ink-3);max-width:12ch;text-align:right;">Hold expires if unpaid</span>`;
+    } else if (r.status === 'ready') {
       actions = `<button onclick="markPickedUp('${r.id}')" style="background:#7da05d;color:#fbf9f5;border:0;border-radius:999px;padding:8px 14px;font:700 12px/1 'Inter';cursor:pointer;">Mark picked up</button>
                  <a class="res-cta" href="/listing?id=${r.listing_id}#journey">Say thanks →</a>
                  <a class="res-cta" href="/cut-sheet?reservation_id=${r.id}">Cut sheet →</a>`;
@@ -443,6 +448,7 @@
                  <a class="res-cta" href="/cut-sheet?reservation_id=${r.id}">View cut sheet</a>`;
     } else {
       actions = `<a class="res-cta" href="/cut-sheet?reservation_id=${r.id}">Cut sheet →</a>
+                 <a class="res-cta" href="/confirmed?reservation_id=${r.id}">Details →</a>
                  <a href="/api/ics?reservation=${r.id}" style="font:700 11px/1 'Inter';color:var(--ink);opacity:.65;text-decoration:none">📅 Calendar</a>`;
     }
     return `

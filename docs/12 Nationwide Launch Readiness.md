@@ -80,7 +80,9 @@ Cold copy:
 - Producers: `docs/04 Launch Comms — Producer Cold Email.md` (nationwide)
 - Processors: `docs/13 Launch Comms — Processor Cold Email.md`
 
-Member landing: **https://www.proteinoutfitters.com/join**
+Member landing: **https://www.proteinoutfitters.com/join**  
+Association one-pager (print/PDF): **https://www.proteinoutfitters.com/for-associations**  
+Association FAQ: **https://www.proteinoutfitters.com/faq#association**
 
 ---
 

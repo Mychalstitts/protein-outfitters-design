@@ -125,6 +125,16 @@
             "source": "/partners",
             "destination": "/join",
             "permanent": false
+        },
+        {
+            "source": "/associations",
+            "destination": "/for-associations",
+            "permanent": true
+        },
+        {
+            "source": "/cattlemen",
+            "destination": "/for-associations",
+            "permanent": false
         }
     ],
     "crons": [

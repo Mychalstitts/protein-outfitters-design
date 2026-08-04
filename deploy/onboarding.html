@@ -307,9 +307,21 @@ nav a:hover { opacity: 0.7; }
 <script src="/po-api.js"></script>
 <script>
 (function () {
+  // Deep-link from invites + join: /onboarding?as=producer|processor|buyer
+  const asRaw = (new URLSearchParams(location.search).get('as') || '').toLowerCase();
+  const asMap = {
+    producer: { role: 'producer', href: '/farmer', label: 'Open ranch hub' },
+    farm: { role: 'producer', href: '/farmer', label: 'Open ranch hub' },
+    farmer: { role: 'producer', href: '/farmer', label: 'Open ranch hub' },
+    processor: { role: 'processor', href: '/processor', label: 'Claim your plant' },
+    plant: { role: 'processor', href: '/processor', label: 'Claim your plant' },
+    buyer: { role: 'buyer', href: '/discover', label: 'Browse animals' },
+    consumer: { role: 'buyer', href: '/discover', label: 'Browse animals' },
+  };
+  const as = asMap[asRaw] || null;
+  if (as) window.__poRoleHint = as.role;
+
   function pickRole () {
-    // Default role for the magic-link modal — pick based on which role card the
-    // user has hovered/focused most recently, otherwise fall back to "buyer".
     return window.__poRoleHint || 'buyer';
   }
   // Track the last role-card the user interacted with so the auth modal opens
@@ -320,6 +332,18 @@ nav a:hover { opacity: 0.7; }
     a.addEventListener('mouseenter', () => { window.__poRoleHint = role; });
     a.addEventListener('focus',      () => { window.__poRoleHint = role; });
   });
+
+  // Highlight the matching role card when arriving from /join or invite email
+  if (as) {
+    document.querySelectorAll('section a[href]').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      if (href === as.href || (as.role === 'producer' && href === '/list-animal')) {
+        a.style.outline = '2px solid rgba(251,249,245,.85)';
+        a.style.background = 'rgba(255,255,255,.22)';
+      }
+    });
+  }
+
   // SSO buttons currently route to the magic-link email modal — we don't
   // yet have Apple Sign-In or Google OAuth configured server-side. To avoid
   // labels lying to users ("Sign in with Apple" should mean Apple), we hide
@@ -334,19 +358,33 @@ nav a:hover { opacity: 0.7; }
     const cta = document.createElement('button');
     cta.type = 'button';
     cta.className = firstSso.className;
-    cta.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">mail</span> Continue with email';
+    cta.innerHTML = as
+      ? `<span class="material-symbols-outlined" style="font-size:18px">mail</span> Continue as ${as.role === 'producer' ? 'producer' : as.role === 'processor' ? 'processor' : 'buyer'}`
+      : '<span class="material-symbols-outlined" style="font-size:18px">mail</span> Continue with email';
     cta.style.cursor = 'pointer';
     cta.addEventListener('click', () => {
       if (window.PO_API && typeof window.PO_API.openAuth === 'function') {
-        window.PO_API.openAuth('Sign in to Protein Outfitters', pickRole());
+        const next = as ? as.href : undefined;
+        window.PO_API.openAuth('Sign in to Protein Outfitters', pickRole(), next ? { next } : undefined);
       } else {
-        window.location.href = '/account';
+        window.location.href = as ? as.href : '/account';
       }
     });
     // Insert the new CTA before the first SSO button, then remove the old ones.
     parent.insertBefore(cta, firstSso);
     ssoBtns.forEach(b => b.remove());
   }
+
+  // If already signed in and deep-linked as a role, go straight to hub
+  (async () => {
+    if (!as || !window.PO_API?.me) return;
+    try {
+      const me = await window.PO_API.me();
+      if (me?.user) {
+        window.location.replace(as.href);
+      }
+    } catch (_) { /* stay on picker */ }
+  })();
 })();
 </script>
 </body></html>
