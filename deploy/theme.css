@@ -52,6 +52,9 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
   --font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  /* Alias used across many pages + po-shell (font: … var(--ff-sans) is invalid without this) */
+  --ff-sans: var(--font-sans);
+  --ff-display: var(--font-display);
 
   --tracking-tight: -0.025em;
   --tracking-snug: -0.018em;

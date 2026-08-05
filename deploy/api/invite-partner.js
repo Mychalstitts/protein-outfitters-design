@@ -122,19 +122,31 @@ async function handler(req) {
         subject: inviteSubject(kind, name),
         html: inviteHtml({ kind, partnerName: name, inviterName, inviterEmail, personalMessage: message, claimUrl })
       });
-      resendId = r.data?.id || null;
-      if (inviteId) {
-        await sql`UPDATE invites SET status = 'sent', resend_message_id = ${resendId}, sent_at = NOW() WHERE id = ${inviteId}`;
+      // Resend SDK often returns { data, error } without throwing
+      if (r?.error) {
+        sendError = r.error.message || r.error.name || JSON.stringify(r.error);
+      } else {
+        resendId = r?.data?.id || r?.id || null;
+        if (!resendId) sendError = 'Email provider returned no message id';
       }
-      if (discoveredId) {
-        await sql`UPDATE discovered_partners SET invite_status = 'sent', invited_by = ${user?.id || null}, invited_at = NOW(), updated_at = NOW() WHERE id = ${discoveredId}`;
+      if (resendId) {
+        if (inviteId) {
+          await sql`UPDATE invites SET status = 'sent', resend_message_id = ${resendId}, sent_at = NOW() WHERE id = ${inviteId}`;
+        }
+        if (discoveredId) {
+          await sql`UPDATE discovered_partners SET invite_status = 'sent', invited_by = ${user?.id || null}, invited_at = NOW(), updated_at = NOW() WHERE id = ${discoveredId}`;
+        }
+      } else if (inviteId) {
+        await sql`UPDATE invites SET status = 'failed' WHERE id = ${inviteId}`;
       }
     } catch (e) {
-      sendError = e.message;
+      sendError = e.message || String(e);
       if (inviteId) {
         await sql`UPDATE invites SET status = 'failed' WHERE id = ${inviteId}`;
       }
     }
+  } else {
+    sendError = 'No partner email — invite recorded for follow-up only';
   }
 
   return json({
@@ -143,7 +155,8 @@ async function handler(req) {
     sent: !!resendId,
     resend_id: resendId,
     error: sendError,
-    claim_url: claimUrl
+    claim_url: claimUrl,
+    // Always return claim link so the UI can share it if email delivery failed
   });
 }
 

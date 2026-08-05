@@ -2,35 +2,106 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Invite a farm or processor · Protein Outfitters</title>
+<meta name="description" content="Invite a ranch or meat processor to Protein Outfitters. They get a personal claim link — you get the partner you actually want." />
+<meta property="og:title" content="Invite a farm or processor · Protein Outfitters" />
+<meta property="og:description" content="Send a one-click invite to a farm or plant. Personal claim link included." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/invite-partner" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/theme.css" />
 <link rel="stylesheet" href="/po-shell.css" />
 <style>
-  body { background: #fbf9f5; color: var(--ink); }
-  .ip-shell { max-width: 720px; margin: 0 auto; padding: 32px var(--shell-pad) 80px; }
-  .ip-card { background: #fff; border-radius: 22px; padding: 32px; box-shadow: 0 1px 2px rgba(6,27,14,.04); }
-  .eyebrow { font: 800 12px/1 var(--ff-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 10px; }
-  h1 { font: 800 clamp(32px, 4vw, 44px)/1.05 var(--ff-sans); letter-spacing:-0.022em; margin: 0 0 14px; }
-  p.lead { font: 500 16px/1.55 var(--ff-sans); color: var(--ink-2); margin: 0 0 24px; }
-  .toggle { display: flex; gap: 0; padding: 4px; background: var(--surface, #f3eedc); border-radius: 14px; max-width: 380px; margin-bottom: 22px; }
-  .toggle button { flex: 1; background: transparent; border: 0; padding: 12px 16px; font: 700 14px/1 var(--ff-sans); color: var(--ink-2); cursor: pointer; border-radius: 10px; transition: background .2s; }
-  .toggle button.on { background: var(--ink); color: #fbf9f5; }
-  label { display: block; font: 700 12px/1 var(--ff-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); margin: 16px 0 6px; }
-  input, textarea { width: 100%; box-sizing: border-box; background: var(--surface,#fbf9f5); border: 1.5px solid rgba(6,27,14,.10); border-radius: 12px; padding: 12px 14px; font: 500 15px/1.4 var(--ff-sans); color: var(--ink); }
-  input:focus, textarea:focus { outline: 0; border-color: var(--po-pasture, #7da05d); background: #fff; }
+  body {
+    background: #fbf9f5;
+    color: var(--ink, #0c1410);
+    font-family: var(--ff-sans, var(--font-sans, 'Inter', system-ui, sans-serif));
+    margin: 0;
+  }
+  .ip-shell { max-width: 720px; margin: 0 auto; padding: clamp(32px, 5vw, 56px) var(--shell-pad, 24px) 100px; }
+  .ip-card {
+    background: #fff; border-radius: 22px; padding: clamp(24px, 4vw, 36px);
+    box-shadow: 0 1px 2px rgba(6,27,14,.04), 0 8px 28px rgba(6,27,14,.05);
+    border: 1px solid rgba(6,27,14,.06);
+  }
+  .eyebrow {
+    font: 800 12px/1 var(--ff-sans, 'Inter', system-ui, sans-serif);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-2, #5b6660); margin: 0 0 10px;
+  }
+  h1 {
+    font: 800 clamp(28px, 4vw, 40px)/1.08 var(--ff-sans, 'Inter', system-ui, sans-serif);
+    letter-spacing: -0.025em; margin: 0 0 14px; color: var(--ink, #0c1410);
+  }
+  p.lead {
+    font: 500 16px/1.55 var(--ff-sans, 'Inter', system-ui, sans-serif);
+    color: var(--ink-2, #5b6660); margin: 0 0 24px;
+  }
+  .toggle {
+    display: flex; gap: 0; padding: 4px;
+    background: var(--surface-2, #f3f1ec); border-radius: 14px;
+    max-width: 400px; margin-bottom: 22px;
+  }
+  .toggle button {
+    flex: 1; background: transparent; border: 0; padding: 12px 14px;
+    font: 700 14px/1 var(--ff-sans, 'Inter', system-ui, sans-serif);
+    color: var(--ink-2, #5b6660); cursor: pointer; border-radius: 10px;
+    transition: background .2s, color .2s;
+  }
+  .toggle button.on { background: var(--brand, #061b0e); color: #fbf9f5; }
+  label {
+    display: block;
+    font: 700 12px/1 var(--ff-sans, 'Inter', system-ui, sans-serif);
+    letter-spacing: .04em; text-transform: uppercase;
+    color: var(--ink-2, #5b6660); margin: 16px 0 6px;
+  }
+  input, textarea {
+    width: 100%; box-sizing: border-box;
+    background: var(--surface-2, #fbf9f5);
+    border: 1.5px solid rgba(6,27,14,.10); border-radius: 12px;
+    padding: 12px 14px;
+    font: 500 15px/1.4 var(--ff-sans, 'Inter', system-ui, sans-serif);
+    color: var(--ink, #0c1410);
+  }
+  input:focus, textarea:focus {
+    outline: 0; border-color: var(--accent, #3d6b4a); background: #fff;
+  }
   textarea { min-height: 90px; resize: vertical; }
-  .submit { background: #061b0e; color: #fbf9f5; border: 0; border-radius: 999px; padding: 14px 24px; font: 700 15px/1 var(--ff-sans); cursor: pointer; margin-top: 20px; transition: transform .15s; }
-  .submit:hover:not(:disabled) { /* craft: no lift */ }
+  .submit {
+    background: #061b0e; color: #fbf9f5; border: 0; border-radius: 999px;
+    padding: 14px 24px;
+    font: 700 15px/1 var(--ff-sans, 'Inter', system-ui, sans-serif);
+    cursor: pointer; margin-top: 22px;
+  }
+  .submit:hover:not(:disabled) { background: #0a2614; }
   .submit:disabled { opacity: .5; cursor: wait; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width:520px){ .row { grid-template-columns: 1fr; } }
-  .ok, .fail { margin-top: 18px; padding: 14px 16px; border-radius: 12px; font: 600 14px/1.5 var(--ff-sans); }
-  .ok { background: rgba(125,160,93,.15); color: #4a6634; }
-  .fail { background: rgba(176,74,58,.15); color: #7d2e22; }
+  @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+  .ok, .fail, .warn {
+    margin-top: 18px; padding: 14px 16px; border-radius: 12px;
+    font: 600 14px/1.5 var(--ff-sans, 'Inter', system-ui, sans-serif);
+  }
+  .ok { background: rgba(61,107,74,.12); color: #2f5a3c; }
+  .fail { background: rgba(176,74,58,.12); color: #7d2e22; }
+  .warn { background: rgba(177,100,26,.12); color: #8a4f14; }
+  .claim-box {
+    margin-top: 10px; padding: 12px 14px; border-radius: 10px;
+    background: rgba(6,27,14,.04); word-break: break-all;
+    font: 500 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .ip-alt {
+    margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(6,27,14,.08);
+    font: 500 13.5px/1.5 var(--ff-sans, 'Inter', system-ui, sans-serif);
+    color: var(--ink-2, #5b6660);
+  }
+  .ip-alt a { color: var(--brand, #061b0e); font-weight: 700; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -40,12 +111,13 @@
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
     <div class="po-nav-links">
       <a href="/discover">Reserve</a>
-      <a href="/producers">Producers</a>
-      <a href="/hardware">Hardware</a>
+      <a href="/join">Join</a>
+      <a href="/map">Map</a>
+      <a href="/invite-partner" class="active">Invite</a>
     </div>
     <div class="po-nav-actions">
       <a href="/account" class="signin">Sign in</a>
-      <button class="reserve" data-open-sheet>Reserve</button>
+      <a href="/discover" class="btn--primary" style="text-decoration:none;border-radius:999px;padding:9px 16px;font:600 13px/1 Inter;background:var(--brand,#061b0e);color:#fbf9f5;">Browse</a>
     </div>
   </nav>
 </div>
@@ -54,114 +126,178 @@
   <div class="ip-card">
     <p class="eyebrow">Grow the network</p>
     <h1>Invite your local farm or processor.</h1>
-    <p class="lead">Don't see your favorite ranch or butcher on Protein Outfitters? Send them a one-click invite. They get a personal claim link, you get the partner you actually want.</p>
+    <p class="lead">Don’t see your favorite ranch or butcher on Protein Outfitters? Send a one-click invite. They get a personal claim link — you get the partner you actually want.</p>
 
-    <div class="toggle" role="tablist">
-      <button id="tabFarm" class="on" data-kind="farm">Farm / ranch</button>
-      <button id="tabProcessor" data-kind="processor">Processor / butcher</button>
+    <div class="toggle" role="tablist" aria-label="Invite type">
+      <button type="button" id="tabFarm" class="on" data-kind="farm" aria-pressed="true">Farm / ranch</button>
+      <button type="button" id="tabProcessor" data-kind="processor" aria-pressed="false">Processor / butcher</button>
     </div>
 
-    <form id="ipForm">
+    <form id="ipForm" novalidate>
       <label for="ipName">Their name <span style="color:#b04a3a">*</span></label>
-      <input id="ipName" name="name" placeholder="e.g. Twin Pines Ranch" required />
+      <input id="ipName" name="name" placeholder="e.g. Twin Pines Ranch" required autocomplete="organization" />
 
       <div class="row">
         <div>
           <label for="ipEmail">Their email <span style="color:#b04a3a">*</span></label>
-          <input id="ipEmail" name="email" type="email" placeholder="contact@theirfarm.com" required />
+          <input id="ipEmail" name="email" type="email" placeholder="contact@theirfarm.com" required autocomplete="email" />
         </div>
         <div>
           <label for="ipPhone">Their phone (optional)</label>
-          <input id="ipPhone" name="phone" type="tel" placeholder="(218) 555-0142" />
+          <input id="ipPhone" name="phone" type="tel" placeholder="(555) 555-0142" autocomplete="tel" />
         </div>
       </div>
 
       <label for="ipMsg">Personal note (shown in the invite)</label>
-      <textarea id="ipMsg" name="message" placeholder="e.g. Hey Mike — I just reserved a half beef nearby and would love to pick mine up at your shop. Would you set up here?"></textarea>
+      <textarea id="ipMsg" name="message" placeholder="e.g. Hey Mike — I reserved a half beef nearby and would love to pick up at your plant. Can you set up here?"></textarea>
 
       <div class="row" style="margin-top: 4px;">
         <div>
           <label for="ipMyName">Your name</label>
-          <input id="ipMyName" name="inviter_name" placeholder="Mychal Stittsworth" />
+          <input id="ipMyName" name="inviter_name" placeholder="Your name" autocomplete="name" />
         </div>
         <div>
           <label for="ipMyEmail">Your email <span style="color:#b04a3a">*</span></label>
-          <input id="ipMyEmail" name="inviter_email" type="email" placeholder="you@example.com" required />
+          <input id="ipMyEmail" name="inviter_email" type="email" placeholder="you@example.com" required autocomplete="email" />
         </div>
       </div>
 
       <button class="submit" type="submit" id="ipSubmit">Send invite →</button>
     </form>
 
-    <div id="ipResult"></div>
+    <div id="ipResult" role="status" aria-live="polite"></div>
+
+    <p class="ip-alt">
+      Represent a cattlemen’s group?
+      <a href="/for-associations">Association kit →</a>
+      &nbsp;·&nbsp;
+      Prefer to claim a plant yourself?
+      <a href="/join?as=processor">Join as processor →</a>
+    </p>
   </div>
 </main>
 
+<div id="po-shell-host"></div>
+<script src="/po-api.js"></script>
 <script src="/po-shell.js"></script>
 <script>
-let activeKind = 'farm';
-const tabFarm = document.getElementById('tabFarm');
-const tabProcessor = document.getElementById('tabProcessor');
-[tabFarm, tabProcessor].forEach(t => t.addEventListener('click', () => {
-  tabFarm.classList.toggle('on', t === tabFarm);
-  tabProcessor.classList.toggle('on', t === tabProcessor);
-  activeKind = t.dataset.kind;
-}));
-
-// Pre-fill the inviter from auth session if available
-(async () => {
-  try {
-    const r = await fetch('/api/auth/me', { credentials: 'include' });
-    if (!r.ok) return;
-    const data = await r.json();
-    if (data?.user) {
-      const e = document.getElementById('ipMyEmail');
-      const n = document.getElementById('ipMyName');
-      if (e && !e.value) e.value = data.user.email || '';
-      if (n && !n.value) n.value = data.user.name || '';
+(function () {
+  'use strict';
+  let activeKind = 'farm';
+  const tabFarm = document.getElementById('tabFarm');
+  const tabProcessor = document.getElementById('tabProcessor');
+  function setKind(kind) {
+    activeKind = kind;
+    const isFarm = kind === 'farm';
+    tabFarm.classList.toggle('on', isFarm);
+    tabProcessor.classList.toggle('on', !isFarm);
+    tabFarm.setAttribute('aria-pressed', isFarm ? 'true' : 'false');
+    tabProcessor.setAttribute('aria-pressed', isFarm ? 'false' : 'true');
+    const name = document.getElementById('ipName');
+    if (name && !name.value) {
+      name.placeholder = isFarm ? 'e.g. Twin Pines Ranch' : 'e.g. Northland Custom Meats';
     }
-  } catch {}
-})();
-
-// Pre-fill from URL params (e.g. ?name=Plant04&kind=processor)
-const params = new URLSearchParams(location.search);
-if (params.get('kind') === 'processor') tabProcessor.click();
-['name', 'email', 'phone', 'message'].forEach(k => {
-  const v = params.get(k);
-  if (v) document.getElementById('ip' + k.charAt(0).toUpperCase() + k.slice(1))?.setAttribute('value', v);
-});
-
-document.getElementById('ipForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('ipSubmit');
-  const result = document.getElementById('ipResult');
-  result.innerHTML = '';
-  btn.disabled = true; btn.textContent = 'Sending…';
-  const payload = {
-    kind: activeKind,
-    name: document.getElementById('ipName').value.trim(),
-    email: document.getElementById('ipEmail').value.trim(),
-    phone: document.getElementById('ipPhone').value.trim() || undefined,
-    message: document.getElementById('ipMsg').value.trim() || undefined,
-    inviter_name: document.getElementById('ipMyName').value.trim() || undefined,
-    inviter_email: document.getElementById('ipMyEmail').value.trim()
-  };
-  try {
-    const r = await fetch('/api/invite-partner', {
-      method: 'POST', credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
-    result.innerHTML = `<div class="ok">✅ Invite sent to ${payload.email}. They'll get a personal claim link from us within a minute. Send another?</div>`;
-    document.getElementById('ipForm').reset();
-  } catch (err) {
-    result.innerHTML = `<div class="fail">Couldn't send: ${err.message}</div>`;
-  } finally {
-    btn.disabled = false; btn.textContent = 'Send invite →';
   }
-});
+  tabFarm.addEventListener('click', () => setKind('farm'));
+  tabProcessor.addEventListener('click', () => setKind('processor'));
+
+  // Pre-fill inviter from session
+  (async () => {
+    try {
+      const r = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!r.ok) return;
+      const data = await r.json();
+      if (data?.user) {
+        const e = document.getElementById('ipMyEmail');
+        const n = document.getElementById('ipMyName');
+        if (e && !e.value) e.value = data.user.email || '';
+        if (n && !n.value) n.value = data.user.name || '';
+      }
+    } catch (_) { /* anonymous ok */ }
+  })();
+
+  // Deep-link: ?kind=processor&name=…&email=…
+  const params = new URLSearchParams(location.search);
+  if (params.get('kind') === 'processor') setKind('processor');
+  const map = { name: 'ipName', email: 'ipEmail', phone: 'ipPhone', message: 'ipMsg' };
+  Object.entries(map).forEach(([k, id]) => {
+    const v = params.get(k);
+    if (v) {
+      const el = document.getElementById(id);
+      if (el) el.value = v;
+    }
+  });
+
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  document.getElementById('ipForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('ipSubmit');
+    const result = document.getElementById('ipResult');
+    result.innerHTML = '';
+    const name = document.getElementById('ipName').value.trim();
+    const email = document.getElementById('ipEmail').value.trim();
+    const inviter_email = document.getElementById('ipMyEmail').value.trim();
+    if (!name) { result.innerHTML = '<div class="fail">Partner name is required.</div>'; return; }
+    if (!email || !email.includes('@')) { result.innerHTML = '<div class="fail">Their email is required.</div>'; return; }
+    if (!inviter_email || !inviter_email.includes('@')) { result.innerHTML = '<div class="fail">Your email is required so they can reply.</div>'; return; }
+
+    btn.disabled = true; btn.textContent = 'Sending…';
+    const payload = {
+      kind: activeKind,
+      name,
+      email,
+      phone: document.getElementById('ipPhone').value.trim() || undefined,
+      message: document.getElementById('ipMsg').value.trim() || undefined,
+      inviter_name: document.getElementById('ipMyName').value.trim() || undefined,
+      inviter_email
+    };
+    try {
+      const r = await fetch('/api/invite-partner', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+
+      if (data.sent) {
+        result.innerHTML = `<div class="ok">Invite sent to <strong>${esc(payload.email)}</strong>. They’ll get a claim link within a minute. You can send another.</div>`;
+        document.getElementById('ipForm').reset();
+        // Restore inviter after reset
+        document.getElementById('ipMyEmail').value = payload.inviter_email;
+        if (payload.inviter_name) document.getElementById('ipMyName').value = payload.inviter_name;
+        setKind(activeKind);
+      } else {
+        // Recorded, but email provider didn’t deliver — still give a shareable claim link
+        const claim = data.claim_url || '';
+        result.innerHTML = `<div class="warn">
+          We saved the invite, but the email didn’t go out${data.error ? ' (' + esc(data.error) + ')' : ''}.
+          Share this claim link directly:
+          ${claim ? `<div class="claim-box"><a href="${esc(claim)}" style="color:inherit;font-weight:700;">${esc(claim)}</a></div>
+          <button type="button" id="ipCopyClaim" style="margin-top:10px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:10px 16px;font:700 13px/1 Inter;cursor:pointer;">Copy claim link</button>` : ''}
+        </div>`;
+        const copyBtn = document.getElementById('ipCopyClaim');
+        if (copyBtn && claim) {
+          copyBtn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(claim);
+              copyBtn.textContent = 'Copied ✓';
+            } catch {
+              copyBtn.textContent = 'Select the link above';
+            }
+          });
+        }
+      }
+    } catch (err) {
+      result.innerHTML = `<div class="fail">Couldn’t send: ${esc(err.message)}</div>`;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Send invite →';
+    }
+  });
+})();
 </script>
 </body>
 </html>
