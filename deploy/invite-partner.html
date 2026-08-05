@@ -19,89 +19,264 @@
 <link rel="stylesheet" href="/theme.css" />
 <link rel="stylesheet" href="/po-shell.css" />
 <style>
+  /* Scoped invite page — never use class "toggle" (theme.css = iOS switch) */
   body {
     background: #fbf9f5;
     color: var(--ink, #0c1410);
     font-family: var(--ff-sans, var(--font-sans, 'Inter', system-ui, sans-serif));
     margin: 0;
   }
-  .ip-shell { max-width: 720px; margin: 0 auto; padding: clamp(32px, 5vw, 56px) var(--shell-pad, 24px) 100px; }
+
+  .ip-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 56px) var(--shell-pad, 24px) 100px;
+  }
+
   .ip-card {
-    background: #fff; border-radius: 22px; padding: clamp(24px, 4vw, 36px);
+    background: #fff;
+    border-radius: 24px;
+    padding: clamp(28px, 4vw, 40px);
     box-shadow: 0 1px 2px rgba(6,27,14,.04), 0 8px 28px rgba(6,27,14,.05);
     border: 1px solid rgba(6,27,14,.06);
   }
-  .eyebrow {
-    font: 800 12px/1 var(--ff-sans, 'Inter', system-ui, sans-serif);
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--ink-2, #5b6660); margin: 0 0 10px;
+
+  .ip-eyebrow {
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-2, #5b6660);
+    line-height: 1;
   }
-  h1 {
-    font: 800 clamp(28px, 4vw, 40px)/1.08 var(--ff-sans, 'Inter', system-ui, sans-serif);
-    letter-spacing: -0.025em; margin: 0 0 14px; color: var(--ink, #0c1410);
-  }
-  p.lead {
-    font: 500 16px/1.55 var(--ff-sans, 'Inter', system-ui, sans-serif);
-    color: var(--ink-2, #5b6660); margin: 0 0 24px;
-  }
-  .toggle {
-    display: flex; gap: 0; padding: 4px;
-    background: var(--surface-2, #f3f1ec); border-radius: 14px;
-    max-width: 400px; margin-bottom: 22px;
-  }
-  .toggle button {
-    flex: 1; background: transparent; border: 0; padding: 12px 14px;
-    font: 700 14px/1 var(--ff-sans, 'Inter', system-ui, sans-serif);
-    color: var(--ink-2, #5b6660); cursor: pointer; border-radius: 10px;
-    transition: background .2s, color .2s;
-  }
-  .toggle button.on { background: var(--brand, #061b0e); color: #fbf9f5; }
-  label {
-    display: block;
-    font: 700 12px/1 var(--ff-sans, 'Inter', system-ui, sans-serif);
-    letter-spacing: .04em; text-transform: uppercase;
-    color: var(--ink-2, #5b6660); margin: 16px 0 6px;
-  }
-  input, textarea {
-    width: 100%; box-sizing: border-box;
-    background: var(--surface-2, #fbf9f5);
-    border: 1.5px solid rgba(6,27,14,.10); border-radius: 12px;
-    padding: 12px 14px;
-    font: 500 15px/1.4 var(--ff-sans, 'Inter', system-ui, sans-serif);
+
+  .ip-card h1 {
+    margin: 0 0 12px;
+    font-size: clamp(28px, 4.2vw, 36px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
     color: var(--ink, #0c1410);
   }
-  input:focus, textarea:focus {
-    outline: 0; border-color: var(--accent, #3d6b4a); background: #fff;
+
+  .ip-lead {
+    margin: 0 0 28px;
+    font-size: 15.5px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: var(--ink-2, #5b6660);
+    max-width: 48ch;
   }
-  textarea { min-height: 90px; resize: vertical; }
-  .submit {
-    background: #061b0e; color: #fbf9f5; border: 0; border-radius: 999px;
-    padding: 14px 24px;
-    font: 700 15px/1 var(--ff-sans, 'Inter', system-ui, sans-serif);
-    cursor: pointer; margin-top: 22px;
+
+  /* Segmented control — unique name avoids theme .toggle switch */
+  .ip-seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    margin: 0 0 28px;
+    background: var(--surface-2, #f3f1ec);
+    border-radius: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
-  .submit:hover:not(:disabled) { background: #0a2614; }
-  .submit:disabled { opacity: .5; cursor: wait; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
-  .ok, .fail, .warn {
-    margin-top: 18px; padding: 14px 16px; border-radius: 12px;
-    font: 600 14px/1.5 var(--ff-sans, 'Inter', system-ui, sans-serif);
+  .ip-seg button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--ink-2, #5b6660);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease;
   }
-  .ok { background: rgba(61,107,74,.12); color: #2f5a3c; }
-  .fail { background: rgba(176,74,58,.12); color: #7d2e22; }
-  .warn { background: rgba(177,100,26,.12); color: #8a4f14; }
-  .claim-box {
-    margin-top: 10px; padding: 12px 14px; border-radius: 10px;
-    background: rgba(6,27,14,.04); word-break: break-all;
-    font: 500 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  .ip-seg button.is-on {
+    background: var(--brand, #061b0e);
+    color: #fbf9f5;
+    box-shadow: 0 1px 3px rgba(6,27,14,.18);
   }
-  .ip-alt {
-    margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(6,27,14,.08);
-    font: 500 13.5px/1.5 var(--ff-sans, 'Inter', system-ui, sans-serif);
+  .ip-seg button:focus-visible {
+    outline: 2px solid var(--accent, #3d6b4a);
+    outline-offset: 2px;
+  }
+
+  /* Form stack */
+  .ip-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+  }
+
+  .ip-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 18px;
+    min-width: 0;
+  }
+  .ip-field:last-of-type { margin-bottom: 0; }
+
+  .ip-field label {
+    display: block;
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2, #5b6660);
+    line-height: 1.2;
+  }
+  .ip-field label .req { color: #b04a3a; font-weight: 800; }
+
+  .ip-field input,
+  .ip-field textarea {
+    display: block;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1.5px solid rgba(6,27,14,.10);
+    border-radius: 12px;
+    background: var(--surface-2, #f3f1ec);
+    color: var(--ink, #0c1410);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .ip-field textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .ip-field input::placeholder,
+  .ip-field textarea::placeholder {
+    color: var(--ink-3, #8b9590);
+    opacity: 1;
+  }
+  .ip-field input:focus,
+  .ip-field textarea:focus {
+    outline: 0;
+    border-color: rgba(6,27,14,.28);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(6,27,14,.06);
+  }
+
+  .ip-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 0 0 18px;
+  }
+  .ip-grid .ip-field { margin-bottom: 0; }
+
+  @media (max-width: 560px) {
+    .ip-grid { grid-template-columns: 1fr; gap: 0; }
+    .ip-grid .ip-field { margin-bottom: 18px; }
+    .ip-grid .ip-field:last-child { margin-bottom: 0; }
+    .ip-seg button { font-size: 13px; padding: 10px 8px; white-space: normal; text-align: center; }
+  }
+
+  .ip-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .ip-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    margin: 0;
+    padding: 0 28px;
+    border: 0;
+    border-radius: 999px;
+    background: #061b0e;
+    color: #fbf9f5;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .ip-submit:hover:not(:disabled) { background: #0a2614; }
+  .ip-submit:disabled { opacity: .5; cursor: wait; }
+
+  .ip-result {
+    margin-top: 18px;
+  }
+  .ip-result .ok,
+  .ip-result .fail,
+  .ip-result .warn {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .ip-result .ok { background: rgba(61,107,74,.12); color: #2f5a3c; }
+  .ip-result .fail { background: rgba(176,74,58,.12); color: #7d2e22; }
+  .ip-result .warn { background: rgba(177,100,26,.12); color: #8a4f14; }
+  .ip-result .claim-box {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(6,27,14,.05);
+    word-break: break-all;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.45;
+  }
+  .ip-result .claim-copy {
+    margin-top: 10px;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #061b0e;
+    color: #fbf9f5;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .ip-foot {
+    margin: 28px 0 0;
+    padding: 20px 0 0;
+    border-top: 1px solid rgba(6,27,14,.08);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.55;
     color: var(--ink-2, #5b6660);
   }
-  .ip-alt a { color: var(--brand, #061b0e); font-weight: 700; text-decoration: none; }
+  .ip-foot a {
+    color: var(--brand, #061b0e);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .ip-foot a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -117,60 +292,66 @@
     </div>
     <div class="po-nav-actions">
       <a href="/account" class="signin">Sign in</a>
-      <a href="/discover" class="btn--primary" style="text-decoration:none;border-radius:999px;padding:9px 16px;font:600 13px/1 Inter;background:var(--brand,#061b0e);color:#fbf9f5;">Browse</a>
+      <a href="/discover" class="btn--primary" style="text-decoration:none;">Browse</a>
     </div>
   </nav>
 </div>
 
-<main class="ip-shell">
+<main class="ip-page">
   <div class="ip-card">
-    <p class="eyebrow">Grow the network</p>
+    <p class="ip-eyebrow">Grow the network</p>
     <h1>Invite your local farm or processor.</h1>
-    <p class="lead">Don’t see your favorite ranch or butcher on Protein Outfitters? Send a one-click invite. They get a personal claim link — you get the partner you actually want.</p>
+    <p class="ip-lead">Don’t see your favorite ranch or butcher on Protein Outfitters? Send a one-click invite. They get a personal claim link — you get the partner you actually want.</p>
 
-    <div class="toggle" role="tablist" aria-label="Invite type">
-      <button type="button" id="tabFarm" class="on" data-kind="farm" aria-pressed="true">Farm / ranch</button>
-      <button type="button" id="tabProcessor" data-kind="processor" aria-pressed="false">Processor / butcher</button>
+    <div class="ip-seg" role="tablist" aria-label="Who are you inviting?">
+      <button type="button" id="tabFarm" class="is-on" data-kind="farm" role="tab" aria-selected="true">Farm / ranch</button>
+      <button type="button" id="tabProcessor" data-kind="processor" role="tab" aria-selected="false">Processor / butcher</button>
     </div>
 
-    <form id="ipForm" novalidate>
-      <label for="ipName">Their name <span style="color:#b04a3a">*</span></label>
-      <input id="ipName" name="name" placeholder="e.g. Twin Pines Ranch" required autocomplete="organization" />
+    <form id="ipForm" class="ip-form" novalidate>
+      <div class="ip-field">
+        <label for="ipName">Their name <span class="req">*</span></label>
+        <input id="ipName" name="name" type="text" placeholder="e.g. Twin Pines Ranch" required autocomplete="organization" />
+      </div>
 
-      <div class="row">
-        <div>
-          <label for="ipEmail">Their email <span style="color:#b04a3a">*</span></label>
+      <div class="ip-grid">
+        <div class="ip-field">
+          <label for="ipEmail">Their email <span class="req">*</span></label>
           <input id="ipEmail" name="email" type="email" placeholder="contact@theirfarm.com" required autocomplete="email" />
         </div>
-        <div>
-          <label for="ipPhone">Their phone (optional)</label>
+        <div class="ip-field">
+          <label for="ipPhone">Their phone <span style="font-weight:600;text-transform:none;letter-spacing:0;opacity:.7;">(optional)</span></label>
           <input id="ipPhone" name="phone" type="tel" placeholder="(555) 555-0142" autocomplete="tel" />
         </div>
       </div>
 
-      <label for="ipMsg">Personal note (shown in the invite)</label>
-      <textarea id="ipMsg" name="message" placeholder="e.g. Hey Mike — I reserved a half beef nearby and would love to pick up at your plant. Can you set up here?"></textarea>
+      <div class="ip-field">
+        <label for="ipMsg">Personal note <span style="font-weight:600;text-transform:none;letter-spacing:0;opacity:.7;">(shown in the invite)</span></label>
+        <textarea id="ipMsg" name="message" placeholder="e.g. Hey Mike — I reserved a half beef nearby and would love to pick up at your plant. Can you set up here?" rows="3"></textarea>
+      </div>
 
-      <div class="row" style="margin-top: 4px;">
-        <div>
+      <div class="ip-grid">
+        <div class="ip-field">
           <label for="ipMyName">Your name</label>
-          <input id="ipMyName" name="inviter_name" placeholder="Your name" autocomplete="name" />
+          <input id="ipMyName" name="inviter_name" type="text" placeholder="Your name" autocomplete="name" />
         </div>
-        <div>
-          <label for="ipMyEmail">Your email <span style="color:#b04a3a">*</span></label>
+        <div class="ip-field">
+          <label for="ipMyEmail">Your email <span class="req">*</span></label>
           <input id="ipMyEmail" name="inviter_email" type="email" placeholder="you@example.com" required autocomplete="email" />
         </div>
       </div>
 
-      <button class="submit" type="submit" id="ipSubmit">Send invite →</button>
+      <div class="ip-actions">
+        <button class="ip-submit" type="submit" id="ipSubmit">Send invite →</button>
+      </div>
     </form>
 
-    <div id="ipResult" role="status" aria-live="polite"></div>
+    <div id="ipResult" class="ip-result" role="status" aria-live="polite"></div>
 
-    <p class="ip-alt">
+    <p class="ip-foot">
       Represent a cattlemen’s group?
       <a href="/for-associations">Association kit →</a>
-      &nbsp;·&nbsp;
+      <span aria-hidden="true"> · </span>
       Prefer to claim a plant yourself?
       <a href="/join?as=processor">Join as processor →</a>
     </p>
@@ -186,13 +367,14 @@
   let activeKind = 'farm';
   const tabFarm = document.getElementById('tabFarm');
   const tabProcessor = document.getElementById('tabProcessor');
+
   function setKind(kind) {
     activeKind = kind;
     const isFarm = kind === 'farm';
-    tabFarm.classList.toggle('on', isFarm);
-    tabProcessor.classList.toggle('on', !isFarm);
-    tabFarm.setAttribute('aria-pressed', isFarm ? 'true' : 'false');
-    tabProcessor.setAttribute('aria-pressed', isFarm ? 'false' : 'true');
+    tabFarm.classList.toggle('is-on', isFarm);
+    tabProcessor.classList.toggle('is-on', !isFarm);
+    tabFarm.setAttribute('aria-selected', isFarm ? 'true' : 'false');
+    tabProcessor.setAttribute('aria-selected', isFarm ? 'false' : 'true');
     const name = document.getElementById('ipName');
     if (name && !name.value) {
       name.placeholder = isFarm ? 'e.g. Twin Pines Ranch' : 'e.g. Northland Custom Meats';
@@ -201,7 +383,6 @@
   tabFarm.addEventListener('click', () => setKind('farm'));
   tabProcessor.addEventListener('click', () => setKind('processor'));
 
-  // Pre-fill inviter from session
   (async () => {
     try {
       const r = await fetch('/api/auth/me', { credentials: 'include' });
@@ -216,7 +397,6 @@
     } catch (_) { /* anonymous ok */ }
   })();
 
-  // Deep-link: ?kind=processor&name=…&email=…
   const params = new URLSearchParams(location.search);
   if (params.get('kind') === 'processor') setKind('processor');
   const map = { name: 'ipName', email: 'ipEmail', phone: 'ipPhone', message: 'ipMsg' };
@@ -266,18 +446,16 @@
       if (data.sent) {
         result.innerHTML = `<div class="ok">Invite sent to <strong>${esc(payload.email)}</strong>. They’ll get a claim link within a minute. You can send another.</div>`;
         document.getElementById('ipForm').reset();
-        // Restore inviter after reset
         document.getElementById('ipMyEmail').value = payload.inviter_email;
         if (payload.inviter_name) document.getElementById('ipMyName').value = payload.inviter_name;
         setKind(activeKind);
       } else {
-        // Recorded, but email provider didn’t deliver — still give a shareable claim link
         const claim = data.claim_url || '';
         result.innerHTML = `<div class="warn">
           We saved the invite, but the email didn’t go out${data.error ? ' (' + esc(data.error) + ')' : ''}.
           Share this claim link directly:
           ${claim ? `<div class="claim-box"><a href="${esc(claim)}" style="color:inherit;font-weight:700;">${esc(claim)}</a></div>
-          <button type="button" id="ipCopyClaim" style="margin-top:10px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:10px 16px;font:700 13px/1 Inter;cursor:pointer;">Copy claim link</button>` : ''}
+          <button type="button" class="claim-copy" id="ipCopyClaim">Copy claim link</button>` : ''}
         </div>`;
         const copyBtn = document.getElementById('ipCopyClaim');
         if (copyBtn && claim) {
