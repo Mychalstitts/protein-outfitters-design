@@ -367,6 +367,12 @@ const SCHEMA_STATEMENTS = [
   `ALTER TABLE listings ADD COLUMN IF NOT EXISTS antibiotics      TEXT`,
   `ALTER TABLE listings ADD COLUMN IF NOT EXISTS hormones         TEXT`,
 
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS harvest_window_start DATE`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS harvest_window_end   DATE`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS after_thirty_months  BOOLEAN DEFAULT FALSE`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS bone_in_allowed      BOOLEAN DEFAULT TRUE`,
+  `ALTER TABLE listings ADD COLUMN IF NOT EXISTS otm_price_pending    BOOLEAN DEFAULT FALSE`,
+
   // ──────────────────────────────────────────────────────────
   // Referral codes — per-user invite codes, redemption ledger.
   // ──────────────────────────────────────────────────────────
