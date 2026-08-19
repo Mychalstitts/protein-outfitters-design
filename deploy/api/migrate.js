@@ -732,23 +732,8 @@ const SEED_SQL = [
    FROM users WHERE email='demo-farmer@proteinoutfitters.com'
    ON CONFLICT (slug) DO NOTHING`,
 
-  `INSERT INTO listings (farm_id, number, species, breed, sex, expected_finish_date, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, status)
-   SELECT f.id, '#118', 'cattle', 'Black Angus', 'steer', '2026-07-15', 700, 7.85,
-     'Black Angus steer #118, 60-day grass-finishing program with brassicas and rye.',
-     ARRAY['grass-fed','regenerative'], ARRAY['organic','aga','amwa'],
-     '{"whole":{"available":0,"reserved":1,"price":7.85},"half":{"available":1,"reserved":1,"price":8.15},"quarter":{"available":2,"reserved":2,"price":8.50}}'::jsonb,
-     'active'
-   FROM farms f WHERE f.slug='northfield-pastures'
-   ON CONFLICT DO NOTHING`,
-
-  `INSERT INTO listings (farm_id, number, species, breed, sex, expected_finish_date, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, status)
-   SELECT f.id, '#214', 'cattle', 'Hereford', 'steer', '2026-06-30', 680, 6.95,
-     'Hereford steer raised on rotational grass pasture, finished on a custom hay-and-grain blend.',
-     ARRAY['grass-fed'], ARRAY['amwa','usda-insp'],
-     '{"whole":{"available":0,"reserved":0,"price":6.95},"half":{"available":1,"reserved":0,"price":7.25},"quarter":{"available":3,"reserved":1,"price":7.50}}'::jsonb,
-     'active'
-   FROM farms f WHERE f.slug='twin-pines-ranch'
-   ON CONFLICT DO NOTHING`
+  // Demo ACTIVE listings are intentionally not seeded.
+  // Catalog must stay empty of demo animals (Northfield / Twin Pines).
 ];
 
 async function handler(req) {
