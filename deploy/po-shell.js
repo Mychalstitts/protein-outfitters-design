@@ -60,14 +60,14 @@
   <div class="po-foot-inner">
     <div>
       <div class="po-foot-mark"><img src="/brand/logo-monogram.svg" alt=""><span>Protein Outfitters</span></div>
-      <p class="po-foot-meta">A whole animal, in three taps.<br>Nationwide marketplace · Born in Bemidji, MN.</p>
+      <p class="po-foot-meta">A whole animal, in three taps.<br>Born in Bemidji, MN.</p>
     </div>
     <div><h4>Marketplace</h4><ul><li><a href="/discover">Browse animals</a></li><li><a href="/producers">Farms</a></li><li><a href="/map">Map</a></li><li><a href="/community">Community</a></li><li><a href="/#how">How it works</a></li></ul></div>
     <div><h4>For partners</h4><ul><li><a href="/#partners">Partner hub</a></li><li><a href="/farmer">Ranch dashboard</a></li><li><a href="/processor">Plant dashboard</a></li><li><a href="/hardware">Processing systems</a></li><li><a href="/processor-saas">Plant plans</a></li><li><a href="/donation-flow">Donation Depot</a></li></ul></div>
     <div><h4>Help &amp; policy</h4><ul><li><a href="/faq">FAQ</a></li><li><a href="/policies/refunds">Refunds</a></li><li><a href="/policies/privacy">Privacy</a></li><li><a href="/policies/terms">Terms</a></li><li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li></ul></div>
     <div><h4>Company</h4><ul><li><a href="/account">Account</a></li><li><a href="/brand">Brand</a></li><li><a href="/onboarding">Get started</a></li></ul></div>
   </div>
-  <div class="po-foot-bottom"><span>© 2026 Protein Outfitters. All rights reserved.</span><span>Nationwide · HQ Bemidji, MN</span></div>
+  <div class="po-foot-bottom"><span>© 2026 Protein Outfitters. All rights reserved.</span><span>HQ Bemidji, MN</span></div>
 </footer>`;
 
   const SHEET_HTML = `
@@ -314,7 +314,7 @@
           `<a href="${i.href}">${i.text}<span>→</span></a>`
         ).join('') +
           `<a class="po-drawer-cta" href="/discover">Browse animals</a>` +
-          `<p class="po-drawer-meta">A whole animal, in three taps.<br>Nationwide · real farms · inspected plants.</p>`;
+          `<p class="po-drawer-meta">A whole animal, in three taps.<br>Real farms · inspected plants.</p>`;
         wrap.appendChild(drawer);
 
         const close = () => {

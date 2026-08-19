@@ -6,9 +6,9 @@
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <meta name="theme-color" content="#061b0e" />
 <title>Protein Outfitters — A whole animal, in three taps.</title>
-<meta name="description" content="Nationwide marketplace for whole animals from verified U.S. farms. USDA, state-inspected, or equal-to plants. Pick your cuts and pick up local — three taps." />
+<meta name="description" content="Reserve a share of a named animal from a verified U.S. farm. USDA, state-inspected, or equal-to plants. Pick your cuts and pick up local — three taps." />
 <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Nationwide: reserve a share of a named animal from a verified U.S. farm. USDA, state, or equal-to inspected plants. Three taps to a full freezer." />
+<meta property="og:description" content="Reserve a share of a named animal from a verified U.S. farm. USDA, state, or equal-to inspected plants. Three taps to a full freezer." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/" />
 <meta property="og:type" content="website" />
@@ -973,8 +973,8 @@ body { background: var(--bg); overflow-x: hidden; }
         <div class="po-icon-tile sky" style="margin: 0 0 14px;">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
-        <span class="trust-num" id="trustGeoNum">Nationwide</span>
-        <span class="trust-label" id="trustGeoLabel">Nationwide marketplace — farms and plants you can drive to.</span>
+        <span class="trust-num" id="trustGeoNum">Farms</span>
+        <span class="trust-label" id="trustGeoLabel">Farms and plants you can drive to.</span>
       </div>
     </div>
   </div>
@@ -1074,15 +1074,15 @@ body { background: var(--bg); overflow-x: hidden; }
       const l = document.getElementById('trustGeoLabel');
       // Show live coverage when we have data; always frame as a national platform
       const label = states.size >= 40
-        ? 'Farms and plants live across nearly every state — nationwide coverage.'
-        : 'Live inventory in ' + states.size + ' states today — reserving nationwide, growing every week.';
-      if (n) n.textContent = states.size >= 40 ? 'Nationwide' : states.size + ' states live';
+        ? 'Farms and plants you can drive to.'
+        : 'Live inventory in ' + states.size + ' states today.';
+      if (n) n.textContent = states.size >= 40 ? 'Farms' : states.size + ' states live';
       if (l) l.textContent = label;
       const pg = document.getElementById('proofGeo');
       if (pg) {
         pg.innerHTML = states.size >= 40
-          ? '<strong>Nationwide</strong>'
-          : '<strong>' + states.size + ' states</strong> live · nationwide platform';
+          ? '<strong>Farms and plants</strong>'
+          : '<strong>' + states.size + ' states</strong> live';
       }
     }
   } catch { /* keep static copy */ }
