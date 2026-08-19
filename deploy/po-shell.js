@@ -566,7 +566,7 @@
         const lbs = lbsBySize[state.share.key] || 110;
         const meatEstimate = state.share.price * lbs;
         const deposit = Math.min(500, Math.max(50, Math.round(meatEstimate * 0.10)));
-        const fees = 225 + 18;
+        const fees = 225;
         const reserveToday = deposit + fees;
         const shareLabel = state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole';
         sumShareLabel.textContent = `Deposit (${shareLabel} · 10% of est. meat)`;
