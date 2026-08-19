@@ -66,6 +66,27 @@ async function listListings(url) {
   return json({ listings: rows });
 }
 
+
+function isoDateOnly(v) {
+  if (!v) return null;
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    return v.toISOString().slice(0, 10);
+  }
+  const s = String(v).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
+/** true when calendar today is after birth + 30 months (window end is the 30-month day). */
+function pastThirtyMonths(birth) {
+  const b = isoDateOnly(birth);
+  if (!b) return false;
+  const [y, m, d] = b.split('-').map(Number);
+  const end = Date.UTC(y, m - 1 + 30, d);
+  const now = new Date();
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return today > end;
+}
+
 const ALLOWED_SPECIES = new Set(['cattle', 'hog', 'lamb', 'sheep', 'poultry', 'bison', 'goat', 'venison']);
 const ALLOWED_STATUS = new Set(['active', 'draft', 'withdrawn']);
 const SHARE_KEYS = ['whole', 'half', 'quarter', 'eighth'];
@@ -122,9 +143,9 @@ async function createListing(req) {
   };
   const harvest_window_start = isoDate(body.harvest_window_start || body.expected_finish_date);
   const harvest_window_end = isoDate(body.harvest_window_end);
-  const after_thirty_months = !!(body.after_thirty_months || body.past_30_months);
-  const bone_in_allowed = body.bone_in_allowed === false ? false : (body.bone_in_allowed === true ? true : true);
-  const otm_price_pending = !!body.otm_price_pending;
+  let after_thirty_months = !!(body.after_thirty_months || body.past_30_months);
+  let bone_in_allowed = body.bone_in_allowed === false ? false : true;
+  let otm_price_pending = !!body.otm_price_pending;
   const current_weight = body.current_weight != null ? Number(body.current_weight) : null;
   const estimated_finish_weight = body.estimated_finish_weight != null ? Number(body.estimated_finish_weight) : null;
   const estimated_hanging_weight = body.estimated_hanging_weight != null ? Number(body.estimated_hanging_weight) : null;
@@ -136,6 +157,12 @@ async function createListing(req) {
   let status = ALLOWED_STATUS.has(body.status) ? body.status : 'active';
   const listedNumber = number || '';
   const isStittyDraft = /^(#?123)\b/i.test(listedNumber) || /stitt/i.test(listedNumber);
+  if (pastThirtyMonths(birth_date)) {
+    after_thirty_months = true;
+    bone_in_allowed = false;
+    otm_price_pending = true;
+    status = 'draft';
+  }
   if (isStittyDraft || otm_price_pending) status = 'draft';
   const donate_to_foodbank = !!body.donate_to_foodbank;
   const donation_recipient_org = body.donation_recipient_org || null;
