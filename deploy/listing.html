@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Listing · Protein Outfitters</title>
-<meta name="description" content="Reserve a share of a real, named animal from a verified U.S. farm. One all-in price. Inspected plant. Three taps." />
+<meta name="description" content="Reserve a share of a real, named animal from a verified U.S. farm. Price is per pound hanging weight. Inspected plant. Three taps." />
 <meta property="og:title" content="Listing · Protein Outfitters" />
 <meta property="og:description" content="Reserve a share of a real, named animal from a verified producer." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
@@ -211,7 +211,7 @@
 
       <section class="lg-section">
         <h2>Pick your share</h2>
-        <p class="lead" style="margin-bottom:16px;">One all-in $/lb hanging weight — farmer, processing, insurance, and platform included.</p>
+        <p class="lead" style="margin-bottom:16px;">Price is per pound hanging weight. Take-home is usually about two-thirds of that. Deposit today; processing and any extra fees show before you pay.</p>
         <div class="share-row" id="lgShareRow"></div>
         <div id="lgIncluded"></div>
       </section>
@@ -228,15 +228,15 @@
       <div class="book-card" id="lgBookCard">
         <div class="book-price">
           <span class="num" id="lgFromPrice">—</span>
-          <span class="unit" id="lgFromUnit">/lb all-in</span>
+          <span class="unit" id="lgFromUnit">/lb hanging</span>
         </div>
         <p class="book-meta" id="lgFromMeta">Deposit today · balance at pickup</p>
         <button class="btn-xl btn-xl--dark js-reserve" data-open-sheet id="lgBookBtn" style="width:100%;justify-content:center;">Reserve →</button>
-        <p class="book-note">You won’t be charged the full amount until harvest. Free cancel up to 21 days before.</p>
+        <p class="book-note">You won’t be charged the full amount until harvest. If the animal does not pass inspection, we refund what you paid.</p>
         <ul class="book-trust">
           <li>Inspected plant (USDA, state, or equal-to)</li>
           <li>Named animal · named farm</li>
-          <li>Insurance pool on every reservation</li>
+          
         </ul>
       </div>
 
@@ -254,7 +254,7 @@
 <div class="lg-mobile-bar" id="lgMobileBar" hidden>
   <div>
     <div class="num" id="lgMobilePrice">—</div>
-    <div class="meta" id="lgMobileMeta">all-in · deposit today</div>
+    <div class="meta" id="lgMobileMeta">hanging weight · deposit today</div>
   </div>
   <button type="button" class="btn-xl btn-xl--dark js-reserve" data-open-sheet id="lgMobileReserve">Reserve →</button>
 </div>
@@ -382,7 +382,7 @@
     `<button type="button" class="share-card js-reserve" data-open-sheet data-share="${s.key}" data-price="${s.price}">
       <span class="glyph">${s.glyph}</span>
       <span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span>
-      <span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1.2">/lb all-in</span></span>
+      <span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1.2">/lb hanging</span></span>
     </button>`);
   if (!sharesArr.length) {
     shareEls.push('<div style="padding:28px;text-align:center;background:#fff;border-radius:14px;border:1px solid rgba(6,27,14,.08);font:600 14px/1.5 Inter;color:var(--ink-2)">All shares are reserved. <a href="/discover" style="color:var(--brand);font-weight:800;">Browse more →</a></div>');
@@ -394,14 +394,13 @@
     const bd = window.PO_PRICING.breakdown(cheapest.farmerRate, cheapest.key === 'q' ? 'quarter' : cheapest.key === 'h' ? 'half' : 'whole', HW);
     document.getElementById('lgIncluded').innerHTML = `
       <details style="margin-top:16px;padding:14px 16px;background:rgba(125,160,93,.08);border:1px solid rgba(125,160,93,.2);border-radius:14px;font:500 13px/1.5 Inter;color:var(--ink-2)">
-        <summary style="cursor:pointer;font-weight:700;color:var(--ink);">What’s included in the all-in price</summary>
+        <summary style="cursor:pointer;font-weight:700;color:var(--ink);">What’s in this price</summary>
         <div style="margin-top:12px;display:grid;gap:6px;font-size:12.5px;">
           <div style="display:flex;justify-content:space-between;"><span>Farmer rate</span><span>$${bd.farmer.perLb.toFixed(2)}/lb</span></div>
           <div style="display:flex;justify-content:space-between;"><span>Processor — cut, wrap, vacuum-seal</span><span>$${bd.processing.perLb.toFixed(2)}/lb</span></div>
           <div style="display:flex;justify-content:space-between;"><span>Kill fee (your share)</span><span>$${(bd.killFee.share / bd.shareLbsHW).toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Insurance pool</span><span>$${bd.insurance.perLb.toFixed(2)}/lb</span></div>
           <div style="display:flex;justify-content:space-between;"><span>Platform fee</span><span>$${bd.platform.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.12);padding-top:6px;font-weight:800;color:var(--ink);"><span>All-in</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb HW</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.12);padding-top:6px;font-weight:800;color:var(--ink);"><span>Listed price</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb HW</span></div>
         </div>
       </details>`;
   }

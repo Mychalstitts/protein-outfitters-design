@@ -6,9 +6,9 @@
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <meta name="theme-color" content="#061b0e" />
 <title>Protein Outfitters — A whole animal, in three taps.</title>
-<meta name="description" content="Nationwide marketplace for whole animals from verified U.S. farms. One all-in price. USDA, state-inspected, or equal-to plants. Pick your cuts and pick up local — three taps." />
+<meta name="description" content="Reserve a share of a named animal from a verified U.S. farm. USDA, state-inspected, or equal-to plants. Pick your cuts and pick up local — three taps." />
 <meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Nationwide: reserve a share of a named animal from a verified U.S. farm. One all-in price. USDA, state, or equal-to inspected plants. Three taps to a full freezer." />
+<meta property="og:description" content="Reserve a share of a named animal from a verified U.S. farm. USDA, state, or equal-to inspected plants. Three taps to a full freezer." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/" />
 <meta property="og:type" content="website" />
@@ -831,9 +831,9 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="hero-photo" aria-hidden="true"></div>
   <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-inner">
-    <span class="hero-eyebrow">Nationwide · Real farms · Inspected plants</span>
+    <span class="hero-eyebrow">Real farms · Inspected plants</span>
     <h1 class="hero-headline">A whole animal,<br>in three taps.</h1>
-    <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. One all-in price — farmer, processing, and insurance included.</p>
+    <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. Farmer and processing in one hanging-weight price.</p>
 
     <!-- Primary conversion: search (Airbnb) → inventory -->
     <form class="hero-search" id="heroSearch" role="search" aria-label="Find meat near you" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
@@ -856,11 +856,11 @@ body { background: var(--bg); overflow-x: hidden; }
     </div>
 
     <div class="hero-cta">
-      <a href="#reserve" class="btn-xl btn-xl--primary">Browse animals →</a>
+      <a href="/discover#notify" class="btn-xl btn-xl--primary">Get notified →</a>
       <a href="#how" class="btn-xl btn-xl--ghost">See how it works</a>
     </div>
   </div>
-  <a href="#reserve" class="hero-scroll">Animals ready now</a>
+  <a href="/discover#notify" class="hero-scroll">Nothing to reserve yet</a>
 </section>
 <script>
   document.querySelectorAll('.hero-search-suggest button').forEach(b => {
@@ -871,13 +871,11 @@ body { background: var(--bg); overflow-x: hidden; }
 <!-- Micro-proof (Amazon-style trust bar — reduce anxiety before inventory) -->
 <div class="proof-strip" role="region" aria-label="Trust highlights">
   <div class="proof-strip-inner">
-    <span><strong>Inspected plants</strong> — USDA, state, or equal-to</span>
+    <span><strong>Inspected plants</strong> — USDA, state, or equal-to. Custom-exempt is never sold.</span>
     <span class="proof-strip-dot" aria-hidden="true">·</span>
-    <span><strong>One all-in</strong> $/lb — no surprise fees</span>
+    <span>Price is per pound hanging weight. Take-home is usually about two-thirds of that.</span>
     <span class="proof-strip-dot" aria-hidden="true">·</span>
-    <span><strong>Free cancel</strong> up to 21 days before harvest</span>
-    <span class="proof-strip-dot" aria-hidden="true">·</span>
-    <span id="proofGeo"><strong>Nationwide</strong> · all 50 states</span>
+    <span>If the animal does not pass inspection, we refund what you paid.</span>
   </div>
 </div>
 
@@ -886,7 +884,7 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="shell">
     <div class="section-head-row">
       <div>
-        <span class="section-eyebrow">Available now</span>
+        <span class="section-eyebrow">Listings coming online</span>
         <h2 class="section-h2">Real animals.<br>Real farms. Across America.</h2>
         <p class="section-lead" id="directoryLead">Every listing is one specific animal on a farm you can drive to — anywhere in the U.S. Reserve a share, set your cuts, pick up at a local plant — we handle the rest.</p>
       </div>
@@ -928,7 +926,7 @@ body { background: var(--bg); overflow-x: hidden; }
       <div class="step">
         <span class="num">01 · Reserve</span>
         <h3>Pick your share.</h3>
-        <p>Quarter, half, or whole — from a named animal on a verified farm. Deposit locks your place; free cancel up to 21 days before harvest.</p>
+        <p>Quarter, half, or whole — from a named animal on a verified farm. Deposit locks your place.</p>
       </div>
       <div class="step">
         <span class="num">02 · Tailor</span>
@@ -943,7 +941,7 @@ body { background: var(--bg); overflow-x: hidden; }
     </div>
 
     <div style="margin-top: clamp(40px, 5vw, 64px); display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
-      <a href="#reserve" class="btn-xl btn-xl--primary" style="text-decoration:none;">Browse animals →</a>
+      <a href="/discover#notify" class="btn-xl btn-xl--primary" style="text-decoration:none;">Get notified →</a>
       <a href="/faq#buyer" class="btn-xl btn-xl--ghost" style="text-decoration:none;">Pricing &amp; FAQ</a>
     </div>
   </div>
@@ -953,8 +951,8 @@ body { background: var(--bg); overflow-x: hidden; }
 <section class="section trust" id="trust">
   <div class="shell">
     <span class="section-eyebrow">Why people trust us</span>
-    <h2 class="section-h2">Inspected. Insured.<br>Traceable to the animal.</h2>
-    <p class="section-lead">World-class marketplaces remove risk. We do the same for food: inspection, cancellation, insurance, and a named animal on a farm you can visit.</p>
+    <h2 class="section-h2">Inspected.<br>Traceable to the animal.</h2>
+    <p class="section-lead">World-class marketplaces remove risk. We do the same for food: inspection, and a named animal on a farm you can visit.</p>
 
     <div class="trust-grid">
       <div class="trust-item">
@@ -962,28 +960,21 @@ body { background: var(--bg); overflow-x: hidden; }
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <span class="trust-num">Inspected</span>
-        <span class="trust-label">USDA federal, state-inspected, or equal-to plants — custom-exempt is never sold on the marketplace.</span>
+        <span class="trust-label">Pickup at a USDA, state-inspected, or equal-to plant. Custom-exempt is never sold.</span>
       </div>
       <div class="trust-item">
         <div class="po-icon-tile sun" style="margin: 0 0 14px;">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg>
         </div>
-        <span class="trust-num">21 days</span>
-        <span class="trust-label">Free cancellation. Full deposit refund until harvest window.</span>
-      </div>
-      <div class="trust-item">
-        <div class="po-icon-tile pasture" style="margin: 0 0 14px;">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s-8-4.5-8-12V5l8-3 8 3v5c0 7.5-8 12-8 12z" stroke-linejoin="round"/></svg>
-        </div>
-        <span class="trust-num">$2M</span>
-        <span class="trust-label">Insurance pool backstop if something goes wrong on the line.</span>
+        <span class="trust-num">Refund</span>
+        <span class="trust-label">If the animal does not pass inspection, we refund what you paid.</span>
       </div>
       <div class="trust-item">
         <div class="po-icon-tile sky" style="margin: 0 0 14px;">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
-        <span class="trust-num" id="trustGeoNum">50 states</span>
-        <span class="trust-label" id="trustGeoLabel">Nationwide marketplace — farms and USDA, state, or equal-to inspected plants across the U.S.</span>
+        <span class="trust-num" id="trustGeoNum">Farms</span>
+        <span class="trust-label" id="trustGeoLabel">Farms and plants you can drive to.</span>
       </div>
     </div>
   </div>
@@ -1050,9 +1041,9 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="shell">
     <span class="section-eyebrow">Your freezer is waiting</span>
     <h2 class="section-h2">Find an animal near you.</h2>
-    <p class="section-lead" style="margin-left:auto;margin-right:auto;text-align:center;">One all-in price. Named animal. Local plant. Three taps from here to a full freezer.</p>
+    <p class="section-lead" style="margin-left:auto;margin-right:auto;text-align:center;">Named animal. Local plant. Three taps from here to a full freezer.</p>
     <div class="closer-cta" style="gap:12px;flex-wrap:wrap;">
-      <a href="#reserve" class="btn-xl btn-xl--dark" style="text-decoration:none;">Browse animals →</a>
+      <a href="/discover#notify" class="btn-xl btn-xl--dark" style="text-decoration:none;">Get notified →</a>
       <a href="/discover" class="btn-xl" style="text-decoration:none;background:transparent;color:var(--brand);border:1px solid rgba(6,27,14,0.18);">Search by farm or ZIP</a>
     </div>
   </div>
@@ -1083,15 +1074,15 @@ body { background: var(--bg); overflow-x: hidden; }
       const l = document.getElementById('trustGeoLabel');
       // Show live coverage when we have data; always frame as a national platform
       const label = states.size >= 40
-        ? 'Farms and plants live across nearly every state — nationwide coverage.'
-        : 'Live inventory in ' + states.size + ' states today — reserving nationwide, growing every week.';
-      if (n) n.textContent = states.size >= 40 ? '50 states' : states.size + ' states live';
+        ? 'Farms and plants you can drive to.'
+        : 'Live inventory in ' + states.size + ' states today.';
+      if (n) n.textContent = states.size >= 40 ? 'Farms' : states.size + ' states live';
       if (l) l.textContent = label;
       const pg = document.getElementById('proofGeo');
       if (pg) {
         pg.innerHTML = states.size >= 40
-          ? '<strong>Nationwide</strong> · all 50 states'
-          : '<strong>' + states.size + ' states</strong> live · nationwide platform';
+          ? '<strong>Farms and plants</strong>'
+          : '<strong>' + states.size + ' states</strong> live';
       }
     }
   } catch { /* keep static copy */ }
@@ -1138,7 +1129,7 @@ body { background: var(--bg); overflow-x: hidden; }
   // PO_PRICING is loaded by po-shell.js but may not be ready yet — fallback to farmer rate × lbs estimate
   function allInPerLb(farmerRate, share, hw){
     if (window.PO_PRICING) return window.PO_PRICING.allInPerLbHW(farmerRate, share, hw);
-    return Number(farmerRate || 0) + 1.55; // rough fallback (processing + insurance + platform + kill share)
+    return Number(farmerRate || 0) + 1.55;
   }
 
   function fmtPerLb(n){ return '$' + Number(n||0).toFixed(2); }
@@ -1159,7 +1150,6 @@ body { background: var(--bg); overflow-x: hidden; }
                        : l.shares?.half?.available > 0 ? 'half'
                        : l.shares?.whole?.available > 0 ? 'whole'
                        : 'half';
-    // Buyer-facing price is always cumulative all-in $/lb hanging weight
     const allInLb = allInPerLb(farmerRate, cheapestShare, hw);
     const allInQ = farmerQ ? allInPerLb(farmerQ, 'quarter', hw) : 0;
     const allInH = farmerH ? allInPerLb(farmerH, 'half', hw) : 0;
@@ -1197,7 +1187,7 @@ body { background: var(--bg); overflow-x: hidden; }
           <h3 class="product-name">${animalLabel}</h3>
           <p class="product-detail">${farmName} · ${hw} lb HW · Harvest ${harvestLabel}</p>
           <div class="product-foot">
-            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb all-in</span></span>
+            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb hanging</span></span>
             <span class="product-cta">Reserve →</span>
           </div>
         </div>
