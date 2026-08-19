@@ -1,7 +1,7 @@
 // /api/checkout — create a Stripe Checkout Session for a reservation deposit
 //   POST { listing_id, share_size, processor_id?, buyer_email, buyer_name?, buyer_phone? }
 //     1. Validate listing + share availability
-//     2. Compute deposit + processing + insurance from cumulative pricing
+//     2. Compute deposit + processing from cumulative pricing
 //     3. Create a `pending` reservation in DB (decrements share inventory)
 //     4. Create a Stripe Checkout Session referencing that reservation_id
 //     5. Return { url } so the client can window.location = url
@@ -19,11 +19,9 @@ export const config = { runtime: 'nodejs' };
 const PRICING = {
   processingPerLbHW: 1.25,
   killFeeFlat: 100,
-  insurancePerLbHW: 0.05,
   platformPerLbHW: 0.25,
   cutsYield: 0.72,
   PROCESSING_PRICE_ID: process.env.STRIPE_PROCESSING_PRICE_ID || 'price_1TTXarAEMYhoRW98GApM48vP',
-  INSURANCE_PRICE_ID:  process.env.STRIPE_INSURANCE_PRICE_ID  || 'price_1TTXb2AEMYhoRW98KrLcSbj3',
   DEPOSIT_PRODUCT_ID:  process.env.STRIPE_DEPOSIT_PRODUCT_ID  || 'prod_USSVhZDnkZakBC',
 };
 
@@ -40,6 +38,9 @@ function computeDepositCents({ farmerPerLb, share_size, hangingWeight }) {
 
 async function handler(req) {
   if (req.method !== 'POST') return err(405, 'Method not allowed');
+  if (process.env.CHECKOUT_ENABLED !== 'true') {
+    return err(503, 'Checkout is paused pending terms sign-off.');
+  }
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured (missing STRIPE_SECRET_KEY)');
 
   let body;
@@ -74,11 +75,21 @@ async function handler(req) {
     return err(409, 'This farm cannot receive payouts yet. The producer must finish Stripe Connect onboarding (charges and payouts enabled) before a card can be charged.');
   }
 
-  // Look up processor's Connect account if a processor was selected.
+  // Do not charge unless a selected processor can actually be paid.
   let processorStripeAccount = null;
   if (processor_id) {
-    const prows = await sql`SELECT stripe_account_id FROM processors WHERE id = ${processor_id} LIMIT 1`;
-    processorStripeAccount = prows[0]?.stripe_account_id || null;
+    const prows = await sql`SELECT stripe_account_id, stripe_connect_status FROM processors WHERE id = ${processor_id} LIMIT 1`;
+    const procAcct = prows[0]?.stripe_account_id || null;
+    const procStatus = String(prows[0]?.stripe_connect_status || "").toLowerCase();
+    const procCanBePaid = !!(procAcct && (
+      procStatus === "active" ||
+      procStatus === "charges_enabled" ||
+      procStatus === "payouts_enabled"
+    ));
+    if (!procCanBePaid) {
+      return err(409, "This plant cannot receive payouts yet. Finish Stripe Connect onboarding before a card can be charged.");
+    }
+    processorStripeAccount = procAcct;
   }
 
   const shares = listing.shares || {};
@@ -99,7 +110,7 @@ async function handler(req) {
 
   const user = await currentUser(req);
   const buyerId = user?.id || null;
-  const totalEstimate = (depositCents + 22500 + 1800) / 100; // deposit + processing + insurance
+  const totalEstimate = (depositCents + 22500) / 100; // deposit + processing only
 
   // Stripe transfer_group anchors all subsequent Connect transfers
   // (farmer payout, processor payout, platform fee retention) to this reservation.
@@ -294,7 +305,7 @@ async function handler(req) {
           },
         },
         { quantity: 1, price: PRICING.PROCESSING_PRICE_ID },
-        { quantity: 1, price: PRICING.INSURANCE_PRICE_ID },
+        // No third Stripe line. Deposit + processing only.
       ],
       metadata: {
         reservation_id: reservationId,
@@ -311,7 +322,7 @@ async function handler(req) {
         processor_stripe_account_id: processorStripeAccount || '',
       },
       payment_intent_data: {
-        description: `${shareLabel} · ${animalLabel} (deposit + processing + insurance)`,
+        description: `${shareLabel} · ${animalLabel} (deposit + processing)`,
         metadata: {
           reservation_id: reservationId,
           listing_id,
