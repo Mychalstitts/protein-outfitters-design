@@ -6,6 +6,28 @@ import { sql, rawQuery, currentUser, err, json, nodejsHandler } from './_lib/db.
 
 export const config = { runtime: 'nodejs' };
 
+function isoDateOnly(v) {
+  if (!v) return null;
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    return v.toISOString().slice(0, 10);
+  }
+  const s = String(v).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
+/** true when calendar today is after birth + 30 months (window end is the 30-month day). */
+function pastThirtyMonths(birth) {
+  const b = isoDateOnly(birth);
+  if (!b) return false;
+  const [y, m, d] = b.split('-').map(Number);
+  const end = Date.UTC(y, m - 1 + 30, d);
+  const now = new Date();
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return today > end;
+}
+
+
+
 async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const id = url.searchParams.get('id');
@@ -46,15 +68,21 @@ async function handler(req) {
     const set = {};
     for (const k of allowed) if (k in body) set[k] = body[k];
     if (!Object.keys(set).length) return err(400, 'Nothing to update');
-    const existing = await sql`SELECT number, otm_price_pending FROM listings WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT number, birth_date, otm_price_pending FROM listings WHERE id = ${id} LIMIT 1`;
     const row = existing[0] || {};
     const nextNumber = ('number' in set) ? set.number : row.number;
-    const nextOtm = ('otm_price_pending' in set) ? !!set.otm_price_pending : !!row.otm_price_pending;
     const listedNumber = String(nextNumber || '');
     const isStittyDraft = /^(#?123)\b/i.test(listedNumber) || /stitt/i.test(listedNumber);
-    if (isStittyDraft || nextOtm) {
+    if (pastThirtyMonths(row.birth_date)) {
+      set.after_thirty_months = true;
+      set.bone_in_allowed = false;
+      set.otm_price_pending = true;
       set.status = 'draft';
+    } else {
+      const nextOtm = ('otm_price_pending' in set) ? !!set.otm_price_pending : !!row.otm_price_pending;
+      if (isStittyDraft || nextOtm) set.status = 'draft';
     }
+    if (isStittyDraft) set.status = 'draft';
     // Build dynamic update — limited keys, safe (column names whitelisted above)
     for (const [k, v] of Object.entries(set)) {
       await rawQuery(`UPDATE listings SET ${k} = $1, updated_at = NOW() WHERE id = $2`, [v, id]);
