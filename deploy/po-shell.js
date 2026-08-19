@@ -89,13 +89,13 @@
     <div class="sheet-context"><div class="sheet-context-img" id="sheetContextImg"></div><div class="sheet-context-text"><p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p><p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p></div></div>
     <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><p style="font-size:13px;color:var(--ink-2);margin:0 0 12px;line-height:1.45;">One all-in $/lb. Deposit locks your place — balance at pickup on actual hanging weight.</p><div class="options" id="shareOptions"></div></section>
     <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Lock it in.</h3>
-      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Deposit + processing + insurance today. Meat balance settles at pickup on actual hanging weight. Free cancel up to 21 days before harvest.</p>
-      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18.00</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Deposit today; processing and any extra fees show before you pay. Meat balance settles at pickup on actual hanging weight.</p>
+      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
       <p id="sheetCheckoutNote" style="font:500 12px/1.45 'Inter',system-ui,sans-serif;color:var(--ink-2);margin:12px 0 0;">You'll finish on Stripe Checkout — card details never touch our servers.</p>
       <div class="pay-stack"><button class="btn-pay btn-pay--card" id="payCard" type="button" style="order:-1">Continue to secure checkout →</button><button class="btn-pay btn-pay--apple" id="payApple" type="button">Express pay (if available)</button></div>
       <ul class="sheet-trust" style="list-style:none;padding:14px 0 0;margin:12px 0 0;border-top:1px solid rgba(6,27,14,.08);display:grid;gap:8px;font:600 12px/1.35 'Inter',system-ui,sans-serif;color:var(--ink-2);">
         <li>✓ Deposit holds your share · balance at pickup</li>
-        <li>✓ Free cancel up to 21 days before harvest</li>
+        <li>✓ If the animal does not pass inspection, we refund what you paid</li>
         <li>✓ After pay: build your cut sheet on your phone</li>
       </ul>
     </section>
