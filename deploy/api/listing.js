@@ -64,16 +64,19 @@ async function handler(req) {
     if (!owns[0] && user.role !== 'admin') return err(403, 'Not your listing');
     let body;
     try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
-    const allowed = ['number','breed','sex','expected_finish_date','harvest_window_start','harvest_window_end','after_thirty_months','bone_in_allowed','otm_price_pending','estimated_hanging_weight','price_per_lb','description','practice','certs','shares','photos','status','donate_to_foodbank','donation_recipient_org','instant_reserve'];
+    const allowed = ['number','breed','sex','birth_date','expected_finish_date','harvest_window_start','harvest_window_end','after_thirty_months','bone_in_allowed','otm_price_pending','estimated_hanging_weight','price_per_lb','description','practice','certs','shares','photos','status','donate_to_foodbank','donation_recipient_org','instant_reserve'];
     const set = {};
     for (const k of allowed) if (k in body) set[k] = body[k];
     if (!Object.keys(set).length) return err(400, 'Nothing to update');
     const existing = await sql`SELECT number, birth_date, otm_price_pending FROM listings WHERE id = ${id} LIMIT 1`;
     const row = existing[0] || {};
     const nextNumber = ('number' in set) ? set.number : row.number;
+    const nextBirth = ('birth_date' in set) ? set.birth_date : row.birth_date;
     const listedNumber = String(nextNumber || '');
     const isStittyDraft = /^(#?123)\b/i.test(listedNumber) || /stitt/i.test(listedNumber);
-    if (pastThirtyMonths(row.birth_date)) {
+    if (!isoDateOnly(nextBirth)) {
+      set.status = 'draft';
+    } else if (pastThirtyMonths(nextBirth)) {
       set.after_thirty_months = true;
       set.bone_in_allowed = false;
       set.otm_price_pending = true;
