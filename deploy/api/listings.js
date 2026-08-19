@@ -136,9 +136,7 @@ async function createListing(req) {
   let status = ALLOWED_STATUS.has(body.status) ? body.status : 'active';
   const listedNumber = number || '';
   const isStittyDraft = /^(#?123)\b/i.test(listedNumber) || /stitt/i.test(listedNumber);
-  if (isStittyDraft || (otm_price_pending && !(Number.isFinite(price_per_lb) && price_per_lb > 0))) {
-    status = 'draft';
-  }
+  if (isStittyDraft || otm_price_pending) status = 'draft';
   const donate_to_foodbank = !!body.donate_to_foodbank;
   const donation_recipient_org = body.donation_recipient_org || null;
 
