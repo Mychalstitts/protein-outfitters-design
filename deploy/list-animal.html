@@ -326,7 +326,7 @@
       <!-- STEP 2 — Specs + Feed (live calculator below) -->
       <section class="wiz-step" data-step="2">
         <h1>How were they raised?</h1>
-        <p class="lead">Three feed questions and a birth date. We'll calculate the predicted finish weight and harvest date in real time.</p>
+        <p class="lead">Three feed questions and a birth date. We'll calculate the predicted finish weight and harvest window in real time.</p>
 
         <div class="row-2">
           <div class="field"><label>Birth date</label><input type="date" id="birthDate"></div>
@@ -388,9 +388,14 @@
             <p class="sub" id="calcWeightSub">Based on Black Angus steer · grass-fed · grass finish</p>
           </div>
           <div class="calc-stat">
-            <p class="lab">Predicted harvest date</p>
+            <p class="lab">Harvest window</p>
             <p class="val" id="calcDate">May 28, 2026</p>
             <p class="sub" id="calcDateSub">~28 months · 1.6 lb/day average gain</p>
+          </div>
+          <div class="calc-stat" id="pastThirtyBox" hidden>
+            <p class="lab">Past 30 months of age</p>
+            <p class="val" style="font-size:16px">Bone-in is off</p>
+            <p class="sub">Share buyers on this animal get notified. Price scale changes.</p>
           </div>
           <div class="calc-stat">
             <p class="lab">Estimated take-home</p>
@@ -525,7 +530,7 @@
         <div class="review-card">
           <h4>Specs (auto-calculated)</h4>
           <div class="review-row"><span class="k">Predicted finish weight</span><span class="v" id="rvWeight">1,180 lb</span></div>
-          <div class="review-row"><span class="k">Predicted harvest date</span><span class="v" id="rvDate">May 28, 2026</span></div>
+          <div class="review-row"><span class="k">Harvest window</span><span class="v" id="rvDate">May 28, 2026</span></div>
           <div class="review-row"><span class="k">Feed</span><span class="v" id="rvFeed">100% grass + hay</span></div>
           <div class="review-row"><span class="k">Finish</span><span class="v" id="rvFinish">100% grass</span></div>
         </div>
@@ -582,7 +587,10 @@
     location: '',
     processor: '',
     liveWeight: 0,
-    harvestIso: null
+    harvestIso: null,
+    harvestEndIso: null,
+    pastThirty: false,
+    boneIn: null
   };
 
   const DRESSING = { beef: 0.60, pork: 0.72, lamb: 0.50, venison: 0.55, poultry: 0.70 };
@@ -880,7 +888,7 @@
       breed: S.breed || null,
       sex: S.sex ? S.sex.toLowerCase() : null,
       birth_date: S.birthDate || null,
-      expected_finish_date: S.harvestIso || toIsoDate(document.getElementById('calcDate')?.textContent) || toIsoDate(document.getElementById('rvDate')?.textContent) || null,
+      expected_finish_date: S.harvestIso || null,
       estimated_hanging_weight: priced.hangLb || null,
       price_per_lb: priced.price_per_lb || null,
       description: (document.getElementById('descText')?.value || '').trim() || null,
@@ -1043,15 +1051,26 @@
     const months = (days / 30.44).toFixed(1);
 
     S.liveWeight = target;
+    const fmtDay = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     let harvestStr = '—';
+    S.pastThirty = false;
     if (S.birthDate) {
-      const d = new Date(S.birthDate);
-      d.setDate(d.getDate() + days);
-      S.harvestIso = d.toISOString().slice(0, 10);
-      harvestStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const start = new Date(S.birthDate);
+      start.setDate(start.getDate() + days);
+      const end = new Date(S.birthDate);
+      end.setMonth(end.getMonth() + 30);
+      S.harvestIso = start.toISOString().slice(0, 10);
+      S.harvestEndIso = end.toISOString().slice(0, 10);
+      harvestStr = fmtDay(start) + ' – ' + fmtDay(end);
+      const now = new Date();
+      S.pastThirty = start.getTime() > end.getTime() || now.getTime() > end.getTime();
     } else {
       S.harvestIso = null;
+      S.harvestEndIso = null;
     }
+    if (S.pastThirty) S.boneIn = false;
+    const thirtyBox = document.getElementById('pastThirtyBox');
+    if (thirtyBox) thirtyBox.hidden = !S.pastThirty;
 
     const takeHome = Math.round(target * 0.37);
 
@@ -1059,7 +1078,9 @@
     flashSet('calcWeight', target.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
     flashSet('calcWeightSub', `${S.breed} ${S.sex.toLowerCase()} · ${S.feedType.toLowerCase()} · ${S.finishFeed.toLowerCase()} finish`, false);
     flashSet('calcDate', harvestStr, true);
-    flashSet('calcDateSub', `~${months} months · ${adg} lb/day average gain`, false);
+    flashSet('calcDateSub', S.pastThirty
+      ? 'Past 30 months of age · bone-in is off · share buyers get notified · price scale changes'
+      : `Earliest finish ~${months} months · window ends at 30 months of age · ${adg} lb/day`, false);
     flashSet('calcTake', '~' + takeHome.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
 
     // Recompute industry-suggested prices (drives step 4)
