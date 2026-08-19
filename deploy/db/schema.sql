@@ -287,16 +287,5 @@ BEGIN
   END IF;
 END $$;
 
-DO $$
-DECLARE northfield_id UUID;
-BEGIN
-  SELECT id INTO northfield_id FROM farms WHERE slug='northfield-pastures';
-  IF northfield_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM listings LIMIT 1) THEN
-    INSERT INTO listings (farm_id, number, species, breed, sex, expected_finish_date, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, status) VALUES
-      (northfield_id, '#118', 'cattle', 'Black Angus', 'steer', '2026-07-15', 700, 7.85,
-       'Black Angus steer #118 finished on a 60-day grass-finishing program with brassicas and rye. Expected hanging weight 700 lb.',
-       ARRAY['grass-fed','regenerative'], ARRAY['organic','aga','amwa'],
-       '{"whole":{"available":0,"reserved":1,"price":7.85},"half":{"available":1,"reserved":1,"price":8.15},"quarter":{"available":2,"reserved":2,"price":8.50}}'::jsonb,
-       'active');
-  END IF;
-END $$;
+-- Demo ACTIVE listings are intentionally not seeded.
+-- Catalog must stay empty of demo animals (Northfield / Twin Pines).

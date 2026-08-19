@@ -135,7 +135,13 @@
   <div class="pr-inner">
 
     <div class="pr-hero">
-      <div class="pr-greeting">
+      <div class="pr-greeting" id="prSignInPrompt">
+        <p class="eye">Welcome</p>
+        <h1>Sign in to your plant.</h1>
+        <p>See today's drop-offs, manage capacity, and check animals in at the dock.</p>
+        <button type="button" id="prSignInBtn" style="margin-top:14px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer">Sign in →</button>
+      </div>
+      <div class="pr-greeting" id="prDashGreeting" hidden>
         <p class="eye" id="prDayLabel">Today</p>
         <h1>Good morning, <span data-user-name>there</span>.</h1>
         <p id="prGreetSub">Welcome to your processor dashboard.</p>
@@ -216,7 +222,7 @@
       </div>
     </section>
 
-    <div class="qa-grid" id="prQaGrid">
+    <div class="qa-grid" id="prQaGrid" style="display:none;">
       <a href="/processor-schedule" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
         <h4>Schedule + capacity</h4>
@@ -255,7 +261,7 @@
     </div>
 
     <!-- Queue: empty until real bookings hydrate (no demo animals) -->
-    <section class="pr-section" id="queue">
+    <section class="pr-section" id="queue" style="display:none;">
       <div class="pr-section-head">
         <h2>Queue</h2>
         <a class="more" href="/processor-schedule">Open full calendar →</a>
@@ -365,6 +371,10 @@ window.openMarkReady = function(bookingId, listingId, label) {
   });
 };
 
+document.getElementById('prSignInBtn')?.addEventListener('click', () => {
+  window.PO_API?.openAuth?.('Sign in to your plant', 'processor', { next: '/processor' });
+});
+
 (async () => {
   let me;
   try { me = await window.PO_API.me(); } catch { me = { user: null }; }
@@ -372,14 +382,22 @@ window.openMarkReady = function(bookingId, listingId, label) {
   const claimSection = document.getElementById('prClaimSection');
   const qaGrid = document.getElementById('prQaGrid');
   const queueSection = document.getElementById('queue');
+  const signInPrompt = document.getElementById('prSignInPrompt');
+  const dashGreeting = document.getElementById('prDashGreeting');
 
   if (!me.user) {
-    const greet = document.querySelector('.pr-greeting');
-    if (greet) greet.innerHTML = `<p class="eye">Welcome</p><h1>Sign in to your plant.</h1><p>See today's drop-offs, manage capacity, and check animals in at the dock.</p><button onclick="window.PO_API.openAuth('Sign in to your plant', 'processor', { next: '/processor' })" style="margin-top:14px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 'Inter';cursor:pointer">Sign in →</button>`;
-    if (qaGrid) qaGrid.style.opacity = '.45';
+    if (signInPrompt) signInPrompt.hidden = false;
+    if (dashGreeting) dashGreeting.hidden = true;
+    if (qaGrid) qaGrid.style.display = 'none';
     if (queueSection) queueSection.style.display = 'none';
     return;
   }
+
+  if (signInPrompt) signInPrompt.hidden = true;
+  if (dashGreeting) dashGreeting.hidden = false;
+  if (qaGrid) qaGrid.style.display = '';
+  if (queueSection) queueSection.style.display = '';
+
 
   const prDayEl = document.getElementById('prDayLabel');
   if (prDayEl) prDayEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase();

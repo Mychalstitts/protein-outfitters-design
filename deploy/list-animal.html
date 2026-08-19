@@ -30,7 +30,7 @@
 .wiz-progress .dot.done { background: var(--brand); }
 
 /* Stage that holds the steps with slide animation */
-.wiz-stage { position: relative; min-height: 580px; }
+.wiz-stage { position: relative; min-height: 580px; z-index: 0; pointer-events: none; }
 .wiz-step {
   background: #fff; border-radius: 28px; padding: clamp(28px, 4vw, 48px);
   box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
@@ -39,8 +39,11 @@
   transition: transform .55s cubic-bezier(0.28, 0.11, 0.32, 1), opacity .35s ease;
   pointer-events: none;
   visibility: hidden;
+  z-index: 0;
 }
-.wiz-step.active { opacity: 1; transform: translateX(0); pointer-events: auto; visibility: visible; }
+.wiz-step:not(.active),
+.wiz-step:not(.active) * { pointer-events: none !important; }
+.wiz-step.active { opacity: 1; transform: translateX(0); pointer-events: auto; visibility: visible; z-index: 1; }
 .wiz-step.exit-left { transform: translateX(-20px); opacity: 0; }
 .wiz-step.enter-from-left { transform: translateX(-16px); }
 
@@ -147,7 +150,7 @@
 .review-row .v { color: var(--ink); font-weight: 700; }
 
 /* Foot */
-.wiz-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
+.wiz-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; position: relative; z-index: 2; pointer-events: auto; }
 .wiz-back { background: transparent; border: 0; padding: 12px 16px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); border-radius: 999px; transition: color .2s, transform .2s; }
 .wiz-back:disabled { opacity: 0; pointer-events: none; }
 .wiz-back:hover:not(:disabled) { color: var(--ink); transform: translateX(-2px); }
@@ -482,15 +485,18 @@
           <button type="button" class="reset-link" id="resetPrices">↺ Use suggested prices</button>
         </div>
 
+        <p class="help" style="margin:-4px 0 18px;">These are share totals. At publish we convert them to hanging $/lb using predicted hanging weight x share fraction.</p>
+
         <div class="field">
           <label>Available shares</label>
-          <select>
-            <option>4 quarters (4 quarter buyers)</option>
-            <option>2 halves (2 half buyers)</option>
-            <option>1 whole animal (1 buyer)</option>
-            <option>Mix: 1 half + 2 quarters</option>
-            <option>Custom</option>
+          <select id="shareAvail">
+            <option value="quarters">4 quarters (4 quarter buyers)</option>
+            <option value="halves">2 halves (2 half buyers)</option>
+            <option value="whole">1 whole animal (1 buyer)</option>
+            <option value="mix">Mix: 1 half + 2 quarters</option>
+            <option value="custom">Custom</option>
           </select>
+          <span class="help">One animal — pick a split that does not oversell.</span>
         </div>
 
         <div class="field">
@@ -525,9 +531,10 @@
         </div>
         <div class="review-card">
           <h4>Pricing</h4>
-          <div class="review-row"><span class="k">Quarter</span><span class="v">$1,395 × 4 available</span></div>
-          <div class="review-row"><span class="k">Half</span><span class="v">$2,690 × 0 available</span></div>
-          <div class="review-row"><span class="k">Whole</span><span class="v">$5,180 × 0 available</span></div>
+          <div class="review-row"><span class="k">Quarter</span><span class="v" id="rvPriceQ">—</span></div>
+          <div class="review-row"><span class="k">Half</span><span class="v" id="rvPriceH">—</span></div>
+          <div class="review-row"><span class="k">Whole</span><span class="v" id="rvPriceW">—</span></div>
+          <div class="review-row"><span class="k">Hanging rate</span><span class="v" id="rvHangRate">—</span></div>
         </div>
       </section>
 
@@ -573,8 +580,86 @@
     hormones: 'Never',
     certs: [],
     location: '',
-    processor: ''
+    processor: '',
+    liveWeight: 0,
+    harvestIso: null
   };
+
+  const DRESSING = { beef: 0.60, pork: 0.72, lamb: 0.50, venison: 0.55, poultry: 0.70 };
+
+  function liveFinishLb() {
+    const fromState = Number(S.liveWeight);
+    if (fromState > 0) return fromState;
+    const n = parseInt(String(document.getElementById('calcWeight')?.textContent || '').replace(/[^\d]/g, ''), 10);
+    return n || 0;
+  }
+
+  function hangingWeightLb() {
+    const live = liveFinishLb();
+    const hw = Math.round(live * (DRESSING[S.species] || 0.60));
+    return hw > 0 ? hw : 0;
+  }
+
+  function shareTotalFromInput(id) {
+    const el = document.getElementById(id);
+    const typed = parseFloat(el?.value);
+    if (Number.isFinite(typed) && typed > 0) return typed;
+    const ph = parseFloat(el?.placeholder);
+    if (Number.isFinite(ph) && ph > 0) return ph;
+    return 0;
+  }
+
+  function shareTotals() {
+    return {
+      quarter: shareTotalFromInput('priceQ'),
+      half: shareTotalFromInput('priceH'),
+      whole: shareTotalFromInput('priceW'),
+    };
+  }
+
+  function hangingPerLb(total, fraction, hangLb) {
+    const lbs = hangLb * fraction;
+    if (!lbs || !total) return 0;
+    return Math.round((total / lbs) * 100) / 100;
+  }
+
+  function shareInventory() {
+    const sel = (document.getElementById('shareAvail')?.value || '').trim();
+    const map = {
+      quarters: { whole: 0, half: 0, quarter: 4 },
+      halves:   { whole: 0, half: 2, quarter: 0 },
+      whole:    { whole: 1, half: 0, quarter: 0 },
+      mix:      { whole: 0, half: 1, quarter: 2 },
+    };
+    if (map[sel]) return map[sel];
+    const typedQ = parseFloat(document.getElementById('priceQ')?.value) > 0;
+    const typedH = parseFloat(document.getElementById('priceH')?.value) > 0;
+    const typedW = parseFloat(document.getElementById('priceW')?.value) > 0;
+    if (typedQ && !typedH && !typedW) return { whole: 0, half: 0, quarter: 4 };
+    if (typedH && !typedQ && !typedW) return { whole: 0, half: 2, quarter: 0 };
+    if (typedW && !typedQ && !typedH) return { whole: 1, half: 0, quarter: 0 };
+    return { whole: 1, half: 0, quarter: 0 };
+  }
+
+  function listingPriceBundle() {
+    const hangLb = hangingWeightLb();
+    const totals = shareTotals();
+    const rates = {
+      quarter: hangingPerLb(totals.quarter, 0.25, hangLb),
+      half: hangingPerLb(totals.half, 0.5, hangLb),
+      whole: hangingPerLb(totals.whole, 1, hangLb),
+    };
+    const avail = shareInventory();
+    const pricedKey = ['quarter', 'half', 'whole'].find(k => avail[k] > 0 && rates[k] > 0)
+      || ['half', 'whole', 'quarter'].find(k => rates[k] > 0);
+    const price_per_lb = pricedKey ? rates[pricedKey] : 0;
+    const shares = {
+      whole:   { available: avail.whole, reserved: 0, price: rates.whole || 0 },
+      half:    { available: avail.half, reserved: 0, price: rates.half || 0 },
+      quarter: { available: avail.quarter, reserved: 0, price: rates.quarter || 0 },
+    };
+    return { hangLb, totals, rates, avail, price_per_lb, shares };
+  }
 
   // ============ STEP NAVIGATION (slide animations) ============
   const dots = document.querySelectorAll('.wiz-progress .dot');
@@ -643,27 +728,27 @@
       if (!S.species) { alert('Pick a species to continue.'); return false; }
       return true;
     }
-    if (step === 4) {
-      const wholePrice = parseFloat(document.getElementById('priceWhole')?.value || S.priceWhole || 0);
-      const halfPrice = parseFloat(document.getElementById('priceHalf')?.value || S.priceHalf || 0);
-      const quarterPrice = parseFloat(document.getElementById('priceQuarter')?.value || S.priceQuarter || 0);
-      const best = halfPrice || wholePrice || quarterPrice;
-      if (!best || best <= 0) {
-        alert('Set a price per pound greater than $0 before continuing. Buyers need a real price to reserve.');
+    if (step === 4 || step === 5) {
+      const { hangLb, totals, price_per_lb, shares } = listingPriceBundle();
+      if (!(totals.quarter || totals.half || totals.whole)) {
+        alert('Set a share total greater than $0. We convert it to hanging $/lb for buyers.');
         return false;
       }
-      if (best > 200) {
-        alert('Price looks too high (max $200/lb). Double-check your hanging-weight rate.');
+      if (!hangLb) {
+        alert('Need a predicted finish weight to convert share totals to hanging $/lb.');
         return false;
       }
-      return true;
-    }
-    if (step === 5) {
-      const wholePrice = parseFloat(document.getElementById('priceWhole')?.value || S.priceWhole || 0);
-      const halfPrice = parseFloat(document.getElementById('priceHalf')?.value || S.priceHalf || 0);
-      const quarterPrice = parseFloat(document.getElementById('priceQuarter')?.value || S.priceQuarter || 0);
-      if (!(halfPrice || wholePrice || quarterPrice)) {
-        alert('Set share pricing before publishing.');
+      if (!price_per_lb || price_per_lb <= 0) {
+        alert('Set a share price greater than $0. We convert it to a hanging rate buyers can reserve against.');
+        return false;
+      }
+      if (price_per_lb > 200) {
+        alert('Hanging-weight rate is $' + price_per_lb.toFixed(2) + '/lb (max $200/lb). Lower the share total or check the finish weight.');
+        return false;
+      }
+      const hasInv = ['whole','half','quarter'].some(k => shares[k].available > 0 && shares[k].price > 0);
+      if (!hasInv) {
+        alert('Pick available shares that match a priced unit (quarter, half, or whole).');
         return false;
       }
       return true;
@@ -785,15 +870,8 @@
     if (/pasture/i.test(S.feedType)) practice.push('pasture-raised');
     const certs = (S.certs || []).map(c => c.toLowerCase());
 
-    // Build shares from current step-4 inputs (best-effort)
-    const wholePrice = parseFloat(document.getElementById('priceWhole')?.value || S.priceWhole || 0);
-    const halfPrice = parseFloat(document.getElementById('priceHalf')?.value || S.priceHalf || 0);
-    const quarterPrice = parseFloat(document.getElementById('priceQuarter')?.value || S.priceQuarter || 0);
-    const shares = {
-      whole:   { available: 1, reserved: 0, price: wholePrice || 0 },
-      half:    { available: 2, reserved: 0, price: halfPrice || 0 },
-      quarter: { available: 4, reserved: 0, price: quarterPrice || 0 }
-    };
+    const priced = listingPriceBundle();
+    const shares = priced.shares;
 
     const body = {
       farm_id,
@@ -802,11 +880,10 @@
       breed: S.breed || null,
       sex: S.sex ? S.sex.toLowerCase() : null,
       birth_date: S.birthDate || null,
-      expected_finish_date: document.getElementById('rvFinishDate')?.textContent ?
-        toIsoDate(document.getElementById('rvFinishDate').textContent) : null,
-      estimated_hanging_weight: parseInt(document.getElementById('calcWeight')?.textContent?.replace(/[^\d]/g, '') || 0) || null,
-      price_per_lb: halfPrice || wholePrice || quarterPrice || null,
-      description: (document.getElementById('descBody')?.value || '').trim() || null,
+      expected_finish_date: S.harvestIso || toIsoDate(document.getElementById('calcDate')?.textContent) || toIsoDate(document.getElementById('rvDate')?.textContent) || null,
+      estimated_hanging_weight: priced.hangLb || null,
+      price_per_lb: priced.price_per_lb || null,
+      description: (document.getElementById('descText')?.value || '').trim() || null,
       practice,
       certs,
       shares,
@@ -965,11 +1042,15 @@
     const days = Math.round((target - birth) / Math.max(0.05, adg));
     const months = (days / 30.44).toFixed(1);
 
+    S.liveWeight = target;
     let harvestStr = '—';
     if (S.birthDate) {
       const d = new Date(S.birthDate);
       d.setDate(d.getDate() + days);
+      S.harvestIso = d.toISOString().slice(0, 10);
       harvestStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    } else {
+      S.harvestIso = null;
     }
 
     const takeHome = Math.round(target * 0.37);
@@ -1133,6 +1214,16 @@
     document.getElementById('rvDate').textContent = document.getElementById('calcDate').textContent;
     document.getElementById('rvFeed').textContent = S.feedType;
     document.getElementById('rvFinish').textContent = S.finishFeed;
+    const priced = listingPriceBundle();
+    const money = n => n > 0 ? ('$' + Math.round(n).toLocaleString()) : '—';
+    const qEl = document.getElementById('rvPriceQ');
+    const hEl = document.getElementById('rvPriceH');
+    const wEl = document.getElementById('rvPriceW');
+    const rEl = document.getElementById('rvHangRate');
+    if (qEl) qEl.textContent = `${money(priced.totals.quarter)} x ${priced.avail.quarter} available`;
+    if (hEl) hEl.textContent = `${money(priced.totals.half)} x ${priced.avail.half} available`;
+    if (wEl) wEl.textContent = `${money(priced.totals.whole)} x ${priced.avail.whole} available`;
+    if (rEl) rEl.textContent = priced.price_per_lb ? ('$' + priced.price_per_lb.toFixed(2) + '/lb hanging') : '—';
     document.getElementById('publishedBody').textContent = `${S.animalId || 'This animal'} is live on the marketplace. We'll text the moment your first reserve hits.`;
   }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }

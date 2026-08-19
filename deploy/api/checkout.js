@@ -54,12 +54,25 @@ async function handler(req) {
     SELECT l.*,
            f.name as farm_name, f.slug as farm_slug, f.city as farm_city, f.state as farm_state,
            f.stripe_account_id as farm_stripe_account_id,
+           f.stripe_connect_status as farm_stripe_connect_status,
            f.id as farm_id_full
     FROM listings l JOIN farms f ON f.id = l.farm_id
     WHERE l.id = ${listing_id} LIMIT 1`;
   if (!lrows[0]) return err(404, 'Listing not found');
   const listing = lrows[0];
   if (listing.status !== 'active') return err(409, 'Listing is no longer available');
+
+  // Do not charge a card unless the farm can actually be paid.
+  const farmAcct = listing.farm_stripe_account_id;
+  const farmStatus = String(listing.farm_stripe_connect_status || '').toLowerCase();
+  const farmCanBePaid = !!(farmAcct && (
+    farmStatus === 'active' ||
+    farmStatus === 'charges_enabled' ||
+    farmStatus === 'payouts_enabled'
+  ));
+  if (!farmCanBePaid) {
+    return err(409, 'This farm cannot receive payouts yet. The producer must finish Stripe Connect onboarding (charges and payouts enabled) before a card can be charged.');
+  }
 
   // Look up processor's Connect account if a processor was selected.
   let processorStripeAccount = null;
@@ -294,6 +307,8 @@ async function handler(req) {
         hanging_weight_lbs: String(hangingWeight),
         buyer_user_id: buyerId || '',
         referral_credit_cents: String(appliedCreditCents),
+        farm_stripe_account_id: listing.farm_stripe_account_id || '',
+        processor_stripe_account_id: processorStripeAccount || '',
       },
       payment_intent_data: {
         description: `${shareLabel} · ${animalLabel} (deposit + processing + insurance)`,
