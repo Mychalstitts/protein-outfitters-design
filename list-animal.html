@@ -379,9 +379,10 @@
             <p class="sub" id="calcWeightSub">Based on Black Angus steer · grass-fed · grass finish</p>
           </div>
           <div class="calc-stat">
-            <p class="lab">Predicted harvest date</p>
-            <p class="val" id="calcDate">May 28, 2026</p>
-            <p class="sub" id="calcDateSub">·28 months · 1.6 lb/day average gain</p>
+            <p class="lab">Harvest window</p>
+            <p class="val" id="calcDate">Jun 20, 2025 – Sep 15, 2026</p>
+            <p class="sub" id="calcDateSub">Earliest finish → 30 months of age</p>
+            <p class="sub" id="calcHarvestFlags" style="margin-top:8px;max-width:42ch;"></p>
           </div>
           <div class="calc-stat">
             <p class="lab">Estimated take-home</p>
@@ -526,7 +527,7 @@
         <div class="review-card">
           <h4>Specs (auto-calculated)</h4>
           <div class="review-row"><span class="k">Predicted finish weight</span><span class="v" id="rvWeight">1,180 lb</span></div>
-          <div class="review-row"><span class="k">Predicted harvest date</span><span class="v" id="rvDate">May 28, 2026</span></div>
+          <div class="review-row"><span class="k">Harvest window</span><span class="v" id="rvDate">Jun 20, 2025 – Sep 15, 2026</span></div>
           <div class="review-row"><span class="k">Feed</span><span class="v" id="rvFeed">100% grass + hay</span></div>
           <div class="review-row"><span class="k">Finish</span><span class="v" id="rvFinish">100% grass</span></div>
         </div>
@@ -611,7 +612,21 @@
   }
 
   back.addEventListener('click', () => { if (n > 1) setStep(n - 1, 'back'); });
-  next.addEventListener('click', () => { if (n < 6) setStep(n + 1, 'forward'); });
+  next.addEventListener('click', () => {
+    if (n === 5) {
+      const id = String(S.animalId || '').toLowerCase();
+      const isStittyDraft = id === '123' || id.includes('stitty');
+      if (isStittyDraft || !S.harvestInRange) {
+        setStep(6, 'forward');
+        const h = document.querySelector('.wiz-published h2');
+        if (h) h.textContent = 'Saved as draft.';
+        const b = document.getElementById('publishedBody');
+        if (b) b.textContent = 'Harvest must be the finish→30-month window (or a date inside it) before this listing can go live.';
+        return;
+      }
+    }
+    if (n < 6) setStep(n + 1, 'forward');
+  });
 
   // ============ SPECIES + DROPDOWNS ============
   document.querySelectorAll('.species-card').forEach(card => card.addEventListener('click', () => {
@@ -730,11 +745,37 @@
     const days = Math.round((target - birth) / Math.max(0.05, adg));
     const months = (days / 30.44).toFixed(1);
 
+    function fmtDay(d) {
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    function parseISO(iso) {
+      const [y, m, day] = (iso || '').split('-').map(Number);
+      if (!y || !m || !day) return null;
+      return new Date(y, m - 1, day);
+    }
+    function addMonths(d, months) {
+      return new Date(d.getFullYear(), d.getMonth() + months, d.getDate());
+    }
+
     let harvestStr = '—';
-    if (S.birthDate) {
-      const d = new Date(S.birthDate);
-      d.setDate(d.getDate() + days);
-      harvestStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    let flagHtml = '';
+    S.harvestEarliest = null;
+    S.harvestLatest = null;
+    S.harvestInRange = false;
+    const birth = parseISO(S.birthDate);
+    if (birth) {
+      const earliest = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate() + days);
+      const latest = addMonths(birth, 30);
+      S.harvestEarliest = earliest;
+      S.harvestLatest = latest;
+      S.harvestInRange = earliest.getTime() <= latest.getTime();
+      harvestStr = S.harvestInRange
+        ? (fmtDay(earliest) + ' – ' + fmtDay(latest))
+        : fmtDay(earliest);
+      const today = new Date(); today.setHours(0,0,0,0);
+      if (today.getTime() > latest.getTime()) {
+        flagHtml = 'Past 30 months: tell buyers on the shares. Bone-in is off. Hanging price moves to OTM/market — number not set.';
+      }
     }
 
     const takeHome = Math.round(target * 0.37);
@@ -742,7 +783,9 @@
     flashSet('calcWeight', target.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
     flashSet('calcWeightSub', `${S.breed} ${S.sex.toLowerCase()} · ${S.feedType.toLowerCase()} · ${S.finishFeed.toLowerCase()} finish`, false);
     flashSet('calcDate', harvestStr, true);
-    flashSet('calcDateSub', `~${months} months · ${adg} lb/day average gain`, false);
+    flashSet('calcDateSub', S.harvestInRange ? `Earliest finish → 30 months · ${adg} lb/day` : `~${months} months · ${adg} lb/day average gain`, false);
+    const flagsEl = document.getElementById('calcHarvestFlags');
+    if (flagsEl) flagsEl.textContent = flagHtml;
     flashSet('calcTake', '~' + takeHome.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
 
     suggestPrices(target, takeHome);
