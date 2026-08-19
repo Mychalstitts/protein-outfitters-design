@@ -157,6 +157,7 @@ async function createListing(req) {
   let status = ALLOWED_STATUS.has(body.status) ? body.status : 'active';
   const listedNumber = number || '';
   const isStittyDraft = /^(#?123)\b/i.test(listedNumber) || /stitt/i.test(listedNumber);
+  if (!isoDate(birth_date)) status = 'draft';
   if (pastThirtyMonths(birth_date)) {
     after_thirty_months = true;
     bone_in_allowed = false;
