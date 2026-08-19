@@ -388,9 +388,10 @@
             <p class="sub" id="calcWeightSub">Based on Black Angus steer · grass-fed · grass finish</p>
           </div>
           <div class="calc-stat">
-            <p class="lab">Predicted harvest date</p>
-            <p class="val" id="calcDate">May 28, 2026</p>
-            <p class="sub" id="calcDateSub">~28 months · 1.6 lb/day average gain</p>
+            <p class="lab">Harvest window</p>
+            <p class="val" id="calcDate">Jun 20, 2025 – Sep 15, 2026</p>
+            <p class="sub" id="calcDateSub">Earliest finish → 30 months of age</p>
+            <p class="sub" id="calcHarvestFlags" style="margin-top:8px;max-width:42ch;"></p>
           </div>
           <div class="calc-stat">
             <p class="lab">Estimated take-home</p>
@@ -525,7 +526,7 @@
         <div class="review-card">
           <h4>Specs (auto-calculated)</h4>
           <div class="review-row"><span class="k">Predicted finish weight</span><span class="v" id="rvWeight">1,180 lb</span></div>
-          <div class="review-row"><span class="k">Predicted harvest date</span><span class="v" id="rvDate">May 28, 2026</span></div>
+          <div class="review-row"><span class="k">Harvest window</span><span class="v" id="rvDate">Jun 20, 2025 – Sep 15, 2026</span></div>
           <div class="review-row"><span class="k">Feed</span><span class="v" id="rvFeed">100% grass + hay</span></div>
           <div class="review-row"><span class="k">Finish</span><span class="v" id="rvFinish">100% grass</span></div>
         </div>
@@ -701,9 +702,12 @@
     }
     if (n === 5) {
       if (!validateStep(5)) return;
-      // Publish — save to DB
+      const id = String(S.animalId || '').replace(/^#/, '').toLowerCase();
+      const isStittyDraft = id === '123' || id.includes('stitty');
+      const stayDraft = isStittyDraft || !S.harvestInRange || S.otmPricePending;
+      // Publish — save to DB. Draft 123 / missing window / OTM-no-$ stay draft.
       next.disabled = true;
-      next.textContent = 'Publishing…';
+      next.textContent = stayDraft ? 'Saving draft…' : 'Publishing…';
       try {
         const result = await publishListing();
         showPublished(result);
@@ -764,7 +768,15 @@
     const listingLink = document.getElementById('publishedListingLink');
     const farmLink = document.getElementById('publishedFarmLink');
     if (body) {
-      body.textContent = `${S.animalId || listing?.number || 'This animal'} is live on the marketplace. Share the listing link with buyers — reservations open immediately.`;
+      const listedId = String(S.animalId || listing?.number || '').replace(/^#/, '').toLowerCase();
+      const draftStay = listedId === '123' || listedId.includes('stitty') || listing?.status === 'draft' || !S.harvestInRange || S.otmPricePending;
+      if (draftStay) {
+        const h = document.querySelector('.wiz-published h2');
+        if (h) h.textContent = 'Saved as draft.';
+        body.textContent = 'Harvest must be the finish→30-month window (or a date inside it) before this listing can go live. After 30 months: buyer notice on the shares, bone-in off, hanging $ waits for an OTM/market number.';
+      } else {
+        body.textContent = `${S.animalId || listing?.number || 'This animal'} is live on the marketplace. Share the listing link with buyers — reservations open immediately.`;
+      }
     }
     if (listingLink && id) listingLink.href = '/listing?id=' + encodeURIComponent(id);
     if (farmLink) farmLink.href = farmSlug ? '/farm/' + encodeURIComponent(farmSlug) : '/farmer';
@@ -880,7 +892,12 @@
       breed: S.breed || null,
       sex: S.sex ? S.sex.toLowerCase() : null,
       birth_date: S.birthDate || null,
-      expected_finish_date: S.harvestIso || toIsoDate(document.getElementById('calcDate')?.textContent) || toIsoDate(document.getElementById('rvDate')?.textContent) || null,
+      expected_finish_date: S.harvestIso || null,
+      harvest_window_start: S.harvestIso || null,
+      harvest_window_end: S.harvestLatestIso || null,
+      after_thirty_months: !!S.afterThirtyMonths,
+      bone_in_allowed: S.boneInAllowed !== false,
+      otm_price_pending: !!S.otmPricePending,
       estimated_hanging_weight: priced.hangLb || null,
       price_per_lb: priced.price_per_lb || null,
       description: (document.getElementById('descText')?.value || '').trim() || null,
@@ -888,7 +905,12 @@
       certs,
       shares,
       photos: S.photoUrls || [],
-      status: 'active',
+      status: (function(){
+        const id = String(S.animalId || '').replace(/^#/, '').toLowerCase();
+        const isStittyDraft = id === '123' || id.includes('stitty');
+        if (isStittyDraft || !S.harvestInRange || S.otmPricePending) return 'draft';
+        return 'active';
+      })(),
       // Listing detail polish (Trello bug list) — capture the structured form values.
       feed_type:   S.feedType   || null,
       finish_feed: S.finishFeed || null,
@@ -1043,14 +1065,54 @@
     const months = (days / 30.44).toFixed(1);
 
     S.liveWeight = target;
+    function fmtDay(d) {
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    function parseISO(iso) {
+      const [y, m, day] = (iso || '').split('-').map(Number);
+      if (!y || !m || !day) return null;
+      return new Date(y, m - 1, day);
+    }
+    function addMonths(d, months) {
+      return new Date(d.getFullYear(), d.getMonth() + months, d.getDate());
+    }
+    function isoLocal(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+
     let harvestStr = '—';
-    if (S.birthDate) {
-      const d = new Date(S.birthDate);
-      d.setDate(d.getDate() + days);
-      S.harvestIso = d.toISOString().slice(0, 10);
-      harvestStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    let flagHtml = '';
+    S.harvestEarliest = null;
+    S.harvestLatest = null;
+    S.harvestInRange = false;
+    S.afterThirtyMonths = false;
+    S.boneInAllowed = true;
+    S.otmPricePending = false;
+    const birth = parseISO(S.birthDate);
+    if (birth) {
+      const earliest = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate() + days);
+      const latest = addMonths(birth, 30);
+      S.harvestEarliest = earliest;
+      S.harvestLatest = latest;
+      S.harvestIso = isoLocal(earliest);
+      S.harvestLatestIso = isoLocal(latest);
+      S.harvestInRange = earliest.getTime() <= latest.getTime();
+      harvestStr = S.harvestInRange
+        ? (fmtDay(earliest) + ' – ' + fmtDay(latest))
+        : fmtDay(earliest);
+      const today = new Date(); today.setHours(0,0,0,0);
+      if (today.getTime() > latest.getTime()) {
+        S.afterThirtyMonths = true;
+        S.boneInAllowed = false;
+        S.otmPricePending = true;
+        flagHtml = 'Past 30 months: tell buyers on the shares. Bone-in is off. Hanging price moves to OTM/market — number not set.';
+      }
     } else {
       S.harvestIso = null;
+      S.harvestLatestIso = null;
     }
 
     const takeHome = Math.round(target * 0.37);
@@ -1059,7 +1121,9 @@
     flashSet('calcWeight', target.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
     flashSet('calcWeightSub', `${S.breed} ${S.sex.toLowerCase()} · ${S.feedType.toLowerCase()} · ${S.finishFeed.toLowerCase()} finish`, false);
     flashSet('calcDate', harvestStr, true);
-    flashSet('calcDateSub', `~${months} months · ${adg} lb/day average gain`, false);
+    flashSet('calcDateSub', S.harvestInRange ? `Earliest finish → 30 months · ${adg} lb/day` : `~${months} months · ${adg} lb/day average gain`, false);
+    const flagsEl = document.getElementById('calcHarvestFlags');
+    if (flagsEl) flagsEl.textContent = flagHtml;
     flashSet('calcTake', '~' + takeHome.toLocaleString() + ' <span style="font-size: 14px; opacity: .7;">lb</span>', true);
 
     // Recompute industry-suggested prices (drives step 4)

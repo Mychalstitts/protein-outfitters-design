@@ -66,6 +66,27 @@ async function listListings(url) {
   return json({ listings: rows });
 }
 
+
+function isoDateOnly(v) {
+  if (!v) return null;
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    return v.toISOString().slice(0, 10);
+  }
+  const s = String(v).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
+/** true when calendar today is after birth + 30 months (window end is the 30-month day). */
+function pastThirtyMonths(birth) {
+  const b = isoDateOnly(birth);
+  if (!b) return false;
+  const [y, m, d] = b.split('-').map(Number);
+  const end = Date.UTC(y, m - 1 + 30, d);
+  const now = new Date();
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return today > end;
+}
+
 const ALLOWED_SPECIES = new Set(['cattle', 'hog', 'lamb', 'sheep', 'poultry', 'bison', 'goat', 'venison']);
 const ALLOWED_STATUS = new Set(['active', 'draft', 'withdrawn']);
 const SHARE_KEYS = ['whole', 'half', 'quarter', 'eighth'];
@@ -115,6 +136,16 @@ async function createListing(req) {
   const sex = body.sex ? String(body.sex).toLowerCase().slice(0, 40) : null;
   const birth_date = body.birth_date || null;
   const expected_finish_date = body.expected_finish_date || null;
+  const isoDate = (v) => {
+    if (!v) return null;
+    const s = String(v).slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+  };
+  const harvest_window_start = isoDate(body.harvest_window_start || body.expected_finish_date);
+  const harvest_window_end = isoDate(body.harvest_window_end);
+  let after_thirty_months = !!(body.after_thirty_months || body.past_30_months);
+  let bone_in_allowed = body.bone_in_allowed === false ? false : true;
+  let otm_price_pending = !!body.otm_price_pending;
   const current_weight = body.current_weight != null ? Number(body.current_weight) : null;
   const estimated_finish_weight = body.estimated_finish_weight != null ? Number(body.estimated_finish_weight) : null;
   const estimated_hanging_weight = body.estimated_hanging_weight != null ? Number(body.estimated_hanging_weight) : null;
@@ -123,7 +154,17 @@ async function createListing(req) {
   const practice = Array.isArray(body.practice) ? body.practice.map(String).slice(0, 20) : [];
   const certs = Array.isArray(body.certs) ? body.certs.map(String).slice(0, 20) : [];
   const photos = Array.isArray(body.photos) ? body.photos.map(String).filter(u => /^https?:\/\//i.test(u) || u.startsWith('/')).slice(0, 12) : [];
-  const status = ALLOWED_STATUS.has(body.status) ? body.status : 'active';
+  let status = ALLOWED_STATUS.has(body.status) ? body.status : 'active';
+  const listedNumber = number || '';
+  const isStittyDraft = /^(#?123)\b/i.test(listedNumber) || /stitt/i.test(listedNumber);
+  if (!isoDate(birth_date)) status = 'draft';
+  if (pastThirtyMonths(birth_date)) {
+    after_thirty_months = true;
+    bone_in_allowed = false;
+    otm_price_pending = true;
+    status = 'draft';
+  }
+  if (isStittyDraft || otm_price_pending) status = 'draft';
   const donate_to_foodbank = !!body.donate_to_foodbank;
   const donation_recipient_org = body.donation_recipient_org || null;
 
@@ -157,8 +198,8 @@ async function createListing(req) {
   const hormones    = body.hormones    || null;
 
   const rows = await sql`
-    INSERT INTO listings (farm_id, number, species, breed, sex, birth_date, expected_finish_date, current_weight, estimated_finish_weight, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, photos, status, donate_to_foodbank, donation_recipient_org, feed_type, finish_feed, subbreed, sex_detail, antibiotics, hormones)
-    VALUES (${body.farm_id}, ${number}, ${species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org}, ${feed_type}, ${finish_feed}, ${subbreed}, ${sex_detail}, ${antibiotics}, ${hormones})
+    INSERT INTO listings (farm_id, number, species, breed, sex, birth_date, expected_finish_date, harvest_window_start, harvest_window_end, after_thirty_months, bone_in_allowed, otm_price_pending, current_weight, estimated_finish_weight, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, photos, status, donate_to_foodbank, donation_recipient_org, feed_type, finish_feed, subbreed, sex_detail, antibiotics, hormones)
+    VALUES (${body.farm_id}, ${number}, ${species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${harvest_window_start}, ${harvest_window_end}, ${after_thirty_months}, ${bone_in_allowed}, ${otm_price_pending}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org}, ${feed_type}, ${finish_feed}, ${subbreed}, ${sex_detail}, ${antibiotics}, ${hormones})
     RETURNING *
   `;
   const listing = rows[0];
