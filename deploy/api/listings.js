@@ -115,6 +115,16 @@ async function createListing(req) {
   const sex = body.sex ? String(body.sex).toLowerCase().slice(0, 40) : null;
   const birth_date = body.birth_date || null;
   const expected_finish_date = body.expected_finish_date || null;
+  const isoDate = (v) => {
+    if (!v) return null;
+    const s = String(v).slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+  };
+  const harvest_window_start = isoDate(body.harvest_window_start || body.expected_finish_date);
+  const harvest_window_end = isoDate(body.harvest_window_end);
+  const after_thirty_months = !!(body.after_thirty_months || body.past_30_months);
+  const bone_in_allowed = body.bone_in_allowed === false ? false : (body.bone_in_allowed === true ? true : true);
+  const otm_price_pending = !!body.otm_price_pending;
   const current_weight = body.current_weight != null ? Number(body.current_weight) : null;
   const estimated_finish_weight = body.estimated_finish_weight != null ? Number(body.estimated_finish_weight) : null;
   const estimated_hanging_weight = body.estimated_hanging_weight != null ? Number(body.estimated_hanging_weight) : null;
@@ -123,7 +133,12 @@ async function createListing(req) {
   const practice = Array.isArray(body.practice) ? body.practice.map(String).slice(0, 20) : [];
   const certs = Array.isArray(body.certs) ? body.certs.map(String).slice(0, 20) : [];
   const photos = Array.isArray(body.photos) ? body.photos.map(String).filter(u => /^https?:\/\//i.test(u) || u.startsWith('/')).slice(0, 12) : [];
-  const status = ALLOWED_STATUS.has(body.status) ? body.status : 'active';
+  let status = ALLOWED_STATUS.has(body.status) ? body.status : 'active';
+  const listedNumber = number || '';
+  const isStittyDraft = /^(#?123)\b/i.test(listedNumber) || /stitt/i.test(listedNumber);
+  if (isStittyDraft || (otm_price_pending && !(Number.isFinite(price_per_lb) && price_per_lb > 0))) {
+    status = 'draft';
+  }
   const donate_to_foodbank = !!body.donate_to_foodbank;
   const donation_recipient_org = body.donation_recipient_org || null;
 
@@ -157,8 +172,8 @@ async function createListing(req) {
   const hormones    = body.hormones    || null;
 
   const rows = await sql`
-    INSERT INTO listings (farm_id, number, species, breed, sex, birth_date, expected_finish_date, current_weight, estimated_finish_weight, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, photos, status, donate_to_foodbank, donation_recipient_org, feed_type, finish_feed, subbreed, sex_detail, antibiotics, hormones)
-    VALUES (${body.farm_id}, ${number}, ${species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org}, ${feed_type}, ${finish_feed}, ${subbreed}, ${sex_detail}, ${antibiotics}, ${hormones})
+    INSERT INTO listings (farm_id, number, species, breed, sex, birth_date, expected_finish_date, harvest_window_start, harvest_window_end, after_thirty_months, bone_in_allowed, otm_price_pending, current_weight, estimated_finish_weight, estimated_hanging_weight, price_per_lb, description, practice, certs, shares, photos, status, donate_to_foodbank, donation_recipient_org, feed_type, finish_feed, subbreed, sex_detail, antibiotics, hormones)
+    VALUES (${body.farm_id}, ${number}, ${species}, ${breed}, ${sex}, ${birth_date}, ${expected_finish_date}, ${harvest_window_start}, ${harvest_window_end}, ${after_thirty_months}, ${bone_in_allowed}, ${otm_price_pending}, ${current_weight}, ${estimated_finish_weight}, ${estimated_hanging_weight}, ${price_per_lb}, ${description}, ${practice}, ${certs}, ${shares}, ${photos}, ${status}, ${donate_to_foodbank}, ${donation_recipient_org}, ${feed_type}, ${finish_feed}, ${subbreed}, ${sex_detail}, ${antibiotics}, ${hormones})
     RETURNING *
   `;
   const listing = rows[0];
