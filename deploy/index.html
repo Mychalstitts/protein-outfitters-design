@@ -831,7 +831,7 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="hero-photo" aria-hidden="true"></div>
   <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-inner">
-    <span class="hero-eyebrow">Nationwide · Real farms · Inspected plants</span>
+    <span class="hero-eyebrow">Real farms · Inspected plants</span>
     <h1 class="hero-headline">A whole animal,<br>in three taps.</h1>
     <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. Farmer and processing in one hanging-weight price.</p>
 
@@ -856,7 +856,7 @@ body { background: var(--bg); overflow-x: hidden; }
     </div>
 
     <div class="hero-cta">
-      <a href="#reserve" class="btn-xl btn-xl--primary">Browse animals →</a>
+      <a href="/discover#notify" class="btn-xl btn-xl--primary">Get notified →</a>
       <a href="#how" class="btn-xl btn-xl--ghost">See how it works</a>
     </div>
   </div>
@@ -941,7 +941,7 @@ body { background: var(--bg); overflow-x: hidden; }
     </div>
 
     <div style="margin-top: clamp(40px, 5vw, 64px); display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
-      <a href="#reserve" class="btn-xl btn-xl--primary" style="text-decoration:none;">Browse animals →</a>
+      <a href="/discover#notify" class="btn-xl btn-xl--primary" style="text-decoration:none;">Get notified →</a>
       <a href="/faq#buyer" class="btn-xl btn-xl--ghost" style="text-decoration:none;">Pricing &amp; FAQ</a>
     </div>
   </div>
@@ -973,7 +973,7 @@ body { background: var(--bg); overflow-x: hidden; }
         <div class="po-icon-tile sky" style="margin: 0 0 14px;">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
-        <span class="trust-num" id="trustGeoNum">50 states</span>
+        <span class="trust-num" id="trustGeoNum">Nationwide</span>
         <span class="trust-label" id="trustGeoLabel">Nationwide marketplace — farms and plants you can drive to.</span>
       </div>
     </div>
@@ -1043,7 +1043,7 @@ body { background: var(--bg); overflow-x: hidden; }
     <h2 class="section-h2">Find an animal near you.</h2>
     <p class="section-lead" style="margin-left:auto;margin-right:auto;text-align:center;">Named animal. Local plant. Three taps from here to a full freezer.</p>
     <div class="closer-cta" style="gap:12px;flex-wrap:wrap;">
-      <a href="#reserve" class="btn-xl btn-xl--dark" style="text-decoration:none;">Browse animals →</a>
+      <a href="/discover#notify" class="btn-xl btn-xl--dark" style="text-decoration:none;">Get notified →</a>
       <a href="/discover" class="btn-xl" style="text-decoration:none;background:transparent;color:var(--brand);border:1px solid rgba(6,27,14,0.18);">Search by farm or ZIP</a>
     </div>
   </div>
@@ -1076,12 +1076,12 @@ body { background: var(--bg); overflow-x: hidden; }
       const label = states.size >= 40
         ? 'Farms and plants live across nearly every state — nationwide coverage.'
         : 'Live inventory in ' + states.size + ' states today — reserving nationwide, growing every week.';
-      if (n) n.textContent = states.size >= 40 ? '50 states' : states.size + ' states live';
+      if (n) n.textContent = states.size >= 40 ? 'Nationwide' : states.size + ' states live';
       if (l) l.textContent = label;
       const pg = document.getElementById('proofGeo');
       if (pg) {
         pg.innerHTML = states.size >= 40
-          ? '<strong>Nationwide</strong> · all 50 states'
+          ? '<strong>Nationwide</strong>'
           : '<strong>' + states.size + ' states</strong> live · nationwide platform';
       }
     }
@@ -1129,7 +1129,7 @@ body { background: var(--bg); overflow-x: hidden; }
   // PO_PRICING is loaded by po-shell.js but may not be ready yet — fallback to farmer rate × lbs estimate
   function allInPerLb(farmerRate, share, hw){
     if (window.PO_PRICING) return window.PO_PRICING.allInPerLbHW(farmerRate, share, hw);
-    return Number(farmerRate || 0) + 1.55; // rough fallback (processing + insurance + platform + kill share)
+    return Number(farmerRate || 0) + 1.55;
   }
 
   function fmtPerLb(n){ return '$' + Number(n||0).toFixed(2); }
@@ -1150,7 +1150,6 @@ body { background: var(--bg); overflow-x: hidden; }
                        : l.shares?.half?.available > 0 ? 'half'
                        : l.shares?.whole?.available > 0 ? 'whole'
                        : 'half';
-    // Buyer-facing price is always cumulative all-in $/lb hanging weight
     const allInLb = allInPerLb(farmerRate, cheapestShare, hw);
     const allInQ = farmerQ ? allInPerLb(farmerQ, 'quarter', hw) : 0;
     const allInH = farmerH ? allInPerLb(farmerH, 'half', hw) : 0;
@@ -1188,7 +1187,7 @@ body { background: var(--bg); overflow-x: hidden; }
           <h3 class="product-name">${animalLabel}</h3>
           <p class="product-detail">${farmName} · ${hw} lb HW · Harvest ${harvestLabel}</p>
           <div class="product-foot">
-            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb all-in</span></span>
+            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb hanging</span></span>
             <span class="product-cta">Reserve →</span>
           </div>
         </div>
