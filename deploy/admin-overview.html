@@ -57,6 +57,11 @@
   .empty img { width: 56px; height: 56px; border-radius: 12px; display: block; margin: 0 auto 12px; opacity: .55; }
   .needs-auth { background: #fff; padding: 60px 24px; border-radius: 18px; text-align: center; }
   .needs-auth img { width: 64px; height: 64px; border-radius: 14px; margin: 0 auto 14px; }
+  .ov-act { font:700 12.5px/1 Inter; color:#061b0e; text-decoration:none; border-bottom:1px solid rgba(6,27,14,.2); }
+  .ov-btn { border:0; border-radius:999px; padding:8px 14px; font:700 12px/1 Inter; cursor:pointer; background:#061b0e; color:#fbf9f5; }
+  .ov-btn.ghost { background:transparent; color:#061b0e; border:1px solid rgba(6,27,14,.14); }
+  .ov-jump { display:flex; flex-wrap:wrap; gap:10px; margin: 0 0 22px; }
+  .ov-jump a { font:700 13px/1 Inter; color:#061b0e; text-decoration:none; padding:10px 14px; border-radius:999px; background:#fff; border:1px solid rgba(6,27,14,.08); }
 </style>
 </head>
 <body>
@@ -64,17 +69,7 @@
 <div class="po-nav-wrap">
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
-    <div class="po-nav-links">
-      <a href="/admin-overview" style="font-weight:800">Overview</a>
-      <a href="/admin-health">Health</a>
-      <a href="/admin-analytics">Analytics</a>
-      <a href="/admin-hotspots">Hotspots</a>
-      <a href="/admin-moderation">Moderation</a>
-      <a href="/admin">Disputes</a>
-      <a href="/admin-email">Email QA</a>
-      <a href="/discover">Marketplace</a>
-      <a href="/producers">Producers</a>
-    </div>
+    <div class="po-nav-links" data-admin-nav></div>
     <div class="po-nav-actions">
       <a href="/account" class="signin">Sign in</a>
       <button class="reserve" data-open-sheet>Reserve</button>
@@ -87,7 +82,7 @@
     <div>
       <p class="eyebrow">Owner overview</p>
       <h1>How's the marketplace doing?</h1>
-      <p>Real DB counts + Stripe balance + the last 10 payments and reservations. Updates on every page load.</p>
+      <p>Listings, buyers, prospects, hardware leads, and Stripe — then jump to the hotspot map to decide who to recruit next.</p>
     </div>
   </div>
   <div id="ovContent">
@@ -97,6 +92,7 @@
 
 <script src="/po-api.js"></script>
 <script src="/po-shell.js"></script>
+<script src="/admin-nav.js"></script>
 <script>
 (async function () {
   const root = document.getElementById('ovContent');
@@ -116,7 +112,11 @@
     return;
   }
   if (res.status === 401) {
-    root.innerHTML = `<div class="needs-auth"><img src="/brand/logo-monogram.svg" alt=""><h3 style="margin:0 0 8px;font:800 18px/1.3 Inter;">Sign in to see metrics</h3><p style="font:500 14px/1.5 Inter;color:#666;">Owner overview requires a signed-in account.</p><button onclick="window.PO_API.openAuth('Sign in', 'admin')" style="margin-top:14px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 Inter;cursor:pointer">Sign in</button></div>`;
+    root.innerHTML = `<div class="needs-auth"><img src="/brand/logo-monogram.svg" alt=""><h3 style="margin:0 0 8px;font:800 18px/1.3 Inter;">Sign in to see metrics</h3><p style="font:500 14px/1.5 Inter;color:#666;">Owner overview requires an admin account.</p><button onclick="window.PO_API.openAuth('Sign in', 'admin')" style="margin-top:14px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:12px 22px;font:700 14px/1 Inter;cursor:pointer">Sign in</button></div>`;
+    return;
+  }
+  if (res.status === 403) {
+    root.innerHTML = `<div class="needs-auth"><img src="/brand/logo-monogram.svg" alt=""><h3 style="margin:0 0 8px;font:800 18px/1.3 Inter;">Admin only</h3><p style="font:500 14px/1.5 Inter;color:#666;">This desk is for platform admins. Signed-in buyers and farms stay on the marketplace.</p></div>`;
     return;
   }
   if (!res.ok) {
@@ -147,12 +147,22 @@
 
   // Stat grid
   html += `
+    <div class="ov-jump">
+      <a href="/admin-hotspots">Target markets →</a>
+      <a href="#listings">Listings</a>
+      <a href="#customers">Buyers</a>
+      <a href="#prospects">Invite queue</a>
+      <a href="#hardware">Hardware leads</a>
+      <a href="#disputes">Disputes</a>
+      <a href="/admin-moderation">Moderate listings</a>
+    </div>
     <div class="ov-grid">
-      <div class="ov-stat"><p class="lab">Active listings</p><div class="v">${c.listings_active || 0}<small>animals</small></div></div>
+      <div class="ov-stat"><p class="lab">Active listings</p><div class="v">${c.listings_active || 0}<small>${c.listings_draft ? c.listings_draft + ' draft' : 'animals'}</small></div></div>
       <div class="ov-stat"><p class="lab">Active reservations</p><div class="v">${c.reservations_active || 0}<small>buyers</small></div></div>
       <div class="ov-stat"><p class="lab">Verified farms</p><div class="v">${c.farms || 0}<small>ranches</small></div></div>
       <div class="ov-stat"><p class="lab">Processors</p><div class="v">${c.processors || 0}<small>plants</small></div></div>
-      <div class="ov-stat"><p class="lab">Total accounts</p><div class="v">${c.users || 0}<small>users</small></div></div>
+      <div class="ov-stat"><p class="lab">Buyers</p><div class="v">${c.buyers || 0}<small>of ${c.users || 0} accounts</small></div></div>
+      <div class="ov-stat" style="${c.prospects_new > 0 ? 'background: linear-gradient(135deg, #e8f3ea, #d4e8d6);' : ''}"><p class="lab">Prospects to invite</p><div class="v">${c.prospects_new || 0}<small>farms + plants</small></div></div>
       <div class="ov-stat" style="${c.disputes_open > 0 ? 'background: linear-gradient(135deg, #fff5e6, #ffe9c2);' : ''}"><p class="lab">Open disputes</p><div class="v">${c.disputes_open || 0}<small>${c.disputes_open ? fmt$(c.disputes_total_amount) : 'all clear'}</small></div></div>
       <div class="ov-stat"><p class="lab">Inst. pending review</p><div class="v">${c.institutions_pending || 0}<small>applications</small></div></div>
       <div class="ov-stat"><p class="lab">Inst. approved</p><div class="v">${c.institutions_approved || 0}<small>recipients</small></div></div>
@@ -216,7 +226,7 @@
     </div>`).join('') : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No institution applications yet.<br><span style="opacity:.7;font-size:12px;">Schools, food banks, and government agencies apply via /donation-flow.</span></div>`;
 
   html += `
-    <div class="ov-cols">
+    <div class="ov-cols" id="disputes">
       <div class="ov-card">
         <h2>Open disputes<small>${disputes.length || 0} from Stripe</small></h2>
         ${disputesHtml}
@@ -240,14 +250,142 @@
     </div>`).join('') : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No hardware leads yet.<br><span style="opacity:.7;font-size:12px;">Quote forms from /hardware land here, scored hot/warm/cold.</span></div>`;
 
   html += `
-    <div class="ov-cols">
+    <div class="ov-cols" id="hardware">
       <div class="ov-card">
         <h2>Hardware leads<small>last ${leads.length} · scored on intake</small></h2>
         ${leadsHtml}
+        <p style="margin:14px 0 0;font:500 12.5px/1.4 Inter;color:var(--ink-2)">Hotspots that say “Sell hardware” land here after a quote. <a class="ov-act" href="/admin-hotspots">Open market heat →</a></p>
+      </div>
+    </div>`;
+
+  const listings = data.recent_listings || [];
+  const buyers = data.recent_buyers || [];
+  const listingsHtml = listings.length ? listings.map(l => {
+    const otm = l.after_thirty_months || l.otm_price_pending;
+    return `
+    <div class="ov-row">
+      <div class="meta">
+        <h4>${(l.number ? l.number + ' · ' : '')}${l.breed || l.species || 'Listing'} <span class="pill pill-${l.status === 'active' ? 'paid' : 'pending'}">${l.status || '—'}</span>${otm ? ' <span class="pill pill-pending">OTM pending</span>' : ''}</h4>
+        <p>${l.farm_name || 'No farm'} · ${[l.farm_city, l.farm_state].filter(Boolean).join(', ') || '—'} · ${dateOnly(l.created_at)}</p>
+      </div>
+      <div class="right">${l.id ? `<a class="ov-act" href="/listing?id=${encodeURIComponent(l.id)}">Open →</a>` : ''}</div>
+    </div>`;
+  }).join('') : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No listings yet.</div>`;
+
+  const buyersHtml = buyers.length ? buyers.map(b => `
+    <div class="ov-row">
+      <div class="meta">
+        <h4>${b.name || b.email || 'Buyer'}</h4>
+        <p>${b.email || '—'} · ${b.zip || 'no zip'} · ${dateOnly(b.created_at)}</p>
+      </div>
+    </div>`).join('') : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />No buyers yet.</div>`;
+
+  html += `
+    <div class="ov-cols" style="margin-top:22px">
+      <div class="ov-card" id="listings">
+        <h2>Latest listings<small>${c.listings_active || 0} live · ${c.listings_draft || 0} draft</small></h2>
+        ${listingsHtml}
+        <p style="margin:14px 0 0;font:500 12.5px/1.4 Inter;color:var(--ink-2)"><a class="ov-act" href="/admin-moderation">Moderate / withdraw →</a></p>
+      </div>
+      <div class="ov-card" id="customers">
+        <h2>Latest buyers<small>${c.buyers || 0} on platform</small></h2>
+        ${buyersHtml}
+        <p style="margin:14px 0 0;font:500 12.5px/1.4 Inter;color:var(--ink-2)">Use <a class="ov-act" href="/admin-hotspots">hotspots</a> to recruit buyers in thin metros.</p>
+      </div>
+    </div>`;
+
+  const prospects = data.prospect_queue || [];
+  const prospectsHtml = prospects.length ? prospects.map(p => `
+    <div class="ov-row">
+      <div class="meta">
+        <h4>${p.name || 'Prospect'} <span class="pill pill-pending">${p.kind || 'lead'} · ${p.invite_status || 'new'}</span></h4>
+        <p>${[p.city, p.state].filter(Boolean).join(', ') || '—'} · ${p.source || ''} · ${p.email || p.phone || 'no contact'}</p>
+      </div>
+      <div class="right">${p.email
+        ? `<button type="button" class="ov-btn js-invite" data-id="${p.id}">Invite</button>`
+        : `<a class="ov-act" href="/map?layer=prospects">Map →</a>`}</div>
+    </div>`).join('') : `<div class="empty"><img src="/brand/logo-monogram.svg" alt="" />Invite queue is empty.<br><span style="opacity:.7;font-size:12px;">Import AMS farms or FSIS plants, then send from here.</span></div>`;
+
+  html += `
+    <div class="ov-cols" style="margin-top:22px">
+      <div class="ov-card" id="prospects">
+        <h2>Invite queue<small>${c.prospects_new || 0} waiting</small></h2>
+        ${prospectsHtml}
+        <p style="margin:14px 0 0;font:500 12.5px/1.4 Inter;color:var(--ink-2)">
+          <a class="ov-act" href="/admin-ams-import">Import farms (AMS)</a> ·
+          <a class="ov-act" href="/admin-fsis-import">Import plants (FSIS)</a> ·
+          <a class="ov-act" href="/map?layer=prospects">Recruiting map</a>
+        </p>
+      </div>
+      <div class="ov-card" id="hygiene">
+        <h2>Reservation hygiene<small>${c.pending_stale || 0} stale holds</small></h2>
+        <p style="font:500 13.5px/1.5 Inter;color:var(--ink-2);margin:0 0 14px">Pending reservations with no Stripe payment older than 5 minutes leak inventory. Preview, then sweep.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button type="button" class="ov-btn ghost" id="ovSweepPreview">Preview stale holds</button>
+          <button type="button" class="ov-btn" id="ovSweepRun" ${c.pending_stale ? '' : 'disabled'}>Sweep ${c.pending_stale || 0}</button>
+        </div>
+        <p id="ovSweepNote" style="margin:12px 0 0;font:500 12.5px/1.4 Inter;color:var(--ink-2);min-height:1.2em"></p>
       </div>
     </div>`;
 
   root.innerHTML = html;
+
+  root.querySelectorAll('.js-invite').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      try {
+        const r = await fetch('/api/admin-prospect?id=' + encodeURIComponent(id) + '&action=invite', { method: 'POST', credentials: 'include' });
+        const body = await r.json().catch(() => ({}));
+        btn.textContent = r.ok ? (body.email_sent ? 'Sent' : 'Marked') : 'Failed';
+      } catch {
+        btn.textContent = 'Failed';
+        btn.disabled = false;
+      }
+    });
+  });
+
+  const note = document.getElementById('ovSweepNote');
+  const previewBtn = document.getElementById('ovSweepPreview');
+  const runBtn = document.getElementById('ovSweepRun');
+  if (previewBtn) {
+    previewBtn.addEventListener('click', async () => {
+      previewBtn.disabled = true;
+      try {
+        const r = await fetch('/api/admin-sweep-pending-reservations?action=sweep', { credentials: 'include' });
+        const body = await r.json().catch(() => ({}));
+        if (note) note.textContent = r.ok
+          ? ((body.would_sweep || 0) + ' hold' + (body.would_sweep === 1 ? '' : 's') + ' would be released.')
+          : (body.error || 'Preview failed');
+      } catch (e) {
+        if (note) note.textContent = e.message || 'Preview failed';
+      } finally {
+        previewBtn.disabled = false;
+      }
+    });
+  }
+  if (runBtn) {
+    runBtn.addEventListener('click', async () => {
+      if (!confirm('Release stale pending holds and restore share inventory?')) return;
+      runBtn.disabled = true;
+      try {
+        const r = await fetch('/api/admin-sweep-pending-reservations?action=sweep', { method: 'POST', credentials: 'include' });
+        const body = await r.json().catch(() => ({}));
+        if (note) note.textContent = r.ok
+          ? ('Swept ' + (body.swept_count || 0) + (body.failed_count ? ', ' + body.failed_count + ' failed' : ''))
+          : (body.error || 'Sweep failed');
+      } catch (e) {
+        if (note) note.textContent = e.message || 'Sweep failed';
+        runBtn.disabled = false;
+      }
+    });
+  }
+
+  if (location.hash) {
+    const target = document.getElementById(location.hash.slice(1));
+    if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  }
 })();
 </script>
 </body>

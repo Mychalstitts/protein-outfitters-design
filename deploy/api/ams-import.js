@@ -7,7 +7,7 @@
 //   https://www.usdalocalfoodportal.com/  (CSA, On-Farm Markets, Farmers Markets, Food Hubs)
 //   The portal exposes "Export to CSV" on each directory.
 //
-// Auth: any signed-in user during early ops. Tighten to admin role later.
+// Auth: admin session.
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
@@ -141,6 +141,7 @@ async function handler(req) {
 
   const user = await currentUser(req);
   if (!user) return err(401, 'Sign in required');
+  if (user.role !== 'admin') return err(403, 'Admin only');
 
   try { await ensureSchema(); } catch (e) { return err(500, `Schema bootstrap failed: ${e.message}`); }
 

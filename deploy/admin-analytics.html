@@ -53,10 +53,16 @@
 </style>
 </head>
 <body>
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links" data-admin-nav></div>
+  </nav>
+</div>
 <div id="anRoot" class="an-shell" style="display:none;">
   <div class="an-head">
     <h1>Analytics</h1>
-    <a class="back" href="/admin-overview">← Admin overview</a>
+    <a class="back" href="/admin-hotspots">Hotspots →</a>
   </div>
   <p class="an-sub">Marketplace health: supply, demand funnel, GMV, geography, and referral performance. GMV is estimate-based; deposits collected is real money taken.</p>
 
@@ -67,7 +73,10 @@
     <div class="panel"><h2>Active listings by species</h2><p class="hint">Supply mix on the marketplace right now.</p><div id="species"></div></div>
   </div>
 
-  <div class="panel"><h2>Reservations per week</h2><p class="hint">Last 12 weeks · count + GMV.</p><div id="weekly"></div></div>
+  <div class="grid2">
+    <div class="panel"><h2>Reservations per week</h2><p class="hint">Last 12 weeks · count + GMV.</p><div id="weekly"></div></div>
+    <div class="panel"><h2>Signups per week</h2><p class="hint">New accounts, last 12 weeks.</p><div id="signups"></div></div>
+  </div>
 
   <div class="grid2">
     <div class="panel"><h2>Reservations by state</h2><p class="hint">Where demand is landing.</p><div id="resState"></div></div>
@@ -88,6 +97,7 @@
 
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
+<script src="/admin-nav.js"></script>
 <script>
 (async () => {
   const $ = id => document.getElementById(id);
@@ -150,6 +160,19 @@
       return `<div class="col" title="${esc(w.week)} · ${w.c} reservations · ${usd(w.gmv)}">
         <span class="colcap">${w.c}</span>
         <div class="colbar" style="height:${Math.max(4, Math.round(w.c/maxC*104))}px"></div>
+        <span class="collab">${esc(label)}</span></div>`;
+    }).join('')}</div>`;
+  }
+
+  const su = d.signups_by_week || [];
+  if (!su.length) { $('signups').innerHTML = '<div class="empty">No signups in the last 12 weeks.</div>'; }
+  else {
+    const maxS = Math.max(...su.map(w => w.c), 1);
+    $('signups').innerHTML = `<div class="cols">${su.map(w => {
+      const label = new Date(w.week + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return `<div class="col" title="${esc(w.week)} · ${w.c} signups">
+        <span class="colcap">${w.c}</span>
+        <div class="colbar" style="height:${Math.max(4, Math.round(w.c/maxS*104))}px;background:#2c6fa5"></div>
         <span class="collab">${esc(label)}</span></div>`;
     }).join('')}</div>`;
   }

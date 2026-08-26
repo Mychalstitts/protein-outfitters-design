@@ -1,5 +1,7 @@
 // /api/admin-prospect — operate on discovered_partners rows from the map UI
 //
+//   GET   /api/admin-prospect?status=new&kind=farm&state=MN&limit=20
+//   GET   /api/admin-prospect?id=<uuid>
 //   PATCH /api/admin-prospect?id=<uuid>
 //     body: { invite_status?, notes? }
 //   POST  /api/admin-prospect?id=<uuid>&action=invite
@@ -31,7 +33,7 @@ Reply if you want a 10-minute look. No middleman fees on the farmer side.
 `,
   },
   processor: {
-    subject: 'Drop-off bookings looking for a processor near ${city}',
+    subject: ({ city, state }) => `Drop-off bookings looking for a processor near ${city || state || 'you'}`,
     text: ({ name, city, state }) =>
 `Hi ${name?.split(' ')[0] || 'there'},
 
@@ -53,6 +55,50 @@ async function handler(req) {
 
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const id = url.searchParams.get('id');
+
+  if (req.method === 'GET') {
+    try {
+      if (id) {
+        const rows = await sql`SELECT * FROM discovered_partners WHERE id = ${id} LIMIT 1`;
+        if (!rows[0]) return err(404, 'prospect not found');
+        return json({ prospect: rows[0] });
+      }
+      const statusRaw = url.searchParams.get('status') || 'new,queued';
+      const statuses = statusRaw === 'all'
+        ? ALLOWED_STATUS
+        : statusRaw.split(',').map((s) => s.trim()).filter((s) => ALLOWED_STATUS.includes(s));
+      if (!statuses.length) return err(400, 'invalid status');
+      const kind = url.searchParams.get('kind');
+      const state = (url.searchParams.get('state') || '').toUpperCase() || null;
+      const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+      let rows;
+      if (kind && state) {
+        rows = await sql`SELECT id, kind, name, city, state, zip, email, phone, website, invite_status, source, created_at
+          FROM discovered_partners
+          WHERE invite_status = ANY(${statuses}) AND kind = ${kind} AND state = ${state}
+          ORDER BY created_at DESC LIMIT ${limit}`;
+      } else if (kind) {
+        rows = await sql`SELECT id, kind, name, city, state, zip, email, phone, website, invite_status, source, created_at
+          FROM discovered_partners
+          WHERE invite_status = ANY(${statuses}) AND kind = ${kind}
+          ORDER BY created_at DESC LIMIT ${limit}`;
+      } else if (state) {
+        rows = await sql`SELECT id, kind, name, city, state, zip, email, phone, website, invite_status, source, created_at
+          FROM discovered_partners
+          WHERE invite_status = ANY(${statuses}) AND state = ${state}
+          ORDER BY created_at DESC LIMIT ${limit}`;
+      } else {
+        rows = await sql`SELECT id, kind, name, city, state, zip, email, phone, website, invite_status, source, created_at
+          FROM discovered_partners
+          WHERE invite_status = ANY(${statuses})
+          ORDER BY created_at DESC LIMIT ${limit}`;
+      }
+      return json({ prospects: rows, count: rows.length });
+    } catch (e) {
+      return json({ prospects: [], count: 0, error: (e.message || '').slice(0, 200) });
+    }
+  }
+
   if (!id) return err(400, 'id required');
 
   if (req.method === 'PATCH') {
@@ -95,7 +141,9 @@ async function handler(req) {
             body: JSON.stringify({
               from: process.env.RESEND_FROM || 'Mychal Stittsworth <hello@proteinoutfitters.com>',
               to: p.email,
-              subject: tmpl.subject,
+              subject: typeof tmpl.subject === 'function'
+                ? tmpl.subject({ name: p.name, city: p.city, state: p.state })
+                : tmpl.subject,
               text: tmpl.text({ name: p.name, city: p.city, state: p.state }),
             }),
           });

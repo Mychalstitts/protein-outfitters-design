@@ -124,6 +124,23 @@ function computePlays(metrics, capacityCount, nearestMi, units) {
     });
   }
 
+  // Processor onboarding — demand or inventory without a partnered plant nearby.
+  if (capacityCount === 0 && (res >= 1 || listings >= 1 || pop >= 40000) && (farms >= 1 || cattle >= 8000 || head >= 15000)) {
+    plays.push({
+      id: 'recruit_processors',
+      label: 'Recruit processors',
+      priority: 1,
+      why: 'Demand or livestock here, no known plant in radius — onboard a butcher',
+    });
+  } else if (capacityCount <= 1 && nearestMi != null && nearestMi > 35 && (res >= 1 || listings >= 1 || buyers >= 8)) {
+    plays.push({
+      id: 'recruit_processors',
+      label: 'Recruit processors',
+      priority: 2,
+      why: `Only ${capacityCount} plant${capacityCount === 1 ? '' : 's'}, nearest ~${nearestMi} mi — farms will haul too far`,
+    });
+  }
+
   // Capacity gap even when some plants exist.
   if (nearestMi != null && nearestMi > 45 && pop >= 50000 && head >= 10000) {
     plays.push({

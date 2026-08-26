@@ -49,12 +49,7 @@
 <div class="po-nav-wrap">
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
-    <div class="po-nav-links">
-      <a href="/admin-overview">Overview</a>
-      <a href="/admin-fsis-import" style="font-weight:800">FSIS import</a>
-      <a href="/admin-ams-import">AMS import</a>
-      <a href="/discover">Marketplace</a>
-    </div>
+    <div class="po-nav-links" data-admin-nav></div>
     <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
   </nav>
 </div>
@@ -94,6 +89,7 @@
 
 <script src="/po-api.js"></script>
 <script src="/po-shell.js"></script>
+<script src="/admin-nav.js"></script>
 <script>
 const file = document.getElementById('fileInput');
 const paste = document.getElementById('csvPaste');
@@ -145,7 +141,7 @@ function renderResult(data) {
         ${states.map(([s, n]) => `<span class="state-pill">${s} <em>${n}</em></span>`).join('')}
       </div>
       ${data.errors.length ? `<details style="margin-top:10px;"><summary style="cursor:pointer;font-weight:700;">${data.errors.length} import errors</summary><pre style="font-size:11px;margin-top:8px;background:rgba(6,27,14,.04);padding:10px;border-radius:8px;white-space:pre-wrap;">${data.errors.join('\n')}</pre></details>` : ''}
-      <p style="margin-top:14px;">Next: <a href="/admin-overview">go to admin overview</a> to start sending invites.</p>
+      <p style="margin-top:14px;">Next: <a href="/admin-overview#prospects">send invites from the overview queue</a>, or open a hotspot and tap Invite processors.</p>
     </div>`;
 }
 
