@@ -122,7 +122,7 @@
 <div class="po-nav-wrap">
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
-    <div class="po-nav-links"><a href="/farmer">My ranch</a><a href="/processor">My plant</a><a href="/finance" class="active">Finance</a><a href="/list-animal">List animal</a><a href="/credentials">Credentials</a></div>
+    <div class="po-nav-links"><a href="/farmer">My ranch</a><a href="/list-animal">List animal</a><a href="/credentials">Credentials</a><a href="/finance" class="active">Money</a></div>
     <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
   </nav>
 </div>
@@ -131,7 +131,7 @@
   <div class="fn-inner">
     <p class="po-eyebrow">Account · Finance</p>
     <h1 class="fn-h1">Your money, in one place.</h1>
-    <p class="fn-lead">Held in your Protein Outfitters wallet until you transfer to a bank. Like Venmo, but for animal sales. Sales analytics + listing performance below — see what's working and what's not.</p>
+    <p class="fn-lead">Money from sold shares sits here until you send it to your bank. Numbers below are real — we do not show demo sales.</p>
 
     <!-- Role switcher -->
     <div class="role-switch" id="roleSwitch">
@@ -169,8 +169,8 @@
     <div class="stats-grid">
       <div class="stat-card">
         <p class="lab">This week</p>
-        <p class="v" id="statWeek">$8,420</p>
-        <span class="delta up">↑ 18%</span>
+        <p class="v" id="statWeek">$0</p>
+        <span class="delta" id="statWeekDelta">No sales yet</span>
         <svg class="spark" viewBox="0 0 100 36" preserveAspectRatio="none">
           <polyline points="0,28 14,24 28,22 42,16 56,18 70,12 84,10 100,6" fill="none" stroke="#061b0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <polyline points="0,28 14,24 28,22 42,16 56,18 70,12 84,10 100,6 100,36 0,36" fill="rgba(207,233,211,0.5)" stroke="none"/>
@@ -178,8 +178,8 @@
       </div>
       <div class="stat-card">
         <p class="lab">This month</p>
-        <p class="v" id="statMonth">$24,180</p>
-        <span class="delta up">↑ 12%</span>
+        <p class="v" id="statMonth">$0</p>
+        <span class="delta" id="statMonthDelta">No sales yet</span>
         <svg class="spark" viewBox="0 0 100 36" preserveAspectRatio="none">
           <polyline points="0,30 12,28 24,22 36,24 48,18 60,16 72,14 84,12 100,10" fill="none" stroke="#061b0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <polyline points="0,30 12,28 24,22 36,24 48,18 60,16 72,14 84,12 100,10 100,36 0,36" fill="rgba(207,233,211,0.5)" stroke="none"/>
@@ -187,8 +187,8 @@
       </div>
       <div class="stat-card">
         <p class="lab">Year to date</p>
-        <p class="v" id="statYTD">$48,940</p>
-        <span class="delta up">↑ 32%</span>
+        <p class="v" id="statYTD">$0</p>
+        <span class="delta" id="statYtdDelta">No sales yet</span>
         <svg class="spark" viewBox="0 0 100 36" preserveAspectRatio="none">
           <polyline points="0,32 10,30 20,26 30,28 40,22 50,20 60,16 70,14 80,12 90,8 100,6" fill="none" stroke="#061b0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <polyline points="0,32 10,30 20,26 30,28 40,22 50,20 60,16 70,14 80,12 90,8 100,6 100,36 0,36" fill="rgba(207,233,211,0.5)" stroke="none"/>
@@ -196,8 +196,8 @@
       </div>
       <div class="stat-card">
         <p class="lab">Avg per animal</p>
-        <p class="v" id="statAvg">$5,438</p>
-        <span class="delta up">↑ 4%</span>
+        <p class="v" id="statAvg">$0</p>
+        <span class="delta" id="statAvgDelta">No sales yet</span>
         <svg class="spark" viewBox="0 0 100 36" preserveAspectRatio="none">
           <polyline points="0,18 14,22 28,16 42,20 56,12 70,16 84,10 100,12" fill="none" stroke="#061b0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <polyline points="0,18 14,22 28,16 42,20 56,12 70,16 84,10 100,12 100,36 0,36" fill="rgba(207,233,211,0.5)" stroke="none"/>
@@ -217,52 +217,13 @@
     <!-- ========== SALES ========== -->
     <section class="fn-section" data-pane="sales">
       <div class="fn-section-head">
-        <h2>Sales · last 30 days</h2>
-        <p>9 fractions across 4 animals · $24,180 gross</p>
-        <a class="more" href="javascript:void(0)" onclick="exportCSV('sales')">Export CSV →</a>
+        <h2>Sales</h2>
+        <p id="fnSalesSub">Real reservations only. Empty until a buyer holds a share.</p>
+        <a class="more" href="/farmer">Open ranch →</a>
       </div>
-      <div class="card-block">
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2598 · Black Angus quarter</h4><p>Sarah R. · Bemidji, MN · Picked up Jun 11</p></div>
-          <div class="stat-cell">$1,395.00<span class="sub">your share</span></div>
-          <span class="pill-status released">Released</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2598 · Black Angus half</h4><p>Mike T. · Cass Lake, MN · Picked up Jun 11</p></div>
-          <div class="stat-cell">$2,690.00<span class="sub">your share</span></div>
-          <span class="pill-status released">Released</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/hereford.jpg');"></div>
-          <div class="meta"><h4>#2702 · Hereford half</h4><p>Jenna T. · Duluth, MN · Picked up May 30</p></div>
-          <div class="stat-cell">$2,470.00<span class="sub">your share</span></div>
-          <span class="pill-status released">Released</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2641 · Black Angus quarter</h4><p>Alex P. · St. Cloud, MN · Drop-off May 28</p></div>
-          <div class="stat-cell">$1,395.00<span class="sub">your share</span></div>
-          <span class="pill-status pending">Pending pickup</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2641 · Black Angus quarter</h4><p>David K. · Park Rapids, MN · Drop-off May 28</p></div>
-          <div class="stat-cell">$1,395.00<span class="sub">your share</span></div>
-          <span class="pill-status pending">Pending pickup</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/hog.jpg');"></div>
-          <div class="meta"><h4>Berkshire hog · whole</h4><p>Greg R. · Bemidji, MN · Picked up May 22</p></div>
-          <div class="stat-cell">$1,380.00<span class="sub">your share</span></div>
-          <span class="pill-status released">Released</span>
-        </div>
-        <div class="row-l">
-          <div class="img-cell" style="background-image: url('/img/lamb.jpg');"></div>
-          <div class="meta"><h4>Katahdin lamb · half</h4><p>Marina C. · Brainerd, MN · Refunded · scheduling conflict</p></div>
-          <div class="stat-cell">$385.00<span class="sub">refunded</span></div>
-          <span class="pill-status refunded">Refunded</span>
+      <div class="card-block" id="fnSalesList">
+        <div class="row-l" style="display:block;padding:28px 8px;text-align:center;">
+          <div class="meta"><h4>No sales yet</h4><p>When someone reserves a quarter, half, or whole, it shows up here.</p></div>
         </div>
       </div>
     </section>
@@ -271,56 +232,14 @@
     <section class="fn-section" data-pane="analytics" hidden>
       <div class="fn-section-head">
         <h2>Listing analytics · last 30 days</h2>
-        <p>How buyers find and convert on your listings</p>
-        <a class="more" href="javascript:void(0)" onclick="exportCSV('analytics')">Export →</a>
+        <p>Views, saves, and conversion on real listings — empty until something is live.</p>
+        <a class="more" href="/list-animal">List an animal →</a>
       </div>
       <div class="card-block">
-        <div class="row-l" style="grid-template-columns: 60px 1fr 80px 80px 80px 100px; align-items: center;">
-          <div></div>
-          <div class="meta" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Listing</div>
-          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Views</div>
-          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Saves</div>
-          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Reserved</div>
-          <div class="stat-cell" style="color: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">Conv</div>
-        </div>
-        <div class="row-l" style="grid-template-columns: 60px 1fr 80px 80px 80px 100px;">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2641 · Black Angus steer</h4><p>From $1,395 · Reserving 2 of 4 · 18 days left</p></div>
-          <div class="stat-cell">312<span class="sub">+24 wk</span></div>
-          <div class="stat-cell">18<span class="sub">5.8%</span></div>
-          <div class="stat-cell">2/4</div>
-          <div class="stat-cell">11.5%<div class="conv-bar"><span style="width: 75%;"></span></div></div>
-        </div>
-        <div class="row-l" style="grid-template-columns: 60px 1fr 80px 80px 80px 100px;">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2658 · Black Angus heifer</h4><p>From $1,340 · Reserving 1 of 4 · 35 days</p></div>
-          <div class="stat-cell">287<span class="sub">+18 wk</span></div>
-          <div class="stat-cell">14<span class="sub">4.9%</span></div>
-          <div class="stat-cell">1/4</div>
-          <div class="stat-cell">5.5%<div class="conv-bar"><span style="width: 36%;"></span></div></div>
-        </div>
-        <div class="row-l" style="grid-template-columns: 60px 1fr 80px 80px 80px 100px;">
-          <div class="img-cell" style="background-image: url('/img/angus.jpg');"></div>
-          <div class="meta"><h4>#2671 · Black Angus steer</h4><p>From $1,420 · Reserving 0 of 4 · 56 days · ⚠ no reservations yet</p></div>
-          <div class="stat-cell">145<span class="sub">+12 wk</span></div>
-          <div class="stat-cell">9<span class="sub">6.2%</span></div>
-          <div class="stat-cell">0/4</div>
-          <div class="stat-cell">0%<div class="conv-bar"><span style="width: 0%;"></span></div></div>
-        </div>
-        <div class="row-l" style="grid-template-columns: 60px 1fr 80px 80px 80px 100px;">
-          <div class="img-cell" style="background-image: url('/img/hereford.jpg');"></div>
-          <div class="meta"><h4>#2702 · Hereford heifer (sold out)</h4><p>From $1,280 · 4 of 4 sold · Avg time-to-fill 14 days</p></div>
-          <div class="stat-cell">408<span class="sub">+0 wk</span></div>
-          <div class="stat-cell">22<span class="sub">5.4%</span></div>
-          <div class="stat-cell">4/4</div>
-          <div class="stat-cell">100%<div class="conv-bar"><span style="width: 100%;"></span></div></div>
+        <div class="row-l" style="display:block;padding:28px 8px;text-align:center;">
+          <div class="meta"><h4>No listing traffic yet</h4><p>When a buyer views or reserves a live animal, the numbers show up here. No sample data.</p></div>
         </div>
       </div>
-
-      <p style="margin: 18px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5;">
-        💡 <strong>#2671</strong> hasn't converted in 56 days. The market suggests pricing or photos may need adjustment.
-        <a href="/list-animal" style="color: var(--brand); font-weight: 700;">Edit listing →</a>
-      </p>
     </section>
 
     <!-- ========== PAYOUTS ========== -->

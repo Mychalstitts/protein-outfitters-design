@@ -153,10 +153,8 @@
     <div class="po-nav-links">
       <a href="/farmer" class="active">My ranch</a>
       <a href="/list-animal">List animal</a>
-      <a href="/map">Book a plant</a>
       <a href="/credentials">Credentials</a>
-      <a href="/finance">Finance</a>
-      <a href="/reviews">Reviews</a>
+      <a href="/finance">Money</a>
     </div>
     <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a><a class="po-nav-cta" href="/list-animal">List an animal</a></div>
   </nav>
@@ -835,7 +833,7 @@ async function openBookingModal(listingId, animalNumber, breed, expectedFinishDa
       select.innerHTML = '<option value="">No processors in directory yet</option>';
     } else {
       select.innerHTML = '<option value="">Select a processor…</option>' + procs.map(p =>
-        `<option value="${p.id}">${p.name}${p.city ? ' · ' + p.city + ', ' + p.state : ''}${p.inspection ? ' · ' + p.inspection.toUpperCase() : ''}</option>`
+        `<option value="${p.id}">${(window.PO_INSPECTION && window.PO_INSPECTION.optionText(p)) || (p.name + (p.inspection ? ' · ' + p.inspection : ''))}</option>`
       ).join('');
     }
   } catch (e) {

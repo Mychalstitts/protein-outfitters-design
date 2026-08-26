@@ -593,7 +593,7 @@
       items = DATA.processors.filter(p => inViewport(p.lat, p.lng)).map(p => ({
         kind: 'processor',
         title: p.name,
-        meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.inspection ? ' · ' + p.inspection.toUpperCase() : ''}`,
+        meta: `${p.city || ''}${p.state ? ', ' + p.state : ''}${p.inspection ? ' · ' + ((window.PO_INSPECTION && window.PO_INSPECTION.short(p.inspection)) || p.inspection) : ''}`,
         pills: (p.species || []).slice(0, 3).map(t => ({ text: t, color: 'orange' })),
         lat: p.lat, lng: p.lng, link: p.slug ? '/p/' + p.slug : null,
         marker: lookupMarker('processors', p.lat, p.lng),
@@ -714,7 +714,7 @@
       m.bindPopup(`
         <h4>${escapeHtml(p.name)}</h4>
         <p>${escapeHtml(p.city || '')}${p.state ? ', ' + escapeHtml(p.state) : ''}</p>
-        ${p.inspection ? `<p>Inspection: <strong>${escapeHtml(p.inspection.toUpperCase())}</strong></p>` : ''}
+        ${p.inspection ? `<p>Inspection: <strong>${escapeHtml((window.PO_INSPECTION && window.PO_INSPECTION.label(p.inspection)) || p.inspection)}</strong></p>` : ''}
         ${(p.species && p.species.length) ? `<p>Species: ${p.species.map(escapeHtml).join(', ')}</p>` : ''}
         <div class="cta-row">
           ${profileCta}

@@ -126,14 +126,14 @@
 
     document.getElementById('ppName').textContent = p.name;
     const loc = [p.city, p.state].filter(Boolean).join(', ');
-    document.getElementById('ppLoc').textContent = loc + (p.inspection ? ' · ' + String(p.inspection).toUpperCase() + ' inspected' : '');
+    document.getElementById('ppLoc').textContent = loc + (p.inspection ? ' · ' + ((window.PO_INSPECTION && window.PO_INSPECTION.label(p.inspection)) || (String(p.inspection) + ' inspected')) : '');
     document.getElementById('ppBio').textContent = p.bio || 'This processor hasn\'t added a bio yet. You can still submit a custom processing request — we\'ll route it to the plant.';
 
     const caps = p.capabilities || {};
     const species = Array.isArray(caps.species) ? caps.species : [];
     const services = Array.isArray(caps.services) ? caps.services : [];
     const chips = [];
-    if (p.inspection) chips.push(`<span class="chip inspection">${String(p.inspection).toUpperCase()}</span>`);
+    if (p.inspection) chips.push(`<span class="chip inspection">${(window.PO_INSPECTION && window.PO_INSPECTION.short(p.inspection)) || String(p.inspection)}</span>`);
     species.forEach(s => chips.push(`<span class="chip">${s}</span>`));
     services.forEach(s => chips.push(`<span class="chip">${s}</span>`));
     document.getElementById('ppChips').innerHTML = chips.length ? chips.join('') : '<span class="chip">Custom processing</span>';
