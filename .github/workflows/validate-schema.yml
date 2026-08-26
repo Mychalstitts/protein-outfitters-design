@@ -44,3 +44,13 @@ jobs:
           node-version: '20'
       - name: Auth integration tests against live production
         run: npm run test:auth
+
+  test-connect-sample:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Connect sample env-helper tests
+        run: npm run test:connect-sample

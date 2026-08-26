@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Paid · Protein Outfitters</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
+<style>
+.ok-shell { padding: clamp(64px, 9vw, 120px) var(--shell-pad); }
+.ok-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+.ok-mark { width: 88px; height: 88px; border-radius: 50%; background: var(--accent-soft); color: var(--brand); display: grid; place-items: center; margin: 0 auto 20px; font-size: 36px; }
+.ok-inner h1 { margin: 0; font-size: clamp(36px, 5vw, 56px); letter-spacing: -0.035em; }
+.ok-inner p { margin: 14px auto 0; color: var(--ink-2); font-size: 16px; line-height: 1.5; max-width: 42ch; }
+.ok-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 28px; }
+.ok-btn {
+  appearance: none; border: 0; text-decoration: none; cursor: pointer;
+  background: var(--brand); color: #fbf9f5; border-radius: 999px;
+  padding: 12px 18px; font: 700 14px/1 Inter, sans-serif;
+}
+.ok-btn.ghost { background: var(--surface-2); color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-actions"><a href="/connect-sample" class="signin">Collect payments</a></div>
+  </nav>
+</div>
+<section class="ok-shell">
+  <div class="ok-inner">
+    <div class="ok-mark" aria-hidden="true">✓</div>
+    <h1>You’re done</h1>
+    <p id="okLead">Stripe hosted Checkout finished. If this was a card charge, the connected account received a Direct Charge and the platform took the sample application fee.</p>
+    <p id="okSession" style="font-size:13px;color:var(--ink-3);"></p>
+    <div class="ok-row">
+      <a class="ok-btn" href="/connect-sample">Back to dashboard</a>
+      <a class="ok-btn ghost" id="okStore" href="/connect-sample">Storefront</a>
+    </div>
+  </div>
+</section>
+<div id="po-shell-host"></div>
+<script src="/po-shell.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search);
+  const sessionId = q.get('session_id');
+  const accountId = q.get('accountId');
+  const kind = q.get('kind');
+  if (kind === 'subscription') {
+    document.getElementById('okLead').textContent = 'Subscription Checkout finished. Manage it anytime from Collect payments → Manage billing.';
+  }
+  if (sessionId) document.getElementById('okSession').textContent = 'Session ' + sessionId;
+  if (accountId) document.getElementById('okStore').href = '/connect-sample/storefront?accountId=' + encodeURIComponent(accountId);
+})();
+</script>
+</body>
+</html>

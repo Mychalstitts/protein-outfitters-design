@@ -712,6 +712,25 @@ const SCHEMA_STATEMENTS = [
    )`,
   `CREATE INDEX IF NOT EXISTS social_comments_post_idx ON social_comments(post_id, created_at)`,
 
+  // Sample Stripe Connect v2 mapping (user → Accounts v2 id). Separate from
+  // farms.stripe_account_id / processors.stripe_account_id (Express).
+  `CREATE TABLE IF NOT EXISTS connect_sample_accounts (
+     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+     stripe_account_id TEXT NOT NULL UNIQUE,
+     subscription_status TEXT,
+     subscription_id TEXT,
+     subscription_price_id TEXT,
+     subscription_quantity INT,
+     pause_collection BOOLEAN DEFAULT FALSE,
+     cancel_at_period_end BOOLEAN DEFAULT FALSE,
+     default_payment_method TEXT,
+     last_requirements_json JSONB,
+     last_event_type TEXT,
+     last_event_at TIMESTAMPTZ,
+     created_at TIMESTAMPTZ DEFAULT NOW(),
+     updated_at TIMESTAMPTZ DEFAULT NOW()
+   )`,
+
 ];
 
 const SEED_SQL = [
