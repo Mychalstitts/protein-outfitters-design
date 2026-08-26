@@ -8,6 +8,9 @@
 //   1. node --check on every deploy/**/*.js  (catches parse errors)
 //   2. scripts/check-no-dupe-decls.js        (catches the merge-concat
 //                                             helper SyntaxError pattern)
+//   3. parse-check inline <script> in deploy/**/*.html
+//      (list-animal Continue was dead because a duplicate `const birth`
+//       threw before any click handlers attached; npm run lint missed it)
 //
 // Add new checks here as we identify them. Exit 1 on any failure so CI
 // turns red. No deps beyond Node — keeps the install-time tiny.
@@ -15,6 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
+const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const TARGETS = [
@@ -36,6 +40,34 @@ function walk(p, out = []) {
     walk(path.join(p, e.name), out);
   }
   return out;
+}
+
+function walkHtml(p, out = []) {
+  if (!fs.existsSync(p)) return out;
+  const stat = fs.statSync(p);
+  if (stat.isFile()) {
+    if (p.endsWith('.html')) out.push(p);
+    return out;
+  }
+  for (const e of fs.readdirSync(p, { withFileTypes: true })) {
+    walkHtml(path.join(p, e.name), out);
+  }
+  return out;
+}
+
+function extractInlineScripts(html) {
+  const blocks = [];
+  const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const attrs = m[1] || '';
+    if (/\bsrc\s*=/i.test(attrs)) continue;
+    if (/type\s*=\s*["'][^"']*(json|ld\+json|template)["']/i.test(attrs)) continue;
+    const code = (m[2] || '').trim();
+    if (!code) continue;
+    blocks.push(code);
+  }
+  return blocks;
 }
 
 const files = TARGETS.flatMap(t => walk(t));
@@ -64,6 +96,26 @@ if (dupeCheck.status !== 0) {
 } else {
   console.log(`✓ no duplicate top-level declarations`);
 }
+
+// 3. Parse-check inline <script> blocks in HTML (src= and JSON-LD skipped).
+const htmlFiles = walkHtml(path.join(ROOT, 'deploy'));
+let htmlScripts = 0;
+for (const f of htmlFiles) {
+  const src = fs.readFileSync(f, 'utf8');
+  const blocks = extractInlineScripts(src);
+  htmlScripts += blocks.length;
+  blocks.forEach((code, i) => {
+    try {
+      // new Function parses classic scripts; type=module is rare in this tree.
+      new vm.Script(code, { filename: `${path.relative(ROOT, f)}#script${i + 1}` });
+    } catch (err) {
+      failed++;
+      console.error(`✗ parse error: ${path.relative(ROOT, f)} inline script #${i + 1}`);
+      console.error(String(err.message || err).split('\n').slice(0, 3).join('\n'));
+    }
+  });
+}
+console.log(`lint: checked ${htmlScripts} inline scripts in ${htmlFiles.length} HTML files`);
 
 if (failed) {
   console.error(`\nlint: ${failed} check(s) failed`);
