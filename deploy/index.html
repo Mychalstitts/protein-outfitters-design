@@ -831,16 +831,16 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="hero-photo" aria-hidden="true"></div>
   <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-inner">
-    <span class="hero-eyebrow">Real farms · Inspected plants</span>
+    <span class="hero-eyebrow">From a real farm. To your freezer.</span>
     <h1 class="hero-headline">A whole animal,<br>in three taps.</h1>
-    <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. Farmer and processing in one hanging-weight price.</p>
+    <p class="hero-sub">You pick a real animal from a farm with a name. A small deposit holds your place. You choose the steaks. You pick it up at a local butcher. Dinner for months — and you know exactly where it came from.</p>
 
     <!-- Primary conversion: search (Airbnb) → inventory -->
     <form class="hero-search" id="heroSearch" role="search" aria-label="Find meat near you" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
       <span class="hero-search-icon" aria-hidden="true">
         <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
       </span>
-      <input name="q" type="text" aria-label="What are you looking for?" placeholder='Try: "grass-fed beef under $8/lb near me"' autocomplete="off" />
+      <input name="q" type="text" aria-label="What are you looking for?" placeholder='Try: "grass-fed beef near me"' autocomplete="off" />
       <span class="hero-search-ai" title="Natural-language search">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>
         AI
@@ -856,11 +856,11 @@ body { background: var(--bg); overflow-x: hidden; }
     </div>
 
     <div class="hero-cta">
-      <a href="/discover#notify" class="btn-xl btn-xl--primary">Get notified →</a>
+      <a href="#reserve" class="btn-xl btn-xl--primary">Browse animals →</a>
       <a href="#how" class="btn-xl btn-xl--ghost">See how it works</a>
     </div>
   </div>
-  <a href="/discover#notify" class="hero-scroll">Nothing to reserve yet</a>
+  <a href="#how" class="hero-scroll">New here? Three steps ↓</a>
 </section>
 <script>
   document.querySelectorAll('.hero-search-suggest button').forEach(b => {
@@ -871,9 +871,9 @@ body { background: var(--bg); overflow-x: hidden; }
 <!-- Micro-proof (Amazon-style trust bar — reduce anxiety before inventory) -->
 <div class="proof-strip" role="region" aria-label="Trust highlights">
   <div class="proof-strip-inner">
-    <span><strong>Inspected plants</strong> — USDA, state, or equal-to. Custom-exempt is never sold.</span>
+    <span><strong>Inspected butchers</strong> — every animal is cut at a USDA, state, or equal shop. Never uninspected meat.</span>
     <span class="proof-strip-dot" aria-hidden="true">·</span>
-    <span>Price is per pound hanging weight. Take-home is usually about two-thirds of that.</span>
+    <span>The listed price covers the farm and the butcher. You take home about two-thirds as steaks, roasts, and burger.</span>
     <span class="proof-strip-dot" aria-hidden="true">·</span>
     <span>If the animal does not pass inspection, we refund what you paid.</span>
   </div>
@@ -884,9 +884,9 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="shell">
     <div class="section-head-row">
       <div>
-        <span class="section-eyebrow">Listings coming online</span>
+        <span class="section-eyebrow">Animals you can actually reserve</span>
         <h2 class="section-h2">Real animals.<br>Real farms. Across America.</h2>
-        <p class="section-lead" id="directoryLead">Every listing is one specific animal on a farm you can drive to — anywhere in the U.S. Reserve a share, set your cuts, pick up at a local plant — we handle the rest.</p>
+        <p class="section-lead" id="directoryLead">Each card is one animal on one farm. Open it, read the story, then hold a portion with a small deposit. You choose the cuts. You pick it up nearby.</p>
       </div>
       <a class="view-all-link" href="/discover">View all listings →</a>
     </div>
@@ -920,29 +920,29 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="shell">
     <span class="section-eyebrow">How it works</span>
     <h2 class="section-h2">Three taps. Then a full freezer.</h2>
-    <p class="section-lead">No phone tag. No paper cut sheets. No mystery meat. Everything happens on one page on your phone.</p>
+    <p class="section-lead">No phone tag. No paper forms. No mystery meat. If you can order dinner on your phone, you can do this.</p>
 
     <div class="steps">
       <div class="step">
-        <span class="num">01 · Reserve</span>
-        <h3>Pick your share.</h3>
-        <p>Quarter, half, or whole — from a named animal on a verified farm. Deposit locks your place.</p>
+        <span class="num">01 · Hold your place</span>
+        <h3>Pick how much you want.</h3>
+        <p>A quarter, a half, or the whole animal — from a farm with a name. A small deposit holds it, like putting your name on a Thanksgiving turkey.</p>
       </div>
       <div class="step">
-        <span class="num">02 · Tailor</span>
-        <h3>Tell the plant how to cut it.</h3>
-        <p>Steaks vs. roasts. Patty thickness. Bones for stock. Five minutes in your account — the processor gets a clean cut sheet.</p>
+        <span class="num">02 · Tell the butcher</span>
+        <h3>Say how you like it cut.</h3>
+        <p>Steaks or roasts. Thick or thin. Bones for soup. Five minutes on your phone — the butcher gets a clean list.</p>
       </div>
       <div class="step">
         <span class="num">03 · Pick up</span>
         <h3>Walk in. Scan. Walk out.</h3>
-        <p>We text you when it’s ready. Bring a cooler to the plant. Your freezer is full that afternoon.</p>
+        <p>We text you when it’s ready. Bring a cooler to the butcher. Your freezer is full that afternoon.</p>
       </div>
     </div>
 
     <div style="margin-top: clamp(40px, 5vw, 64px); display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
-      <a href="/discover#notify" class="btn-xl btn-xl--primary" style="text-decoration:none;">Get notified →</a>
-      <a href="/faq#buyer" class="btn-xl btn-xl--ghost" style="text-decoration:none;">Pricing &amp; FAQ</a>
+      <a href="#reserve" class="btn-xl btn-xl--primary" style="text-decoration:none;">Browse animals →</a>
+      <a href="/faq#buyer" class="btn-xl btn-xl--ghost" style="text-decoration:none;">Pricing, plainly</a>
     </div>
   </div>
 </section>
@@ -952,7 +952,7 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="shell">
     <span class="section-eyebrow">Why people trust us</span>
     <h2 class="section-h2">Inspected.<br>Traceable to the animal.</h2>
-    <p class="section-lead">World-class marketplaces remove risk. We do the same for food: inspection, and a named animal on a farm you can visit.</p>
+    <p class="section-lead">You should know the farm, the animal, and the butcher. If something fails inspection, you get your money back. That’s the honest way to buy meat.</p>
 
     <div class="trust-grid">
       <div class="trust-item">
@@ -960,7 +960,7 @@ body { background: var(--bg); overflow-x: hidden; }
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <span class="trust-num">Inspected</span>
-        <span class="trust-label">Pickup at a USDA, state-inspected, or equal-to plant. Custom-exempt is never sold.</span>
+        <span class="trust-label">Pickup at a USDA, state, or equal inspected butcher. Never uninspected meat.</span>
       </div>
       <div class="trust-item">
         <div class="po-icon-tile sun" style="margin: 0 0 14px;">
@@ -974,7 +974,7 @@ body { background: var(--bg); overflow-x: hidden; }
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
         <span class="trust-num" id="trustGeoNum">Farms</span>
-        <span class="trust-label" id="trustGeoLabel">Farms and plants you can drive to.</span>
+        <span class="trust-label" id="trustGeoLabel">Farms and butchers you can drive to.</span>
       </div>
     </div>
   </div>
@@ -1041,10 +1041,10 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="shell">
     <span class="section-eyebrow">Your freezer is waiting</span>
     <h2 class="section-h2">Find an animal near you.</h2>
-    <p class="section-lead" style="margin-left:auto;margin-right:auto;text-align:center;">Named animal. Local plant. Three taps from here to a full freezer.</p>
+    <p class="section-lead" style="margin-left:auto;margin-right:auto;text-align:center;">A named animal. A local butcher. Three taps from here to a full freezer.</p>
     <div class="closer-cta" style="gap:12px;flex-wrap:wrap;">
-      <a href="/discover#notify" class="btn-xl btn-xl--dark" style="text-decoration:none;">Get notified →</a>
-      <a href="/discover" class="btn-xl" style="text-decoration:none;background:transparent;color:var(--brand);border:1px solid rgba(6,27,14,0.18);">Search by farm or ZIP</a>
+      <a href="/discover" class="btn-xl btn-xl--dark" style="text-decoration:none;">Browse animals →</a>
+      <a href="/discover#notify" class="btn-xl" style="text-decoration:none;background:transparent;color:var(--brand);border:1px solid rgba(6,27,14,0.18);">Email me when one lands</a>
     </div>
   </div>
 </section>
@@ -1062,7 +1062,7 @@ body { background: var(--bg); overflow-x: hidden; }
     if (procs || farms) {
       const lead = document.getElementById('directoryLead');
       if (lead) {
-        lead.textContent = `${farms.toLocaleString()} pasture-based farms and ${procs.toLocaleString()} inspected plants on one network. Every listing is a specific animal you can drive to — reserve a share, set your cuts, pick up local.`;
+        lead.textContent = `${farms.toLocaleString()} pasture-based farms and ${procs.toLocaleString()} inspected butchers on one network. Every listing is a specific animal — open it, hold a portion, pick up nearby.`;
       }
     }
     const states = new Set();
@@ -1074,14 +1074,14 @@ body { background: var(--bg); overflow-x: hidden; }
       const l = document.getElementById('trustGeoLabel');
       // Show live coverage when we have data; always frame as a national platform
       const label = states.size >= 40
-        ? 'Farms and plants you can drive to.'
+        ? 'Farms and butchers you can drive to.'
         : 'Live inventory in ' + states.size + ' states today.';
       if (n) n.textContent = states.size >= 40 ? 'Farms' : states.size + ' states live';
       if (l) l.textContent = label;
       const pg = document.getElementById('proofGeo');
       if (pg) {
         pg.innerHTML = states.size >= 40
-          ? '<strong>Farms and plants</strong>'
+          ? '<strong>Farms and butchers</strong>'
           : '<strong>' + states.size + ' states</strong> live';
       }
     }
@@ -1119,9 +1119,12 @@ body { background: var(--bg); overflow-x: hidden; }
     grid.innerHTML = `
       <div class="product" style="grid-column:1/-1;text-align:center;padding:60px 24px;background:#fff;border-radius:18px;border:1px solid rgba(6,27,14,.06);">
         <img src="/brand/logo-monogram.svg" alt="" width="68" height="68" style="display:block;margin:0 auto 16px;border-radius:16px;box-shadow:0 8px 20px rgba(6,27,14,.12)" />
-        <h3 style="font:800 22px/1.3 'Inter';margin:0 0 8px;letter-spacing:-0.02em;">No animals reserving right now.</h3>
-        <p style="font:500 14px/1.5 'Inter';color:rgba(6,27,14,.7);margin:0 auto 18px;max-width:380px;">New listings post weekly. Or invite your local farm to put up an animal.</p>
-        <a href="/invite-partner" style="display:inline-block;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:12px 22px;font:700 13px/1 'Inter';">Invite a farm →</a>
+        <h3 style="font:800 22px/1.3 'Inter';margin:0 0 8px;letter-spacing:-0.02em;">Nothing to reserve this week.</h3>
+        <p style="font:500 14px/1.5 'Inter';color:rgba(6,27,14,.7);margin:0 auto 18px;max-width:400px;">Farms post as animals finish. We’ll email you when one is ready — or invite a farm you already trust.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+          <a href="/discover#notify" style="display:inline-block;background:#061b0e;color:#fbf9f5;text-decoration:none;border-radius:999px;padding:12px 22px;font:700 13px/1 'Inter';">Email me when one lands →</a>
+          <a href="/invite-partner" style="display:inline-block;background:transparent;color:#061b0e;text-decoration:none;border-radius:999px;padding:12px 22px;font:700 13px/1 'Inter';border:1.5px solid rgba(6,27,14,.15);">Invite a farm</a>
+        </div>
       </div>`;
     return;
   }
@@ -1151,9 +1154,6 @@ body { background: var(--bg); overflow-x: hidden; }
                        : l.shares?.whole?.available > 0 ? 'whole'
                        : 'half';
     const allInLb = allInPerLb(farmerRate, cheapestShare, hw);
-    const allInQ = farmerQ ? allInPerLb(farmerQ, 'quarter', hw) : 0;
-    const allInH = farmerH ? allInPerLb(farmerH, 'half', hw) : 0;
-    const allInW = farmerW ? allInPerLb(farmerW, 'whole', hw) : 0;
     const photo = photoFor(l);
     const tag = l.status === 'sold' ? 'Sold out' : (l.shares?.quarter?.available || l.shares?.half?.available) ? 'Reserving' : 'Limited';
     const harvestLabel = l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en-US', {month:'long',day:'numeric'}) : 'TBD';
@@ -1171,13 +1171,7 @@ body { background: var(--bg); overflow-x: hidden; }
          </span>`
       : '';
 
-    return `<button class="product" data-open-sheet
-        data-animal="${l.id}" data-name="${animalLabel}"
-        data-producer="${farmName}${l.farm_city ? ' · ' + l.farm_city + ', ' + l.farm_state : ''}"
-        data-photo="${photo}"
-        data-price-q="${allInQ}"
-        data-price-h="${allInH}"
-        data-price-w="${allInW}">
+    return `<a class="product" href="/listing?id=${encodeURIComponent(l.id)}" style="text-decoration:none;color:inherit;text-align:inherit;">
         <div class="product-photo" style="background-image: url('${photo}');">
           <span class="product-tag">${tag}</span>
           ${ratingBadge ? `<span style="position:absolute;top:12px;right:12px;">${ratingBadge}</span>` : ''}
@@ -1185,13 +1179,13 @@ body { background: var(--bg); overflow-x: hidden; }
         <div class="product-meta">
           <span class="product-eyebrow">${speciesLabel(l.species)}${practice}</span>
           <h3 class="product-name">${animalLabel}</h3>
-          <p class="product-detail">${farmName} · ${hw} lb HW · Harvest ${harvestLabel}</p>
+          <p class="product-detail">${farmName} · Ready ${harvestLabel}</p>
           <div class="product-foot">
-            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb hanging</span></span>
-            <span class="product-cta">Reserve →</span>
+            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb · farm + butcher</span></span>
+            <span class="product-cta">See this animal →</span>
           </div>
         </div>
-      </button>`;
+      </a>`;
   }).join('');
 })();
 </script>
