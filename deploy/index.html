@@ -439,6 +439,17 @@ body { background: var(--bg); overflow-x: hidden; }
   font-size: 12px; font-weight: 700;
   color: var(--brand);
 }
+.product-shares { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+.product-share {
+  font:700 11px/1 'Inter',system-ui,sans-serif; padding:6px 10px; border-radius:999px;
+  background:rgba(6,27,14,.06); color:var(--ink); text-decoration:none;
+}
+.product-share:hover { background:rgba(6,27,14,.12); }
+.home-recent { margin-top: clamp(28px, 4vw, 40px); }
+.home-recent-list { display:grid; gap:8px; max-width:640px; }
+.home-recent-row { font:500 13.5px/1.45 'Inter',system-ui,sans-serif; color:var(--ink-2); }
+.home-recent-row a { color:var(--ink); font-weight:700; text-decoration:none; }
+.home-recent-row a:hover { text-decoration:underline; }
 
 /* ---------- How it works ---------- */
 .how {
@@ -912,6 +923,10 @@ body { background: var(--bg); overflow-x: hidden; }
     <p style="text-align:center;margin:clamp(28px,3vw,40px) 0 0;">
       <a href="/discover" class="btn-xl btn-xl--dark" style="text-decoration:none;">See more animals →</a>
     </p>
+    <div class="home-recent" id="homeRecent" hidden>
+      <span class="section-eyebrow">Just reserved</span>
+      <div class="home-recent-list" id="homeRecentList"></div>
+    </div>
   </div>
 </section>
 
@@ -1137,6 +1152,20 @@ body { background: var(--bg); overflow-x: hidden; }
 
   function fmtPerLb(n){ return '$' + Number(n||0).toFixed(2); }
   function speciesLabel(s){ return ({cattle:'Beef', hog:'Pork', lamb:'Lamb', goat:'Goat', bison:'Bison', venison:'Venison', poultry:'Poultry'})[s] || s; }
+  function harvestRangeLabel(l){
+    const start = l.harvest_window_start || l.expected_finish_date;
+    const end = l.harvest_window_end;
+    const fmt = iso => {
+      if (!iso) return null;
+      const s = String(iso);
+      const d = new Date(/T/.test(s) ? s : s + 'T12:00:00');
+      return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+    const a = fmt(start), b = fmt(end);
+    let core = (a && b && a !== b) ? (a + ' – ' + b) : (a || b || 'TBD');
+    if (l.after_thirty_months || l.otm_price_pending) core += ' · after 30 months';
+    return core;
+  }
   function photoFor(l){
     if (l.photos && l.photos[0]) return l.photos[0];
     const map = { cattle:'/img/cattle-pasture.jpg', hog:'/img/premium-pig.jpg', lamb:'/img/premium-sheep.jpg', goat:'/img/premium-sheep.jpg', bison:'/img/cattle-pasture.jpg', venison:'/img/premium-deer.jpg', poultry:'/img/poultry.jpg' };
@@ -1156,10 +1185,13 @@ body { background: var(--bg); overflow-x: hidden; }
     const allInLb = allInPerLb(farmerRate, cheapestShare, hw);
     const photo = photoFor(l);
     const tag = l.status === 'sold' ? 'Sold out' : (l.shares?.quarter?.available || l.shares?.half?.available) ? 'Reserving' : 'Limited';
-    const harvestLabel = l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en-US', {month:'long',day:'numeric'}) : 'TBD';
+    const harvestLabel = harvestRangeLabel(l);
     const practice = (l.practice && l.practice[0]) ? ' · ' + l.practice[0].replace('-',' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
     const farmName = l.farm_name || 'Independent farm';
     const animalLabel = `${l.number ? l.number + ' — ' : ''}${l.breed || speciesLabel(l.species)}${l.sex ? ' ' + l.sex : ''}`;
+    const hasHalf = (l.shares?.half?.available || 0) > 0;
+    const hasWhole = (l.shares?.whole?.available || 0) > 0;
+    const hasQ = (l.shares?.quarter?.available || 0) > 0;
 
     // Farm rating badge — only shows when there are reviews on file.
     const rating = Number(l.farm_avg_rating || 0);
@@ -1171,22 +1203,52 @@ body { background: var(--bg); overflow-x: hidden; }
          </span>`
       : '';
 
-    return `<a class="product" href="/listing?id=${encodeURIComponent(l.id)}" style="text-decoration:none;color:inherit;text-align:inherit;">
-        <div class="product-photo" style="background-image: url('${photo}');">
-          <span class="product-tag">${tag}</span>
-          ${ratingBadge ? `<span style="position:absolute;top:12px;right:12px;">${ratingBadge}</span>` : ''}
-        </div>
+    const href = '/listing?id=' + encodeURIComponent(l.id);
+    const reserve = href + '&open_sheet=1';
+    const chips = [
+      hasQ ? `<a class="product-share" href="${reserve}&share=quarter" onclick="event.stopPropagation()">Quarter</a>` : '',
+      hasHalf ? `<a class="product-share" href="${reserve}&share=half" onclick="event.stopPropagation()">Half</a>` : '',
+      hasWhole ? `<a class="product-share" href="${reserve}&share=whole" onclick="event.stopPropagation()">Whole</a>` : '',
+    ].filter(Boolean).join('');
+    return `<article class="product">
+        <a href="${href}" style="text-decoration:none;color:inherit;text-align:inherit;display:block;">
+          <div class="product-photo" style="background-image: url('${photo}');">
+            <span class="product-tag">${tag}</span>
+            ${ratingBadge ? `<span style="position:absolute;top:12px;right:12px;">${ratingBadge}</span>` : ''}
+          </div>
+        </a>
         <div class="product-meta">
-          <span class="product-eyebrow">${speciesLabel(l.species)}${practice}</span>
-          <h3 class="product-name">${animalLabel}</h3>
-          <p class="product-detail">${farmName} · Ready ${harvestLabel}</p>
+          <a href="${href}" style="text-decoration:none;color:inherit;">
+            <span class="product-eyebrow">${speciesLabel(l.species)}${practice}</span>
+            <h3 class="product-name">${animalLabel}</h3>
+            <p class="product-detail">${farmName} · Ranch + butcher handled</p>
+            <p class="product-detail">Harvest ${harvestLabel}</p>
+          </a>
+          ${chips ? `<div class="product-shares">${chips}</div>` : ''}
           <div class="product-foot">
             <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb · farm + butcher</span></span>
-            <span class="product-cta">See this animal →</span>
+            <a class="product-cta" href="${reserve}">Reserve →</a>
           </div>
         </div>
-      </a>`;
+      </article>`;
   }).join('');
+})();
+
+(async function loadHomeRecent(){
+  const box = document.getElementById('homeRecent');
+  const list = document.getElementById('homeRecentList');
+  if (!box || !list) return;
+  try {
+    const r = await fetch('/api/recent-activity?layer=reservations', { credentials: 'include' });
+    const data = await r.json();
+    const events = (data.events || []).filter(e => e.kind === 'reservation').slice(0, 4);
+    if (!events.length) return;
+    list.innerHTML = events.map(e => {
+      const href = e.link || '/discover';
+      return `<div class="home-recent-row">${(e.text || '').replace(/[<>]/g,'')} · ${e.time || ''} · <a href="${href}">See it →</a></div>`;
+    }).join('');
+    box.hidden = false;
+  } catch (_) { /* stay hidden */ }
 })();
 </script>
 

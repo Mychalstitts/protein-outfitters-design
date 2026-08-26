@@ -245,7 +245,10 @@
         <p class="where" id="lgFarmLoc">—</p>
         <div class="host-row"><span>Practices</span><span id="lgFarmPractices">—</span></div>
         <div class="host-row"><span>Harvest</span><span id="lgHarvest">—</span></div>
-        <a id="lgFarmLink" href="/producers">View farm profile →</a>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center;">
+          <button type="button" class="lg-chip-btn" id="lgFollowFarm">Follow this ranch</button>
+          <a id="lgFarmLink" href="/producers">View farm profile →</a>
+        </div>
       </div>
     </aside>
   </div>
@@ -322,7 +325,20 @@
     `${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}${l.sex ? ' ' + l.sex : ''} · ${l.farm_name || 'Independent farm'}`;
   const sub = [];
   if (l.estimated_hanging_weight) sub.push(`${l.estimated_hanging_weight} lb at harvest`);
-  if (l.expected_finish_date) sub.push(`harvest ${new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}`);
+  const harvestRange = (function () {
+    const fmt = iso => {
+      if (!iso) return null;
+      const s = String(iso);
+      const d = new Date(/T/.test(s) ? s : s + 'T12:00:00');
+      return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+    const a = fmt(l.harvest_window_start || l.expected_finish_date);
+    const b = fmt(l.harvest_window_end);
+    let core = (a && b && a !== b) ? (a + ' – ' + b) : a;
+    if (core && (l.after_thirty_months || l.otm_price_pending)) core += ' · after 30 months';
+    return core;
+  })();
+  if (harvestRange) sub.push('harvest ' + harvestRange);
   if (l.farm_city) sub.push(`${l.farm_city}, ${l.farm_state}`);
   if (practiceLabel) sub.push(practiceLabel);
   document.getElementById('lgSub').textContent = sub.join(' · ');
@@ -368,7 +384,10 @@
   else if (l.hormones) specs.push(['Hormones', l.hormones]);
   if (l.practice && l.practice.length) specs.push(['Practice', l.practice.map(p => cap(p.replace('-', ' '))).join(', ')]);
   if (l.certs && l.certs.length) specs.push(['Certifications', l.certs.map(c => String(c).toUpperCase()).join(', ')]);
-  if (l.expected_finish_date) specs.push(['Harvest date', new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })]);
+  if (harvestRange) specs.push(['Harvest window', harvestRange]);
+  if (l.after_thirty_months || l.otm_price_pending) {
+    specs.push(['After 30 months', 'Bone-in is off. Hanging price waits for an OTM/market number.']);
+  }
   document.getElementById('lgSpecs').innerHTML = specs.length
     ? specs.map(([k, v]) => `<div class="spec"><p class="spec-label">${k}</p><p class="spec-value">${v}</p></div>`).join('')
     : '<p class="lead">Specs will appear as the farmer completes the listing.</p>';
@@ -410,11 +429,35 @@
   document.getElementById('lgFarmPractices').textContent = (l.farm_practices && l.farm_practices.length)
     ? l.farm_practices.map(p => cap(String(p).replace('-', ' '))).join(', ')
     : (l.practice && l.practice.length ? l.practice.map(p => cap(String(p).replace('-', ' '))).join(', ') : '—');
-  document.getElementById('lgHarvest').textContent = l.expected_finish_date
-    ? new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'TBD';
+  document.getElementById('lgHarvest').textContent = harvestRange || 'TBD';
   const lgFarmLink = document.getElementById('lgFarmLink');
   if (lgFarmLink) lgFarmLink.href = l.farm_slug ? '/farm/' + l.farm_slug : '/producers';
+  const followBtn = document.getElementById('lgFollowFarm');
+  const farmIdOk = l.farm_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(l.farm_id);
+  if (followBtn && farmIdOk && window.PO_API) {
+    const paintFollow = (st) => {
+      followBtn.textContent = st.following ? 'Following ✓' : 'Follow this ranch';
+      followBtn.dataset.following = st.following ? '1' : '';
+    };
+    window.PO_API.farmFollowState(l.farm_id).then(paintFollow).catch(() => {});
+    followBtn.addEventListener('click', async () => {
+      try {
+        const me = await window.PO_API.me();
+        if (!me.user) {
+          window.PO_API.openAuth('Sign in to follow this ranch', 'buyer');
+          return;
+        }
+        const st = followBtn.dataset.following === '1'
+          ? await window.PO_API.unfollowFarm(l.farm_id)
+          : await window.PO_API.followFarm(l.farm_id);
+        paintFollow(st);
+      } catch (e) {
+        if (e.status === 401) window.PO_API.openAuth('Sign in to follow this ranch', 'buyer');
+      }
+    });
+  } else if (followBtn) {
+    followBtn.hidden = true;
+  }
 
   if (Number(l.farm_review_count || 0) > 0) {
     const r = Number(l.farm_avg_rating || 0);
