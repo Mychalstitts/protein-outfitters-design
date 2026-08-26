@@ -450,7 +450,9 @@
             <h3 class="product-name">${name.replace(/[<>]/g, '')}</h3>
             <p class="product-detail">Harvest ${harvest}</p>
             <div class="product-foot">
-              <span class="product-price">From <strong>$${Number(allIn).toFixed(2)}</strong><span style="font-weight:600;opacity:.55;font-size:12px">/lb · farm + butcher</span></span>
+              <span class="product-price">${(l.after_thirty_months || l.otm_price_pending)
+                ? '<strong>Hanging price pending</strong><span style="font-weight:600;opacity:.55;font-size:12px"> · OTM / market</span>'
+                : `From <strong>$${Number(allIn).toFixed(2)}</strong><span style="font-weight:600;opacity:.55;font-size:12px">/lb · farm + butcher</span>`}</span>
               <span class="product-cta">Reserve →</span>
             </div>
           </div>

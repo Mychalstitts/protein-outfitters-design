@@ -353,7 +353,18 @@
   if (l.shares?.whole && l.shares.whole.available > 0)
     sharesArr.push({ key: 'w', label: 'The whole animal', glyph: '1', sub: '~440 lb of cuts · big freezer, or split with friends', farmerRate: Number(l.shares.whole.price), price: allIn(Number(l.shares.whole.price), 'whole') });
 
-  if (sharesArr.length) {
+  const otmPending = !!(l.after_thirty_months || l.otm_price_pending);
+  if (otmPending) {
+    document.getElementById('lgFromPrice').textContent = 'Pending';
+    document.getElementById('lgFromUnit').textContent = 'OTM / market number';
+    document.getElementById('lgFromMeta').textContent = 'Hanging price waits. Bone-in is off.';
+    const bar = document.getElementById('lgMobileBar');
+    if (bar) {
+      bar.hidden = false;
+      document.getElementById('lgMobilePrice').textContent = 'Price pending';
+      document.getElementById('lgMobileMeta').textContent = 'after 30 months · OTM / market';
+    }
+  } else if (sharesArr.length) {
     const cheapest = [...sharesArr].sort((a, b) => a.price - b.price)[0];
     document.getElementById('lgFromPrice').textContent = '$' + cheapest.price.toFixed(2);
     document.getElementById('lgFromMeta').textContent = cheapest.label + ' · farm + butcher · deposit today';
@@ -401,7 +412,7 @@
     `<button type="button" class="share-card js-reserve" data-open-sheet data-share="${s.key}" data-price="${s.price}">
       <span class="glyph">${s.glyph}</span>
       <span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span>
-      <span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1.2">/lb · farm + butcher</span></span>
+      <span class="p">${otmPending ? 'Pending' : '$' + s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1.2">${otmPending ? 'OTM / market number' : '/lb · farm + butcher'}</span></span>
     </button>`);
   if (!sharesArr.length) {
     shareEls.push('<div style="padding:28px;text-align:center;background:#fff;border-radius:14px;border:1px solid rgba(6,27,14,.08);font:600 14px/1.5 Inter;color:var(--ink-2)">This one is fully reserved. <a href="/discover" style="color:var(--brand);font-weight:800;">See other animals →</a></div>');
@@ -499,9 +510,9 @@
     if (saved.has(l.id)) document.getElementById('lgSaveBtn').textContent = 'Saved ✓';
   } catch {}
 
-  const allInQ = sharesArr.find(s => s.key === 'q')?.price || 0;
-  const allInH = sharesArr.find(s => s.key === 'h')?.price || 0;
-  const allInW = sharesArr.find(s => s.key === 'w')?.price || 0;
+  const allInQ = otmPending ? 0 : (sharesArr.find(s => s.key === 'q')?.price || 0);
+  const allInH = otmPending ? 0 : (sharesArr.find(s => s.key === 'h')?.price || 0);
+  const allInW = otmPending ? 0 : (sharesArr.find(s => s.key === 'w')?.price || 0);
   const animalName = `${l.number || ''} · ${l.breed || cap(l.species)}`.replace(/^\s*·\s*/, '');
   const producerLabel = `${l.farm_name || ''} · ${l.farm_city || ''}, ${l.farm_state || ''}`.replace(/\s·\s,$/, '');
 

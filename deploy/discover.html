@@ -465,7 +465,7 @@
             </button>
           </div>
           <div class="lc-body">
-            <div class="lc-row1"><span class="lc-name">${l.name}</span><span class="lc-price">$${l.priceLb.toFixed(2)}<em>/lb · farm + butcher</em></span></div>
+            <div class="lc-row1"><span class="lc-name">${l.name}</span><span class="lc-price">${l.afterThirty ? 'Hanging price pending<em> · OTM / market</em>' : '$' + l.priceLb.toFixed(2) + '<em>/lb · farm + butcher</em>'}</span></div>
             <div class="lc-farm">${l.farmSlug ? `<a href="/farm/${encodeURIComponent(l.farmSlug)}" onclick="event.stopPropagation()">${l.farm}</a>` : `<span>${l.farm}</span>`} · butcher handled${l.farmRating ? ` <span class="lc-rating" title="${l.farmReviewCount} ${l.farmReviewCount===1?'review':'reviews'}" style="color:#d39c1f;font-weight:700;font-size:12.5px;margin-left:4px;">★ ${Number(l.farmRating).toFixed(1)}<span style="color:var(--ink-3,#888);font-weight:500;font-size:11px;"> · ${l.farmReviewCount}</span></span>` : ''}</div>
             <div class="lc-meta">
               <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${l.distance >= 999 ? 'Nationwide' : l.distance + ' mi'}</span>

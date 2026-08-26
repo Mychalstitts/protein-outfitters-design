@@ -1226,7 +1226,9 @@ body { background: var(--bg); overflow-x: hidden; }
           </a>
           ${chips ? `<div class="product-shares">${chips}</div>` : ''}
           <div class="product-foot">
-            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb · farm + butcher</span></span>
+            <span class="product-price">${(l.after_thirty_months || l.otm_price_pending)
+              ? '<strong>Hanging price pending</strong><span style="font-weight:600;opacity:.65;font-size:12px"> · OTM / market number</span>'
+              : `From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb · farm + butcher</span>`}</span>
             <a class="product-cta" href="${reserve}">Reserve →</a>
           </div>
         </div>
