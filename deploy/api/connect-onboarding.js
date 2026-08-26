@@ -9,17 +9,31 @@
 //   GET ?kind=farm|processor&id=<row id>
 //     Return the current Connect status (pending, restricted, active, disabled).
 //
-// Webhook `account.updated` should be added to /api/stripe-webhook to keep
-// `stripe_connect_status` fresh as Stripe verifies the account.
+// `account.updated` in /api/stripe-webhook keeps `stripe_connect_status`
+// fresh as Stripe verifies the connected account.
 //
 // Env required: STRIPE_SECRET_KEY
-// Optional: STRIPE_CONNECT_RETURN_URL (defaults to https://www.proteinoutfitters.com/account)
+// Optional: STRIPE_CONNECT_RETURN_URL (defaults to /farmer or /processor)
 import Stripe from 'stripe';
 import { sql, currentUser, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
 const ALLOWED_KINDS = ['farm', 'processor'];
+
+function defaultReturnUrl(kind) {
+  if (process.env.STRIPE_CONNECT_RETURN_URL) return process.env.STRIPE_CONNECT_RETURN_URL;
+  const base = process.env.PUBLIC_BASE_URL || 'https://www.proteinoutfitters.com';
+  return kind === 'processor' ? `${base.replace(/\/$/, '')}/processor` : `${base.replace(/\/$/, '')}/farmer`;
+}
+
+function stripeErr(e) {
+  const msg = e?.message || String(e);
+  if (/signed up for Connect/i.test(msg) || /dashboard\.stripe\.com\/connect/i.test(msg)) {
+    return err(503, 'Stripe Connect is not enabled on the platform account. Enable Connect at https://dashboard.stripe.com/connect, then try again.');
+  }
+  return err(502, `Stripe error: ${msg}`.slice(0, 240));
+}
 
 async function handler(req) {
   if (!process.env.STRIPE_SECRET_KEY) return err(500, 'Stripe not configured');
@@ -93,24 +107,29 @@ async function handler(req) {
     // Create Connected Account if one doesn't exist yet.
     let accountId = row.stripe_account_id;
     if (!accountId) {
-      const acct = await stripe.accounts.create({
-        type: 'express',
-        country: 'US',
-        email: user.email,
-        capabilities: {
-          transfers: { requested: true },
-          card_payments: { requested: true },
-        },
-        business_type: 'individual', // overridden by user during onboarding if needed
-        business_profile: {
-          name: row.name,
-          product_description: kind === 'farm'
-            ? 'Pasture-raised livestock sold via Protein Outfitters marketplace.'
-            : 'USDA / state-inspected meat processing services.',
-          mcc: kind === 'farm' ? '0763' : '5499',  // 0763 = agricultural co-op, 5499 = misc food stores
-        },
-        metadata: { kind, row_id: id, owner_user_id: user.id },
-      });
+      let acct;
+      try {
+        acct = await stripe.accounts.create({
+          type: 'express',
+          country: 'US',
+          email: user.email,
+          capabilities: {
+            transfers: { requested: true },
+            card_payments: { requested: true },
+          },
+          business_type: 'individual', // overridden by user during onboarding if needed
+          business_profile: {
+            name: row.name,
+            product_description: kind === 'farm'
+              ? 'Pasture-raised livestock sold via Protein Outfitters marketplace.'
+              : 'USDA / state-inspected meat processing services.',
+            mcc: kind === 'farm' ? '0763' : '5499',  // 0763 = agricultural co-op, 5499 = misc food stores
+          },
+          metadata: { kind, row_id: id, owner_user_id: user.id },
+        });
+      } catch (e) {
+        return stripeErr(e);
+      }
       accountId = acct.id;
       if (kind === 'farm') {
         await sql`UPDATE farms SET stripe_account_id = ${accountId}, stripe_connect_status = 'pending' WHERE id = ${id}`;
@@ -120,14 +139,19 @@ async function handler(req) {
     }
 
     // Generate an Account Link — the URL the user redirects to to complete onboarding.
-    const returnUrl = process.env.STRIPE_CONNECT_RETURN_URL || 'https://www.proteinoutfitters.com/account';
+    const returnUrl = defaultReturnUrl(kind);
     const refreshUrl = `${returnUrl}?stripe_connect=refresh&kind=${kind}&id=${id}`;
-    const link = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: refreshUrl,
-      return_url: `${returnUrl}?stripe_connect=done&kind=${kind}&id=${id}`,
-      type: 'account_onboarding',
-    });
+    let link;
+    try {
+      link = await stripe.accountLinks.create({
+        account: accountId,
+        refresh_url: refreshUrl,
+        return_url: `${returnUrl}?stripe_connect=done&kind=${kind}&id=${id}`,
+        type: 'account_onboarding',
+      });
+    } catch (e) {
+      return stripeErr(e);
+    }
 
     return json({ url: link.url, stripe_account_id: accountId });
   }

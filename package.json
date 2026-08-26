@@ -7,7 +7,7 @@
     "check:no-dupe-decls": "node scripts/check-no-dupe-decls.js",
     "lint": "node scripts/lint.js",
     "test:auth": "node scripts/test-auth-retry.mjs",
-    "test:auth:once": "node --test test/auth/*.test.mjs",
+    "test:auth:once": "node --test test/auth/*.test.mjs test/connect-onboarding.test.mjs",
     "test": "npm run lint && npm run test:auth"
   },
   "devDependencies": {

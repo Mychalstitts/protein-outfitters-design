@@ -12,7 +12,7 @@ const DELAY_MS = 15_000;
 function runOnce() {
   const r = spawnSync(
     process.execPath,
-    ['--test', 'test/auth/logout.test.mjs', 'test/auth/me.test.mjs', 'test/auth/request-link.test.mjs', 'test/auth/verify.test.mjs'],
+    ['--test', 'test/auth/logout.test.mjs', 'test/auth/me.test.mjs', 'test/auth/request-link.test.mjs', 'test/auth/verify.test.mjs', 'test/connect-onboarding.test.mjs'],
     { cwd: ROOT, stdio: 'inherit', env: process.env }
   );
   return r.status === 0;
