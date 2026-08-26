@@ -346,20 +346,9 @@
 window.poStartConnect = async function(kind, id) {
   if (!id) { alert('No farm selected — create a farm first.'); return; }
   try {
-    const r = await fetch('/api/connect-onboarding', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kind, id }),
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.url) {
-      alert('Could not start Stripe onboarding: ' + (data.error || ('HTTP ' + r.status)));
-      return;
-    }
-    window.location.href = data.url;
+    await window.PO_API.startConnect(kind, id);
   } catch (e) {
-    alert('Network error: ' + e.message);
+    alert('Could not start Stripe onboarding: ' + (e.message || 'unknown error'));
   }
 };
 (async () => {
@@ -588,7 +577,7 @@ window.poStartConnect = async function(kind, id) {
       { label: 'List at least one animal', done: allListings.length > 0,              link: '/list-animal',   weight: 25, ifMissing: 'No listings = no reservations' },
       { label: 'Add certifications',       done: (primaryFarm.certs || []).length > 0, link: '/credentials',   weight: 10, ifMissing: 'USDA Organic, Animal Welfare, etc.' },
       { label: 'Add production practices', done: (primaryFarm.practices || []).length > 0, link: '/credentials', weight: 10, ifMissing: 'Grass-fed, regenerative, heritage breeds' },
-      { label: 'Connect Stripe payouts',   done: !!primaryFarm.stripe_account_id,     link: `javascript:window.poStartConnect('farm','${primaryFarm.id}')`, weight: 15, ifMissing: 'Get paid directly when buyers reserve' },
+      { label: 'Connect Stripe payouts',   done: !!(window.PO_API && window.PO_API.connectPayoutsReady(primaryFarm)), action: 'connect', weight: 15, ifMissing: 'Get paid directly when buyers reserve' },
     ];
     const earned = checks.reduce((s, c) => s + (c.done ? c.weight : 0), 0);
     const meter = document.getElementById('fmCompletionMeter');
@@ -621,8 +610,11 @@ window.poStartConnect = async function(kind, id) {
           : top.map(c => `
             <li style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid rgba(6,27,14,0.06);">
               <span><span style="color:#a0a8a4;margin-right:8px;">○</span><strong style="color:var(--ink,#061b0e);font-weight:700;">${c.label}</strong> · <span style="opacity:.85;">${c.ifMissing}</span></span>
-              <a href="${c.link}" style="font:700 11.5px/1 'Inter';color:var(--brand,#061b0e);text-decoration:none;padding:6px 12px;background:rgba(125,160,93,0.16);border-radius:999px;white-space:nowrap;margin-left:10px;">+ ${c.weight}%</a>
+              ${c.action === 'connect'
+                ? `<button type="button" data-connect-start="1" style="font:700 11.5px/1 'Inter';color:var(--brand,#061b0e);background:rgba(125,160,93,0.16);border:0;border-radius:999px;padding:6px 12px;white-space:nowrap;margin-left:10px;cursor:pointer;">+ ${c.weight}%</button>`
+                : `<a href="${c.link}" style="font:700 11.5px/1 'Inter';color:var(--brand,#061b0e);text-decoration:none;padding:6px 12px;background:rgba(125,160,93,0.16);border-radius:999px;white-space:nowrap;margin-left:10px;">+ ${c.weight}%</a>`}
             </li>`).join('');
+        listEl.querySelector('[data-connect-start]')?.addEventListener('click', () => window.poStartConnect('farm', primaryFarm.id));
       }
     }
     } // end renderCompletionMeter
