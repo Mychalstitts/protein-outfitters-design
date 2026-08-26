@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Collect payments · Protein Outfitters</title>
+<meta name="description" content="Sample Stripe Connect v2 onboarding: collect payments, list products, and open your storefront." />
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
+<style>
+.cs-shell { padding: clamp(40px, 5vw, 64px) var(--shell-pad) clamp(80px, 10vw, 120px); }
+.cs-inner { max-width: 880px; margin: 0 auto; }
+.cs-eye { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+.cs-inner h1 { margin: 0; font-size: clamp(36px, 5vw, 56px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.02; }
+.cs-lead { margin: 14px 0 0; font-size: 17px; color: var(--ink-2); line-height: 1.5; max-width: 52ch; }
+.cs-note { margin: 18px 0 32px; padding: 14px 16px; border-radius: 14px; background: var(--warn-soft); color: var(--ink); font-size: 13px; line-height: 1.45; }
+.cs-card { background: #fff; border-radius: 22px; padding: 24px 26px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 16px; }
+.cs-card h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -0.02em; }
+.cs-card p { margin: 0 0 16px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+.cs-status { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.cs-pip { font-size: 12px; font-weight: 800; padding: 6px 10px; border-radius: 999px; background: var(--surface-2); }
+.cs-pip.ok { background: var(--accent-soft); color: var(--accent-2); }
+.cs-pip.wait { background: var(--warn-soft); color: var(--warn); }
+.cs-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.cs-btn {
+  appearance: none; border: 0; cursor: pointer; text-decoration: none;
+  background: var(--brand); color: #fbf9f5; border-radius: 999px;
+  padding: 12px 18px; font: 700 14px/1 Inter, sans-serif;
+}
+.cs-btn[disabled] { opacity: .45; cursor: wait; }
+.cs-btn.ghost { background: var(--surface-2); color: var(--ink); }
+.cs-btn.warn { background: var(--warn); }
+.cs-form { display: grid; gap: 12px; }
+.cs-form label { display: grid; gap: 6px; font: 700 12px/1 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.cs-form input, .cs-form textarea {
+  font: 600 15px/1.3 Inter, sans-serif; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid rgba(6,27,14,.12); color: var(--ink); background: #fff;
+}
+.cs-msg { margin: 12px 0 0; font-size: 13px; color: var(--ink-2); min-height: 1.2em; }
+.cs-msg.err { color: var(--over); }
+.cs-products { display: grid; gap: 10px; margin-top: 8px; }
+.cs-prod { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--hairline); }
+.cs-prod:first-child { border-top: 0; }
+.cs-prod h3 { margin: 0; font-size: 15px; }
+.cs-prod p { margin: 4px 0 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/farmer">My ranch</a>
+      <a href="/connect-sample" class="active">Collect payments</a>
+      <a href="/finance">Finance</a>
+    </div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<section class="cs-shell">
+  <div class="cs-inner">
+    <p class="cs-eye">Stripe Connect sample</p>
+    <h1>Collect payments</h1>
+    <p class="cs-lead">Same idea as listing something on Marketplace — a few taps, then Stripe asks the legal questions. Livestock deposits still go through the ranch checkout, which stays off until we turn it on.</p>
+    <p class="cs-note">This page is a <strong>sample Accounts v2</strong> integration (onboard, products, storefront, subscription). Ranch and plant payouts still use the existing Express button on My ranch / Processor. Do not start onboarding unless you mean to create a new connected account.</p>
+
+    <div class="cs-card" id="csAuthCard">
+      <h2>Sign in first</h2>
+      <p>We map your Protein Outfitters user to one Stripe account id. Sign in, then tap the button.</p>
+      <div class="cs-row">
+        <button class="cs-btn" type="button" id="csSignIn">Sign in</button>
+      </div>
+    </div>
+
+    <div class="cs-card" id="csOnboardCard" hidden>
+      <h2>Onboarding</h2>
+      <p>Status is read live from Stripe every time this page loads. We do not trust a stored “active” flag.</p>
+      <div class="cs-status" id="csPips"></div>
+      <div class="cs-row">
+        <button class="cs-btn" type="button" id="csCreate">Create connected account</button>
+        <button class="cs-btn" type="button" id="csOnboard">Onboard to collect payments</button>
+        <a class="cs-btn ghost" id="csStorefront" href="#" hidden>Open storefront</a>
+      </div>
+      <p class="cs-msg" id="csOnboardMsg"></p>
+    </div>
+
+    <div class="cs-card" id="csProductCard" hidden>
+      <h2>Add a product</h2>
+      <p>Created on your connected account (Stripe-Account header). Buyers see these on your storefront.</p>
+      <form class="cs-form" id="csProductForm">
+        <label>Name <input name="name" required placeholder="Quarter beef deposit" /></label>
+        <label>Description <textarea name="description" rows="2" placeholder="What they get"></textarea></label>
+        <label>Price in cents <input name="priceInCents" type="number" min="50" step="1" required placeholder="5000 = $50.00" /></label>
+        <div class="cs-row"><button class="cs-btn" type="submit">Create product</button></div>
+      </form>
+      <div class="cs-products" id="csProductList"></div>
+      <p class="cs-msg" id="csProductMsg"></p>
+    </div>
+
+    <div class="cs-card" id="csSubCard" hidden>
+      <h2>Platform subscription</h2>
+      <p>Charges the connected account as the customer (<code>customer_account</code>). Needs <code>STRIPE_SAMPLE_PRICE_ID</code> on the platform.</p>
+      <div class="cs-row">
+        <button class="cs-btn" type="button" id="csSubscribe">Subscribe</button>
+        <button class="cs-btn ghost" type="button" id="csPortal">Manage billing</button>
+      </div>
+      <p class="cs-msg" id="csSubMsg"></p>
+    </div>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="/po-api.js"></script>
+<script src="/po-shell.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const authCard = $('csAuthCard');
+  const onboardCard = $('csOnboardCard');
+  const productCard = $('csProductCard');
+  const subCard = $('csSubCard');
+
+  function setMsg(id, text, err) {
+    const el = $(id);
+    el.textContent = text || '';
+    el.className = 'cs-msg' + (err ? ' err' : '');
+  }
+
+  async function api(path, opts) {
+    const r = await fetch(path, {
+      credentials: 'include',
+      headers: { 'content-type': 'application/json', ...(opts && opts.headers) },
+      ...opts,
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || r.statusText);
+    return data;
+  }
+
+  function renderStatus(data) {
+    const pips = $('csPips');
+    pips.innerHTML = '';
+    const items = [
+      [data.stripe_account_id ? 'Account created' : 'No account yet', !!data.stripe_account_id],
+      [data.onboardingComplete ? 'Onboarding complete' : 'Onboarding incomplete', !!data.onboardingComplete],
+      [data.readyToProcessPayments ? 'Ready to take cards' : 'Not ready for cards', !!data.readyToProcessPayments],
+    ];
+    if (data.requirementsStatus) {
+      items.push(['Requirements: ' + data.requirementsStatus, data.requirementsStatus !== 'currently_due' && data.requirementsStatus !== 'past_due']);
+    }
+    if (data.subscription && data.subscription.status) {
+      items.push(['Subscription: ' + data.subscription.status, data.subscription.status === 'active' || data.subscription.status === 'trialing']);
+    }
+    items.forEach(([label, ok]) => {
+      const s = document.createElement('span');
+      s.className = 'cs-pip ' + (ok ? 'ok' : 'wait');
+      s.textContent = label;
+      pips.appendChild(s);
+    });
+    $('csCreate').hidden = !!data.stripe_account_id;
+    $('csOnboard').hidden = !data.stripe_account_id;
+    if (data.storefront_url) {
+      $('csStorefront').hidden = false;
+      $('csStorefront').href = data.storefront_url;
+    }
+    productCard.hidden = !data.stripe_account_id;
+    subCard.hidden = !data.stripe_account_id;
+    if (data.stripe_account_id) loadProducts(data.stripe_account_id);
+  }
+
+  async function loadProducts(accountId) {
+    try {
+      const data = await api('/api/connect-sample-products?accountId=' + encodeURIComponent(accountId));
+      const host = $('csProductList');
+      host.innerHTML = '';
+      (data.products || []).forEach((p) => {
+        const row = document.createElement('div');
+        row.className = 'cs-prod';
+        const dollars = p.unit_amount != null ? '$' + (p.unit_amount / 100).toFixed(2) : '';
+        row.innerHTML = '<div><h3></h3><p></p></div><div></div>';
+        row.querySelector('h3').textContent = p.name;
+        row.querySelector('p').textContent = p.description || p.id;
+        row.querySelector('div:last-child').textContent = dollars;
+        host.appendChild(row);
+      });
+      if (!(data.products || []).length) {
+        host.innerHTML = '<p class="cs-msg">No products yet.</p>';
+      }
+    } catch (e) {
+      setMsg('csProductMsg', e.message, true);
+    }
+  }
+
+  async function boot() {
+    const me = await (window.PO_API?.me?.() || fetch('/api/me', { credentials: 'include' }).then((r) => r.json())).catch(() => ({ user: null }));
+    const user = me.user || me;
+    if (!user || !user.id) {
+      authCard.hidden = false;
+      return;
+    }
+    authCard.hidden = true;
+    onboardCard.hidden = false;
+    try {
+      const data = await api('/api/connect-sample-account');
+      renderStatus(data);
+    } catch (e) {
+      setMsg('csOnboardMsg', e.message, true);
+    }
+  }
+
+  $('csSignIn').addEventListener('click', () => {
+    if (window.PO_API?.openAuth) window.PO_API.openAuth('Sign in to collect payments');
+    else window.location.href = '/account';
+  });
+
+  $('csCreate').addEventListener('click', async () => {
+    $('csCreate').disabled = true;
+    setMsg('csOnboardMsg', 'Creating account…');
+    try {
+      const data = await api('/api/connect-sample-account', { method: 'POST', body: '{}' });
+      renderStatus(data);
+      setMsg('csOnboardMsg', 'Account created. Next: Onboard to collect payments.');
+    } catch (e) {
+      setMsg('csOnboardMsg', e.message, true);
+    }
+    $('csCreate').disabled = false;
+  });
+
+  $('csOnboard').addEventListener('click', async () => {
+    $('csOnboard').disabled = true;
+    setMsg('csOnboardMsg', 'Opening Stripe…');
+    try {
+      const data = await api('/api/connect-sample-account-link', { method: 'POST', body: '{}' });
+      window.location.href = data.url;
+    } catch (e) {
+      setMsg('csOnboardMsg', e.message, true);
+      $('csOnboard').disabled = false;
+    }
+  });
+
+  $('csProductForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    setMsg('csProductMsg', 'Saving…');
+    try {
+      await api('/api/connect-sample-products', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: fd.get('name'),
+          description: fd.get('description'),
+          priceInCents: Number(fd.get('priceInCents')),
+        }),
+      });
+      ev.target.reset();
+      setMsg('csProductMsg', 'Product created.');
+      const status = await api('/api/connect-sample-account');
+      renderStatus(status);
+    } catch (e) {
+      setMsg('csProductMsg', e.message, true);
+    }
+  });
+
+  $('csSubscribe').addEventListener('click', async () => {
+    setMsg('csSubMsg', 'Opening Checkout…');
+    try {
+      const data = await api('/api/connect-sample-subscribe', { method: 'POST', body: '{}' });
+      window.location.href = data.url;
+    } catch (e) {
+      setMsg('csSubMsg', e.message, true);
+    }
+  });
+
+  $('csPortal').addEventListener('click', async () => {
+    setMsg('csSubMsg', 'Opening portal…');
+    try {
+      const data = await api('/api/connect-sample-billing-portal', { method: 'POST', body: '{}' });
+      window.location.href = data.url;
+    } catch (e) {
+      setMsg('csSubMsg', e.message, true);
+    }
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>

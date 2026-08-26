@@ -4,6 +4,18 @@
     "trailingSlash": false,
     "rewrites": [
         {
+            "source": "/connect-sample/storefront",
+            "destination": "/connect-sample-storefront.html"
+        },
+        {
+            "source": "/connect-sample/storefront/:accountId",
+            "destination": "/connect-sample-storefront.html"
+        },
+        {
+            "source": "/connect-sample/success",
+            "destination": "/connect-sample-success.html"
+        },
+        {
             "source": "/farm/:slug([^/.]+)",
             "destination": "/api/farm-meta?slug=:slug"
         },

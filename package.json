@@ -8,7 +8,8 @@
     "lint": "node scripts/lint.js",
     "test:auth": "node scripts/test-auth-retry.mjs",
     "test:auth:once": "node --test test/auth/*.test.mjs",
-    "test": "npm run lint && npm run test:auth"
+    "test:connect-sample": "node --test test/connect-sample.test.mjs",
+    "test": "npm run lint && npm run test:auth && npm run test:connect-sample"
   },
   "devDependencies": {
     "cheerio": "^1.0.0"

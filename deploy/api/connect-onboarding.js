@@ -1,5 +1,9 @@
 // /api/connect-onboarding — Stripe Connect Express onboarding for farms and processors
 //
+// A commented Accounts v2 sample (onboard / products / storefront / subscription)
+// lives at /connect-sample and /api/connect-sample-*. Do not mix V2 acct ids
+// into farms.stripe_account_id — this Express path is what pays producers.
+//
 //   POST { kind: "farm"|"processor", id: "<row id>" }
 //     1. Verify the caller owns the row.
 //     2. Create a Stripe Connected Account (Express) if one doesn't exist.
