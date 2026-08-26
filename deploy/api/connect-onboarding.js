@@ -26,7 +26,15 @@ async function handler(req) {
 
   // Node runtime: req.url is relative; URL() needs a base.
   const url = new URL(req.url, 'https://www.proteinoutfitters.com');
-  const kind = (req.method === 'GET' ? url.searchParams.get('kind') : null) || (await peekJson(req))?.kind;
+
+  // Read the POST body once. The Node adapter in _lib/db.js adds req.json()
+  // but not req.clone(), so a peek-via-clone always fails closed to null.
+  let body = null;
+  if (req.method === 'POST') {
+    try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
+  }
+
+  const kind = url.searchParams.get('kind') || body?.kind;
   if (!ALLOWED_KINDS.includes(kind)) return err(400, 'kind must be "farm" or "processor"');
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -75,9 +83,7 @@ async function handler(req) {
 
   // ───── POST: start or resume onboarding ─────
   if (req.method === 'POST') {
-    let body;
-    try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
-    const id = body.id;
+    const id = body?.id;
     if (!id) return err(400, 'id required');
     const table = kind === 'farm' ? 'farms' : 'processors';
     const rows = await rawSelect(table, id, user);
@@ -138,12 +144,6 @@ async function rawSelect(table, id, user) {
   // processors
   if (user.role === 'admin') return await sql`SELECT * FROM processors WHERE id = ${id} LIMIT 1`;
   return await sql`SELECT * FROM processors WHERE id = ${id} AND owner_id = ${user.id} LIMIT 1`;
-}
-
-// Helper: read JSON body without consuming the original Request stream.
-async function peekJson(req) {
-  if (req.method !== 'POST') return null;
-  try { return await req.clone().json(); } catch { return null; }
 }
 
 export default nodejsHandler(handler);
