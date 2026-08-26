@@ -330,13 +330,14 @@
     if (!action) return;
     const kind = params.get('kind');
     const id = params.get('id');
-    const dest = kind === 'processor' ? '/processor' : kind === 'farm' ? '/farmer' : null;
-    const here = (location.pathname || '/').replace(/\/$/, '') || '/';
+    const ext = /\.html$/i.test(location.pathname || '') ? '.html' : '';
+    const dest = kind === 'processor' ? '/processor' + ext : kind === 'farm' ? '/farmer' + ext : null;
+    const here = (location.pathname || '/').replace(/\/$/, '').replace(/\.html$/i, '') || '/';
     if (dest && here === '/account') {
       location.replace(dest + '?' + params.toString());
       return;
     }
-    history.replaceState(null, '', here);
+    history.replaceState(null, '', location.pathname);
 
     if (action === 'refresh' && kind && id) {
       api.startConnect(kind, id).catch(e => showConnectBanner('error', e.message, { kind, id, resume: true }));
