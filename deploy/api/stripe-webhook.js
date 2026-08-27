@@ -130,10 +130,8 @@ async function handler(req) {
         }
 
         // ── Stripe Connect split routing (only fires when accounts exist) ──
-        // Pulls farmer + processor connected accounts from reservation metadata,
-        // calculates each party's share of the post-fee total, and issues
-        // Stripe Transfers against the reservation's transfer_group.
-        // No-ops cleanly if nobody's onboarded yet.
+        // Deposit only: 90% to the farm, 10% stays on the platform. Plant fees
+        // are not on this charge. No-ops if the farm is not Connect-ready.
         try {
           const { depositSplit } = await import('./_lib/connect-split.js');
           const farmAcct = session.metadata?.farm_stripe_account_id;

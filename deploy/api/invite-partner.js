@@ -21,8 +21,8 @@ function inviteHtml({ kind, partnerName, inviterName, inviterEmail, personalMess
   const inviterLabel = inviterName || inviterEmail || 'A buyer';
   const role = kind === 'processor' ? 'processor' : 'farm';
   const value = kind === 'processor'
-    ? 'When a buyer reserves an animal nearby, they pick a processor at checkout. Plants on Protein Outfitters get the booking, the deposit, and a vetted customer pre-paid before drop-off.'
-    : 'Sell whole, half, or quarter shares of every animal you raise — direct to local buyers, paid up front, no marketplace cut on your meat (we charge a flat platform fee separately).';
+    ? 'When a nearby farm books your locker, you set kill, cut, and wrap. Buyers pay those plant fees at the plant — Protein Outfitters takes no cut. Optional plant software is the only thing you pay us.'
+    : 'Sell whole, half, or quarter shares of every animal you raise — direct to local buyers. You keep 100% of your hanging-weight rate; the 10% marketplace fee is added on the buyer’s ticket.';
   const personal = personalMessage
     ? `<blockquote style="margin:18px 0;padding:14px 18px;background:rgba(125,160,93,.08);border-left:4px solid #7da05d;font:500 14px/1.5 Inter;color:#3a4a3f;">"${personalMessage.replace(/[<>]/g, '')}"</blockquote>`
     : '';

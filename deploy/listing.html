@@ -340,7 +340,7 @@
   if (sharesArr.length) {
     const cheapest = [...sharesArr].sort((a, b) => a.price - b.price)[0];
     document.getElementById('lgFromPrice').textContent = '$' + cheapest.price.toFixed(2);
-    document.getElementById('lgFromMeta').textContent = cheapest.label + ' · everything included · deposit today';
+    document.getElementById('lgFromMeta').textContent = cheapest.label + ' · farmer rate + 10% · deposit today';
     const bar = document.getElementById('lgMobileBar');
     if (bar) {
       bar.hidden = false;
@@ -397,10 +397,9 @@
         <summary style="cursor:pointer;font-weight:700;color:var(--ink);">What’s in this price</summary>
         <div style="margin-top:12px;display:grid;gap:6px;font-size:12.5px;">
           <div style="display:flex;justify-content:space-between;"><span>Farmer rate</span><span>$${bd.farmer.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Processor — cut, wrap, vacuum-seal</span><span>$${bd.processing.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Kill fee (your share)</span><span>$${(bd.killFee.share / bd.shareLbsHW).toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Platform fee</span><span>$${bd.platform.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.12);padding-top:6px;font-weight:800;color:var(--ink);"><span>Listed price</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb HW</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Protein Outfitters (10%)</span><span>$${bd.platform.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.12);padding-top:6px;font-weight:800;color:var(--ink);"><span>Listed meat price</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb HW</span></div>
+          <p style="margin:8px 0 0;font-size:12px;line-height:1.45;">Kill, cut, and wrap are set by the locker the farmer books. Paid at the plant. We take no cut of those fees.</p>
         </div>
       </details>`;
   }
