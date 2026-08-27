@@ -135,33 +135,38 @@ async function handler(req) {
         // Stripe Transfers against the reservation's transfer_group.
         // No-ops cleanly if nobody's onboarded yet.
         try {
+          const { depositSplit } = await import('./_lib/connect-split.js');
           const farmAcct = session.metadata?.farm_stripe_account_id;
-          const procAcct = session.metadata?.processor_stripe_account_id;
-          const transferGroup = `po_${session.metadata?.listing_id || ''}_${session.id}`;
 
-          // Look up the reservation's actual transfer_group + amounts from DB
           const rrow = await sql`
             SELECT stripe_transfer_group, deposit_amount, total_estimate
             FROM reservations WHERE id = ${reservationId} LIMIT 1`;
           const tg = rrow[0]?.stripe_transfer_group;
+          const { farmerCents, platformRetainCents } = depositSplit({
+            amountTotalCents: session.amount_total || 0,
+            depositCents: Math.round((rrow[0]?.deposit_amount || 0) * 100),
+          });
 
-          if (tg && (farmAcct || procAcct)) {
-            // Split policy (placeholder until policy decision is locked):
-            //   Farmer = deposit (already represents % of meat value)
-            //   Processor = ~$225 from the processing line item (per current line item)
-            //   Platform = retained (no transfer)
-            const totalCents = session.amount_total || 0;
-            const processorCents = 22500; // from the processing line item
-            const farmerCents = Math.max(0, Math.round((rrow[0].deposit_amount || 0) * 100));
-            const platformRetainCents = totalCents - processorCents - farmerCents;
+          if (tg && farmAcct) {
+            let sourceCharge = null;
+            if (piId) {
+              try {
+                const pi = await stripe.paymentIntents.retrieve(piId);
+                const ch = pi.latest_charge;
+                sourceCharge = typeof ch === 'string' ? ch : ch?.id || null;
+              } catch (e) {
+                console.error('Could not load charge for Connect transfer:', e.message);
+              }
+            }
 
-            if (farmAcct && farmerCents > 0) {
+            if (farmerCents > 0) {
               const transfer = await stripe.transfers.create({
                 amount: farmerCents,
                 currency: 'usd',
                 destination: farmAcct,
                 transfer_group: tg,
-                description: `Farmer share — reservation ${reservationId}`,
+                ...(sourceCharge ? { source_transaction: sourceCharge } : {}),
+                description: `Farmer deposit — reservation ${reservationId}`,
                 metadata: { reservation_id: reservationId, role: 'farmer' },
               });
               // F7 farmer payout email — needs farmer's email + name.
@@ -189,26 +194,15 @@ async function handler(req) {
                 }
               } catch (e) { console.error('F7 send failed:', e.message); }
             }
-            if (procAcct && processorCents > 0) {
-              await stripe.transfers.create({
-                amount: processorCents,
-                currency: 'usd',
-                destination: procAcct,
-                transfer_group: tg,
-                description: `Processor share — reservation ${reservationId}`,
-                metadata: { reservation_id: reservationId, role: 'processor' },
-              });
-            }
 
-            // Persist the application_fee_amount so admin can see what we retained.
             if (platformRetainCents > 0) {
               await sql`UPDATE reservations
                         SET application_fee_amount = ${platformRetainCents / 100}
                         WHERE id = ${reservationId}`;
             }
-            console.log(`Connect transfers issued for ${reservationId}: farmer=${!!farmAcct} processor=${!!procAcct} platformRetain=${platformRetainCents}`);
+            console.log(`Connect transfer issued for ${reservationId}: farmer=${farmerCents} platformRetain=${platformRetainCents}`);
           } else {
-            console.log(`Skipping Connect transfers — no connected accounts on file (farm=${!!farmAcct}, proc=${!!procAcct}). Funds settle to platform balance.`);
+            console.log(`Skipping Connect transfer — farm account missing (farm=${!!farmAcct}). Deposit stays on the platform.`);
           }
         } catch (transferErr) {
           console.error('Connect transfer error (non-fatal):', transferErr.message);

@@ -286,20 +286,9 @@
 window.poStartConnect = async function(kind, id) {
   if (!id) { alert('No plant selected.'); return; }
   try {
-    const r = await fetch('/api/connect-onboarding', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kind, id }),
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.url) {
-      alert('Could not start Stripe onboarding: ' + (data.error || ('HTTP ' + r.status)));
-      return;
-    }
-    window.location.href = data.url;
+    await window.PO_API.startConnect(kind, id);
   } catch (e) {
-    alert('Network error: ' + e.message);
+    alert('Could not start Stripe onboarding: ' + (e.message || 'unknown error'));
   }
 };
 
@@ -638,13 +627,14 @@ document.getElementById('prSignInBtn')?.addEventListener('click', () => {
     a.href = '/processor-checkin?plant=' + encodeURIComponent(plant.slug);
   });
 
-  if (!plant.stripe_account_id) {
+  if (!(window.PO_API && window.PO_API.connectPayoutsReady(plant))) {
+    const started = !!plant.stripe_account_id;
     const nudge = document.createElement('div');
     nudge.style.cssText = 'margin-top:14px;padding:14px 18px;background:rgba(213,156,31,0.12);border:1px solid rgba(213,156,31,0.35);border-radius:14px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;';
     nudge.innerHTML = `<div style="font:600 13px/1.45 'Inter';color:var(--ink,#061b0e);max-width:520px;">
-      <strong style="font-weight:800;">Connect Stripe payouts</strong> — until connected, processor fees settle to the platform balance instead of your bank.
+      <strong style="font-weight:800;">${started ? 'Finish Stripe payouts' : 'Connect Stripe payouts'}</strong> — until charges and payouts are enabled, processor fees settle to the platform balance instead of your bank.
     </div>
-    <button id="prConnectBtn" type="button" style="font:700 12.5px/1 'Inter';padding:9px 16px;background:var(--ink,#061b0e);color:#fbf9f5;border-radius:999px;border:0;cursor:pointer;letter-spacing:.03em;">Connect Stripe →</button>`;
+    <button id="prConnectBtn" type="button" style="font:700 12.5px/1 'Inter';padding:9px 16px;background:var(--ink,#061b0e);color:#fbf9f5;border-radius:999px;border:0;cursor:pointer;letter-spacing:.03em;">${started ? 'Finish Stripe →' : 'Connect Stripe →'}</button>`;
     const greetHost = sub && sub.parentElement;
     if (greetHost) greetHost.appendChild(nudge);
     document.getElementById('prConnectBtn')?.addEventListener('click', () => window.poStartConnect('processor', plant.id));

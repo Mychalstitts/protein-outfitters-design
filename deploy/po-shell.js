@@ -729,9 +729,6 @@
               share_size,
               buyer_email: email,
               buyer_name: name,
-              // state.processor is now a real UUID (or null if the producer
-              // didn't pick one / no processors are configured yet).
-              processor_id: state.processor || null,
               notes: null
             })
           });
