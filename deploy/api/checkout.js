@@ -1,5 +1,5 @@
 // /api/checkout — create a Stripe Checkout Session for a reservation deposit
-//   POST { listing_id, share_size, processor_id?, buyer_email, buyer_name?, buyer_phone? }
+//   POST { listing_id, share_size, buyer_email, buyer_name?, buyer_phone? }
 //     1. Validate listing + share availability
 //     2. Compute deposit + processing from cumulative pricing
 //     3. Create a `pending` reservation in DB (decrements share inventory)
@@ -17,12 +17,7 @@ export const config = { runtime: 'nodejs' };
 // Price/product IDs come from env vars. Defaults are LIVE — set test-mode IDs
 // in Vercel Preview/Development env to test with sk_test keys.
 const PRICING = {
-  processingPerLbHW: 1.25,
-  killFeeFlat: 100,
-  platformPerLbHW: 0.25,
-  cutsYield: 0.72,
-  PROCESSING_PRICE_ID: process.env.STRIPE_PROCESSING_PRICE_ID || 'price_1TTXarAEMYhoRW98GApM48vP',
-  DEPOSIT_PRODUCT_ID:  process.env.STRIPE_DEPOSIT_PRODUCT_ID  || 'prod_USSVhZDnkZakBC',
+  DEPOSIT_PRODUCT_ID: process.env.STRIPE_DEPOSIT_PRODUCT_ID || 'prod_USSVhZDnkZakBC',
 };
 
 function shareFraction(key) {
@@ -45,7 +40,7 @@ async function handler(req) {
 
   let body;
   try { body = await req.json(); } catch { return err(400, 'Bad JSON'); }
-  const { listing_id, share_size, buyer_email, buyer_name, buyer_phone, processor_id } = body;
+  const { listing_id, share_size, buyer_email, buyer_name, buyer_phone } = body;
   if (!listing_id || !share_size || !buyer_email) {
     return err(400, 'listing_id, share_size, buyer_email all required');
   }
@@ -75,22 +70,8 @@ async function handler(req) {
     return err(409, 'This farm cannot receive payouts yet. The producer must finish Stripe Connect onboarding (charges and payouts enabled) before a card can be charged.');
   }
 
-  // Do not charge unless a selected processor can actually be paid.
-  let processorStripeAccount = null;
-  if (processor_id) {
-    const prows = await sql`SELECT stripe_account_id, stripe_connect_status FROM processors WHERE id = ${processor_id} LIMIT 1`;
-    const procAcct = prows[0]?.stripe_account_id || null;
-    const procStatus = String(prows[0]?.stripe_connect_status || "").toLowerCase();
-    const procCanBePaid = !!(procAcct && (
-      procStatus === "active" ||
-      procStatus === "charges_enabled" ||
-      procStatus === "payouts_enabled"
-    ));
-    if (!procCanBePaid) {
-      return err(409, "This plant cannot receive payouts yet. Finish Stripe Connect onboarding before a card can be charged.");
-    }
-    processorStripeAccount = procAcct;
-  }
+  // Ranch books the locker after the share sells. Buyer does not pick a plant
+  // at checkout, so we do not require a processor connected account here.
 
   const shares = listing.shares || {};
   const share = shares[share_size];
@@ -110,7 +91,7 @@ async function handler(req) {
 
   const user = await currentUser(req);
   const buyerId = user?.id || null;
-  const totalEstimate = (depositCents + 22500) / 100; // deposit + processing only
+  const totalEstimate = depositCents / 100;
 
   // Stripe transfer_group anchors all subsequent Connect transfers
   // (farmer payout, processor payout, platform fee retention) to this reservation.
@@ -124,7 +105,7 @@ async function handler(req) {
       stripe_transfer_group
     ) VALUES (
       ${listing_id}, ${buyerId}, ${buyer_email}, ${buyer_name || null}, ${buyer_phone || null},
-      ${share_size}, ${processor_id || null}, 'pending', ${totalEstimate}, ${depositCents / 100},
+      ${share_size}, ${null}, 'pending', ${totalEstimate}, ${depositCents / 100},
       ${transferGroup}
     )
     RETURNING id`;
@@ -149,98 +130,7 @@ async function handler(req) {
     if (buyerId && farmId) await autoFollowFarm(buyerId, farmId);
   } catch (_) { /* social best-effort */ }
 
-  // ─── Auto-book the processor on first reservation ────────────
-  // Decision Log #11: first purchaser locks the processor for everyone.
-  // The booking row is what makes /processor's queue light up + gives the
-  // farmer a 6-digit check-in code on /booking-confirmation.
-  // Idempotent — won't create a duplicate if a booking already exists.
-  if (processor_id) {
-    try {
-      const existingBooking = await sql`
-        SELECT id FROM bookings
-        WHERE listing_id = ${listing_id} AND processor_id = ${processor_id}
-          AND status NOT IN ('cancelled','rejected')
-        LIMIT 1`;
-
-      if (!existingBooking[0]) {
-        // Compute deposit (Trello "For Myke" decision still pending — using $100/10%/cap-300 default).
-        const procRows = await sql`SELECT slug, name, owner_id, per_lb_fees FROM processors WHERE id = ${processor_id} LIMIT 1`;
-        const procPerLb = Number(procRows[0]?.per_lb_fees?.processing) || 1.25;
-        const tenPctOfProcessing = Math.round(hangingWeight * procPerLb * 0.10);
-        const depAmount = Math.min(300, Math.max(100, tenPctOfProcessing));
-
-        const bRows = await sql`
-          INSERT INTO bookings (listing_id, farm_id, processor_id, drop_off_date)
-          VALUES (${listing_id}, ${listing.farm_id_full || listing.farm_id}, ${processor_id}, ${listing.expected_finish_date})
-          RETURNING id`;
-        const bookingId = bRows[0].id;
-
-        await sql`
-          INSERT INTO farmer_deposits (booking_id, farm_id, amount, status)
-          VALUES (${bookingId}, ${listing.farm_id_full || listing.farm_id}, ${depAmount}, 'held')`;
-
-        // Generate a unique 6-digit code (small retry loop)
-        let code = null;
-        for (let i = 0; i < 30; i++) {
-          const candidate = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
-          const taken = await sql`SELECT 1 FROM checkin_codes WHERE code = ${candidate} LIMIT 1`;
-          if (!taken[0]) { code = candidate; break; }
-        }
-        if (code) await sql`INSERT INTO checkin_codes (code, booking_id) VALUES (${code}, ${bookingId})`;
-
-        // F2 + P1 lifecycle emails — best-effort.
-        try {
-          const { sendLifecycleEmail } = await import('./_lib/email.js');
-
-          // F2 to the farmer (origin owner). Need owner email + booking link.
-          const farmerRow = await sql`
-            SELECT u.email AS farmer_email, u.name AS farmer_name
-            FROM farms f JOIN users u ON u.id = f.owner_id
-            WHERE f.id = ${listing.farm_id_full || listing.farm_id} LIMIT 1`;
-          if (farmerRow[0]?.farmer_email) {
-            const fractionPretty = share_size === 'whole' ? 'whole animal'
-              : share_size === 'half' ? 'half share'
-              : share_size === 'quarter' ? 'quarter share' : 'eighth share';
-            const animalLabelShort = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species}`;
-            await sendLifecycleEmail('F2.first_sale_pick_processor', {
-              to: farmerRow[0].farmer_email,
-              farmer_name: farmerRow[0].farmer_name,
-              farm_id: listing.farm_id_full || listing.farm_id,
-              listing_id,
-              animal_label: animalLabelShort,
-              fraction_pretty: fractionPretty,
-              buyer_first: (buyer_name || buyer_email).split(/\s|@/)[0] || 'A buyer',
-              dedupKey: `F2::${listing_id}`,
-            });
-          }
-
-          // P1 to the processor (plant owner)
-          if (procRows[0]) {
-            const procOwner = await sql`SELECT email, name FROM users WHERE id = ${procRows[0].owner_id} LIMIT 1`;
-            if (procOwner[0]?.email) {
-              const animalLabelShort = `${listing.number ? listing.number + ' · ' : ''}${listing.breed || listing.species}`;
-              await sendLifecycleEmail('P1.new_booking', {
-                to: procOwner[0].email,
-                processor_id,
-                processor_contact: procOwner[0].name,
-                farm_name: listing.farm_name,
-                animal_label: animalLabelShort,
-                drop_off_date: listing.expected_finish_date,
-                species: listing.species,
-                estimated_hw_lbs: listing.estimated_hanging_weight,
-                share_count: 1, // First reservation
-                dedupKey: `P1::${bookingId}`,
-              });
-            }
-          }
-        } catch (emailErr) { console.error('F2/P1 send failed:', emailErr); }
-      }
-    } catch (bookingErr) {
-      // Don't fail the checkout if booking creation hiccups — the buyer's
-      // money path is the priority. Log and move on.
-      console.error('Auto-book on checkout failed (non-fatal):', bookingErr.message);
-    }
-  }
+  // Ranch books the locker from /farmer after shares sell.
 
   // 2. Create Stripe Checkout Session
   // Share inventory was already decremented above. If Stripe fails, restore it
@@ -304,8 +194,6 @@ async function handler(req) {
             product: PRICING.DEPOSIT_PRODUCT_ID,
           },
         },
-        { quantity: 1, price: PRICING.PROCESSING_PRICE_ID },
-        // No third Stripe line. Deposit + processing only.
       ],
       metadata: {
         reservation_id: reservationId,
@@ -319,16 +207,14 @@ async function handler(req) {
         buyer_user_id: buyerId || '',
         referral_credit_cents: String(appliedCreditCents),
         farm_stripe_account_id: listing.farm_stripe_account_id || '',
-        processor_stripe_account_id: processorStripeAccount || '',
       },
       payment_intent_data: {
-        description: `${shareLabel} · ${animalLabel} (deposit + processing)`,
+        description: `${shareLabel} · ${animalLabel} (deposit)`,
         metadata: {
           reservation_id: reservationId,
           listing_id,
           share_size,
           farm_stripe_account_id: listing.farm_stripe_account_id || '',
-          processor_stripe_account_id: processorStripeAccount || '',
         },
         statement_descriptor_suffix: 'PO RESERVE',
         // transfer_group lets us issue Stripe Transfers from the platform balance

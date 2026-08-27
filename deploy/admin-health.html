@@ -211,6 +211,16 @@
         <p class="sub">Account ${escapeHtml(s.account_id || '')} · ${s.country || ''} · charges ${s.charges_enabled ? 'enabled' : 'disabled'} · payouts ${s.payouts_enabled ? 'enabled' : 'disabled'}</p>
 
         <div class="h-row">
+          ${dot(s.connect_enabled === false ? 'fail' : 'ok')}
+          <div class="body">
+            <div class="key">Stripe Connect</div>
+            <div class="meta">${s.connect_enabled === false
+              ? `${escapeHtml(s.connect_reason || 'Connect is not enabled on this platform account.')} Enable it at <a href="https://dashboard.stripe.com/connect" target="_blank" rel="noopener">dashboard.stripe.com/connect</a> before producers can onboard.`
+              : 'Platform can create Express connected accounts for farms and processors.'}</div>
+          </div>
+        </div>
+
+        <div class="h-row">
           ${dot('ok')}
           <div class="body">
             <div class="key">Balance</div>
@@ -322,6 +332,7 @@
         if (data.summary.required_env_missing.length) blockers.push(`${data.summary.required_env_missing.length} env var${data.summary.required_env_missing.length === 1 ? '' : 's'} missing`);
         if (data.summary.tables_missing.length) blockers.push(`${data.summary.tables_missing.length} table${data.summary.tables_missing.length === 1 ? '' : 's'} not migrated`);
         if (!data.summary.stripe_connected) blockers.push('Stripe not connected');
+        if (data.summary.stripe_connect_enabled === false) blockers.push('Stripe Connect not enabled on the platform account');
         if (!data.summary.resend_connected) blockers.push('Resend not connected');
         if (data.summary.stripe_webhook_events_missing?.length) blockers.push(`${data.summary.stripe_webhook_events_missing.length} Stripe webhook event${data.summary.stripe_webhook_events_missing.length === 1 ? '' : 's'} not subscribed`);
         lead.textContent = blockers.length ? 'Blocking: ' + blockers.join(' · ') : 'Almost there.';

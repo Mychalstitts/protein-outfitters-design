@@ -119,8 +119,24 @@ async function checkStripe() {
       }
     } catch (e) { /* webhook listing may require restricted key with webhook scopes — degrade gracefully */ }
 
+    let connectEnabled = true;
+    let connectReason = null;
+    try {
+      await withTimeout(stripe.accounts.list({ limit: 1 }), 4000, 'stripe.accounts.list');
+    } catch (e) {
+      const msg = e?.message || String(e);
+      // Only the Connect-signup error is a hard no. Restricted keys / timeouts
+      // must not flip this — we would otherwise false-alarm the health page.
+      if (/signed up for Connect/i.test(msg) || /dashboard\.stripe\.com\/connect/i.test(msg)) {
+        connectEnabled = false;
+        connectReason = 'Platform account has not signed up for Stripe Connect.';
+      }
+    }
+
     return {
       connected: true,
+      connect_enabled: connectEnabled,
+      connect_reason: connectReason,
       account_id: account.id,
       country: account.country,
       charges_enabled: account.charges_enabled,
@@ -230,6 +246,7 @@ async function handler(req) {
       optional_env_missing: optionalMissing.map(e => e.key),
       tables_missing: tablesMissing.map(t => t.table),
       stripe_connected: stripe.connected,
+      stripe_connect_enabled: stripe.connected ? stripe.connect_enabled !== false : false,
       stripe_mode: stripe.mode || null,
       stripe_webhook_events_missing: stripe.webhook_events_missing || [],
       resend_connected: resend.connected,
