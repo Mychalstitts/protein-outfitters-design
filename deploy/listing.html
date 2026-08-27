@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
 <title>Listing · Protein Outfitters</title>
-<meta name="description" content="Reserve a share of a real, named animal from a verified U.S. farm. Price is per pound hanging weight. Inspected plant. Three taps." />
+<meta name="description" content="Reserve a real, named animal from a verified U.S. farm. Small deposit today. Choose your cuts. Pick up at a local butcher." />
 <meta property="og:title" content="Listing · Protein Outfitters" />
 <meta property="og:description" content="Reserve a share of a real, named animal from a verified producer." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
@@ -172,7 +172,7 @@
     </div>
     <div class="po-nav-actions">
       <a href="/account" class="signin">Sign in</a>
-      <button id="lgNavReserve" data-open-sheet disabled style="opacity:.55;cursor:wait">Reserve</button>
+      <button type="button" id="lgNavReserve" data-open-sheet disabled style="opacity:.55;cursor:wait">Hold my place</button>
     </div>
   </nav>
 </div>
@@ -210,8 +210,8 @@
       </section>
 
       <section class="lg-section">
-        <h2>Pick your share</h2>
-        <p class="lead" style="margin-bottom:16px;">Price is per pound hanging weight. Take-home is usually about two-thirds of that. Deposit today; processing and any extra fees show before you pay.</p>
+        <h2>How much do you want?</h2>
+        <p class="lead" style="margin-bottom:16px;">A quarter fills a fridge freezer. A half is a small chest freezer. The whole animal is for a household that cooks a lot — or to split with friends. Prices include the farm and the butcher. You’ll take home about two-thirds of the harvest weight as steaks, roasts, and burger.</p>
         <div class="share-row" id="lgShareRow"></div>
         <div id="lgIncluded"></div>
       </section>
@@ -228,14 +228,14 @@
       <div class="book-card" id="lgBookCard">
         <div class="book-price">
           <span class="num" id="lgFromPrice">—</span>
-          <span class="unit" id="lgFromUnit">/lb hanging</span>
+          <span class="unit" id="lgFromUnit">/lb · farm + butcher</span>
         </div>
-        <p class="book-meta" id="lgFromMeta">Deposit today · balance at pickup</p>
-        <button class="btn-xl btn-xl--dark js-reserve" data-open-sheet id="lgBookBtn" style="width:100%;justify-content:center;">Reserve →</button>
-        <p class="book-note">You won’t be charged the full amount until harvest. If the animal does not pass inspection, we refund what you paid.</p>
+        <p class="book-meta" id="lgFromMeta">Small deposit today · rest at pickup</p>
+        <button class="btn-xl btn-xl--dark js-reserve" data-open-sheet id="lgBookBtn" style="width:100%;justify-content:center;">Hold my place →</button>
+        <p class="book-note">You won’t pay for the whole animal today. If it doesn’t pass inspection, we refund what you paid.</p>
         <ul class="book-trust">
-          <li>Inspected plant (USDA, state, or equal-to)</li>
-          <li>Named animal · named farm</li>
+          <li>Cut at an inspected butcher</li>
+          <li>This animal has a name. So does the farm.</li>
           
         </ul>
       </div>
@@ -245,7 +245,10 @@
         <p class="where" id="lgFarmLoc">—</p>
         <div class="host-row"><span>Practices</span><span id="lgFarmPractices">—</span></div>
         <div class="host-row"><span>Harvest</span><span id="lgHarvest">—</span></div>
-        <a id="lgFarmLink" href="/producers">View farm profile →</a>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center;">
+          <button type="button" class="lg-chip-btn" id="lgFollowFarm">Follow this ranch</button>
+          <a id="lgFarmLink" href="/producers">View farm profile →</a>
+        </div>
       </div>
     </aside>
   </div>
@@ -254,9 +257,9 @@
 <div class="lg-mobile-bar" id="lgMobileBar" hidden>
   <div>
     <div class="num" id="lgMobilePrice">—</div>
-    <div class="meta" id="lgMobileMeta">hanging weight · deposit today</div>
+    <div class="meta" id="lgMobileMeta">farm + butcher · deposit today</div>
   </div>
-  <button type="button" class="btn-xl btn-xl--dark js-reserve" data-open-sheet id="lgMobileReserve">Reserve →</button>
+  <button type="button" class="btn-xl btn-xl--dark js-reserve" data-open-sheet id="lgMobileReserve">Hold my place →</button>
 </div>
 
 <div id="po-shell-host"></div>
@@ -274,7 +277,7 @@
   if (!id) {
     root.innerHTML = `<div class="lg-empty">
       <h1>Pick an animal to view</h1>
-      <p>Listings open from Browse. Choose a share when you’re ready — deposit today, cuts later.</p>
+      <p>Open Browse, tap an animal, then choose how much you want. A small deposit holds your place.</p>
       <a class="btn-xl btn-xl--dark" href="/discover" style="text-decoration:none;">Browse animals →</a>
     </div>`;
     return;
@@ -321,8 +324,21 @@
   document.getElementById('lgH1').textContent =
     `${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}${l.sex ? ' ' + l.sex : ''} · ${l.farm_name || 'Independent farm'}`;
   const sub = [];
-  if (l.estimated_hanging_weight) sub.push(`${l.estimated_hanging_weight} lb hanging weight`);
-  if (l.expected_finish_date) sub.push(`harvest ${new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}`);
+  if (l.estimated_hanging_weight) sub.push(`${l.estimated_hanging_weight} lb at harvest`);
+  const harvestRange = (function () {
+    const fmt = iso => {
+      if (!iso) return null;
+      const s = String(iso);
+      const d = new Date(/T/.test(s) ? s : s + 'T12:00:00');
+      return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+    const a = fmt(l.harvest_window_start || l.expected_finish_date);
+    const b = fmt(l.harvest_window_end);
+    let core = (a && b && a !== b) ? (a + ' – ' + b) : a;
+    if (core && (l.after_thirty_months || l.otm_price_pending)) core += ' · after 30 months';
+    return core;
+  })();
+  if (harvestRange) sub.push('harvest ' + harvestRange);
   if (l.farm_city) sub.push(`${l.farm_city}, ${l.farm_state}`);
   if (practiceLabel) sub.push(practiceLabel);
   document.getElementById('lgSub').textContent = sub.join(' · ');
@@ -331,16 +347,27 @@
   const allIn = (farmerRate, shareKey) => window.PO_PRICING ? window.PO_PRICING.allInPerLbHW(farmerRate, shareKey, HW) : farmerRate;
   const sharesArr = [];
   if (l.shares?.quarter && l.shares.quarter.available > 0)
-    sharesArr.push({ key: 'q', label: 'Quarter share', glyph: '¼', sub: '~110 lb cuts · fits a 7 cu ft freezer', farmerRate: Number(l.shares.quarter.price), price: allIn(Number(l.shares.quarter.price), 'quarter') });
+    sharesArr.push({ key: 'q', label: 'A quarter', glyph: '¼', sub: '~110 lb of cuts · fits a fridge freezer', farmerRate: Number(l.shares.quarter.price), price: allIn(Number(l.shares.quarter.price), 'quarter') });
   if (l.shares?.half && l.shares.half.available > 0)
-    sharesArr.push({ key: 'h', label: 'Half share', glyph: '½', sub: '~220 lb cuts · fits a 14 cu ft freezer', farmerRate: Number(l.shares.half.price), price: allIn(Number(l.shares.half.price), 'half') });
+    sharesArr.push({ key: 'h', label: 'A half', glyph: '½', sub: '~220 lb of cuts · fits a small chest freezer', farmerRate: Number(l.shares.half.price), price: allIn(Number(l.shares.half.price), 'half') });
   if (l.shares?.whole && l.shares.whole.available > 0)
-    sharesArr.push({ key: 'w', label: 'Whole animal', glyph: '1', sub: '~440 lb cuts · for serious freezers', farmerRate: Number(l.shares.whole.price), price: allIn(Number(l.shares.whole.price), 'whole') });
+    sharesArr.push({ key: 'w', label: 'The whole animal', glyph: '1', sub: '~440 lb of cuts · big freezer, or split with friends', farmerRate: Number(l.shares.whole.price), price: allIn(Number(l.shares.whole.price), 'whole') });
 
-  if (sharesArr.length) {
+  const otmPending = !!(l.after_thirty_months || l.otm_price_pending);
+  if (otmPending) {
+    document.getElementById('lgFromPrice').textContent = 'Pending';
+    document.getElementById('lgFromUnit').textContent = 'OTM / market number';
+    document.getElementById('lgFromMeta').textContent = 'Hanging price waits. Bone-in is off.';
+    const bar = document.getElementById('lgMobileBar');
+    if (bar) {
+      bar.hidden = false;
+      document.getElementById('lgMobilePrice').textContent = 'Price pending';
+      document.getElementById('lgMobileMeta').textContent = 'after 30 months · OTM / market';
+    }
+  } else if (sharesArr.length) {
     const cheapest = [...sharesArr].sort((a, b) => a.price - b.price)[0];
     document.getElementById('lgFromPrice').textContent = '$' + cheapest.price.toFixed(2);
-    document.getElementById('lgFromMeta').textContent = cheapest.label + ' · everything included · deposit today';
+    document.getElementById('lgFromMeta').textContent = cheapest.label + ' · farm + butcher · deposit today';
     const bar = document.getElementById('lgMobileBar');
     if (bar) {
       bar.hidden = false;
@@ -358,8 +385,8 @@
   const specs = [];
   if (l.breed) specs.push(['Breed', l.breed + (l.subbreed ? ` (${l.subbreed})` : '')]);
   if (l.sex_detail || l.sex) specs.push(['Sex', cap(l.sex_detail || l.sex)]);
-  if (l.estimated_hanging_weight) specs.push(['Hanging weight', `${l.estimated_hanging_weight} lb`]);
-  if (l.estimated_hanging_weight) specs.push(['Cuts after process', `~${Math.round(l.estimated_hanging_weight * 0.65)} lb`]);
+  if (l.estimated_hanging_weight) specs.push(['Weight at harvest', `${l.estimated_hanging_weight} lb`]);
+  if (l.estimated_hanging_weight) specs.push(['What goes in your freezer', `~${Math.round(l.estimated_hanging_weight * 0.65)} lb`]);
   if (l.feed_type) specs.push(['Feed (life)', l.feed_type]);
   if (l.finish_feed) specs.push(['Finish feed', l.finish_feed]);
   if (l.antibiotics === 'Never') specs.push(['Antibiotics', 'Never']);
@@ -368,24 +395,27 @@
   else if (l.hormones) specs.push(['Hormones', l.hormones]);
   if (l.practice && l.practice.length) specs.push(['Practice', l.practice.map(p => cap(p.replace('-', ' '))).join(', ')]);
   if (l.certs && l.certs.length) specs.push(['Certifications', l.certs.map(c => String(c).toUpperCase()).join(', ')]);
-  if (l.expected_finish_date) specs.push(['Harvest date', new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })]);
+  if (harvestRange) specs.push(['Harvest window', harvestRange]);
+  if (l.after_thirty_months || l.otm_price_pending) {
+    specs.push(['After 30 months', 'Bone-in is off. Hanging price waits for an OTM/market number.']);
+  }
   document.getElementById('lgSpecs').innerHTML = specs.length
     ? specs.map(([k, v]) => `<div class="spec"><p class="spec-label">${k}</p><p class="spec-value">${v}</p></div>`).join('')
     : '<p class="lead">Specs will appear as the farmer completes the listing.</p>';
 
   const aboutEl = document.getElementById('lgAbout');
   if (l.description) aboutEl.innerHTML = `<p class="lead">${l.description}</p>`;
-  else aboutEl.innerHTML = `<p class="lead">A named animal from ${l.farm_name || 'a verified farm'}. Reserve a share, set your cut sheet, pick up at an inspected plant.</p>`;
+    else aboutEl.innerHTML = `<p class="lead">A real animal from ${l.farm_name || 'a verified farm'}. You reserve a portion, tell the butcher how you like it cut, and pick it up when it's ready.</p>`;
   if (l.farm_bio) aboutEl.innerHTML += `<p class="lead" style="margin-top:14px;">${l.farm_bio}</p>`;
 
   const shareEls = sharesArr.map(s =>
     `<button type="button" class="share-card js-reserve" data-open-sheet data-share="${s.key}" data-price="${s.price}">
       <span class="glyph">${s.glyph}</span>
       <span class="text"><p class="t">${s.label}</p><p class="s">${s.sub}</p></span>
-      <span class="p">$${s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1.2">/lb hanging</span></span>
+      <span class="p">${otmPending ? 'Pending' : '$' + s.price.toFixed(2)}<span style="font-size:11px;font-weight:600;opacity:.65;display:block;line-height:1.2">${otmPending ? 'OTM / market number' : '/lb · farm + butcher'}</span></span>
     </button>`);
   if (!sharesArr.length) {
-    shareEls.push('<div style="padding:28px;text-align:center;background:#fff;border-radius:14px;border:1px solid rgba(6,27,14,.08);font:600 14px/1.5 Inter;color:var(--ink-2)">All shares are reserved. <a href="/discover" style="color:var(--brand);font-weight:800;">Browse more →</a></div>');
+    shareEls.push('<div style="padding:28px;text-align:center;background:#fff;border-radius:14px;border:1px solid rgba(6,27,14,.08);font:600 14px/1.5 Inter;color:var(--ink-2)">This one is fully reserved. <a href="/discover" style="color:var(--brand);font-weight:800;">See other animals →</a></div>');
   }
   document.getElementById('lgShareRow').innerHTML = shareEls.join('');
 
@@ -396,11 +426,11 @@
       <details style="margin-top:16px;padding:14px 16px;background:rgba(125,160,93,.08);border:1px solid rgba(125,160,93,.2);border-radius:14px;font:500 13px/1.5 Inter;color:var(--ink-2)">
         <summary style="cursor:pointer;font-weight:700;color:var(--ink);">What’s in this price</summary>
         <div style="margin-top:12px;display:grid;gap:6px;font-size:12.5px;">
-          <div style="display:flex;justify-content:space-between;"><span>Farmer rate</span><span>$${bd.farmer.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Processor — cut, wrap, vacuum-seal</span><span>$${bd.processing.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;"><span>Kill fee (your share)</span><span>$${(bd.killFee.share / bd.shareLbsHW).toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>The farm</span><span>$${bd.farmer.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>The butcher — cut, wrap, vacuum-seal</span><span>$${bd.processing.perLb.toFixed(2)}/lb</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Harvest fee (your portion)</span><span>$${(bd.killFee.share / bd.shareLbsHW).toFixed(2)}/lb</span></div>
           <div style="display:flex;justify-content:space-between;"><span>Platform fee</span><span>$${bd.platform.perLb.toFixed(2)}/lb</span></div>
-          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.12);padding-top:6px;font-weight:800;color:var(--ink);"><span>Listed price</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb HW</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(6,27,14,.12);padding-top:6px;font-weight:800;color:var(--ink);"><span>What you see listed</span><span>$${bd.allInPerLbHW.toFixed(2)}/lb</span></div>
         </div>
       </details>`;
   }
@@ -410,11 +440,35 @@
   document.getElementById('lgFarmPractices').textContent = (l.farm_practices && l.farm_practices.length)
     ? l.farm_practices.map(p => cap(String(p).replace('-', ' '))).join(', ')
     : (l.practice && l.practice.length ? l.practice.map(p => cap(String(p).replace('-', ' '))).join(', ') : '—');
-  document.getElementById('lgHarvest').textContent = l.expected_finish_date
-    ? new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'TBD';
+  document.getElementById('lgHarvest').textContent = harvestRange || 'TBD';
   const lgFarmLink = document.getElementById('lgFarmLink');
   if (lgFarmLink) lgFarmLink.href = l.farm_slug ? '/farm/' + l.farm_slug : '/producers';
+  const followBtn = document.getElementById('lgFollowFarm');
+  const farmIdOk = l.farm_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(l.farm_id);
+  if (followBtn && farmIdOk && window.PO_API) {
+    const paintFollow = (st) => {
+      followBtn.textContent = st.following ? 'Following ✓' : 'Follow this ranch';
+      followBtn.dataset.following = st.following ? '1' : '';
+    };
+    window.PO_API.farmFollowState(l.farm_id).then(paintFollow).catch(() => {});
+    followBtn.addEventListener('click', async () => {
+      try {
+        const me = await window.PO_API.me();
+        if (!me.user) {
+          window.PO_API.openAuth('Sign in to follow this ranch', 'buyer');
+          return;
+        }
+        const st = followBtn.dataset.following === '1'
+          ? await window.PO_API.unfollowFarm(l.farm_id)
+          : await window.PO_API.followFarm(l.farm_id);
+        paintFollow(st);
+      } catch (e) {
+        if (e.status === 401) window.PO_API.openAuth('Sign in to follow this ranch', 'buyer');
+      }
+    });
+  } else if (followBtn) {
+    followBtn.hidden = true;
+  }
 
   if (Number(l.farm_review_count || 0) > 0) {
     const r = Number(l.farm_avg_rating || 0);
@@ -456,9 +510,9 @@
     if (saved.has(l.id)) document.getElementById('lgSaveBtn').textContent = 'Saved ✓';
   } catch {}
 
-  const allInQ = sharesArr.find(s => s.key === 'q')?.price || 0;
-  const allInH = sharesArr.find(s => s.key === 'h')?.price || 0;
-  const allInW = sharesArr.find(s => s.key === 'w')?.price || 0;
+  const allInQ = otmPending ? 0 : (sharesArr.find(s => s.key === 'q')?.price || 0);
+  const allInH = otmPending ? 0 : (sharesArr.find(s => s.key === 'h')?.price || 0);
+  const allInW = otmPending ? 0 : (sharesArr.find(s => s.key === 'w')?.price || 0);
   const animalName = `${l.number || ''} · ${l.breed || cap(l.species)}`.replace(/^\s*·\s*/, '');
   const producerLabel = `${l.farm_name || ''} · ${l.farm_city || ''}, ${l.farm_state || ''}`.replace(/\s·\s,$/, '');
 

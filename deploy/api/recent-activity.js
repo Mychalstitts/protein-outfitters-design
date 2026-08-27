@@ -40,14 +40,14 @@ async function handler(req) {
 
   try {
     // Recent reservations — share size + buyer city + animal label
-    const reservations = await sql`
+    const reservations = (!layer || layer === 'reservations' || layer === 'all') ? await sql`
       SELECT
         r.id,
         r.share_size,
         r.created_at,
         u.name AS buyer_name,
         u.zip AS buyer_zip,
-        l.number, l.breed, l.species,
+        l.id AS listing_id, l.number, l.breed, l.species,
         f.name AS farm_name, f.city AS farm_city, f.state AS farm_state, f.slug AS farm_slug
       FROM reservations r
       JOIN listings l ON l.id = r.listing_id
@@ -56,16 +56,16 @@ async function handler(req) {
       WHERE r.created_at > NOW() - INTERVAL '7 days'
         AND r.status NOT IN ('cancelled','refunded')
       ORDER BY r.created_at DESC
-      LIMIT 12`;
+      LIMIT 12` : [];
 
     for (const r of reservations) {
-      const share = ({whole:'a whole animal', half:'a half share', quarter:'a quarter share', eighth:'an eighth share'})[r.share_size] || 'a share';
+      const share = ({whole:'the whole animal', half:'a half', quarter:'a quarter', eighth:'an eighth'})[r.share_size] || 'a portion';
       const animal = r.breed || r.species || 'animal';
       out.events.push({
         kind: 'reservation',
         text: `${maskName(r.buyer_name)} reserved ${share} of ${animal} from ${r.farm_name}`,
         time: fuzzyTime(r.created_at),
-        link: r.farm_slug ? `/farm/${r.farm_slug}` : null,
+        link: r.listing_id ? `/listing?id=${r.listing_id}` : (r.farm_slug ? `/farm/${r.farm_slug}` : null),
         emoji: '🥩',
         ts: r.created_at,
       });

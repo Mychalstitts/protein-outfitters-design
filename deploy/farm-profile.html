@@ -432,18 +432,27 @@
         const practiceLabel = (l.practice && l.practice[0])
           ? cap(String(l.practice[0]).replace(/-/g, ' '))
           : '';
-        const harvest = l.expected_finish_date
-          ? new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric' })
-          : 'TBD';
+        const fmtH = iso => {
+          if (!iso) return null;
+          const s = String(iso);
+          const d = new Date(/T/.test(s) ? s : s + 'T12:00:00');
+          return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+        };
+        const hs = fmtH(l.harvest_window_start || l.expected_finish_date);
+        const he = fmtH(l.harvest_window_end);
+        let harvest = (hs && he && hs !== he) ? (hs + ' – ' + he) : (hs || 'TBD');
+        if (l.after_thirty_months || l.otm_price_pending) harvest += ' · after 30 mo';
         const name = `${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}`;
         return `<button type="button" class="product" data-listing="${l.id}">
           <div class="product-photo" style="background-image:url('${safeUrl(photo)}')"><span class="product-tag">Reserving</span></div>
           <div class="product-meta">
             <span class="product-eyebrow">${cap(l.species)}${practiceLabel ? ' · ' + practiceLabel : ''}</span>
             <h3 class="product-name">${name.replace(/[<>]/g, '')}</h3>
-            <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${harvest}</p>
+            <p class="product-detail">Harvest ${harvest}</p>
             <div class="product-foot">
-              <span class="product-price">From <strong>$${Number(allIn).toFixed(2)}</strong><span style="font-weight:600;opacity:.55;font-size:12px">/lb all-in</span></span>
+              <span class="product-price">${(l.after_thirty_months || l.otm_price_pending)
+                ? '<strong>Hanging price pending</strong><span style="font-weight:600;opacity:.55;font-size:12px"> · OTM / market</span>'
+                : `From <strong>$${Number(allIn).toFixed(2)}</strong><span style="font-weight:600;opacity:.55;font-size:12px">/lb · farm + butcher</span>`}</span>
               <span class="product-cta">Reserve →</span>
             </div>
           </div>
@@ -451,7 +460,7 @@
       }).join('');
       grid.querySelectorAll('[data-listing]').forEach((btn) => {
         btn.addEventListener('click', () => {
-          location.href = '/listing?id=' + encodeURIComponent(btn.dataset.listing);
+          location.href = '/listing?id=' + encodeURIComponent(btn.dataset.listing) + '&open_sheet=1';
         });
       });
     }

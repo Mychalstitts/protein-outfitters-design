@@ -80,16 +80,16 @@
   </header>
   <div class="sheet-body">
     <div class="sheet-context"><div class="sheet-context-img" id="sheetContextImg"></div><div class="sheet-context-text"><p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p><p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p></div></div>
-    <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><p style="font-size:13px;color:var(--ink-2);margin:0 0 12px;line-height:1.45;">Price is per pound hanging weight. Deposit locks your place — balance at pickup on actual hanging weight.</p><div class="options" id="shareOptions"></div></section>
-    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Lock it in.</h3>
-      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Deposit today; processing and any extra fees show before you pay. Meat balance settles at pickup on actual hanging weight.</p>
-      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
-      <p id="sheetCheckoutNote" style="font:500 12px/1.45 'Inter',system-ui,sans-serif;color:var(--ink-2);margin:12px 0 0;">You'll finish on Stripe Checkout — card details never touch our servers.</p>
+    <section class="sheet-step" data-step="1"><h3 class="sheet-q">How much do you want?</h3><p style="font-size:13px;color:var(--ink-2);margin:0 0 12px;line-height:1.45;">A quarter fills a fridge freezer. A half is a small chest freezer. The whole animal is easy to split with friends. A small deposit holds your place; the rest is due when you pick up.</p><div class="options" id="shareOptions"></div></section>
+    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Hold your place.</h3>
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Today you pay a deposit plus the butcher. The rest is due at pickup, based on the actual harvest weight. You will not pay for the whole animal today.</p>
+      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Butcher — cut and wrap</span><span class="v">$225.00</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">You'll owe about this at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
+      <p id="sheetCheckoutNote" style="font:500 12px/1.45 'Inter',system-ui,sans-serif;color:var(--ink-2);margin:12px 0 0;">Next screen is Stripe Checkout — your card never touches our servers.</p>
       <div class="pay-stack"><button class="btn-pay btn-pay--card" id="payCard" type="button" style="order:-1">Continue to secure checkout →</button><button class="btn-pay btn-pay--apple" id="payApple" type="button">Express pay (if available)</button></div>
       <ul class="sheet-trust" style="list-style:none;padding:14px 0 0;margin:12px 0 0;border-top:1px solid rgba(6,27,14,.08);display:grid;gap:8px;font:600 12px/1.35 'Inter',system-ui,sans-serif;color:var(--ink-2);">
-        <li>✓ Deposit holds your share · balance at pickup</li>
-        <li>✓ If the animal does not pass inspection, we refund what you paid</li>
-        <li>✓ After pay: build your cut sheet on your phone</li>
+        <li>✓ Deposit holds your place · rest is due at pickup</li>
+        <li>✓ If the animal does not pass inspection, we refund you</li>
+        <li>✓ Next: tell the butcher how you want it cut — on your phone</li>
       </ul>
     </section>
     <section class="sheet-step" data-step="3" hidden><div class="confirm"><div class="confirm-mark">✓</div><h3 id="confirmTitle">Reserved.</h3><p id="confirmBody">We just sent your reservation details and your cut sheet builder.</p></div></section>
@@ -480,16 +480,16 @@
     function buildShareOptions(preselectKey) {
       const a = state.animal; if (!a) return;
       const opts = [
-        { key: 'q', glyph: '¼', title: 'Quarter share', sub: '~110 lb of cuts · fits a 7 cu ft freezer', price: a.priceQ },
-        { key: 'h', glyph: '½', title: 'Half share', sub: '~220 lb of cuts · fits a 14 cu ft freezer', price: a.priceH },
-        { key: 'w', glyph: '1', title: 'Whole animal', sub: '~440 lb of cuts · for serious operators', price: a.priceW }
+        { key: 'q', glyph: '¼', title: 'A quarter', sub: '~110 lb of cuts · fits a fridge freezer', price: a.priceQ },
+        { key: 'h', glyph: '½', title: 'A half', sub: '~220 lb of cuts · fits a small chest freezer', price: a.priceH },
+        { key: 'w', glyph: '1', title: 'The whole animal', sub: '~440 lb of cuts · big freezer, or split with friends', price: a.priceW }
       ].filter(o => o.price > 0);
       if (!opts.length) {
-        shareWrap.innerHTML = '<div style="padding:16px;font:500 13.5px/1.45 var(--ff-sans);opacity:.75;">No share sizes priced yet on this animal. <a href="/discover" style="font-weight:700;color:inherit;">Browse other animals →</a></div>';
+        shareWrap.innerHTML = '<div style="padding:16px;font:500 13.5px/1.45 var(--ff-sans);opacity:.75;">This animal is not ready to reserve yet. <a href="/discover" style="font-weight:700;color:inherit;">See other animals →</a></div>';
         nextBtn.disabled = true;
         return;
       }
-      shareWrap.innerHTML = opts.map(o => `<button type="button" class="option" data-share="${o.key}" data-price="${o.price}" aria-pressed="false"><span class="option-glyph">${o.glyph}</span><span class="option-text"><span class="option-title">${o.title}</span><span class="option-sub">${o.sub}</span></span><span class="option-price">${fmt(o.price)}<small style="display:block;font-size:10px;font-weight:600;opacity:.65;margin-top:2px">/lb hanging</small></span></button>`).join('');
+      shareWrap.innerHTML = opts.map(o => `<button type="button" class="option" data-share="${o.key}" data-price="${o.price}" aria-pressed="false"><span class="option-glyph">${o.glyph}</span><span class="option-text"><span class="option-title">${o.title}</span><span class="option-sub">${o.sub}</span></span><span class="option-price">${fmt(o.price)}<small style="display:block;font-size:10px;font-weight:600;opacity:.65;margin-top:2px">/lb · farm + butcher</small></span></button>`).join('');
       shareWrap.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
         shareWrap.querySelectorAll('.option').forEach(b => {
           b.classList.remove('selected');
@@ -569,17 +569,17 @@
         const fees = 225; // processing only; no second charge
         const reserveToday = deposit + fees;
         const shareLabel = state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole';
-        sumShareLabel.textContent = `Deposit (${shareLabel} · 10% of est. meat)`;
+        sumShareLabel.textContent = `Deposit (your ${shareLabel.toLowerCase()} · holds your place)`;
         sumShareVal.textContent = fmt(deposit);
         sumTotalVal.textContent = fmt(reserveToday);
         const pickupEl = document.getElementById('sumPickupVal');
         const pickupLabel = document.getElementById('sumPickupLabel');
         if (pickupEl) pickupEl.textContent = `~${fmt(meatEstimate - deposit)}`;
-        if (pickupLabel) pickupLabel.textContent = `Balance at pickup (~${lbs} lb cuts @ ${fmt(state.share.price)}/lb hanging, less deposit)`;
+        if (pickupLabel) pickupLabel.textContent = `You'll owe about this at pickup (~${lbs} lb of cuts, minus today's deposit)`;
         const note = document.getElementById('sheetCheckoutNote');
         if (note && state.animal) {
-          const animalBit = state.animal.name ? ` for ${state.animal.name}` : '';
-          note.textContent = `Due today locks your ${shareLabel.toLowerCase()} share${animalBit}. You'll finish on Stripe Checkout — card details never touch our servers.`;
+          const animalBit = state.animal.name ? ` of ${state.animal.name}` : '';
+          note.textContent = `Today holds your ${shareLabel.toLowerCase()}${animalBit}. Next screen is Stripe Checkout — your card never touches our servers.`;
         }
       }
     }
@@ -705,7 +705,7 @@
                 }));
               } catch (_) { /* private mode */ }
             }
-            window.PO_API.openAuth('Sign in to reserve your share', 'buyer', { next: returnNext });
+            window.PO_API.openAuth('Sign in to hold your place', 'buyer', { next: returnNext });
             return;
           }
           // Fallback only if the API helper isn't loaded.
