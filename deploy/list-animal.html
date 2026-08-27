@@ -29,23 +29,18 @@
 .wiz-progress .dot.active { background: var(--brand); width: 56px; }
 .wiz-progress .dot.done { background: var(--brand); }
 
-/* Stage that holds the steps with slide animation */
-.wiz-stage { position: relative; min-height: 580px; z-index: 0; pointer-events: none; }
+/* Flow layout so later steps are not stacked on top of Continue */
+.wiz-stage { position: relative; z-index: 0; }
 .wiz-step {
   background: #fff; border-radius: 28px; padding: clamp(28px, 4vw, 48px);
   box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
-  position: absolute; inset: 0; opacity: 0;
-  transform: translateX(16px);
-  transition: transform .55s cubic-bezier(0.28, 0.11, 0.32, 1), opacity .35s ease;
-  pointer-events: none;
-  visibility: hidden;
-  z-index: 0;
+  display: none;
 }
-.wiz-step:not(.active),
-.wiz-step:not(.active) * { pointer-events: none !important; }
-.wiz-step.active { opacity: 1; transform: translateX(0); pointer-events: auto; visibility: visible; z-index: 1; }
-.wiz-step.exit-left { transform: translateX(-20px); opacity: 0; }
-.wiz-step.enter-from-left { transform: translateX(-16px); }
+.wiz-step.active { display: block; }
+.wiz-foot {
+  position: sticky; bottom: 0; z-index: 2;
+  background: #fbf9f5; padding: 16px 0 8px; margin-top: 18px;
+}
 
 .wiz-step h1 {
   margin: 0 0 8px; font-size: clamp(28px, 3.4vw, 40px); font-weight: 700;
@@ -150,7 +145,7 @@
 .review-row .v { color: var(--ink); font-weight: 700; }
 
 /* Foot */
-.wiz-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; position: relative; z-index: 2; pointer-events: auto; }
+.wiz-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; position: sticky; bottom: 0; z-index: 2; pointer-events: auto; background: #fbf9f5; padding: 16px 0 8px; }
 .wiz-back { background: transparent; border: 0; padding: 12px 16px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); border-radius: 999px; transition: color .2s, transform .2s; }
 .wiz-back:disabled { opacity: 0; pointer-events: none; }
 .wiz-back:hover:not(:disabled) { color: var(--ink); transform: translateX(-2px); }
@@ -226,7 +221,7 @@
 <div class="po-nav-wrap">
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
-    <div class="po-nav-links"><a href="/farmer">My ranch</a><a href="/list-animal" class="active">List animal</a><a href="/map">Book a plant</a><a href="/credentials">Credentials</a><a href="/finance">Finance</a></div>
+    <div class="po-nav-links"><a href="/farmer">My ranch</a><a href="/list-animal" class="active">List animal</a><a href="/credentials">Credentials</a><a href="/finance">Money</a></div>
     <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
   </nav>
 </div>
@@ -434,9 +429,11 @@
             <span class="help">Farm city/state come from your ranch profile. This note can go in the description.</span>
           </div>
           <div class="field">
-            <label>Preferred plant (optional)</label>
-            <input id="processor" type="text" placeholder="e.g. buyer chooses · or name a plant you use" />
-            <span class="help">Buyers pick the processor at reserve. Note a preferred plant if you already haul there.</span>
+            <label>Preferred locker (optional)</label>
+            <select id="processor">
+              <option value="">I'll book a locker after shares sell</option>
+            </select>
+            <span class="help" id="processorHelp">You book the locker when the animal sells — buyers do not pick the plant. USDA can sell across state lines. State inspected is usually in-state only. Custom-exempt is not marketplace retail.</span>
           </div>
         </div>
       </section>
@@ -486,7 +483,7 @@
           <button type="button" class="reset-link" id="resetPrices">↺ Use suggested prices</button>
         </div>
 
-        <p class="help" style="margin:-4px 0 18px;">These are share totals. At publish we convert them to hanging $/lb using predicted hanging weight x share fraction.</p>
+        <p class="help" style="margin:-4px 0 18px;">Type what a buyer pays for that share. We turn it into a hanging-weight $/lb using predicted hanging weight × the share (quarter / half / whole).</p>
 
         <div class="field">
           <label>Available shares</label>
@@ -840,37 +837,7 @@
   }
 
   async function promptCreateFarm() {
-    const name = prompt("Looks like you don't have a farm profile yet.\n\nFarm / ranch name:");
-    if (!name || !name.trim()) return;
-    const city = prompt('City (required for the national map):') || '';
-    if (!city.trim()) {
-      alert('City is required so buyers can find you on the map.');
-      return;
-    }
-    const state = (prompt('State (2-letter code, e.g. TX, MT, IA):') || '').trim().toUpperCase().slice(0, 2);
-    if (!/^[A-Z]{2}$/.test(state)) {
-      alert('Enter a valid 2-letter US state code (e.g. TX).');
-      return;
-    }
-    const zip = (prompt('ZIP code (optional but recommended):') || '').trim().slice(0, 12) || null;
-    try {
-      const r = await window.PO_API.createFarm({
-        name: name.trim(),
-        city: city.trim(),
-        state,
-        zip,
-      });
-      // Now retry publish
-      next.disabled = true;
-      next.textContent = 'Publishing…';
-      const result = await publishListing(r.farm.id);
-      showPublished({ ...result, listing: { ...(result?.listing || {}), farm_slug: r.farm.slug } });
-      setStep(6, 'forward');
-    } catch (e) {
-      alert('Could not create farm: ' + e.message);
-      next.disabled = false;
-      next.textContent = 'Publish listing →';
-    }
+    window.location.href = '/farmer#fmClaimSection';
   }
 
   async function publishListing(forcedFarmId) {
@@ -1060,8 +1027,8 @@
     let target = (TARGET_WEIGHT[sp] && TARGET_WEIGHT[sp][S.sex]) || 1180;
     target = Math.round(target * (BREED_WEIGHT_MULT[S.breed] || 1.0));
 
-    const birth = BIRTH_WEIGHT[sp] || 80;
-    const days = Math.round((target - birth) / Math.max(0.05, adg));
+    const birthWeight = BIRTH_WEIGHT[sp] || 80;
+    const days = Math.round((target - birthWeight) / Math.max(0.05, adg));
     const months = (days / 30.44).toFixed(1);
 
     S.liveWeight = target;
@@ -1091,10 +1058,10 @@
     S.afterThirtyMonths = false;
     S.boneInAllowed = true;
     S.otmPricePending = false;
-    const birth = parseISO(S.birthDate);
-    if (birth) {
-      const earliest = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate() + days);
-      const latest = addMonths(birth, 30);
+    const birthDate = parseISO(S.birthDate);
+    if (birthDate) {
+      const earliest = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate() + days);
+      const latest = addMonths(birthDate, 30);
       S.harvestEarliest = earliest;
       S.harvestLatest = latest;
       S.harvestIso = isoLocal(earliest);
@@ -1252,8 +1219,8 @@
     const breedMult = adgT.byBreed[S.breed] || 1.0;
     const adg = +(feedADG * sexMult * breedMult).toFixed(2);
     const t = target(S);
-    const birth = BIRTH_WEIGHT[S.species] || 80;
-    const days = Math.round((t - birth) / Math.max(0.05, adg));
+    const birthWeight = BIRTH_WEIGHT[S.species] || 80;
+    const days = Math.round((t - birthWeight) / Math.max(0.05, adg));
     const take = Math.round(t * 0.37);
     let h = 'soon';
     if (S.birthDate) {
@@ -1291,6 +1258,33 @@
     document.getElementById('publishedBody').textContent = `${S.animalId || 'This animal'} is live on the marketplace. We'll text the moment your first reserve hits.`;
   }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  (async function loadPreferredLockers() {
+    const sel = document.getElementById('processor');
+    if (!sel) return;
+    try {
+      const r = await fetch('/api/processors', { credentials: 'include' });
+      const data = await r.json();
+      const procs = (data.processors || []).filter(p => p.name).slice(0, 80);
+      procs.forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = (window.PO_INSPECTION && window.PO_INSPECTION.optionText(p)) || p.name;
+        opt.dataset.inspection = p.inspection || '';
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', () => {
+        S.processor = sel.value;
+        const insp = sel.selectedOptions[0]?.dataset.inspection;
+        const help = document.getElementById('processorHelp');
+        if (help && window.PO_INSPECTION) {
+          help.textContent = insp
+            ? window.PO_INSPECTION.label(insp) + '. You book this locker when shares sell — buyers do not pick the plant.'
+            : 'You book the locker when the animal sells — buyers do not pick the plant. USDA can sell across state lines. State inspected is usually in-state only. Custom-exempt is not marketplace retail.';
+        }
+      });
+    } catch { /* directory optional */ }
+  })();
 
   // Initial run
   recompute();

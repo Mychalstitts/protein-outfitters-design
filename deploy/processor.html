@@ -205,12 +205,13 @@
           </div>
           <label style="display:grid;gap:6px;font:700 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);">
             Inspection type
-            <select name="inspection" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;">
-              <option value="usda">USDA (federal)</option>
-              <option value="state">State inspected</option>
-              <option value="equal-to">Equal-to (state under federal equal-to)</option>
-              <option value="custom-exempt">Custom-exempt</option>
+            <select name="inspection" id="prInspection" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;">
+              <option value="usda">USDA · can sell across state lines</option>
+              <option value="state">State inspected · in-state sales only</option>
+              <option value="equal-to">Equal-to · treated like federal in that state</option>
+              <option value="custom-exempt">Custom-exempt · not for marketplace retail</option>
             </select>
+            <span id="prInspectionHelp" style="font:500 12px/1.45 'Inter';color:var(--ink-2);">USDA plants can take animals from other states. State inspected usually cannot. Custom-exempt animals are not listed for sale here.</span>
           </label>
           <p id="prClaimStatus" style="margin:0;font:500 13px/1.4 'Inter';color:var(--ink-2);min-height:1.2em;"></p>
           <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
@@ -465,7 +466,7 @@ document.getElementById('prSignInBtn')?.addEventListener('click', () => {
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.1);background:#fbf9f5;">
             <div style="min-width:0;">
               <div style="font:700 14px/1.3 'Inter';color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(p.name || 'Plant').replace(/[<>]/g,'')}</div>
-              <div style="font:500 12px/1.3 'Inter';color:var(--ink-2);margin-top:2px;">${[p.city, p.state].filter(Boolean).join(', ') || 'Location TBD'}${p.inspection ? ' · ' + String(p.inspection).toUpperCase() : ''}</div>
+              <div style="font:500 12px/1.3 'Inter';color:var(--ink-2);margin-top:2px;">${[p.city, p.state].filter(Boolean).join(', ') || 'Location TBD'}${p.inspection ? ' · ' + ((window.PO_INSPECTION && window.PO_INSPECTION.short(p.inspection)) || p.inspection) : ''}</div>
             </div>
             <button type="button" data-claim-id="${p.id}" style="flex-shrink:0;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;padding:10px 16px;font:700 13px/1 'Inter';cursor:pointer;">Claim →</button>
           </div>
@@ -522,6 +523,10 @@ document.getElementById('prSignInBtn')?.addEventListener('click', () => {
       const inspection = String(fd.get('inspection') || 'usda');
       const status = document.getElementById('prClaimStatus');
       const btn = document.getElementById('prClaimBtn');
+      if (inspection === 'custom-exempt') {
+        status.textContent = 'Custom-exempt plants cannot sell marketplace retail. Farmers on this site need USDA, state, or equal-to.';
+        return;
+      }
       if (!name) { status.textContent = 'Plant name is required.'; return; }
       if (!/^[A-Z]{2}$/.test(state)) { status.textContent = 'Enter a 2-letter state code.'; return; }
       btn.disabled = true; btn.textContent = 'Creating…';
@@ -550,7 +555,7 @@ document.getElementById('prSignInBtn')?.addEventListener('click', () => {
 
   const plant = myProcessors[0];
   document.getElementById('prStanding').style.display = '';
-  document.getElementById('prRole').textContent = `${plant.name}${plant.city ? ' · ' + plant.city + (plant.state ? ', ' + plant.state : '') : ''}${plant.inspection ? ' · ' + plant.inspection.toUpperCase() : ''}`;
+  document.getElementById('prRole').textContent = `${plant.name}${plant.city ? ' · ' + plant.city + (plant.state ? ', ' + plant.state : '') : ''}${plant.inspection ? ' · ' + ((window.PO_INSPECTION && window.PO_INSPECTION.label(plant.inspection)) || plant.inspection) : ''}`;
   const certs = (plant.certs || []).slice(0, 3).map(c => c.toUpperCase()).join(' · ');
   document.getElementById('prName').textContent = certs || 'Verified processor';
   if (plant.avatar_url) {

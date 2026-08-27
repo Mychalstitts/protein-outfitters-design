@@ -55,6 +55,32 @@
   window.PO_PRICING.fmtPerLb = (n) => '$' + Number(n || 0).toFixed(2) + '/lb';
   window.PO_PRICING.fmt = (n) => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  // Inspection labels — USDA vs state changes who the farmer can sell to.
+  // Do not invent legal advice; this is the marketplace rule of thumb.
+  window.PO_INSPECTION = {
+    short(code) {
+      const k = String(code || '').toLowerCase();
+      if (k === 'usda') return 'USDA';
+      if (k === 'state') return 'State inspected';
+      if (k === 'equal-to') return 'Equal-to';
+      if (k === 'custom-exempt') return 'Custom-exempt';
+      return code ? String(code) : '';
+    },
+    label(code) {
+      const k = String(code || '').toLowerCase();
+      if (k === 'usda') return 'USDA · can sell across state lines';
+      if (k === 'state') return 'State inspected · in-state sales only';
+      if (k === 'equal-to') return 'Equal-to · treated like federal in that state';
+      if (k === 'custom-exempt') return 'Custom-exempt · not for marketplace retail';
+      return code ? String(code) : '';
+    },
+    optionText(p) {
+      const loc = [p.city, p.state].filter(Boolean).join(', ');
+      const insp = this.label(p.inspection);
+      return [p.name, loc, insp].filter(Boolean).join(' · ');
+    },
+  };
+
   const FOOTER_HTML = `
 <footer class="po-foot">
   <div class="po-foot-inner">
@@ -62,10 +88,10 @@
       <div class="po-foot-mark"><img src="/brand/logo-monogram.svg" alt=""><span>Protein Outfitters</span></div>
       <p class="po-foot-meta">A whole animal, in three taps.<br>Born in Bemidji, MN.</p>
     </div>
-    <div><h4>Marketplace</h4><ul><li><a href="/discover">Browse animals</a></li><li><a href="/producers">Farms</a></li><li><a href="/map">Map</a></li><li><a href="/community">Community</a></li><li><a href="/#how">How it works</a></li></ul></div>
-    <div><h4>For partners</h4><ul><li><a href="/#partners">Partner hub</a></li><li><a href="/farmer">Ranch dashboard</a></li><li><a href="/processor">Plant dashboard</a></li><li><a href="/hardware">Processing systems</a></li><li><a href="/processor-saas">Plant plans</a></li><li><a href="/donation-flow">Donation Depot</a></li></ul></div>
-    <div><h4>Help &amp; policy</h4><ul><li><a href="/faq">FAQ</a></li><li><a href="/policies/refunds">Refunds</a></li><li><a href="/policies/privacy">Privacy</a></li><li><a href="/policies/terms">Terms</a></li><li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li></ul></div>
-    <div><h4>Company</h4><ul><li><a href="/account">Account</a></li><li><a href="/brand">Brand</a></li><li><a href="/onboarding">Get started</a></li></ul></div>
+    <div><h4>For buyers</h4><ul><li><a href="/discover">Browse animals</a></li><li><a href="/producers">Farms</a></li><li><a href="/#how">How it works</a></li><li><a href="/account">My reservations</a></li><li><a href="/faq">FAQ</a></li></ul></div>
+    <div><h4>For farms &amp; plants</h4><ul><li><a href="/join">Get started</a></li><li><a href="/farmer">My ranch</a></li><li><a href="/processor">My plant</a></li><li><a href="/map">Find a locker</a></li><li><a href="/invite-partner">Invite a partner</a></li></ul></div>
+    <div><h4>Help &amp; policy</h4><ul><li><a href="/policies/refunds">Refunds</a></li><li><a href="/policies/privacy">Privacy</a></li><li><a href="/policies/terms">Terms</a></li><li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="/community">Community</a></li><li><a href="/hardware">Processing systems</a></li><li><a href="/donation-flow">Donation Depot</a></li></ul></div>
   </div>
   <div class="po-foot-bottom"><span>© 2026 Protein Outfitters. All rights reserved.</span><span>HQ Bemidji, MN</span></div>
 </footer>`;
@@ -80,11 +106,11 @@
   </header>
   <div class="sheet-body">
     <div class="sheet-context"><div class="sheet-context-img" id="sheetContextImg"></div><div class="sheet-context-text"><p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p><p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p></div></div>
-    <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><p style="font-size:13px;color:var(--ink-2);margin:0 0 12px;line-height:1.45;">Price is per pound hanging weight. Deposit locks your place — balance at pickup on actual hanging weight.</p><div class="options" id="shareOptions"></div></section>
-    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Lock it in.</h3>
-      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Deposit today; processing and any extra fees show before you pay. Meat balance settles at pickup on actual hanging weight.</p>
-      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
-      <p id="sheetCheckoutNote" style="font:500 12px/1.45 'Inter',system-ui,sans-serif;color:var(--ink-2);margin:12px 0 0;">You'll finish on Stripe Checkout — card details never touch our servers.</p>
+    <section class="sheet-step" data-step="1"><h3 class="sheet-q">How much freezer space?</h3><p style="font-size:13px;color:var(--ink-2);margin:0 0 12px;line-height:1.45;">Price is per pound before the butcher cuts it (hanging weight). You take home about two-thirds of that. A small deposit holds your place; the rest is at pickup.</p><div class="options" id="shareOptions"></div></section>
+    <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Hold your place.</h3>
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Pay a small deposit today. Butcher and leftover meat settle at pickup on the real hanging weight. The ranch picks the locker — you do not have to.</p>
+      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
+      <p id="sheetCheckoutNote" style="font:500 12px/1.45 'Inter',system-ui,sans-serif;color:var(--ink-2);margin:12px 0 0;">Card checkout opens in Stripe when we turn it on. Until then we hold your email and share.</p>
       <div class="pay-stack"><button class="btn-pay btn-pay--card" id="payCard" type="button" style="order:-1">Continue to secure checkout →</button><button class="btn-pay btn-pay--apple" id="payApple" type="button">Express pay (if available)</button></div>
       <ul class="sheet-trust" style="list-style:none;padding:14px 0 0;margin:12px 0 0;border-top:1px solid rgba(6,27,14,.08);display:grid;gap:8px;font:600 12px/1.35 'Inter',system-ui,sans-serif;color:var(--ink-2);">
         <li>✓ Deposit holds your share · balance at pickup</li>
@@ -566,10 +592,9 @@
         const lbs = lbsBySize[state.share.key] || 110;
         const meatEstimate = state.share.price * lbs;
         const deposit = Math.min(500, Math.max(50, Math.round(meatEstimate * 0.10)));
-        const fees = 225; // processing only; no second charge
-        const reserveToday = deposit + fees;
+        const reserveToday = deposit;
         const shareLabel = state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole';
-        sumShareLabel.textContent = `Deposit (${shareLabel} · 10% of est. meat)`;
+        sumShareLabel.textContent = `Deposit (${shareLabel} · holds your place)`;
         sumShareVal.textContent = fmt(deposit);
         sumTotalVal.textContent = fmt(reserveToday);
         const pickupEl = document.getElementById('sumPickupVal');
@@ -579,7 +604,7 @@
         const note = document.getElementById('sheetCheckoutNote');
         if (note && state.animal) {
           const animalBit = state.animal.name ? ` for ${state.animal.name}` : '';
-          note.textContent = `Due today locks your ${shareLabel.toLowerCase()} share${animalBit}. You'll finish on Stripe Checkout — card details never touch our servers.`;
+          note.textContent = `This deposit holds your ${shareLabel.toLowerCase()} share${animalBit}. Balance is at pickup.`;
         }
       }
     }

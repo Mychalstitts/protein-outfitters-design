@@ -188,14 +188,14 @@
         <div class="fr-section"><h4>Certifications</h4><select class="fr-select" id="fCerts"><option value="">Any certification</option><option value="organic">USDA Organic</option><option value="non-gmo">Non-GMO</option><option value="amwa">Animal Welfare</option><option value="aga">Grassfed AGA</option><option value="usda-insp">USDA Inspected</option><option value="state-insp">State Inspected</option></select></div>
         <div class="fr-section"><h4>Producer identity</h4><select class="fr-select" id="fIdentity"><option value="">Any producer</option><option value="veteran">Veteran-owned</option><option value="woman">Woman-owned</option><option value="bipoc">BIPOC-owned</option><option value="family">Family farm</option><option value="indigenous">Indigenous-led</option></select></div>
         <div class="fr-section"><h4>Price · $/lb all-in</h4><p style="font:500 11px/1.4 var(--ff-sans);opacity:.55;margin:0 0 8px;">Hanging-weight basis · farmer + processing + fees</p><div class="fr-range"><input id="priceMin" type="number" placeholder="Min" min="0" max="20" /><input id="priceMax" type="number" placeholder="Max" min="0" max="20" /></div></div>
-        <div class="fr-section"><h4>Distance from <span id="zipDisplay">56601</span></h4><input id="distSlider" class="fr-slider" type="range" min="25" max="500" value="200" step="25" /><div class="fr-slider-label"><span>25 mi</span><span><strong id="distVal">200</strong> mi</span><span>500+ mi</span></div></div>
+        <div class="fr-section"><h4>How far you'll travel</h4><input id="distSlider" class="fr-slider" type="range" min="25" max="500" value="200" step="25" /><div class="fr-slider-label"><span>25 mi</span><span><strong id="distVal">200</strong> mi</span><span>500+ mi</span></div></div>
         <div class="fr-section"><h4>Pickup window</h4><select class="fr-select" id="fWindow"><option value="">Any time</option><option value="this-month">This month</option><option value="3mo">Next 3 months</option><option value="6mo">Next 6 months</option></select></div>
         <div class="fr-section"><div class="fr-toggle" id="instantBookToggle"><span>Instant Reserve only</span><span class="switch"></span></div></div>
         <div class="fr-section"><div class="fr-toggle" id="newOnlyToggle"><span>New listings (last 7 days)</span><span class="switch"></span></div></div>
       </aside>
 
       <section>
-        <div id="savedBanner" class="saved-banner" style="display:none;">
+        <div id="notify" class="saved-banner" style="display:flex;">
           <div class="saved-banner-content"><strong>Save this search?</strong> &nbsp;Get notified when farms post listings matching your filters.</div>
           <button id="saveSearchBtn">Save search</button>
         </div>
@@ -429,12 +429,11 @@
         } else if (!LISTINGS.length) {
           grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:64px 24px;background:#fff;border-radius:18px;border:1px solid var(--filter-border);">
             <img src="/brand/logo-monogram.svg" alt="" width="68" height="68" style="display:block;margin:0 auto 18px;border-radius:16px;box-shadow:0 8px 24px rgba(6,27,14,.12);" />
-            <div style="font:800 22px/1.25 var(--ff-sans);letter-spacing:-.02em;margin-bottom:8px;">No animals listed yet</div>
-            <div style="opacity:.65;font:500 14.5px/1.5 var(--ff-sans);max-width:420px;margin:0 auto 20px;">We're onboarding ranches nationwide. Be first in your county — list animals in about 90 seconds, or invite a farm you trust.</div>
+            <div style="font:800 22px/1.25 var(--ff-sans);letter-spacing:-.02em;margin-bottom:8px;">Nothing to reserve yet</div>
+            <div style="opacity:.65;font:500 14.5px/1.5 var(--ff-sans);max-width:420px;margin:0 auto 20px;">Farms are coming on. Leave your email and we'll tell you when an animal lists near you. You don't need to recruit a ranch.</div>
             <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
-              <a href="/list-animal" class="ds-go-btn" style="text-decoration:none;">List an animal →</a>
-              <a href="/invite-partner" style="display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font:700 14px/1 var(--ff-sans);color:var(--ink);text-decoration:none;border:1.5px solid rgba(6,27,14,.12);">Invite a farm →</a>
-              <a href="/map" style="display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font:700 14px/1 var(--ff-sans);color:var(--ink);text-decoration:none;border:1.5px solid rgba(6,27,14,.12);">Find a processor →</a>
+              <button type="button" class="ds-go-btn" onclick="document.getElementById('saveSearchBtn')?.click()">Email me when one lists →</button>
+              <a href="/join" style="display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font:700 14px/1 var(--ff-sans);color:var(--ink);text-decoration:none;border:1.5px solid rgba(6,27,14,.12);">I raise animals →</a>
             </div>
           </div>`;
         } else {
@@ -451,7 +450,8 @@
         }
       }
       const anyFilter = state.species !== 'all' || state.practice.size || state.certs.size || state.identity.size || state.priceMin !== null || state.priceMax !== null || state.window;
-      document.getElementById('savedBanner').style.display = anyFilter ? 'flex' : 'none';
+      const forceNotify = location.hash === '#notify' || !LISTINGS.length;
+      document.getElementById('notify').style.display = (anyFilter || forceNotify) ? 'flex' : 'none';
     }
 
     function toggleSave(id, el) {
@@ -494,7 +494,7 @@
     });
 
     document.getElementById('saveSearchBtn').addEventListener('click', async () => {
-      const banner = document.getElementById('savedBanner');
+      const banner = document.getElementById('notify');
       const btn = banner.querySelector('button');
       const content = banner.querySelector('.saved-banner-content');
       try {
@@ -652,6 +652,9 @@
         render();
       }
       if (params.get('q')) runAISearch(params.get('q'));
+      if (location.hash === '#notify') {
+        document.getElementById('notify')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     });
   </script>
 </body>
