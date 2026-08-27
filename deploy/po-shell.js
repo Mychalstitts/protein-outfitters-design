@@ -6,24 +6,27 @@
 (function () {
   'use strict';
 
-  /* Listed hanging-weight price: farmer + processing + kill share + platform. */
+  /* Listed hanging-weight meat price: farmer rate + 10% Protein Outfitters.
+     Kill / cut / wrap are plant fees — paid at the locker, no PO cut.
+     Processor SaaS is a separate plant-to-PO subscription. Do not mix them. */
   window.PO_PRICING = {
     processingPerLbHW: 1.25,
     killFeeFlat: 100,
-    platformPerLbHW: 0.30,
+    platformFeeRate: 0.10,
     cutsYield: 0.72,
 
-    listedPerLbHW(farmerPerLb, shareKey = 'quarter', hangingWeight = 700, processorPerLb = null) {
-      const shareFraction = shareKey === 'whole' ? 1 : shareKey === 'half' ? 0.5 : shareKey === 'quarter' ? 0.25 : 0.125;
-      const shareLbsHW = hangingWeight * shareFraction;
-      if (shareLbsHW === 0) return 0;
-      const proc = (processorPerLb != null ? processorPerLb : this.processingPerLbHW);
-      const farmer = (farmerPerLb || 0);
-      const killShare = this.killFeeFlat / hangingWeight;
-      return farmer + proc + this.platformPerLbHW + killShare;
+    platformFeeOnFarmer(farmerPerLb) {
+      const n = Number(farmerPerLb) || 0;
+      if (!isFinite(n) || n <= 0) return 0;
+      return Math.round(n * this.platformFeeRate * 100) / 100;
     },
-    allInPerLbHW(farmerPerLb, shareKey = 'quarter', hangingWeight = 700, processorPerLb = null) {
-      return this.listedPerLbHW(farmerPerLb, shareKey, hangingWeight, processorPerLb);
+
+    listedPerLbHW(farmerPerLb) {
+      const farmer = Number(farmerPerLb) || 0;
+      return farmer + this.platformFeeOnFarmer(farmer);
+    },
+    allInPerLbHW(farmerPerLb) {
+      return this.listedPerLbHW(farmerPerLb);
     },
 
     /** Convert hanging-weight $/lb to finished-cuts $/lb for display */
@@ -34,17 +37,21 @@
       const shareFraction = shareKey === 'whole' ? 1 : shareKey === 'half' ? 0.5 : shareKey === 'quarter' ? 0.25 : 0.125;
       const lbs = hangingWeight * shareFraction;
       const cutsLbs = lbs * this.cutsYield;
+      const farmer = Number(farmerPerLb) || 0;
+      const platformPerLb = this.platformFeeOnFarmer(farmer);
       const proc = (processorPerLb != null ? processorPerLb : this.processingPerLbHW);
       return {
         shareLbsHW: lbs,
         shareLbsCuts: cutsLbs,
-        farmer: { perLb: farmerPerLb || 0, total: (farmerPerLb || 0) * lbs },
+        farmer: { perLb: farmer, total: farmer * lbs },
         processing: { perLb: proc, total: proc * lbs },
         killFee: { flat: this.killFeeFlat, share: this.killFeeFlat * shareFraction },
-        platform: { perLb: this.platformPerLbHW, total: this.platformPerLbHW * lbs },
-        get totalDollars() { return this.farmer.total + this.processing.total + this.killFee.share + this.platform.total; },
-        get listedPerLbHW() { return this.totalDollars / lbs; },
-        get listedPerLbCuts() { return this.totalDollars / cutsLbs; },
+        platform: { perLb: platformPerLb, total: platformPerLb * lbs, rate: this.platformFeeRate },
+        get meatDollars() { return this.farmer.total + this.platform.total; },
+        get plantEstimateDollars() { return this.processing.total + this.killFee.share; },
+        get totalDollars() { return this.meatDollars + this.plantEstimateDollars; },
+        get listedPerLbHW() { return lbs ? this.meatDollars / lbs : 0; },
+        get listedPerLbCuts() { return cutsLbs ? this.meatDollars / cutsLbs : 0; },
         get allInPerLbHW() { return this.listedPerLbHW; },
         get allInPerLbCuts() { return this.listedPerLbCuts; }
       };
@@ -82,8 +89,8 @@
     <div class="sheet-context"><div class="sheet-context-img" id="sheetContextImg"></div><div class="sheet-context-text"><p class="sheet-context-name" id="sheetContextName">Pick an animal to start</p><p class="sheet-context-sub" id="sheetContextSub">Or browse below.</p></div></div>
     <section class="sheet-step" data-step="1"><h3 class="sheet-q">Pick your share.</h3><p style="font-size:13px;color:var(--ink-2);margin:0 0 12px;line-height:1.45;">Price is per pound hanging weight. Deposit locks your place — balance at pickup on actual hanging weight.</p><div class="options" id="shareOptions"></div></section>
     <section class="sheet-step" data-step="2" hidden><h3 class="sheet-q">Lock it in.</h3>
-      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Deposit today; processing and any extra fees show before you pay. Meat balance settles at pickup on actual hanging weight.</p>
-      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225.00</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.5;">Deposit today. Kill, cut, and wrap are paid at the plant the farmer books — we take no cut of those fees. Meat balance settles at pickup on actual hanging weight.</p>
+      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Deposit</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row total"><span>Due today</span><span class="v" id="sumTotalVal">$0</span></div><div class="summary-row" style="opacity:.7;font-size:12px;border-top:1px dashed rgba(6,27,14,.15);padding-top:10px;margin-top:6px;"><span id="sumPickupLabel">Estimated at pickup</span><span class="v" id="sumPickupVal">—</span></div></div>
       <p id="sheetCheckoutNote" style="font:500 12px/1.45 'Inter',system-ui,sans-serif;color:var(--ink-2);margin:12px 0 0;">You'll finish on Stripe Checkout — card details never touch our servers.</p>
       <div class="pay-stack"><button class="btn-pay btn-pay--card" id="payCard" type="button" style="order:-1">Continue to secure checkout →</button><button class="btn-pay btn-pay--apple" id="payApple" type="button">Express pay (if available)</button></div>
       <ul class="sheet-trust" style="list-style:none;padding:14px 0 0;margin:12px 0 0;border-top:1px solid rgba(6,27,14,.08);display:grid;gap:8px;font:600 12px/1.35 'Inter',system-ui,sans-serif;color:var(--ink-2);">
@@ -561,17 +568,16 @@
         if (n === 2) { nextBtn.disabled = false; nextBtn.textContent = 'Continue to checkout →'; }
       }
       if (n === 2 && state.share) {
-        // Reservation deposit model: deposit is a flat 10% of estimated meat cost (capped 50–500),
+        // Reservation deposit model: deposit is a flat 10% of estimated meat cost (capped 50–500).
+        // That hold is not the 10% Protein Outfitters fee. Plant fees are not on this charge.
         const lbsBySize = { q: 110, h: 220, w: 440 };
         const lbs = lbsBySize[state.share.key] || 110;
         const meatEstimate = state.share.price * lbs;
         const deposit = Math.min(500, Math.max(50, Math.round(meatEstimate * 0.10)));
-        const fees = 225; // processing only; no second charge
-        const reserveToday = deposit + fees;
         const shareLabel = state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole';
         sumShareLabel.textContent = `Deposit (${shareLabel} · 10% of est. meat)`;
         sumShareVal.textContent = fmt(deposit);
-        sumTotalVal.textContent = fmt(reserveToday);
+        sumTotalVal.textContent = fmt(deposit);
         const pickupEl = document.getElementById('sumPickupVal');
         const pickupLabel = document.getElementById('sumPickupLabel');
         if (pickupEl) pickupEl.textContent = `~${fmt(meatEstimate - deposit)}`;

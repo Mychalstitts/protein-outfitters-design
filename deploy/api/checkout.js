@@ -1,7 +1,7 @@
 // /api/checkout — create a Stripe Checkout Session for a reservation deposit
 //   POST { listing_id, share_size, buyer_email, buyer_name?, buyer_phone? }
 //     1. Validate listing + share availability
-//     2. Compute deposit + processing from cumulative pricing
+//     2. Compute a deposit on estimated farmer meat (no invented plant fee)
 //     3. Create a `pending` reservation in DB (decrements share inventory)
 //     4. Create a Stripe Checkout Session referencing that reservation_id
 //     5. Return { url } so the client can window.location = url

@@ -1129,7 +1129,7 @@ body { background: var(--bg); overflow-x: hidden; }
   // PO_PRICING is loaded by po-shell.js but may not be ready yet — fallback to farmer rate × lbs estimate
   function allInPerLb(farmerRate, share, hw){
     if (window.PO_PRICING) return window.PO_PRICING.allInPerLbHW(farmerRate, share, hw);
-    return Number(farmerRate || 0) + 1.55;
+    return Number(farmerRate || 0) * 1.10;
   }
 
   function fmtPerLb(n){ return '$' + Number(n||0).toFixed(2); }
