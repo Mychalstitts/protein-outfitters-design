@@ -337,6 +337,7 @@
 
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
+<script src="/lib/connect-status.js"></script>
 <script src="/po-api.js"></script>
 <script>
 // Kick off Stripe Connect Express onboarding for the signed-in farmer's farm.
@@ -603,8 +604,14 @@ window.poStartConnect = async function(kind, id) {
       }
       const listEl = document.getElementById('fmCompletionList');
       if (listEl) {
-        // Show the 3 most impactful missing items
-        const top = missing.sort((a, b) => b.weight - a.weight).slice(0, 3);
+        // Pin Connect Stripe when it is still missing so weight-15 KYC/bank
+        // work is not dropped behind list-animal / photo / story.
+        const pin = window.PO_CONNECT_STATUS && window.PO_CONNECT_STATUS.pinConnectMissing;
+        const top = pin
+          ? pin(missing, 3)
+          : missing.filter((c) => c.action === 'connect')
+              .concat(missing.filter((c) => c.action !== 'connect').sort((a, b) => b.weight - a.weight))
+              .slice(0, 3);
         listEl.innerHTML = top.length === 0
           ? ''
           : top.map(c => `
@@ -619,6 +626,45 @@ window.poStartConnect = async function(kind, id) {
     }
     } // end renderCompletionMeter
     renderCompletionMeter();
+
+    function paintFarmerConnect(farm) {
+      if (!farm || !window.PO_API || !window.PO_API.showConnectBanner) return;
+      const lib = window.PO_CONNECT_STATUS;
+      const state = lib && lib.connectBannerState
+        ? lib.connectBannerState(farm)
+        : (window.PO_API.connectPayoutsReady(farm) ? null : {
+            level: 'warn',
+            status: String(farm.stripe_connect_status || '').toLowerCase() || 'pending',
+            message: 'Stripe still needs a few details before payouts can go to your bank.',
+            resume: true,
+            label: 'Continue Stripe →',
+          });
+      if (!state) {
+        const el = document.getElementById('po-connect-banner');
+        if (el && el.getAttribute('data-level') === 'warn') el.remove();
+        return;
+      }
+      window.PO_API.showConnectBanner(state.level, state.message, {
+        kind: 'farm',
+        id: farm.id,
+        resume: !!state.resume,
+        label: state.label,
+        status: state.status,
+      });
+    }
+
+    // Restricted / pending Connect must show on every /farmer visit — not only
+    // after Stripe redirects back with ?stripe_connect=.
+    paintFarmerConnect(primaryFarm);
+    if (primaryFarm.id && window.PO_API.connectStatus) {
+      window.PO_API.connectStatus('farm', primaryFarm.id).then((s) => {
+        primaryFarm.stripe_account_id = s.stripe_account_id || primaryFarm.stripe_account_id;
+        primaryFarm.stripe_connect_status = s.status;
+        primaryFarm.requirements_due = s.requirements_due;
+        try { renderCompletionMeter(); } catch (_) { /* keep first paint */ }
+        paintFarmerConnect(primaryFarm);
+      }).catch(() => { /* keep cached farm-row banner */ });
+    }
 
     // Greeting sub: count reservations + nearest harvest
     const upcomingHarvests = allListings.filter(l => l.expected_finish_date && new Date(l.expected_finish_date) > new Date()).sort((a,b) => new Date(a.expected_finish_date) - new Date(b.expected_finish_date));

@@ -19,6 +19,7 @@ const cp = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const TARGETS = [
   path.join(ROOT, 'deploy', 'api'),
+  path.join(ROOT, 'deploy', 'lib'),
   path.join(ROOT, 'deploy', 'po-api.js'),
   path.join(ROOT, 'deploy', 'po-shell.js'),
   path.join(ROOT, 'deploy', 'sw.js'),
