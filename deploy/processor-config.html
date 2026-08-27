@@ -58,7 +58,9 @@
 .fee-row:last-of-type { border: 0; }
 .fee-row label { font-size: var(--text-sm); }
 .fee-row label small { display: block; font-size: var(--text-xs); color: var(--ink-3); margin-top: 2px; }
+.fee-row .market-rec { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: rgba(6,27,14,0.36); }
 .fee-row .input-money { display: flex; align-items: center; background: var(--surface-2); border-radius: var(--r-2); padding-left: 10px; }
+.fee-row .input-money input::placeholder { color: rgba(6,27,14,0.30); font-weight: 500; }
 .fee-row .input-money span { font-size: var(--text-sm); color: var(--ink-3); }
 .fee-row .input-money input { padding: 8px; border: 0; background: transparent; font: inherit; flex: 1; min-width: 0; }
 .fee-row .post { font-size: var(--text-xs); color: var(--ink-3); padding-right: 10px; }
@@ -90,7 +92,7 @@
   <div class="container">
     <span class="eyebrow" style="color: var(--accent-soft);">Processor settings</span>
     <h1 class="display-md">Tell us what you actually process.</h1>
-    <p>Customers see only the cuts, smoking, and grinding options you offer. Fees flow into the all-in price they see at checkout. Save changes anytime — they apply to new reservations only.</p>
+    <p>Farmers see the cuts, smoking, and grinding options you offer. You set every plant fee — light numbers are a market recommendation only. Farmers pick a locker by price and slot. Save anytime; new bookings use what you saved.</p>
   </div>
 </section>
 
@@ -190,29 +192,29 @@
 
         <div class="cfg-section">
           <h3>6. Fees</h3>
-          <p class="hint">These are the kill / cut / wrap numbers you charge at the plant. The farmer books you. Buyers pay you at the plant. Protein Outfitters takes no cut of these fees.</p>
+          <p class="hint">You set every number. Light figures are a market range — type over them. Farmers book you and pay these at the plant. Protein Outfitters takes no cut. Your fees decide how much of that farmer business you get.</p>
           <div class="fee-row">
-            <label>Kill fee <small>charged once per animal, split across all share buyers</small></label>
+            <label>Kill fee <small>charged once per animal</small><span class="market-rec">Market · $100 / animal</span></label>
             <div class="input-money"><span>$</span><input id="feeKill" type="number" step="1" min="0" placeholder="100" /><span class="post">/ animal</span></div>
           </div>
           <div class="fee-row">
-            <label>Cut &amp; wrap <small>standard butcher paper, hanging-weight basis</small></label>
+            <label>Cut &amp; wrap <small>standard butcher paper, hanging-weight basis</small><span class="market-rec">Market · $1.25 / lb HW</span></label>
             <div class="input-money"><span>$</span><input id="feeCutLb" type="number" step="0.05" min="0" placeholder="1.25" /><span class="post">/ lb HW</span></div>
           </div>
           <div class="fee-row">
-            <label>Vacuum seal <small>add-on, optional</small></label>
+            <label>Vacuum seal <small>add-on, optional</small><span class="market-rec">Market · $0.30 / lb HW</span></label>
             <div class="input-money"><span>$</span><input id="feeVac" type="number" step="0.05" min="0" placeholder="0.30" /><span class="post">/ lb HW</span></div>
           </div>
           <div class="fee-row">
-            <label>Boneless cuts <small>chuck/round trim out</small></label>
+            <label>Boneless cuts <small>chuck/round trim out</small><span class="market-rec">Market · $0.15 / lb HW</span></label>
             <div class="input-money"><span>$</span><input id="feeBone" type="number" step="0.05" min="0" placeholder="0.15" /><span class="post">/ lb HW</span></div>
           </div>
           <div class="fee-row">
-            <label>Smoking surcharge <small>per smoked product line</small></label>
+            <label>Smoking surcharge <small>per smoked product line</small><span class="market-rec">Market · $2.25 / lb finished</span></label>
             <div class="input-money"><span>$</span><input id="feeSmoke" type="number" step="0.10" min="0" placeholder="2.25" /><span class="post">/ lb finished</span></div>
           </div>
           <div class="fee-row">
-            <label>Sausage / patties <small>seasoning + casing</small></label>
+            <label>Sausage / patties <small>seasoning + casing</small><span class="market-rec">Market · $3.25 / lb finished</span></label>
             <div class="input-money"><span>$</span><input id="feeSausage" type="number" step="0.10" min="0" placeholder="3.25" /><span class="post">/ lb finished</span></div>
           </div>
         </div>
@@ -231,8 +233,8 @@
     <aside>
       <div class="aside-card">
         <h4>Why this matters</h4>
-        <p>Customer cut sheets read this config. If you don't process pork, "Bacon" never appears. If you don't grind 90/10, no one can request it. Your prices become the prices buyers see — no surprises.</p>
-        <p style="margin-top: 12px;"><strong>Tip:</strong> Even if you're a small plant, fill this out completely. Buyers see your config when picking a processor — a complete listing converts better than a half-finished one.</p>
+        <p>Customer cut sheets read this config. If you don't process pork, "Bacon" never appears. If you don't grind 90/10, no one can request it. You set the fees — we do not overwrite them.</p>
+        <p style="margin-top: 12px;"><strong>Tip:</strong> Farmers pick a locker by your fees and your open slots. A complete, honest fee sheet gets booked. A high one sits empty. That is your call.</p>
       </div>
       <div class="aside-card mt-4">
         <h4>Need a hand?</h4>
