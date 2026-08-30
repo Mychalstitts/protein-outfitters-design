@@ -339,6 +339,23 @@
 <script src="/po-shell.js"></script>
 <script src="/po-api.js"></script>
 <script>
+// Deep links from F4 emails pointed at /farmer?booking=… — the check-in code
+// lives on booking-confirmation. Also recover MIME-corrupted links where the
+// `=` in `?booking=` was eaten (`/farmer?booking<uuid>`).
+(function redirectBookingDeepLink() {
+  const params = new URLSearchParams(location.search);
+  let bookingId = params.get('booking');
+  if (!bookingId) {
+    for (const key of params.keys()) {
+      const m = /^booking([0-9a-f-]{30,40})$/i.exec(key);
+      if (m) { bookingId = m[1]; break; }
+    }
+  }
+  if (bookingId) {
+    location.replace('/booking-confirmation?booking=' + encodeURIComponent(bookingId));
+  }
+})();
+
 // Kick off Stripe Connect Express onboarding for the signed-in farmer's farm.
 // Called from the "Connect Stripe payouts" checklist item. Redirects to the
 // Stripe-hosted onboarding URL on success; bounces the user back to /account
