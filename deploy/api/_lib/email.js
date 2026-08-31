@@ -56,16 +56,22 @@ const firstName = (full) => (full || '').split(/\s+/)[0] || 'there';
 const baseUrl = () => process.env.PUBLIC_BASE_URL || 'https://www.proteinoutfitters.com';
 
 // ─── Layout wrapper ─────────────────────────────────────────────
+// Keep the CTA <a href> on its own short line. Long single-line tags get
+// quoted-printable soft-wrapped by ESPs; a wrap right after `booking=` eats
+// the `=` (MIME soft-break marker) and leaves a dead URL in the inbox.
 function layout({ heading, body, ctaLabel, ctaHref, footerNote }) {
+  const ctaBlock = (ctaLabel && ctaHref) ? `
+    <p style="margin:28px 0 0;">
+      <a href="${ctaHref}"
+         style="display:inline-block;background:#061b0e;color:#fbf9f5;padding:13px 26px;border-radius:999px;text-decoration:none;font-weight:700;font-size:14px;">${ctaLabel}</a>
+    </p>` : '';
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:#f5f1e8;font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px;background:#fbf9f5;color:#061b0e;">
     <div style="margin-bottom:24px;font-weight:900;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#7da05d;">Protein Outfitters</div>
     <h1 style="font-size:24px;font-weight:800;line-height:1.25;margin:0 0 16px;letter-spacing:-0.02em;">${heading}</h1>
     <div style="font-size:15px;line-height:1.6;color:#1a201d;">${body}</div>
-    ${ctaLabel && ctaHref ? `
-    <p style="margin:28px 0 0;"><a href="${ctaHref}" style="display:inline-block;background:#061b0e;color:#fbf9f5;padding:13px 26px;border-radius:999px;text-decoration:none;font-weight:700;font-size:14px;">${ctaLabel}</a></p>
-    ` : ''}
+    ${ctaBlock}
     ${footerNote ? `<p style="margin-top:28px;font-size:12px;color:rgba(6,27,14,.65);line-height:1.55;">${footerNote}</p>` : ''}
     <hr style="border:0;border-top:1px solid rgba(6,27,14,.1);margin:32px 0 16px;">
     <p style="font-size:11px;color:rgba(6,27,14,.55);line-height:1.55;margin:0;">
@@ -73,6 +79,30 @@ function layout({ heading, body, ctaLabel, ctaHref, footerNote }) {
     </p>
   </div>
 </body></html>`;
+}
+
+// Plain-text fallback so MUAs that strip HTML (or corrupt QP hrefs) still get a
+// usable CTA URL. Strips tags lightly — good enough for transactional copy.
+function htmlToPlaintext(html, { ctaLabel, ctaHref } = {}) {
+  let text = String(html || '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|h1|h2|li|tr)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, ' • ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  if (ctaLabel && ctaHref && !text.includes(ctaHref)) {
+    text += `\n\n${ctaLabel}\n${ctaHref}`;
+  }
+  return text;
 }
 
 // ─── Template registry ──────────────────────────────────────────
@@ -240,9 +270,19 @@ export const TEMPLATES = {
 
   'F4.dropoff_reminder': {
     subject: () => 'Drop-off in 3 days — final checklist',
-    render: (c) => layout({
-      heading: 'Three days until drop-off.',
-      body: `<p>Hi ${firstName(c.farmer_name)},</p>
+    render: (c) => {
+      const bookingHref = `${baseUrl()}/booking-confirmation?booking=${c.booking_id || ''}`;
+      const phoneDigits = String(c.processor_phone || '').replace(/\D/g, '');
+      const phoneLast10 = phoneDigits.length >= 10 ? phoneDigits.slice(-10) : '';
+      const phonePretty = phoneLast10
+        ? `(${phoneLast10.slice(0, 3)}) ${phoneLast10.slice(3, 6)}-${phoneLast10.slice(6)}`
+        : '';
+      const contactBit = phonePretty
+        ? `<a href="tel:+1${phoneLast10}" style="color:#061b0e;font-weight:700;">${phonePretty}</a>`
+        : `<a href="${bookingHref}" style="color:#061b0e;font-weight:700;">open booking details</a>`;
+      return layout({
+        heading: 'Three days until drop-off.',
+        body: `<p>Hi ${firstName(c.farmer_name)},</p>
 <p>You're scheduled to drop off <strong>${c.animal_label || 'your animal'}</strong> at ${c.processor_name || 'the processor'} on <strong>${fmtDate(c.drop_off_date)}</strong>.</p>
 <p><strong>Quick checklist:</strong></p>
 <ul style="padding-left:20px;">
@@ -251,10 +291,11 @@ export const TEMPLATES = {
   <li>Bring your booking confirmation — the processor will scan a QR to check you in</li>
   <li>Plan for ${c.estimated_dressing_time || '~45 min'} on-site</li>
 </ul>
-<p>If anything has changed — animal sick, trailer issue, weather — reply to this email or call the processor directly: ${c.processor_phone || 'see app'}.</p>`,
-      ctaLabel: 'Booking + check-in code →',
-      ctaHref: `${baseUrl()}/farmer?booking=${c.booking_id}`,
-    }),
+<p>If anything has changed — animal sick, trailer issue, weather — reply to this email or call the processor directly: ${contactBit}.</p>`,
+        ctaLabel: 'Booking + check-in code →',
+        ctaHref: bookingHref,
+      });
+    },
   },
 
   'F11.no_show_flag': {
@@ -448,6 +489,11 @@ export async function sendLifecycleEmail(templateId, ctx = {}) {
 
   const subject = tpl.subject(ctx);
   const html = tpl.render(ctx);
+  // Prefer an explicit text body from the template when present; otherwise
+  // derive one so the CTA URL survives even if HTML href encoding glitches.
+  const text = typeof tpl.text === 'function'
+    ? tpl.text(ctx)
+    : htmlToPlaintext(html);
   const from = process.env.RESEND_FROM || FROM_DEFAULT;
 
   if (!process.env.RESEND_API_KEY) {
@@ -466,7 +512,7 @@ export async function sendLifecycleEmail(templateId, ctx = {}) {
   try {
     const { Resend } = await import('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const result = await resend.emails.send({ from, to, subject, html });
+    const result = await resend.emails.send({ from, to, subject, html, text });
     const providerId = result?.data?.id || result?.id || null;
     await sql`
       INSERT INTO email_log (template_id, to_email, subject, dedup_key, reservation_id, listing_id, farm_id, processor_id, institution_id, status, provider_id)
@@ -509,7 +555,7 @@ const NOTIFY_MAP = {
   'S1.follower_post':               { icon: 'campaign',   link: (c) => c.post_url || '/community' },
   // Farmer notifications
   'F2.first_sale_pick_processor':   { icon: 'storefront', link: (c) => `/farmer?listing=${c.listing_id || ''}` },
-  'F4.dropoff_reminder':            { icon: 'event',      link: (c) => `/farmer?booking=${c.booking_id || ''}` },
+  'F4.dropoff_reminder':            { icon: 'event',      link: (c) => `/booking-confirmation?booking=${c.booking_id || ''}` },
   'F7.payout_disbursed':            { icon: 'paid',       link: (c) => `/farmer` },
   'F11.no_show_flag':               { icon: 'flag',       link: (c) => `/farmer` },
   // Processor notifications

@@ -38,21 +38,24 @@ async function reservationsAtDayOffset(daysOut) {
   `;
 }
 
-// Helper: farms with active reservations at offset (one email per booking, deduped via email_log).
+// Helper: scheduled bookings at day offset (one email per booking, deduped via email_log).
+// Uses the bookings table so CTA links get a real booking_id (check-in code page),
+// not a listing_id proxy.
 async function farmerBookingsAtDayOffset(daysOut) {
   return await sql`
-    SELECT DISTINCT ON (l.id)
-           l.id AS listing_id, l.number, l.breed, l.species, l.expected_finish_date,
+    SELECT b.id AS booking_id, b.drop_off_date,
+           l.id AS listing_id, l.number AS animal_number, l.breed, l.species,
            f.id AS farm_id, f.name AS farm_name,
            u.email AS farmer_email, u.name AS farmer_name,
-           p.id AS processor_id, p.name AS processor_name
-    FROM listings l
-    JOIN farms f ON f.id = l.farm_id
-    JOIN users u ON u.id = f.owner_id
-    LEFT JOIN reservations r ON r.listing_id = l.id AND r.status NOT IN ('cancelled','refunded')
-    LEFT JOIN processors p ON p.id = r.processor_id
-    WHERE l.expected_finish_date IS NOT NULL
-      AND l.expected_finish_date::date = (CURRENT_DATE + (${daysOut} || ' days')::interval)::date
+           p.id AS processor_id, p.name AS processor_name, p.phone AS processor_phone
+    FROM bookings b
+    JOIN listings l ON l.id = b.listing_id
+    JOIN farms f    ON f.id = b.farm_id
+    JOIN users u    ON u.id = f.owner_id
+    JOIN processors p ON p.id = b.processor_id
+    WHERE b.status = 'scheduled'
+      AND b.drop_off_date IS NOT NULL
+      AND b.drop_off_date::date = (CURRENT_DATE + (${daysOut} || ' days')::interval)::date
       AND u.email IS NOT NULL
   `;
 }
@@ -145,10 +148,11 @@ async function handler(req) {
         listing_id: r.listing_id,
         farmer_name: r.farmer_name,
         animal_label: animalLabelOf(r),
-        drop_off_date: r.expected_finish_date,
+        drop_off_date: r.drop_off_date,
         processor_name: r.processor_name,
-        booking_id: r.listing_id, // proxy until bookings table exists
-        dedupKey: `F4::${r.listing_id}`,
+        processor_phone: r.processor_phone || null,
+        booking_id: r.booking_id,
+        dedupKey: `F4::${r.booking_id}`,
       });
       if (out.sent) results.f4++;
     }

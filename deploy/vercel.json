@@ -52,6 +52,18 @@
             "permanent": true
         },
         {
+            "source": "/farmer",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "booking",
+                    "value": "(?<booking>.+)"
+                }
+            ],
+            "destination": "/booking-confirmation?booking=:booking",
+            "permanent": false
+        },
+        {
             "source": "/r/:code",
             "destination": "/?ref=:code",
             "permanent": false

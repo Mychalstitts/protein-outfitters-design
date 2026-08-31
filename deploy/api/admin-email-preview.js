@@ -66,8 +66,10 @@ const SAMPLE_CTX = {
     listing_id: '00000000-0000-0000-0000-000000000010',
   },
   'F4.dropoff_reminder': {
-    farmer_name: 'Henry Karjala', drop_off_date: '2026-05-08',
-    processor_name: 'Stittsworth Meats', booking_id: '00000000-0000-0000-0000-000000000020',
+    farmer_name: 'Henry Karjala', animal_label: 'Black Angus',
+    drop_off_date: '2026-09-01',
+    processor_name: 'Stittsworth Meats', processor_phone: '(218) 555-0142',
+    booking_id: '00000000-0000-0000-0000-000000000020',
   },
   'F7.payout_disbursed': {
     farmer_name: 'Henry Karjala', payout_amount: 2840.00,

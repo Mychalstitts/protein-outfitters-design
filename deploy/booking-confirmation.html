@@ -101,14 +101,14 @@
   const mount = document.getElementById('bookingMount');
   const id = new URLSearchParams(location.search).get('booking');
   if (!id) {
-    mount.innerHTML = `<div class="empty"><img src="/brand/logo-monogram.svg" alt="">No booking ID in the URL.<br>Open this page from the link in your booking-confirmation email.</div>`;
+    mount.innerHTML = `<div class="empty"><img src="/brand/logo-monogram.svg" alt="">No booking ID in the URL.<br>Open this page from the link in your drop-off reminder, or from <a href="/farmer">My ranch → Drop-off bookings</a>.</div>`;
     return;
   }
   try {
     const r = await fetch('/api/bookings?id=' + encodeURIComponent(id), { credentials: 'include' });
     if (!r.ok) {
       const out = await r.json().catch(() => ({}));
-      mount.innerHTML = `<div class="empty">${out.error || 'Booking not found.'}</div>`;
+      mount.innerHTML = `<div class="empty">${out.error || 'Booking not found.'}<br><br><a href="/farmer" style="color:var(--brand);font-weight:700;">Open My ranch → Drop-off bookings</a></div>`;
       return;
     }
     const { booking } = await r.json();
