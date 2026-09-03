@@ -37,9 +37,9 @@
       <button class="option" data-processor="22"><span class="option-glyph">22</span><span class="option-text"><span class="option-title">Plant 22 · Brainerd, MN</span><span class="option-sub">62 mi · Pickup window: 8 AM – 6 PM</span></span><span class="option-price">Free</span></button>
     </div></section>
     <section class="sheet-step" data-step="3" hidden><h3 class="sheet-q">Reserve it.</h3>
-      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Share</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225</span></div><div class="summary-row"><span>Insurance pool</span><span class="v">$18</span></div><div class="summary-row total"><span>Reserve today</span><span class="v" id="sumTotalVal">$0</span></div></div>
+      <div class="summary"><div class="summary-row"><span id="sumShareLabel">Share</span><span class="v" id="sumShareVal">$0</span></div><div class="summary-row"><span>Processing fee</span><span class="v">$225</span></div><div class="summary-row total"><span>Reserve today</span><span class="v" id="sumTotalVal">$0</span></div></div>
       <div class="pay-stack"><button class="btn-pay btn-pay--apple" id="payApple"> Pay</button><button class="btn-pay btn-pay--card" id="payCard">Reserve with card →</button></div>
-      <p style="font-size:12px;color:var(--ink-3);text-align:center;margin:14px 0 0;line-height:1.5;">Free cancellation up to 21 days before harvest. We'll email your cut sheet within 24 hours.</p>
+      <p style="font-size:12px;color:var(--ink-3);text-align:center;margin:14px 0 0;line-height:1.5;">If the animal does not pass inspection, we refund what you paid. We'll email your cut sheet within 24 hours.</p>
     </section>
     <section class="sheet-step" data-step="4" hidden><div class="confirm"><div class="confirm-mark">✓</div><h3 id="confirmTitle">Reserved.</h3><p id="confirmBody">We just sent your reservation details and your cut sheet builder.</p></div></section>
   </div>
@@ -119,7 +119,7 @@
       if (n === 3 && state.share) {
         sumShareLabel.textContent = (state.share.key === 'q' ? 'Quarter' : state.share.key === 'h' ? 'Half' : 'Whole') + ' share';
         sumShareVal.textContent = fmt(state.share.price);
-        sumTotalVal.textContent = fmt(state.share.price + 225 + 18);
+        sumTotalVal.textContent = fmt(state.share.price + 225);
       }
     }
 

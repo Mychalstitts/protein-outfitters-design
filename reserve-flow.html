@@ -234,6 +234,7 @@ header.nav { position: sticky; top: 0; z-index: 20;
     </div>
   </div>
 
+  <p style="margin:0 20px 12px;padding:10px 12px;border-radius:10px;background:#fef3c7;color:#7a5a08;font-size:12px;font-weight:600;line-height:1.45;">Prototype — not live checkout. Not insurance, a reserve pool, or a 21-day cancel policy.</p>
   <div class="steps-tabs" role="tablist" aria-label="Jump between prototype steps">
     <button class="active" data-step="1" onclick="showStep(1)">1 · Fraction</button>
     <button data-step="2" onclick="showStep(2)">2 · Processor</button>
@@ -424,23 +425,9 @@ header.nav { position: sticky; top: 0; z-index: 20;
           </div>
           <div>$0.00</div>
         </div>
-        <div class="line">
-          <div>
-            <div class="label" style="display:flex;align-items:center;gap:8px">
-              Condemnation reserve <span style="font-size:9px;background:var(--accent-soft);color:var(--brand);padding:2px 6px;border-radius:999px;font-weight:700">2%</span>
-            </div>
-            <div class="label-sub">Optional · full refund if animal is condemned</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span>$42.69</span>
-            <div style="width:36px;height:22px;background:var(--brand);border-radius:11px;position:relative;cursor:pointer" onclick="this.classList.toggle('off');this.style.background = this.classList.contains('off') ? 'var(--surface-2)' : 'var(--brand)';recalcTotal()">
-              <div style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:white;transition:right 0.15s ease"></div>
-            </div>
-          </div>
-        </div>
         <div class="line total">
           <div class="label">Total</div>
-          <div id="grand-total">$2,177.37</div>
+          <div id="grand-total">$2,134.68</div>
         </div>
       </div>
     </div>
@@ -455,7 +442,7 @@ header.nav { position: sticky; top: 0; z-index: 20;
               <div class="label-title">Reserve with 25% deposit</div>
               <div class="label-sub">Charged today. Balance posts 7 days before drop-off.</div>
             </div>
-            <div class="opt-amount" id="deposit-amount">$544.34</div>
+            <div class="opt-amount" id="deposit-amount">$533.67</div>
           </div>
           <div class="opt" id="opt-full" onclick="pickDeposit('full')">
             <div class="radio"></div>
@@ -463,7 +450,7 @@ header.nav { position: sticky; top: 0; z-index: 20;
               <div class="label-title">Pay in full now</div>
               <div class="label-sub">Skip the balance reminder.</div>
             </div>
-            <div class="opt-amount" id="full-amount">$2,177.37</div>
+            <div class="opt-amount" id="full-amount">$2,134.68</div>
           </div>
         </div>
       </div>
@@ -502,9 +489,9 @@ header.nav { position: sticky; top: 0; z-index: 20;
     </div>
 
     <p class="disclaimer">
-      This is a reservation, not a final sale. Final weight & charge are calculated after processing.
-      Refundable in full up to 21 days before drop-off — see our
-      <a href="#" style="color:var(--brand);font-weight:600">refund policy</a>.
+      Prototype only. This is a reservation, not a final sale. Final weight &amp; charge are calculated after processing.
+      If the animal does not pass inspection, we refund what you paid — see our
+      <a href="/policies/refunds" style="color:var(--brand);font-weight:600">refund policy</a>.
     </p>
   </section>
 
@@ -528,8 +515,7 @@ let state = {
   processor: 'Hilltop Custom Meats',
   date: 'Thu, Jun 21',
   deposit: '25',
-  payMethod: 'Apple Pay',
-  insurance: true
+  payMethod: 'Apple Pay'
 };
 
 function showStep(n) {
@@ -577,18 +563,6 @@ function pickPay(el) {
   state.payMethod = el.querySelector('.label-title').textContent;
 }
 
-function recalcTotal() {
-  // Insurance toggle change — recompute and update
-  const toggle = document.querySelector('.line .label-sub')?.parentElement?.parentElement?.querySelector('div[onclick]');
-  const isOn = !document.querySelector('.line div[onclick]')?.classList.contains('off');
-  state.insurance = isOn;
-  const total = isOn ? '$2,177.37' : '$2,134.68';
-  const dep = isOn ? '$544.34' : '$533.67';
-  document.getElementById('grand-total').textContent = total;
-  document.getElementById('full-amount').textContent = total;
-  document.getElementById('deposit-amount').textContent = dep;
-}
-
 function updateRecap() {
   if (state.step === 1) {
     const fracMap = {quarter:['¼ Beef · ≈ 140 lbs take-home','≈$1,134 + processing'], half:['½ Beef · ≈ 282 lbs take-home','≈$2,142 + processing']};
@@ -599,7 +573,7 @@ function updateRecap() {
     document.getElementById('recap-line').textContent = state.processor + ' · ' + state.date;
     document.getElementById('recap-cost').textContent = 'Locks the slot';
   } else if (state.step === 4) {
-    const dep = document.getElementById('deposit-amount')?.textContent || '$544.34';
+    const dep = document.getElementById('deposit-amount')?.textContent || '$533.67';
     document.getElementById('recap-line').textContent = 'Due today (deposit)';
     document.getElementById('recap-cost').textContent = state.deposit === 'full' ? document.getElementById('grand-total').textContent : dep;
   }
@@ -612,7 +586,7 @@ function advance() {
     setTimeout(() => showStep(4), 1200);
   } else if (state.step === 4) {
     showToast(state.payMethod === 'Apple Pay' ? 'Apple Pay sheet would open' : 'Stripe ' + state.payMethod + ' modal would open');
-    setTimeout(() => alert('Real flow → /reserve/.../confirmation. Stripe Payment Intent created with split routing: farmer / processor / platform / pool.'), 1200);
+    setTimeout(() => alert('Prototype only — not live checkout. Real flow → /reserve/.../confirmation.'), 1200);
   }
 }
 

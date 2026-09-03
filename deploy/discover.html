@@ -221,6 +221,7 @@
   <div id="po-shell-host"></div>
   <script src="/po-shell.js"></script>
   <script src="/po-api.js"></script>
+  <script src="/lib/harvest-label.js"></script>
   <script>
     // Live listings from /api/listings only — never inject demo animals.
     let LISTINGS = [];
@@ -265,7 +266,9 @@
     function listingFromRow(row) {
       const farmerRate = parseFloat(row.shares?.half?.price || row.shares?.whole?.price || row.shares?.quarter?.price || row.price_per_lb || 0);
       // Cumulative all-in price the buyer sees (farmer + processing + fees, hanging-weight basis)
-      const allInLb = window.PO_PRICING ? window.PO_PRICING.allInPerLbHW(farmerRate, 'half', row.estimated_hanging_weight || 700) : farmerRate;
+      const hwNum = Number(row.estimated_hanging_weight);
+      const hasHw = Number.isFinite(hwNum) && hwNum > 0;
+      const allInLb = hasHw && window.PO_PRICING ? window.PO_PRICING.allInPerLbHW(farmerRate, 'half', hwNum) : farmerRate;
       const photo = (row.photos && row.photos[0]) || (row.species === 'hog' ? '/img/premium-pig.jpg' : row.species === 'lamb' ? '/img/premium-sheep.jpg' : '/img/cattle-pasture.jpg');
       return {
         id: row.id,
@@ -283,7 +286,8 @@
           : 999,
         _farmLat: row.farm_lat != null ? Number(row.farm_lat) : null,
         _farmLng: row.farm_lng != null ? Number(row.farm_lng) : null,
-        ready: row.expected_finish_date,
+        ready: row.expected_finish_date || row.harvest_window_start,
+        harvestLabel: window.harvestLabel ? window.harvestLabel(row) : 'TBD',
         img: photo,
         new: (Date.now() - new Date(row.created_at).getTime()) < 7 * 86400000,
         instant: row.instant_reserve !== false,
@@ -411,7 +415,7 @@
             <div class="lc-farm">${l.farmSlug ? `<a href="/farm/${encodeURIComponent(l.farmSlug)}" onclick="event.stopPropagation()">${l.farm}</a>` : `<span>${l.farm}</span>`}${l.farmRating ? ` <span class="lc-rating" title="${l.farmReviewCount} ${l.farmReviewCount===1?'review':'reviews'}" style="color:#d39c1f;font-weight:700;font-size:12.5px;margin-left:4px;">★ ${Number(l.farmRating).toFixed(1)}<span style="color:var(--ink-3,#888);font-weight:500;font-size:11px;"> · ${l.farmReviewCount}</span></span>` : ''}</div>
             <div class="lc-meta">
               <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${l.distance >= 999 ? 'Distance n/a' : l.distance + ' mi'}</span>
-              <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Ready ${new Date(l.ready).toLocaleDateString('en',{month:'short',day:'numeric'})}</span>
+              <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Harvest ${l.harvestLabel || 'TBD'}</span>
               ${l.instant ? '<span style="color:#6b8a4f;font-weight:700">⚡ Instant</span>' : ''}
             </div>
           </div>
