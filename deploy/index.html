@@ -833,7 +833,7 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="hero-inner">
     <span class="hero-eyebrow">Real farms · Inspected plants</span>
     <h1 class="hero-headline">A whole animal,<br>in three taps.</h1>
-    <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. Farmer and processing in one hanging-weight price.</p>
+    <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. The hanging-weight price is the animal from the farmer. Plant processing (kill, cut, wrap) is separate and paid to the plant.</p>
 
     <!-- Primary conversion: search (Airbnb) → inventory -->
     <form class="hero-search" id="heroSearch" role="search" aria-label="Find meat near you" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
@@ -1187,7 +1187,7 @@ body { background: var(--bg); overflow-x: hidden; }
           <h3 class="product-name">${animalLabel}</h3>
           <p class="product-detail">${farmName} · ${hw} lb HW · Harvest ${harvestLabel}</p>
           <div class="product-foot">
-            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb hanging</span></span>
+            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb hanging · processing extra</span></span>
             <span class="product-cta">Reserve →</span>
           </div>
         </div>
