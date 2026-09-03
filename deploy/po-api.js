@@ -315,9 +315,13 @@
     }
     const bg = level === 'ok' ? 'rgba(125,160,93,0.16)' : level === 'warn' ? 'rgba(213,156,31,0.12)' : 'rgba(194,82,80,0.12)';
     const border = level === 'ok' ? 'rgba(125,160,93,0.35)' : level === 'warn' ? 'rgba(213,156,31,0.35)' : 'rgba(194,82,80,0.35)';
+    el.setAttribute('data-level', level);
+    if (opts.status) el.setAttribute('data-connect-status', String(opts.status));
+    else el.removeAttribute('data-connect-status');
     el.style.cssText = `margin:0 0 18px;padding:14px 18px;background:${bg};border:1px solid ${border};border-radius:14px;font:600 13.5px/1.45 Inter,system-ui,sans-serif;color:#061b0e;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;`;
+    const btnLabel = opts.label || 'Continue Stripe →';
     el.innerHTML = `<span>${escapeBanner(message)}</span>` + (opts.resume && opts.kind && opts.id
-      ? `<button type="button" id="po-connect-resume" style="font:700 12.5px/1 Inter,system-ui,sans-serif;padding:9px 16px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;cursor:pointer;">Continue Stripe →</button>`
+      ? `<button type="button" id="po-connect-resume" style="font:700 12.5px/1 Inter,system-ui,sans-serif;padding:9px 16px;background:#061b0e;color:#fbf9f5;border:0;border-radius:999px;cursor:pointer;">${escapeBanner(btnLabel)}</button>`
       : '');
     document.getElementById('po-connect-resume')?.addEventListener('click', () => {
       api.startConnect(opts.kind, opts.id).catch(e => { el.lastChild ? el.lastChild.textContent = e.message : alert(e.message); });
@@ -345,13 +349,23 @@
     }
     if (action === 'done' && kind && id) {
       api.connectStatus(kind, id).then((s) => {
-        const row = { stripe_account_id: s.stripe_account_id, stripe_connect_status: s.status };
-        if (api.connectPayoutsReady(row)) {
+        const row = {
+          stripe_account_id: s.stripe_account_id,
+          stripe_connect_status: s.status,
+          requirements_due: s.requirements_due,
+        };
+        const lib = typeof PO_CONNECT_STATUS !== 'undefined' ? PO_CONNECT_STATUS : null;
+        const state = lib && lib.connectBannerState ? lib.connectBannerState(row) : null;
+        if (state) {
+          showConnectBanner(state.level, state.message, {
+            kind, id, resume: state.resume, label: state.label, status: state.status,
+          });
+        } else if (api.connectPayoutsReady(row)) {
           showConnectBanner('ok', 'Stripe payouts are connected. Buyers can pay you when checkout opens.');
         } else if (s.status === 'restricted' || (s.requirements_due && s.requirements_due.length)) {
-          showConnectBanner('warn', 'Stripe still needs a few details before payouts can go to your bank.', { kind, id, resume: true });
+          showConnectBanner('warn', 'Stripe still needs a few details before payouts can go to your bank.', { kind, id, resume: true, status: 'restricted' });
         } else {
-          showConnectBanner('warn', 'Stripe is reviewing your account. Payouts unlock when verification finishes.', { kind, id, resume: true });
+          showConnectBanner('warn', 'Stripe is reviewing your account. Payouts unlock when verification finishes.', { kind, id, resume: true, status: 'pending' });
         }
       }).catch((e) => {
         showConnectBanner('error', e.message || 'Could not refresh Stripe status.', { kind, id, resume: true });
