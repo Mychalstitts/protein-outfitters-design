@@ -4,7 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>Protein Outfitters — Farmer donation flow</title>
+<title>Donation flow preview · Protein Outfitters</title>
+<meta name="description" content="Preview of a planned Protein Outfitters donation program. Not accepting donations or institution requests yet." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -137,15 +138,26 @@
 .checkbox-row { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--surface-2); border-radius: var(--r-2); cursor: pointer; }
 .checkbox-row input { margin-top: 2px; }
 .checkbox-row label { font-size: var(--text-sm); }
+.program-preview-banner {
+  background: #f4efe4; border-bottom: 1px solid rgba(6,27,14,.08);
+  padding: 14px 20px; text-align: center;
+}
+.program-preview-banner p { margin: 0 auto; max-width: 68ch; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.example-data-note {
+  max-width: 720px; margin: 0 auto var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  background: var(--warn-soft); border-radius: var(--r-3);
+  font-size: var(--text-sm); line-height: 1.5;
+}
 </style>
-<meta property="og:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta property="og:description" content="Reserve a fraction of a real, named animal from a verified producer. Pick the cuts. We handle the USDA processor and the pickup. Three taps." />
+<meta property="og:title" content="Donation flow preview · Protein Outfitters" />
+<meta property="og:description" content="Preview of a planned donation program. Not accepting donations or institution requests yet." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
-<meta property="og:url" content="https://www.proteinoutfitters.com/" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/donation-flow" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Protein Outfitters — A whole animal, in three taps." />
-<meta name="twitter:description" content="Reserve a fraction of a real, named animal. Pick the cuts. We handle every step." />
+<meta name="twitter:title" content="Donation flow preview · Protein Outfitters" />
+<meta name="twitter:description" content="Preview of a planned donation program. Not accepting donations or institution requests yet." />
 <meta name="twitter:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 </head>
 <body>
@@ -154,12 +166,19 @@
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
       <a href="#" style="font-weight: 900; font-size: 16px; text-transform: uppercase;">Protein Outfitters</a>
-      <span class="pill pill--accent" style="font-size: 10px;">DONATION FLOW</span>
+      <span class="pill pill--accent" style="font-size: 10px;">PROGRAM PREVIEW</span>
     </nav>
   </div>
 </header>
 
+<div class="program-preview-banner" role="status">
+  <p><strong>Program preview — not open.</strong> Protein Outfitters is not accepting donations or institution requests. This page is a design walkthrough of a planned depot. Nothing here is a live listing, reservation, or commitment.</p>
+</div>
+
 <div class="container">
+  <div class="example-data-note">
+    <strong>Illustrative example only.</strong> Names, dates, weights, dollar figures, institutions, and reservations in the screens below are sample layout data. They are not a real animal, buyer, school, farm, or donation.
+  </div>
   <div class="role-bar">
     <button class="active" onclick="showView('farmer')">Farmer</button>
     <button onclick="showView('confirm')">Confirm</button>
@@ -179,8 +198,8 @@
   <div class="donation-banner mt-6">
     <div class="donation-banner-icon">🍖</div>
     <div>
-      <h3>3 weeks until drop-off, ¼ unsold</h3>
-      <p>Donate the unsold quarter to local schools and food banks through Producer Partnership. We pay the processor from program funds; you get a tax letter; the meat goes to people who need it.</p>
+      <h3>Example: 3 weeks until drop-off, ¼ unsold</h3>
+      <p>Sample layout for an unsold quarter. This preview does not donate meat, pay a plant, or issue a tax letter.</p>
     </div>
     <div class="row-actions">
       <button class="btn btn--primary btn--lg" onclick="showView('confirm')">Donate this fraction →</button>
@@ -218,12 +237,12 @@
         <p class="body-sm">Trucking and processing are sized for the whole animal. A donated quarter means the animal goes to processing on schedule, no scramble for last-minute buyers.</p>
       </div>
       <div>
-        <strong style="font-size: var(--text-md); display: block; margin-bottom: 4px;">Get a tax acknowledgment letter</strong>
-        <p class="body-sm">For raised livestock the IRS deduction is generally limited to your basis. The bigger benefit for cash-basis farmers is avoiding income recognition on a sale you didn't make. Talk to your CPA.</p>
+        <strong style="font-size: var(--text-md); display: block; margin-bottom: 4px;">Tax treatment is hypothetical here</strong>
+        <p class="body-sm">For raised livestock the IRS deduction is generally limited to your basis. The bigger benefit for cash-basis farmers is often avoiding income recognition on a sale they didn't make. Talk to your CPA. This preview does not issue letters.</p>
       </div>
       <div>
-        <strong style="font-size: var(--text-md); display: block; margin-bottom: 4px;">No fee on donated fractions</strong>
-        <p class="body-sm">We charge $0 platform fee on this fraction. Producer Partnership pays the processor's kill fee from program funds. You get goodwill and the receipt.</p>
+        <strong style="font-size: var(--text-md); display: block; margin-bottom: 4px;">No live fee promise on this preview</strong>
+        <p class="body-sm">This screen is sample layout. It does not commit Protein Outfitters to cover plant charges or issue a receipt.</p>
       </div>
     </div>
   </div>
@@ -241,25 +260,25 @@
     <div class="confirm-row">
       <span class="eyebrow">Estimated yield</span>
       <strong>≈ 140 lbs take-home protein</strong>
-      <p>Pre-kill estimate. Final tax letter uses actual hanging weight after processing.</p>
+      <p>Example estimate only. This preview does not generate a tax letter.</p>
     </div>
 
     <div class="confirm-row">
-      <span class="eyebrow">Recipient</span>
-      <strong>Producer Partnership · 501(c)(3) · EIN 81-1234567</strong>
-      <p>Montana-based hunger-relief nonprofit; meat goes to food banks, schools, and food shelves through their distribution network.</p>
+      <span class="eyebrow">Recipient (example)</span>
+      <strong>Sample institution name and EIN — not a real organization</strong>
+      <p>Placeholder copy for how a recipient might be described. Not a real nonprofit, EIN, or distribution network.</p>
     </div>
 
     <div class="confirm-row">
-      <span class="eyebrow">Funding</span>
-      <strong>Processor's kill fee paid from program funds</strong>
-      <p>Grants + corporate sponsors + individual monetary donations cover the $95 kill fee + ~$675 processing. You pay $0; buyers pay $0.</p>
+      <span class="eyebrow">Funding (example)</span>
+      <strong>This preview does not have program funds</strong>
+      <p>Sample layout only. No dollar figures here are live plant charges or a promise to cover them.</p>
     </div>
 
     <div class="confirm-row">
-      <span class="eyebrow">Tax letter</span>
-      <strong>IRS-compliant acknowledgment, mailed within 10 days of processing</strong>
-      <p>Will list pounds of protein donated, recipient EIN, date of donation, and "no goods or services were provided in exchange." We email the PDF and mail a paper copy if you check the box below.</p>
+      <span class="eyebrow">Tax documentation (example)</span>
+      <strong>Hypothetical only — this preview does not mail letters or make IRS representations</strong>
+      <p>If a program launched, a donor might receive documentation of what was given. Any tax outcome is between the donor and their CPA.</p>
     </div>
 
     <div class="disclosure">
@@ -267,7 +286,7 @@
     </div>
 
     <div class="card" style="padding: var(--s-5);">
-      <span class="eyebrow">Deed of Gift (preview)</span>
+      <span class="eyebrow">Deed of Gift (example layout)</span>
       <div class="deed-preview mt-3">
         <h4>DEED OF GIFT</h4>
         <p>This Deed of Gift, made effective May 3, 2026, between <strong>Arthur Sterling</strong> ("Donor"), and <strong>Producer Partnership, Inc.</strong>, a Montana 501(c)(3) corporation ("Donee"), transfers and conveys all right, title, and interest of the Donor in and to the following:</p>
@@ -285,11 +304,11 @@
     </label>
     <label class="checkbox-row">
       <input type="checkbox" />
-      <span>Mail me a paper copy of the tax acknowledgment letter (in addition to the PDF email).</span>
+      <span>Example checkbox only — this preview does not mail or email tax letters.</span>
     </label>
 
-    <button class="btn btn--primary btn--xl btn--block" onclick="showView('letter')">E-sign and donate</button>
-    <small class="text-faint text-center" style="font-size: 11px;">By signing you agree to the Deed of Gift. Once signed the donation cannot be revoked.</small>
+    <button class="btn btn--primary btn--xl btn--block" onclick="showView('letter')">Preview example letter →</button>
+    <small class="text-faint text-center" style="font-size: 11px;">Example navigation only. This preview does not collect a signature or record a donation.</small>
   </div>
 </section>
 
@@ -300,8 +319,8 @@
     <span class="pill pill--accent">TAX LETTER PREVIEW</span>
   </div>
 
-  <h2 class="display-md mb-4">Tax acknowledgment letter</h2>
-  <p class="body mb-8" style="max-width: 60ch;">This is what you'll receive after processing. Today the donation is initiated; the final letter generates once {{processor}} reports actual hanging weight.</p>
+  <h2 class="display-md mb-4">Example tax-letter layout</h2>
+  <p class="body mb-8" style="max-width: 60ch;">Sample document for layout only. This preview does not generate, email, or mail a tax letter. Any tax outcome would be between a donor and their CPA.</p>
 
   <div class="tax-letter">
     <div class="tax-letter-head">
@@ -364,15 +383,15 @@
   <div class="grid grid-cols-4 mb-6" style="gap: var(--s-3);">
     <div class="card impact-card">
       <span class="num">12</span>
-      <span class="label">Active donations</span>
+      <span class="label">example · donations shown</span>
     </div>
     <div class="card impact-card">
       <span class="num">2,148</span>
-      <span class="label">lbs in pipeline</span>
+      <span class="label">example · lbs shown</span>
     </div>
     <div class="card impact-card">
       <span class="num">$28k</span>
-      <span class="label">Program fund balance</span>
+      <span class="label">example · fund figure</span>
     </div>
     <div class="card impact-card">
       <span class="num">94%</span>
@@ -458,9 +477,9 @@
 <!-- ============ PUBLIC IMPACT DASHBOARD ============ -->
 <section id="view-impact" class="hidden container section">
   <div class="text-center mb-8">
-    <span class="eyebrow">Donation program</span>
-    <h2 class="display-2xl mt-2">Local protein, local impact.</h2>
-    <p class="body" style="max-width: 60ch; margin: var(--s-4) auto;">Real-time view of pounds donated, schools and food banks served, dollars raised. We update this nightly.</p>
+    <span class="eyebrow">Example impact layout</span>
+    <h2 class="display-2xl mt-2">Sample impact cards.</h2>
+    <p class="body" style="max-width: 60ch; margin: var(--s-4) auto;">Illustrative numbers and names for layout only. There is no live donation program to update.</p>
   </div>
 
   <!-- Big stats -->
@@ -505,9 +524,9 @@
 
   <!-- Donate to the fund CTA -->
   <div class="card mt-8" style="padding: var(--s-8); text-align: center; background: var(--brand-grad); color: var(--ink-inverse);">
-    <h3 class="display-md" style="color: white;">Help fund a kill fee</h3>
-    <p style="opacity: 0.85; max-width: 50ch; margin: var(--s-3) auto var(--s-6);">$95 covers a USDA kill fee. $770 covers full processing of a beef quarter. Every dollar moves real protein to a real local table.</p>
-    <button class="btn btn--apple-pay btn--lg" onclick="showToast('Apple Pay donation modal opens')">Donate $95</button>
+    <h3 class="display-md" style="color: white;">Example fund CTA</h3>
+    <p style="opacity: 0.85; max-width: 50ch; margin: var(--s-3) auto var(--s-6);">Sample button for a future fund. This preview is not accepting money, and the dollar figures are layout examples only.</p>
+    <button class="btn btn--apple-pay btn--lg" onclick="showToast('Program preview — not accepting donations yet.')">Example only — not open</button>
   </div>
 </section>
 

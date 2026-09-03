@@ -4,10 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
-<title>Join Protein Outfitters — Farms &amp; processors nationwide</title>
-<meta name="description" content="List real animals and get paid when buyers reserve. Claim your plant and fill the rail. The nationwide marketplace for U.S. farms and inspected meat processors." />
+<title>Join Protein Outfitters — Farms &amp; processors</title>
+<meta name="description" content="Farms can create a listing. Plants can claim a profile. Protein Outfitters is for U.S. farms and inspected meat processors." />
 <meta property="og:title" content="Join Protein Outfitters — Farms &amp; processors" />
-<meta property="og:description" content="Producers list named animals by the share. Plants claim their profile and take booked drop-offs. Live payments. Real inventory." />
+<meta property="og:description" content="Farms can create a listing. Plants can claim a profile. There is no public inventory to reserve yet." />
 <meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
 <meta property="og:url" content="https://www.proteinoutfitters.com/join" />
 <meta property="og:type" content="website" />
@@ -93,9 +93,9 @@
 </div>
 
 <main class="join-shell">
-  <p class="join-eyebrow">Nationwide network</p>
+  <p class="join-eyebrow">Farms and plants</p>
   <h1 class="join-h1">Join the marketplace built for real animals.</h1>
-  <p class="join-lead">Cattlemen, ranchers, and inspected plants across the U.S. list inventory, take deposits, and book drop-offs in one place — the way a modern locker and direct-to-consumer beef program should work.</p>
+  <p class="join-lead">Invite your ranch to list a named animal, or claim your plant’s profile. The public catalog is empty today — farms can list, plants can claim, and buyers are not paying deposits yet.</p>
 
   <div class="join-stats" id="joinStats" aria-live="polite">
     <span class="join-stat">Loading network…</span>
@@ -104,8 +104,8 @@
   <div class="join-grid">
     <article class="join-card" id="pathProducer">
       <span class="role">Farms &amp; ranches</span>
-      <h2>List animals. Get paid when shares sell.</h2>
-      <p>Publish a quarter, half, or whole of a named animal. Buyers reserve with a card deposit. You drop off at a booked plant and get paid through Stripe Connect.</p>
+      <h2>List animals on your ranch profile.</h2>
+      <p>Farms can create a listing for a quarter, half, or whole of a named animal. Payouts require a completed Stripe Connect account.</p>
       <ul>
         <li>Live listing in about 90 seconds</li>
         <li>Share inventory tracked automatically</li>
@@ -121,7 +121,7 @@
     <article class="join-card" id="pathProcessor">
       <span class="role">Processors &amp; lockers</span>
       <h2>Claim your plant. Fill the rail.</h2>
-      <p>Most USDA and state plants are already on our map from public registries. Search, claim yours, set fees and capacity — farmers book drop-offs with deposit held until check-in.</p>
+      <p>Most USDA and state plants are already on our map from public registries. Search, claim yours, and set fees and capacity. Buyers are not paying deposits today.</p>
       <ul>
         <li>Claim existing FSIS / association listings</li>
         <li>Schedule, capacity, and plant fees</li>
@@ -150,8 +150,8 @@
       </div>
       <div class="how-step">
         <div class="n">Step 3</div>
-        <h4>Money and meat move</h4>
-        <p>Buyers pay a deposit. You get the booking, the cut sheet, and the dock workflow.</p>
+        <h4>List and claim</h4>
+        <p>Farms create a listing. Plants claim their profile. Buyers are not paying deposits today.</p>
       </div>
     </div>
   </section>
@@ -200,13 +200,12 @@
       el.innerHTML = `
         <span class="join-stat"><strong>${Number(farms).toLocaleString()}</strong> farms on the map</span>
         <span class="join-stat"><strong>${Number(procs).toLocaleString()}</strong> processors listed</span>
-        <span class="join-stat"><strong>Live</strong> payments · Stripe Checkout</span>
-        ${listings ? '<span class="join-stat"><strong>Animals</strong> open for reserve now</span>' : '<span class="join-stat">Supply open · list your first animal</span>'}
+        <span class="join-stat">Payouts need a completed Stripe Connect account</span>
+        ${listings ? '<span class="join-stat"><strong>Animals</strong> open for reserve now</span>' : '<span class="join-stat">Catalog empty · list your first animal</span>'}
       `;
     } catch {
       el.innerHTML = `
-        <span class="join-stat"><strong>Nationwide</strong> farm + plant network</span>
-        <span class="join-stat"><strong>Live</strong> deposits via Stripe</span>
+        <span class="join-stat">Farms can list · plants can claim a profile</span>
       `;
     }
   })();

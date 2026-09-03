@@ -304,6 +304,7 @@
   <div id="po-shell-host"></div>
   <script src="/po-api.js"></script>
   <script src="/po-shell.js"></script>
+  <script src="/lib/harvest-label.js"></script>
   <script src="/po-social.js"></script>
   <script>
   (async () => {
@@ -425,16 +426,16 @@
         );
         const shareKey = l.shares?.quarter?.available > 0 ? 'quarter'
           : l.shares?.half?.available > 0 ? 'half' : 'whole';
-        const hw = l.estimated_hanging_weight || 700;
-        const allIn = window.PO_PRICING
+        const hwNum = Number(l.estimated_hanging_weight);
+        const hasHw = Number.isFinite(hwNum) && hwNum > 0;
+        const hw = hasHw ? hwNum : null;
+        const allIn = hasHw && window.PO_PRICING
           ? window.PO_PRICING.allInPerLbHW(farmerRate, shareKey, hw)
-          : farmerRate;
+          : Number(farmerRate || 0) * 1.10;
         const practiceLabel = (l.practice && l.practice[0])
           ? cap(String(l.practice[0]).replace(/-/g, ' '))
           : '';
-        const harvest = l.expected_finish_date
-          ? new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric' })
-          : 'TBD';
+        const harvest = window.harvestLabel ? window.harvestLabel(l) : 'TBD';
         const name = `${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}`;
         return `<button type="button" class="product" data-listing="${l.id}">
           <div class="product-photo" style="background-image:url('${safeUrl(photo)}')"><span class="product-tag">Reserving</span></div>

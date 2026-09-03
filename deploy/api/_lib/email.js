@@ -75,7 +75,7 @@ function layout({ heading, body, ctaLabel, ctaHref, footerNote }) {
     ${footerNote ? `<p style="margin-top:28px;font-size:12px;color:rgba(6,27,14,.65);line-height:1.55;">${footerNote}</p>` : ''}
     <hr style="border:0;border-top:1px solid rgba(6,27,14,.1);margin:32px 0 16px;">
     <p style="font-size:11px;color:rgba(6,27,14,.55);line-height:1.55;margin:0;">
-      Protein Outfitters · Nationwide marketplace · HQ Bemidji, MN · <a href="${baseUrl()}/policies/refunds" style="color:rgba(6,27,14,.55);">Refund policy</a> · <a href="${baseUrl()}/faq" style="color:rgba(6,27,14,.55);">FAQ</a> · <a href="mailto:hello@proteinoutfitters.com" style="color:rgba(6,27,14,.55);">hello@proteinoutfitters.com</a>
+      Protein Outfitters · HQ Bemidji, MN · <a href="${baseUrl()}/policies/refunds" style="color:rgba(6,27,14,.55);">Refund policy</a> · <a href="${baseUrl()}/faq" style="color:rgba(6,27,14,.55);">FAQ</a> · <a href="mailto:hello@proteinoutfitters.com" style="color:rgba(6,27,14,.55);">hello@proteinoutfitters.com</a>
     </p>
   </div>
 </body></html>`;
@@ -127,7 +127,7 @@ export const TEMPLATES = {
   <li>We'll email you when the animal arrives at the processor and again when your meat is ready.</li>
   <li>Pickup window opens after processing.</li>
 </ol>
-<p>You can cancel for a full refund any time more than 21 days before drop-off. Inside 21 days the deposit is non-refundable. <a href="${baseUrl()}/policies/refunds">Full policy.</a></p>`,
+<p>See the <a href="${baseUrl()}/policies/refunds">refund policy</a>. If the animal does not pass inspection, we refund what you paid.</p>`,
       ctaLabel: 'View your reservation →',
       ctaHref: `${baseUrl()}/account?reservation=${c.reservation_id || ''}`,
     }),
@@ -216,9 +216,9 @@ export const TEMPLATES = {
     render: (c) => {
       const stage = c.cancel_stage || 'free'; // 'free' | 'partial' | 'final'
       const stageMsg = {
-        free: `<p>You cancelled outside the 21-day window, so we issued a <strong>full refund of ${fmt$(c.refund_amount)}</strong>. It'll show up on your card in 5–10 business days.</p>`,
-        partial: `<p>You cancelled inside the 21-day window. Per our policy, the deposit of ${fmt$(c.deposit_amount)} is non-refundable, but we've issued you <strong>${fmt$(c.refund_amount)} as platform credit</strong> toward a future reservation (good for 12 months).</p>`,
-        final: `<p>You cancelled inside the 7-day window. The animal is locked into the processor's calendar so the full balance was already owed. We won't be issuing a refund. The meat is still yours — pickup window stays open.</p>`,
+        free: `<p>${c.refund_amount ? `We've issued a <strong>refund of ${fmt$(c.refund_amount)}</strong>. It'll show up on your card in 5–10 business days. ` : ''}See the <a href="${baseUrl()}/policies/refunds">refund policy</a>.</p>`,
+        partial: `<p>${c.refund_amount ? `We've issued <strong>${fmt$(c.refund_amount)}</strong>. ` : ''}See the <a href="${baseUrl()}/policies/refunds">refund policy</a>.</p>`,
+        final: `<p>See the <a href="${baseUrl()}/policies/refunds">refund policy</a>.</p>`,
       }[stage];
       return layout({
         heading: 'Your reservation is cancelled.',
@@ -235,8 +235,8 @@ export const TEMPLATES = {
     render: (c) => layout({
       heading: 'Bad news, but you\'re made whole.',
       body: `<p>Hi ${firstName(c.buyer_name)},</p>
-<p>The animal you reserved (${c.animal_label || ''}) was condemned during inspection. ${c.condemnation_stage === 'ante_mortem' ? 'It was caught before harvest, so no kill fee was charged.' : 'It was caught during processing.'} We've issued a <strong>full refund of ${fmt$(c.refund_amount)}</strong> from our condemnation insurance pool.</p>
-<p>Refund hits your card in 5–10 business days. The processor's kill fee is also covered by the pool, so the farmer isn't on the hook either.</p>
+<p>The animal you reserved (${c.animal_label || ''}) did not pass inspection. ${c.condemnation_stage === 'ante_mortem' ? 'It was caught before harvest, so no kill fee was charged. ' : ''}If the animal does not pass inspection, we refund what you paid.${c.refund_amount ? ` We've issued a <strong>refund of ${fmt$(c.refund_amount)}</strong>.` : ''}</p>
+<p>Refund hits your card in 5–10 business days.</p>
 <p>Want to reserve another animal? We can match you with a similar listing close to the same drop-off date.</p>`,
       ctaLabel: 'Find a similar share →',
       ctaHref: `${baseUrl()}/discover?species=${c.species || ''}`,

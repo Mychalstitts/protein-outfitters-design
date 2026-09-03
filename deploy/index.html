@@ -833,7 +833,7 @@ body { background: var(--bg); overflow-x: hidden; }
   <div class="hero-inner">
     <span class="hero-eyebrow">Real farms · Inspected plants</span>
     <h1 class="hero-headline">A whole animal,<br>in three taps.</h1>
-    <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. Farmer and processing in one hanging-weight price.</p>
+    <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. The hanging-weight price is the animal from the farmer. Plant processing (kill, cut, wrap) is separate and paid to the plant.</p>
 
     <!-- Primary conversion: search (Airbnb) → inventory -->
     <form class="hero-search" id="heroSearch" role="search" aria-label="Find meat near you" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
@@ -1007,8 +1007,8 @@ body { background: var(--bg); overflow-x: hidden; }
     <div class="partner-grid">
       <a href="/join?as=producer" class="partner-card role-farm">
         <span class="role">I’m a farmer</span>
-        <h3>List animals. Get paid. Skip the phone tag.</h3>
-        <p>Put up a quarter, half, or whole. Buyers reserve with deposit. You drop off at a booked plant. Stripe Connect payout after check-in.</p>
+        <h3>List animals. Skip the phone tag.</h3>
+        <p>Farms can list a quarter, half, or whole. Payouts require a completed Stripe Connect account.</p>
         <span class="arrow">Join as a producer →</span>
       </a>
       <a href="/join?as=processor" class="partner-card role-plant">
@@ -1051,6 +1051,7 @@ body { background: var(--bg); overflow-x: hidden; }
 
 <!-- Footer + reserve sheet injected by po-shell.js -->
 
+<script src="/lib/harvest-label.js"></script>
 <script>
 // Live network size for trust copy (processors + farms)
 (async function loadDirectoryStats(){
@@ -1075,14 +1076,14 @@ body { background: var(--bg); overflow-x: hidden; }
       // Show live coverage when we have data; always frame as a national platform
       const label = states.size >= 40
         ? 'Farms and plants you can drive to.'
-        : 'Live inventory in ' + states.size + ' states today.';
-      if (n) n.textContent = states.size >= 40 ? 'Farms' : states.size + ' states live';
+        : 'Farms and plants on the map in ' + states.size + ' states.';
+      if (n) n.textContent = states.size >= 40 ? 'Farms' : states.size + ' states';
       if (l) l.textContent = label;
       const pg = document.getElementById('proofGeo');
       if (pg) {
         pg.innerHTML = states.size >= 40
           ? '<strong>Farms and plants</strong>'
-          : '<strong>' + states.size + ' states</strong> live';
+          : '<strong>' + states.size + ' states</strong> on the map';
       }
     }
   } catch { /* keep static copy */ }
@@ -1145,18 +1146,20 @@ body { background: var(--bg); overflow-x: hidden; }
     const farmerH = Number(l.shares?.half?.price || 0);
     const farmerW = Number(l.shares?.whole?.price || 0);
     const farmerRate = farmerQ || farmerH || farmerW || Number(l.price_per_lb || 0);
-    const hw = Number(l.estimated_hanging_weight || 700);
+    const hwNum = Number(l.estimated_hanging_weight);
+    const hasHw = Number.isFinite(hwNum) && hwNum > 0;
+    const hw = hasHw ? hwNum : null;
     const cheapestShare = l.shares?.quarter?.available > 0 ? 'quarter'
                        : l.shares?.half?.available > 0 ? 'half'
                        : l.shares?.whole?.available > 0 ? 'whole'
                        : 'half';
-    const allInLb = allInPerLb(farmerRate, cheapestShare, hw);
-    const allInQ = farmerQ ? allInPerLb(farmerQ, 'quarter', hw) : 0;
-    const allInH = farmerH ? allInPerLb(farmerH, 'half', hw) : 0;
-    const allInW = farmerW ? allInPerLb(farmerW, 'whole', hw) : 0;
+    const allInLb = hasHw ? allInPerLb(farmerRate, cheapestShare, hw) : Number(farmerRate || 0) * 1.10;
+    const allInQ = farmerQ ? (hasHw ? allInPerLb(farmerQ, 'quarter', hw) : farmerQ * 1.10) : 0;
+    const allInH = farmerH ? (hasHw ? allInPerLb(farmerH, 'half', hw) : farmerH * 1.10) : 0;
+    const allInW = farmerW ? (hasHw ? allInPerLb(farmerW, 'whole', hw) : farmerW * 1.10) : 0;
     const photo = photoFor(l);
     const tag = l.status === 'sold' ? 'Sold out' : (l.shares?.quarter?.available || l.shares?.half?.available) ? 'Reserving' : 'Limited';
-    const harvestLabel = l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en-US', {month:'long',day:'numeric'}) : 'TBD';
+    const harvestLabel = window.harvestLabel ? window.harvestLabel(l) : 'TBD';
     const practice = (l.practice && l.practice[0]) ? ' · ' + l.practice[0].replace('-',' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
     const farmName = l.farm_name || 'Independent farm';
     const animalLabel = `${l.number ? l.number + ' — ' : ''}${l.breed || speciesLabel(l.species)}${l.sex ? ' ' + l.sex : ''}`;
@@ -1185,9 +1188,9 @@ body { background: var(--bg); overflow-x: hidden; }
         <div class="product-meta">
           <span class="product-eyebrow">${speciesLabel(l.species)}${practice}</span>
           <h3 class="product-name">${animalLabel}</h3>
-          <p class="product-detail">${farmName} · ${hw} lb HW · Harvest ${harvestLabel}</p>
+          <p class="product-detail">${farmName} · ${hasHw ? hw + ' lb HW' : 'HW TBD'} · Harvest ${harvestLabel}</p>
           <div class="product-foot">
-            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb hanging</span></span>
+            <span class="product-price">From <strong>${fmtPerLb(allInLb)}</strong><span style="font-weight:600;opacity:.65;font-size:12px">/lb hanging · processing extra</span></span>
             <span class="product-cta">Reserve →</span>
           </div>
         </div>

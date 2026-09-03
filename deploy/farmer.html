@@ -338,6 +338,7 @@
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
 <script src="/po-api.js"></script>
+<script src="/lib/harvest-label.js"></script>
 <script>
 // Deep links from F4 emails pointed at /farmer?booking=… — the check-in code
 // lives on booking-confirmation. Also recover MIME-corrupted links where the
@@ -730,7 +731,7 @@ window.poStartConnect = async function(kind, id) {
       <div class="product-meta">
         <span class="product-eyebrow">${l.species[0].toUpperCase()+l.species.slice(1)}${l.practice && l.practice.length ? ' · ' + l.practice[0] : ''}</span>
         <h3 class="product-name">${l.number ? l.number + ' — ' : ''}${l.breed || l.species}</h3>
-        <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${l.expected_finish_date ? new Date(l.expected_finish_date).toLocaleDateString('en',{month:'short',day:'numeric'}) : 'TBD'}</p>
+        <p class="product-detail">${l.estimated_hanging_weight ? l.estimated_hanging_weight + ' lb HW · ' : ''}Harvest ${window.harvestLabel ? window.harvestLabel(l) : 'TBD'}</p>
         <div class="product-foot"><span class="product-price">From <strong>$${typeof fromPrice === 'number' ? fromPrice.toFixed(2) : fromPrice}</strong><span style="font-weight:600;opacity:.6;font-size:11px">/lb all-in</span></span><span class="product-cta">Manage →</span></div>
         ${bookingCta}
       </div>

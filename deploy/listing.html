@@ -262,6 +262,7 @@
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
 <script src="/po-api.js"></script>
+<script src="/lib/harvest-label.js"></script>
 <script src="/po-social.js"></script>
 <script>
 (async () => {
@@ -322,7 +323,8 @@
     `${l.number ? l.number + ' — ' : ''}${l.breed || cap(l.species)}${l.sex ? ' ' + l.sex : ''} · ${l.farm_name || 'Independent farm'}`;
   const sub = [];
   if (l.estimated_hanging_weight) sub.push(`${l.estimated_hanging_weight} lb hanging weight`);
-  if (l.expected_finish_date) sub.push(`harvest ${new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}`);
+  const harvestText = window.harvestLabel ? window.harvestLabel(l) : 'TBD';
+  if (harvestText && harvestText !== 'TBD') sub.push(`harvest ${harvestText}`);
   if (l.farm_city) sub.push(`${l.farm_city}, ${l.farm_state}`);
   if (practiceLabel) sub.push(practiceLabel);
   document.getElementById('lgSub').textContent = sub.join(' · ');
@@ -368,7 +370,7 @@
   else if (l.hormones) specs.push(['Hormones', l.hormones]);
   if (l.practice && l.practice.length) specs.push(['Practice', l.practice.map(p => cap(p.replace('-', ' '))).join(', ')]);
   if (l.certs && l.certs.length) specs.push(['Certifications', l.certs.map(c => String(c).toUpperCase()).join(', ')]);
-  if (l.expected_finish_date) specs.push(['Harvest date', new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })]);
+  if (harvestText && harvestText !== 'TBD') specs.push(['Harvest', harvestText]);
   document.getElementById('lgSpecs').innerHTML = specs.length
     ? specs.map(([k, v]) => `<div class="spec"><p class="spec-label">${k}</p><p class="spec-value">${v}</p></div>`).join('')
     : '<p class="lead">Specs will appear as the farmer completes the listing.</p>';
@@ -409,9 +411,7 @@
   document.getElementById('lgFarmPractices').textContent = (l.farm_practices && l.farm_practices.length)
     ? l.farm_practices.map(p => cap(String(p).replace('-', ' '))).join(', ')
     : (l.practice && l.practice.length ? l.practice.map(p => cap(String(p).replace('-', ' '))).join(', ') : '—');
-  document.getElementById('lgHarvest').textContent = l.expected_finish_date
-    ? new Date(l.expected_finish_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'TBD';
+  document.getElementById('lgHarvest').textContent = harvestText;
   const lgFarmLink = document.getElementById('lgFarmLink');
   if (lgFarmLink) lgFarmLink.href = l.farm_slug ? '/farm/' + l.farm_slug : '/producers';
 
