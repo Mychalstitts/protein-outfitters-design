@@ -438,6 +438,21 @@
   .hs-chip.farm { background: linear-gradient(135deg, #43a047, #1b5e20); color: #fff; }
   .hs-chip.retail { background: linear-gradient(135deg, #8e24aa, #4a148c); color: #fff; }
   .hs-chip.gap { background: linear-gradient(135deg, #fb8c00, #e65100); color: #fff; }
+  .hs-chip.proc { background: linear-gradient(135deg, #00838f, #004d40); color: #fff; }
+  .hs-acts { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .hs-acts a {
+    font:700 11px/1 Inter,system-ui,sans-serif; color:#fbf9f5; text-decoration:none;
+    padding:6px 9px; border-radius:999px; background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .hs-acts a:hover { background:rgba(255,255,255,.2); }
+  .hs-empty-data {
+    margin: 0 0 10px; padding: 10px 12px; border-radius: 12px;
+    background: rgba(251, 168, 52, .16); border: 1px solid rgba(251, 168, 52, .35);
+    font: 500 12.5px/1.45 Inter, system-ui, sans-serif; color: #f4e4c4;
+  }
+  .hs-empty-data strong { display:block; font-weight:800; margin-bottom:4px; color:#fbf9f5; }
+  .hs-empty-data a { color:#fff; font-weight:700; }
 
   .hs-rail-foot {
     padding: 10px 14px 14px;
@@ -674,16 +689,7 @@
 <div class="po-nav-wrap" id="hsNav">
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
-    <div class="po-nav-links">
-      <a href="/admin-overview">Overview</a>
-      <a href="/admin-health">Health</a>
-      <a href="/admin-analytics">Analytics</a>
-      <a href="/admin-hotspots" style="font-weight:800">Hotspots</a>
-      <a href="/admin-moderation">Moderation</a>
-      <a href="/admin">Disputes</a>
-      <a href="/admin-email">Email QA</a>
-      <a href="/map">Map</a>
-    </div>
+    <div class="po-nav-links" data-admin-nav></div>
     <div class="po-nav-actions">
       <a href="/account" class="signin">Sign in</a>
       <button class="reserve" data-open-sheet>Reserve</button>
@@ -782,6 +788,7 @@
         </div>
       </div>
       <p id="hsRegionNote">Ranking the whole country. Zoom into a region and this list follows the map.</p>
+      <div id="hsDataBanner" hidden></div>
     </div>
     <div class="hs-stats" id="hsStats"></div>
     <div class="hs-list" id="hsList">
@@ -790,9 +797,9 @@
     <div class="hs-rail-foot">
       <details id="hsDataDetails">
         <summary>Data sources &amp; how to use</summary>
-        <p class="note"><b>Sell hardware</b> · <b>Recruit buyers</b> · <b>Recruit farms</b> ·
-          <b>Activate listings</b> · <b>Retail prospect</b> · <b>Capacity gap</b>.
-          Pins on metros; livestock in haul range. Score = √(demand × supply) ÷ (1 + plants).</p>
+        <p class="note"><b>Sell hardware</b> · <b>Recruit processors</b> · <b>Recruit farms</b> ·
+          <b>Recruit buyers</b> · <b>Activate listings</b> · <b>Capacity gap</b>.
+          Click a play to act — map invite, listings, or hardware leads. Pins on metros; livestock in haul range.</p>
         <div class="hs-data-rows" id="hsDataRows"></div>
         <div id="hsDataLog"></div>
       </details>
@@ -810,6 +817,7 @@
 
 <script src="/po-api.js"></script>
 <script src="/po-shell.js"></script>
+<script src="/admin-nav.js"></script>
 <script>
 (function () {
   // Declare map state BEFORE any function that closes over it (TDZ crash if
@@ -1110,8 +1118,45 @@
   const fmt = (n) => Number(n || 0).toLocaleString('en-US');
   const chipClass = (id) => ({
     hardware: 'hw', hardware_addon: 'hw', recruit_buyers: 'buy', recruit_farms: 'farm',
-    retail: 'retail', capacity_gap: 'gap', activate_listings: 'farm',
+    recruit_processors: 'proc', retail: 'retail', capacity_gap: 'gap', activate_listings: 'farm',
   }[id] || '');
+
+  function playHref(play, h) {
+    const lat = h && h.lat != null ? Number(h.lat) : null;
+    const lng = h && h.lng != null ? Number(h.lng) : null;
+    const pin = (lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng))
+      ? `&lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`
+      : '';
+    const id = play && play.id;
+    if (id === 'hardware' || id === 'hardware_addon') return '/admin-overview#hardware';
+    if (id === 'recruit_farms') return '/map?layer=prospects&kind=farm' + pin;
+    if (id === 'recruit_processors' || id === 'capacity_gap') return '/map?layer=prospects&kind=processor' + pin;
+    if (id === 'recruit_buyers') return '/admin-overview#customers';
+    if (id === 'activate_listings') return '/admin-moderation';
+    if (id === 'retail') return '/admin-overview#prospects';
+    return pin ? ('/map?layer=prospects' + pin) : '/map?layer=prospects';
+  }
+
+  function playActsHtml(plays, h) {
+    const seen = new Set();
+    const acts = (plays || []).slice(0, 3).map((p) => {
+      if (seen.has(p.id)) return '';
+      seen.add(p.id);
+      const href = playHref(p, h);
+      const label = ({
+        hardware: 'Hardware leads →',
+        hardware_addon: 'Hardware add-on →',
+        recruit_farms: 'Invite farms →',
+        recruit_processors: 'Invite processors →',
+        capacity_gap: 'Find a plant →',
+        recruit_buyers: 'Buyer inbox →',
+        activate_listings: 'Review listings →',
+        retail: 'Prospect queue →',
+      })[p.id] || 'Act →';
+      return `<a href="${href}" onclick="event.stopPropagation()">${label}</a>`;
+    }).filter(Boolean).join('');
+    return acts ? `<div class="hs-acts">${acts}</div>` : '';
+  }
 
   filtersBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1325,14 +1370,14 @@
     setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 80);
   }
 
-  function playsHtml(plays) {
+  function playsHtml(plays, h) {
     if (!plays || !plays.length) return '';
     const chips = plays.map(p =>
       `<span class="hs-chip ${chipClass(p.id)}" title="${(p.why || '').replace(/"/g, '&quot;')}">${p.label}</span>`
     ).join('');
     const why = plays[0]?.why
       ? `<div style="margin-top:6px;font:500 12px/1.4 Inter;color:#5a6359">${plays[0].why}</div>` : '';
-    return `<div class="hs-plays" style="margin-top:8px">${chips}</div>${why}`;
+    return `<div class="hs-plays" style="margin-top:8px">${chips}</div>${why}${playActsHtml(plays, h)}`;
   }
   function unitsHtml(u) {
     if (!u) return '';
@@ -1345,7 +1390,7 @@
   function popupHtml(h) {
     return `
       <h4>${h.rank != null ? '#' + h.rank + ' ' : ''}${h.label || 'Market area'} · ${h.opportunity_score}</h4>
-      ${playsHtml(h.plays)}
+      ${playsHtml(h.plays, h)}
       <div class="hs-pop-row" style="margin-top:6px"><span>Population</span><strong>${fmt(h.metrics.population)}</strong></div>
       <div class="hs-pop-row"><span>Livestock head</span><strong>${fmt(h.metrics.livestock)}</strong></div>
       <div class="hs-pop-row"><span>Buyers</span><strong>${fmt(h.metrics.buyers)}</strong></div>
@@ -1498,7 +1543,7 @@
         : (focus.label ? focus.label : 'This area');
       const fPopup = `
         <h4>${title} · ${focus.opportunity_score}</h4>
-        ${playsHtml(focus.plays)}
+        ${playsHtml(focus.plays, focus)}
         <div class="hs-pop-row" style="margin-top:6px"><span>Zone</span><strong>
           <button class="hs-step" onclick="window.__hsFocusStep(-1)" ${focus.radius_miles <= 25 ? 'disabled' : ''}>−</button>
           ${focus.radius_miles} mi
@@ -1541,6 +1586,7 @@
                 h.units && h.units.net_ps1 > 0 ? ` · <b>${h.units.suggested_config}</b>` : ''}</p>
             ${chips ? `<div class="hs-plays">${chips}</div>` : ''}
             ${why}
+            ${playActsHtml(h.plays, h)}
           </div>
           <div class="hs-score" style="background:${colorForRank(h.rank)}">${h.opportunity_score}</div>
         </div>`;
@@ -1690,6 +1736,15 @@
     }
     const cs = s.county_stats || {}, pr = s.processors || {};
     const livestockStates = s.livestock_states || [];
+    const banner = document.getElementById('hsDataBanner');
+    if (banner) {
+      const empty = !cs.counties || Number(cs.with_population || 0) < 100;
+      banner.hidden = !empty;
+      if (empty) {
+        banner.className = 'hs-empty-data';
+        banner.innerHTML = '<strong>Import market data first</strong>Open Data sources below — Census + livestock unlock the heat. Then use plays to recruit farms, processors, and buyers.';
+      }
+    }
     rowsEl.innerHTML = `
       <div class="hs-data-row">
         <div class="meta"><strong>Population</strong> — ${fmt(cs.with_population)} / ${fmt(cs.counties)}

@@ -54,10 +54,16 @@
 </style>
 </head>
 <body>
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links" data-admin-nav></div>
+  </nav>
+</div>
 <div id="modRoot" class="mod-shell" style="display:none;">
   <div class="mod-head">
-    <h1>Moderation</h1>
-    <a class="back" href="/admin-overview">← Admin overview</a>
+    <h1>Listings &amp; complaints</h1>
+    <a class="back" href="/admin-overview#listings">Inbox →</a>
   </div>
   <p class="mod-sub">Triage quality complaints and review listings. All actions are logged to the database and notify the affected parties through the normal pipeline.</p>
 
@@ -83,6 +89,7 @@
 
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
+<script src="/admin-nav.js"></script>
 <script>
 (async () => {
   const $ = id => document.getElementById(id);

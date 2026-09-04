@@ -79,7 +79,7 @@
   <div class="container">
     <nav class="row row--between" style="padding: 14px 0;">
       <a href="/" style="font-weight: 700; font-size: 14px; text-transform: none; text-decoration: none; color: inherit;">Protein Outfitters</a>
-      <div class="po-nav-actions"><a href="/admin-overview" style="font-weight:700;font-size:13px;text-decoration:none;color:inherit;margin-right:14px;">Overview</a><a href="/admin-moderation" style="font-weight:700;font-size:13px;text-decoration:none;color:inherit;margin-right:14px;">Moderation</a><a href="/admin-email" style="font-weight:700;font-size:13px;text-decoration:none;color:inherit;">Email QA</a></div>
+      <div class="po-nav-links" data-admin-nav style="display:flex;flex-wrap:wrap;gap:14px;font:700 13px/1 Inter,system-ui,sans-serif;"></div>
     </nav>
   </div>
 </header>
@@ -109,6 +109,7 @@
 
 <script src="/po-api.js"></script>
 <script src="/po-shell.js"></script>
+<script src="/admin-nav.js"></script>
 <script>
 (function () {
   'use strict';

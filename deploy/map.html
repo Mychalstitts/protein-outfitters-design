@@ -1028,6 +1028,7 @@
       paintStats();
       const url = new URL(location.href);
       const layer = url.searchParams.get('layer');
+      const kind = (url.searchParams.get('kind') || '').toLowerCase();
       const lat = parseFloat(url.searchParams.get('lat'));
       const lng = parseFloat(url.searchParams.get('lng'));
       if (!isNaN(lat) && !isNaN(lng)) {
@@ -1043,7 +1044,10 @@
           try { map.fitBounds(pts, { padding: [40, 40], maxZoom: 6 }); } catch (_) {}
         }
       }
-      setLayer(layer && layers[layer] ? layer : 'farms');
+      if (kind === 'farm' || kind === 'processor') {
+        DATA.prospects = (DATA.prospects || []).filter(p => !p.kind || String(p.kind).toLowerCase() === kind);
+      }
+      setLayer((layer && layers[layer]) ? layer : ((kind === 'farm' || kind === 'processor') ? 'prospects' : 'farms'));
       if (layer === 'processors') viewportFilter = true;
       document.getElementById('mapLoading').classList.add('hide');
 

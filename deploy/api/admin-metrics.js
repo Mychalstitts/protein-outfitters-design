@@ -24,14 +24,16 @@ async function handler(req) {
   let user = null;
   try { user = await currentUser(req); } catch (e) { /* fall through */ }
   if (!user) return err(401, 'Sign in required');
+  if (user.role !== 'admin') return err(403, 'Admin only');
 
   const errors = [];
 
   // ── Real DB counts (each query individually safe) ─────────────
   const counts = {};
   const setC = (k, def = 0) => { if (!(k in counts)) counts[k] = def; };
-  setC('farms'); setC('listings_active'); setC('reservations_active');
-  setC('users'); setC('processors');
+  setC('farms'); setC('listings_active'); setC('listings_draft'); setC('reservations_active');
+  setC('users'); setC('buyers'); setC('processors');
+  setC('prospects_new'); setC('pending_stale');
   setC('pending_deposits_count'); setC('pending_deposits_sum');
   setC('paid_deposits_count'); setC('paid_deposits_sum');
   setC('institutions_pending'); setC('institutions_approved');
@@ -41,8 +43,10 @@ async function handler(req) {
   const queries = [
     ['farms',                   () => sql`SELECT COUNT(*)::int AS c FROM farms`],
     ['listings_active',         () => sql`SELECT COUNT(*)::int AS c FROM listings WHERE status = 'active'`],
+    ['listings_draft',          () => sql`SELECT COUNT(*)::int AS c FROM listings WHERE status = 'draft'`],
     ['reservations_active',     () => sql`SELECT COUNT(*)::int AS c FROM reservations WHERE status NOT IN ('cancelled','refunded')`],
     ['users',                   () => sql`SELECT COUNT(*)::int AS c FROM users`],
+    ['buyers',                  () => sql`SELECT COUNT(*)::int AS c FROM users WHERE role = 'buyer'`],
     ['processors',              () => sql`SELECT COUNT(*)::int AS c FROM processors`],
   ];
   for (const [key, q] of queries) {
@@ -134,6 +138,46 @@ async function handler(req) {
   if (rr.ok) recentReservations = rr.data;
   else errors.push(rr.error);
 
+  let recentListings = [];
+  const rlist = await safeQuery('recent_listings', () => sql`
+    SELECT l.id, l.number, l.breed, l.species, l.status, l.created_at,
+           l.after_thirty_months, l.otm_price_pending,
+           f.name AS farm_name, f.city AS farm_city, f.state AS farm_state
+      FROM listings l
+      LEFT JOIN farms f ON f.id = l.farm_id
+     ORDER BY l.created_at DESC
+     LIMIT 12`);
+  if (rlist.ok) recentListings = rlist.data;
+
+  let recentBuyers = [];
+  const rbuy = await safeQuery('recent_buyers', () => sql`
+    SELECT id, name, email, zip, created_at
+      FROM users
+     WHERE role = 'buyer'
+     ORDER BY created_at DESC
+     LIMIT 12`);
+  if (rbuy.ok) recentBuyers = rbuy.data;
+
+  let prospectQueue = [];
+  const rpq = await safeQuery('prospect_queue', () => sql`
+    SELECT id, kind, name, city, state, email, phone, invite_status, source, created_at
+      FROM discovered_partners
+     WHERE invite_status IN ('new','queued')
+     ORDER BY created_at DESC
+     LIMIT 12`);
+  if (rpq.ok) prospectQueue = rpq.data;
+
+  const pnew = await safeQuery('prospects_new',
+    () => sql`SELECT COUNT(*)::int AS c FROM discovered_partners WHERE invite_status IN ('new','queued')`);
+  if (pnew.ok && pnew.data?.[0]) counts.prospects_new = pnew.data[0].c;
+
+  const pstale = await safeQuery('pending_stale',
+    () => sql`SELECT COUNT(*)::int AS c FROM reservations
+              WHERE status = 'pending'
+                AND stripe_payment_intent IS NULL
+                AND created_at < NOW() - INTERVAL '5 minutes'`);
+  if (pstale.ok && pstale.data?.[0]) counts.pending_stale = pstale.data[0].c;
+
   // ── Stripe data (lazy import so missing package doesn't crash) ─
   let balance = null, recentPayments = [], stripeError = null;
   if (process.env.STRIPE_SECRET_KEY) {
@@ -170,6 +214,9 @@ async function handler(req) {
     recent_disputes: recentDisputes,
     recent_institutions: recentInstitutions,
     recent_leads: recentLeads,
+    recent_listings: recentListings,
+    recent_buyers: recentBuyers,
+    prospect_queue: prospectQueue,
     stripe_error: stripeError,
     errors
   });
