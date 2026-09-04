@@ -168,7 +168,7 @@
     $('hvTotal').textContent = money(due.total);
     $('hvKill').textContent = money(due.kill);
     $('hvTrip').textContent = money(due.trip);
-    $('hvQuoteSub').textContent = t.name + ' · ' + t.miles + ' mi from the smokehouse · $85 minimum';
+    $('hvQuoteSub').textContent = t.name + ' · ' + t.miles + ' mi from the smokehouse · ' + H.tripRateLabel(t);
     const hint = $('hvTownHint');
     if (t.hub) {
       hint.textContent = t.name + ' is a hub — any open harvest day is tappable. This week is ' + thisWeekLabel() + '.';

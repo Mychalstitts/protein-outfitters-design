@@ -24,8 +24,10 @@ test('share splits are whole / side / quarter of hanging dollars', () => {
   assert.equal(H.SHARE_LABELS.half, 'Side (½)');
 });
 
-test('trip fee floors at $85 and caps miles at 60', () => {
-  assert.equal(H.tripFeeDollars(0), 85);
+test('trip fee is $0 at 0 mi; floor applies only when miles > 0', () => {
+  assert.equal(H.tripFeeDollars(0), 0);
+  assert.equal(H.tripFeeDollars(H.resolveTown('Turtle River')), 0);
+  assert.equal(H.harvestDue('beef', 'Turtle River', 1).trip, 0);
   assert.equal(H.tripFeeDollars(18), 85);
   assert.equal(H.tripFeeDollars(34), 85);
   assert.equal(H.tripFeeDollars(55), 137.5);
@@ -33,6 +35,10 @@ test('trip fee floors at $85 and caps miles at 60', () => {
   assert.equal(H.tripFeeDollars(80), 150);
   assert.equal(H.tripFeeDollars(H.resolveTown('Blackduck')), 85);
   assert.equal(H.tripFeeDollars(H.resolveTown('Park Rapids')), 137.5);
+  assert.equal(H.tripRateLabel(0), '$0 trip');
+  assert.equal(H.tripRateLabel('Turtle River'), '$0 trip');
+  assert.equal(H.tripRateLabel('Blackduck'), '$85 minimum');
+  assert.equal(H.tripRateLabel('Park Rapids'), '$2.50/mi');
 });
 
 test('unknown town defaults to 60 miles and south', () => {

@@ -45,6 +45,7 @@
   const COMPASS_WEEK = { 1: 'north', 2: 'west', 3: 'south', 4: 'east', 5: 'east' };
   const HARVEST_WEEKDAYS = [2, 3, 4]; // Tue, Wed, Thu
 
+  // Hub towns use hub: true (quadrant is secondary; selectable days key off hub).
   const TOWNS = [
     { name: 'Turtle River', miles: 0, quadrant: 'north', hub: true },
     { name: 'Bemidji', miles: 9, quadrant: 'north', hub: true },
@@ -139,7 +140,17 @@
   }
 
   function tripFeeDollars(townOrMiles) {
-    return Math.max(TRIP_FLOOR, roundMoney(quotedMiles(townOrMiles) * MILEAGE_RATE));
+    const miles = quotedMiles(townOrMiles);
+    if (miles <= 0) return 0;
+    return Math.max(TRIP_FLOOR, roundMoney(miles * MILEAGE_RATE));
+  }
+
+  function tripRateLabel(townOrMiles) {
+    const miles = quotedMiles(townOrMiles);
+    if (miles <= 0) return '$0 trip';
+    const raw = roundMoney(miles * MILEAGE_RATE);
+    if (raw < TRIP_FLOOR) return '$' + TRIP_FLOOR + ' minimum';
+    return '$' + MILEAGE_RATE.toFixed(2) + '/mi';
   }
 
   function killFeePerHead(species) {
@@ -335,6 +346,7 @@
     resolveTown: resolveTown,
     quotedMiles: quotedMiles,
     tripFeeDollars: tripFeeDollars,
+    tripRateLabel: tripRateLabel,
     killFeePerHead: killFeePerHead,
     killFeeDollars: killFeeDollars,
     harvestDue: harvestDue,
