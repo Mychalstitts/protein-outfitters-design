@@ -37,8 +37,12 @@ sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${DB_ROLE}'" |
 sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" | grep -q 1 \
   || sudo -u postgres createdb -O "${DB_ROLE}" "${DB_NAME}"
 
-echo "==> Applying schema + demo seed"
+echo "==> Applying schema + base seed"
 DATABASE_URL="postgres://${DB_ROLE}:${DB_PASS}@127.0.0.1:5432/${DB_NAME}" \
   node scripts/db-bootstrap.mjs --seed
+
+echo "==> Applying demo content (farms, processors, listings)"
+PGPASSWORD="${DB_PASS}" psql "host=127.0.0.1 port=5432 dbname=${DB_NAME} user=${DB_ROLE} sslmode=require" \
+  -v ON_ERROR_STOP=1 -q -f scripts/seed-demo.sql
 
 echo "==> Local database ready: postgres://${DB_ROLE}:***@127.0.0.1:5432/${DB_NAME}"
