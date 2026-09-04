@@ -1,5 +1,7 @@
 // Shared harvest display helper.
 // Display-only: never invents harvest_window_end from birth_date.
+// Listing UIs must show this range (earliest → 30 months when both
+// columns exist). Do not invent a single fake harvest date.
 //
 //   start AND end  → "Jun 20, 2025 – Sep 15, 2026"
 //   earliest only  → that date (not presented as a whole window)

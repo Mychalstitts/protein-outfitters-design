@@ -153,6 +153,7 @@
     <div class="po-nav-links">
       <a href="/farmer" class="active">My ranch</a>
       <a href="/list-animal">List animal</a>
+      <a href="/harvest">Book trailer</a>
       <a href="/map">Book a plant</a>
       <a href="/credentials">Credentials</a>
       <a href="/finance">Finance</a>
@@ -241,6 +242,16 @@
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></span>
         <h4>List an animal</h4>
         <p>5-step wizard with auto-description.</p>
+      </a>
+      <a href="/list-animal?mode=pound" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></span>
+        <h4>List by the pound</h4>
+        <p>Hanging $/lb, whole / side / quarter, 10% fee.</p>
+      </a>
+      <a href="/harvest" class="qa">
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
+        <h4>Book the trailer</h4>
+        <p>Stittsworth compass week · kill + trip due first.</p>
       </a>
       <a href="/community" id="fmPostWallLink" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#users"/></svg></span>
@@ -639,18 +650,16 @@ window.poStartConnect = async function(kind, id) {
     renderCompletionMeter();
 
     // Greeting sub: count reservations + nearest harvest
-    const upcomingHarvests = allListings.filter(l => l.expected_finish_date && new Date(l.expected_finish_date) > new Date()).sort((a,b) => new Date(a.expected_finish_date) - new Date(b.expected_finish_date));
+    const upcomingHarvests = allListings.filter(l => l.harvest_window_start || l.expected_finish_date || l.harvest_window_end);
     const sub = document.getElementById('fmGreetSub');
     if (sub) {
       const parts = [];
-      if (allListings.length) parts.push(`<strong>${allListings.length}</strong> active listing${allListings.length === 1 ? '' : 's'}`);
+      if (allListings.length) parts.push(`<strong>${allListings.length}</strong> listing${allListings.length === 1 ? '' : 's'}`);
       if (reservedShares) parts.push(`<strong>${reservedShares}</strong> reserved share${reservedShares === 1 ? '' : 's'}`);
-      if (upcomingHarvests[0]) {
-        const d = new Date(upcomingHarvests[0].expected_finish_date);
-        const days = Math.round((d - Date.now()) / 86400000);
-        parts.push(`next harvest in <strong>${days} day${days === 1 ? '' : 's'}</strong>`);
+      if (upcomingHarvests[0] && window.harvestLabel) {
+        parts.push(`harvest <strong>${window.harvestLabel(upcomingHarvests[0])}</strong>`);
       }
-      sub.innerHTML = parts.length ? `You've got ${parts.join(', ')}.` : 'No active listings yet — tap "List an animal" to add one.';
+      sub.innerHTML = parts.length ? `You've got ${parts.join(', ')}.` : 'No active listings yet — tap "List an animal" or list by the pound.';
     }
 
     // Today feed: build from real upcoming harvests
@@ -659,15 +668,14 @@ window.poStartConnect = async function(kind, id) {
     if (today && tgrid && upcomingHarvests.length) {
       today.style.display = '';
       tgrid.innerHTML = upcomingHarvests.slice(0, 4).map(l => {
-        const d = new Date(l.expected_finish_date);
-        const days = Math.round((d - Date.now()) / 86400000);
+        const harvest = window.harvestLabel ? window.harvestLabel(l) : 'TBD';
         return `<div class="today-card ok">
           <div class="today-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></div>
           <div class="today-meta">
-            <h4>${l.number ? l.number + ' · ' : ''}${l.breed || l.species} → harvest in ${days} day${days === 1 ? '' : 's'}</h4>
-            <p>${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · ${l.farm_name}</p>
+            <h4>${l.number ? l.number + ' · ' : ''}${l.breed || l.species} → harvest ${harvest}</h4>
+            <p>${l.farm_name} · earliest → 30 months</p>
           </div>
-          <a href="/listing?id=${l.id}" class="today-cta">Manage →</a>
+          <a href="/harvest?listing=${l.id}" class="today-cta">Trailer →</a>
         </div>`;
       }).join('');
     }

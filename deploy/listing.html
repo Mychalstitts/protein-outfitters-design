@@ -246,6 +246,7 @@
         <div class="host-row"><span>Practices</span><span id="lgFarmPractices">—</span></div>
         <div class="host-row"><span>Harvest</span><span id="lgHarvest">—</span></div>
         <a id="lgFarmLink" href="/producers">View farm profile →</a>
+        <a id="lgTrailerLink" href="/harvest">Book the trailer →</a>
       </div>
     </aside>
   </div>
@@ -412,6 +413,8 @@
     ? l.farm_practices.map(p => cap(String(p).replace('-', ' '))).join(', ')
     : (l.practice && l.practice.length ? l.practice.map(p => cap(String(p).replace('-', ' '))).join(', ') : '—');
   document.getElementById('lgHarvest').textContent = harvestText;
+  const trailerLink = document.getElementById('lgTrailerLink');
+  if (trailerLink && l.id) trailerLink.href = '/harvest?listing=' + encodeURIComponent(l.id);
   const lgFarmLink = document.getElementById('lgFarmLink');
   if (lgFarmLink) lgFarmLink.href = l.farm_slug ? '/farm/' + l.farm_slug : '/producers';
 

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Book the trailer · Protein Outfitters</title>
+<meta name="description" content="Kill and mileage due before Stittsworth Smokehouse leaves Turtle River. Trailer days follow the Bemidji compass." />
+<meta property="og:title" content="Book the trailer · Protein Outfitters" />
+<meta property="og:description" content="On-farm harvest with Stittsworth Smokehouse. Kill + trip due before the trailer leaves." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/harvest" />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
+<link rel="stylesheet" href="/stittsworth-harvest.css">
+</head>
+<body>
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/farmer">My ranch</a>
+      <a href="/list-animal?mode=pound">List by the pound</a>
+      <a href="/harvest" class="active">Book trailer</a>
+      <a href="/map">Book a plant</a>
+    </div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<section class="hv-shell">
+  <div class="hv-inner">
+    <div>
+      <p class="lb-kicker">On-farm harvest</p>
+      <h1 class="lb-title">Kill and mileage due before we leave the smokehouse.</h1>
+      <p class="lb-lead" id="hvLead">Mobile trailer. Days follow the compass from 7972 Farley Dr NE, Turtle River, MN. Farms only see leftover harvest slots on their week: 1 North, 2 West, 3 South, 4 East. Bemidji and Turtle River (hub) can pick any open harvest day.</p>
+
+      <div class="lb-card">
+        <div class="lb-row">
+          <div class="lb-field">
+            <label for="hvFarm">Farm</label>
+            <input id="hvFarm" type="text" placeholder="Your farm" />
+          </div>
+          <div class="lb-field">
+            <label for="hvTown">Town</label>
+            <select id="hvTown"></select>
+            <span class="help" id="hvTownHint"></span>
+          </div>
+        </div>
+
+        <div class="lb-field">
+          <label>Species</label>
+          <div class="lb-pills" id="hvSpecies">
+            <button type="button" class="lb-pill" data-species="beef">Beef · $185</button>
+            <button type="button" class="lb-pill" data-species="hog">Hog · $95</button>
+            <button type="button" class="lb-pill" data-species="lamb">Lamb · $70</button>
+            <button type="button" class="lb-pill" data-species="goat">Goat · $70</button>
+            <button type="button" class="lb-pill" data-species="bison">Bison · $250</button>
+          </div>
+        </div>
+
+        <div class="lb-field">
+          <label>Head on this trip</label>
+          <div class="lb-pills" id="hvHeads">
+            <button type="button" class="lb-pill" data-heads="1">1</button>
+            <button type="button" class="lb-pill" data-heads="2">2</button>
+            <button type="button" class="lb-pill" data-heads="3">3</button>
+            <button type="button" class="lb-pill" data-heads="4">4</button>
+          </div>
+        </div>
+
+        <div class="lb-field">
+          <label>Split for cut sheets</label>
+          <div class="lb-pills" id="hvShare">
+            <button type="button" class="lb-pill" data-share="whole">Whole</button>
+            <button type="button" class="lb-pill" data-share="half">Side (½)</button>
+            <button type="button" class="lb-pill" data-share="quarter">Quarter</button>
+          </div>
+          <span class="help">Halves divide hanging by 2. Quarters divide it by 4. Equal parts.</span>
+        </div>
+
+        <div class="lb-field">
+          <label>Trailer day</label>
+          <div class="hv-cal" id="hvCal" aria-label="Trailer calendar"></div>
+          <span class="help">Only leftover harvest slots on this town’s compass week are tappable. Grey days are the wrong side of town, shop-closed, or full. Listing harvest dates stay a range (earliest → 30 months) — this day is a trailer request, not a fake single harvest date.</span>
+          <div class="hv-slots" id="hvSlots"></div>
+        </div>
+      </div>
+      <p class="lb-legal">Custom-exempt: you buy a live share for household use. Stittsworth Smokehouse harvests on the farm, then finishes at Turtle River. Not for resale. Protein Outfitters is the marketplace — Bemidji first, more processors later.</p>
+    </div>
+
+    <aside class="hv-quote">
+      <p class="lab">Due before the animal is taken</p>
+      <p class="total" id="hvTotal">$0.00</p>
+      <p class="sub" id="hvQuoteSub">Pick a town to quote kill + mileage.</p>
+      <div class="hv-break">
+        <div><div class="k">Kill</div><div class="v" id="hvKill">$0.00</div></div>
+        <div><div class="k">Mileage</div><div class="v" id="hvTrip">$0.00</div></div>
+      </div>
+      <p class="hv-note">One trip fee covers 1–4 head on the same farm. Processing (cut sheets) is billed later on Stripe — hanging price is the animal only.</p>
+      <button type="button" class="lb-cta" id="hvRequest">Request this trailer day</button>
+      <p class="hv-gate" id="hvGate">Trailer capacity is not live yet. This saves a request and, when a listing is attached with no harvest window, writes that week as a range. It does not charge a card, touch checkout, or publish listing 123.</p>
+      <p class="hv-gate" id="hvStatus"></p>
+      <p class="hv-gate" id="hvListingHarvest"></p>
+    </aside>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="/po-shell.js"></script>
+<script src="/po-api.js"></script>
+<script src="/lib/harvest-label.js"></script>
+<script src="/lib/stittsworth-harvest.js"></script>
+<script>
+(function () {
+  'use strict';
+  const H = window.POStittsworth;
+  const params = new URLSearchParams(location.search);
+  const money = (n) => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const state = {
+    farm: '',
+    town: params.get('town') || 'Cass Lake',
+    species: H.normalizeSpecies(params.get('species') || 'beef'),
+    heads: 1,
+    share: 'whole',
+    selected: null,
+    listingId: params.get('listing') || '',
+    listing: null,
+    cursor: new Date(),
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function town() { return H.resolveTown(state.town); }
+
+  function thisWeekLabel(now) {
+    const q = H.compassQuadrantForDate(now || new Date());
+    return q.charAt(0).toUpperCase() + q.slice(1);
+  }
+
+  function paintTowns() {
+    const sel = $('hvTown');
+    sel.innerHTML = H.TOWNS.map((t) => {
+      const selected = t.name === state.town ? ' selected' : '';
+      return '<option value="' + t.name + '"' + selected + '>' + H.townSelectLabel(t) + '</option>';
+    }).join('');
+  }
+
+  function paintPills() {
+    document.querySelectorAll('#hvSpecies [data-species]').forEach((b) => {
+      b.setAttribute('aria-pressed', b.getAttribute('data-species') === state.species ? 'true' : 'false');
+    });
+    document.querySelectorAll('#hvHeads [data-heads]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(state.heads) === b.getAttribute('data-heads') ? 'true' : 'false');
+    });
+    document.querySelectorAll('#hvShare [data-share]').forEach((b) => {
+      b.setAttribute('aria-pressed', b.getAttribute('data-share') === state.share ? 'true' : 'false');
+    });
+  }
+
+  function paintQuote() {
+    const t = town();
+    const due = H.harvestDue(state.species, t, state.heads);
+    $('hvTotal').textContent = money(due.total);
+    $('hvKill').textContent = money(due.kill);
+    $('hvTrip').textContent = money(due.trip);
+    $('hvQuoteSub').textContent = t.name + ' · ' + t.miles + ' mi from the smokehouse · $85 minimum';
+    const hint = $('hvTownHint');
+    if (t.hub) {
+      hint.textContent = t.name + ' is a hub — any open harvest day is tappable. This week is ' + thisWeekLabel() + '.';
+    } else {
+      hint.textContent = t.name + ' is ' + (t.quadrant.charAt(0).toUpperCase() + t.quadrant.slice(1)) + ' week only. This week is ' + thisWeekLabel() + '.';
+    }
+    $('hvLead').textContent = 'Mobile trailer. Days follow the compass from 7972 Farley Dr NE, Turtle River, MN. This week is ' + thisWeekLabel() + '. Farms only see leftover harvest slots on their week: 1 North, 2 West, 3 South, 4 East. Bemidji and Turtle River (hub) can pick any open harvest day.';
+  }
+
+  function paintCalendar() {
+    const y = state.cursor.getFullYear();
+    const m = state.cursor.getMonth();
+    const month = H.calendarMonthDays(y, m, town(), {});
+    const firstDow = new Date(y, m, 1).getDay();
+    const letters = { north: 'N', west: 'W', south: 'S', east: 'E' };
+    const cells = [];
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach((d) => cells.push('<div class="dow">' + d + '</div>'));
+    for (let i = 0; i < firstDow; i++) cells.push('<div></div>');
+    month.days.forEach((info) => {
+      const q = letters[info.quadrant] || '';
+      if (info.selectable) {
+        const pressed = state.selected === info.iso ? 'true' : 'false';
+        cells.push('<button type="button" class="hv-day open" data-iso="' + info.iso + '" aria-pressed="' + pressed + '"><span>' + info.date.getDate() + '</span><span class="q">' + info.open + ' open</span></button>');
+      } else {
+        cells.push('<button type="button" class="hv-day" disabled><span>' + info.date.getDate() + '</span><span class="q">' + q + '</span></button>');
+      }
+    });
+    $('hvCal').innerHTML = cells.join('');
+    $('hvCal').querySelectorAll('button.open').forEach((btn) => {
+      btn.addEventListener('click', () => { state.selected = btn.getAttribute('data-iso'); paint(); });
+    });
+  }
+
+  function paintSlots() {
+    const days = H.listSelectableTrailerDays(town(), { limit: 9, horizon: 90 });
+    $('hvSlots').innerHTML = days.map((d) => {
+      const pressed = state.selected === d.iso ? 'true' : 'false';
+      const quad = d.quadrant.charAt(0).toUpperCase() + d.quadrant.slice(1);
+      return '<button type="button" class="hv-slot" data-iso="' + d.iso + '" aria-pressed="' + pressed + '"><span class="t">' + H.formatShort(d.date) + '</span><span class="s">Week ' + d.week + ' · ' + quad + ' of the smokehouse · ' + d.open + '/' + d.capacity + ' harvest open</span></button>';
+    }).join('') || '<p class="help">No leftover harvest slots on this town’s compass week.</p>';
+    $('hvSlots').querySelectorAll('[data-iso]').forEach((btn) => {
+      btn.addEventListener('click', () => { state.selected = btn.getAttribute('data-iso'); paint(); });
+    });
+    if (!state.selected && days[0]) state.selected = days[0].iso;
+  }
+
+  function paintListingHarvest() {
+    const el = $('hvListingHarvest');
+    if (!state.listing) {
+      el.textContent = 'No listing attached. Harvest on the animal stays TBD until earliest → 30 months is set on the listing.';
+      return;
+    }
+    const label = window.harvestLabel ? window.harvestLabel(state.listing) : 'TBD';
+    el.textContent = 'Listing harvest window: ' + label + '. Booking a trailer day does not replace that range with a single date.';
+  }
+
+  function paint() {
+    paintPills();
+    paintQuote();
+    paintCalendar();
+    paintSlots();
+    paintListingHarvest();
+  }
+
+  async function loadListing() {
+    if (!state.listingId || !window.PO_API?.listing) return;
+    try {
+      const data = await window.PO_API.listing(state.listingId);
+      state.listing = data.listing || data;
+      if (state.listing?.species) state.species = H.normalizeSpecies(state.listing.species);
+    } catch (_) { /* optional */ }
+  }
+
+  function weekRangeForIso(iso) {
+    const d = H.startOfDay(iso);
+    if (!d) return null;
+    const week = H.weekOfMonth(d);
+    const start = new Date(d.getFullYear(), d.getMonth(), 1);
+    const days = [];
+    for (let i = 0; i < 31; i++) {
+      const cur = H.addDays(start, i);
+      if (!cur || cur.getMonth() !== d.getMonth()) break;
+      if (H.weekOfMonth(cur) === week && H.isHarvestWeekday(cur)) days.push(cur);
+    }
+    if (!days.length) return { start: H.isoDate(d), end: H.isoDate(d) };
+    return { start: H.isoDate(days[0]), end: H.isoDate(days[days.length - 1]) };
+  }
+
+  async function requestDay() {
+    const status = $('hvStatus');
+    const btn = $('hvRequest');
+    if (!state.selected) { status.textContent = 'Pick a trailer day first.'; return; }
+    const t = town();
+    const due = H.harvestDue(state.species, t, state.heads);
+    const payload = {
+      town: t.name,
+      species: state.species,
+      heads: state.heads,
+      share: state.share,
+      trailer_day: state.selected,
+      kill: due.kill,
+      trip: due.trip,
+      total: due.total,
+      listing_id: state.listingId || null,
+      capacity_live: false,
+      checkout_touched: false,
+    };
+    try { sessionStorage.setItem('po_trailer_request', JSON.stringify(payload)); } catch (_) { /* ignore */ }
+
+    if (!state.listingId) {
+      status.textContent = 'Request saved on this device. Open List by the pound to attach it to a draft listing. Trailer capacity is not booked live, and checkout is unchanged.';
+      return;
+    }
+    if (!window.PO_API) { status.textContent = 'API helper not loaded.'; return; }
+    btn.disabled = true;
+    try {
+      const me = await window.PO_API.me().catch(() => ({ user: null }));
+      if (!me.user) {
+        window.PO_API.openAuth('Sign in to save a trailer request', 'producer', { next: location.pathname + location.search });
+        return;
+      }
+      const listing = state.listing || (await window.PO_API.listing(state.listingId)).listing;
+      const locked = H.isLockedDraft123(listing?.number);
+      const patch = {};
+      const hasWindow = !!(listing?.harvest_window_start || listing?.harvest_window_end);
+      if (!hasWindow) {
+        const range = weekRangeForIso(state.selected);
+        if (range) {
+          patch.harvest_window_start = range.start;
+          patch.harvest_window_end = range.end;
+        }
+      }
+      if (locked) patch.status = 'draft';
+      if (Object.keys(patch).length) {
+        const updated = await window.PO_API.updateListing(state.listingId, patch);
+        state.listing = updated.listing || state.listing;
+      }
+      const harvest = window.harvestLabel ? window.harvestLabel(state.listing) : 'TBD';
+      status.textContent = 'Trailer day ' + H.formatShort(state.selected) + ' requested for ' + t.name + ' · ' + money(due.total) + ' due at the smokehouse. Harvest window on the listing: ' + harvest + '. Capacity is not decremented (not live). Checkout hold was not touched.' + (locked ? ' Draft 123 stays draft.' : '');
+      paintListingHarvest();
+    } catch (e) {
+      status.textContent = e.message || 'Could not save trailer request';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  $('hvTown').addEventListener('change', (e) => { state.town = e.target.value; state.selected = null; paint(); });
+  $('hvFarm').addEventListener('input', (e) => { state.farm = e.target.value; });
+  document.querySelectorAll('#hvSpecies [data-species]').forEach((b) => b.addEventListener('click', () => { state.species = b.getAttribute('data-species'); paint(); }));
+  document.querySelectorAll('#hvHeads [data-heads]').forEach((b) => b.addEventListener('click', () => { state.heads = parseInt(b.getAttribute('data-heads'), 10); paint(); }));
+  document.querySelectorAll('#hvShare [data-share]').forEach((b) => b.addEventListener('click', () => { state.share = b.getAttribute('data-share'); paint(); }));
+  $('hvRequest').addEventListener('click', requestDay);
+
+  paintTowns();
+  loadListing().then(paint);
+  paint();
+})();
+</script>
+</body>
+</html>
