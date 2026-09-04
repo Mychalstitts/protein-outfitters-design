@@ -1,5 +1,7 @@
 # Mobile move: `protein-outfitters-app` → `protein-outfitters-design`
 
+> **Scaffold status (design repo):** workspace overlays from `mobile-move.zip` are already on branch `cursor/mobile-workspace-scaffold-8023` (PR). Steps **1–2** (git subtree of real `mobile/` + `packages/shared` source from private `protein-outfitters-app`) and the hand-edits in **§4** are still required before EAS builds work.
+
 Moves `app/apps/mobile` and `app/packages/shared` into the canonical repo as
 `mobile/` and `packages/shared/`, per `CONSOLIDATION.md` next-step #2.
 History is preserved with `git subtree`. The static site in `deploy/` is not
