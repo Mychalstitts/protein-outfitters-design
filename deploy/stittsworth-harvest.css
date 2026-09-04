@@ -1,0 +1,111 @@
+/* List-by-pound + on-farm harvest (Stittsworth trailer compass). */
+
+.po-mode-tabs {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px;
+}
+.po-mode-tabs a {
+  text-decoration: none; color: var(--ink);
+  background: var(--surface-2); border-radius: 999px;
+  padding: 10px 16px; font: 700 13px/1 var(--font-sans);
+}
+.po-mode-tabs a.active { background: var(--brand); color: #fbf9f5; }
+
+.lb-shell { padding: clamp(40px, 5vw, 72px) var(--shell-pad) clamp(64px, 8vw, 120px); }
+.lb-inner { max-width: 980px; margin: 0 auto; }
+.lb-kicker { margin: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.lb-title { margin: 0 0 10px; font-size: clamp(32px, 5vw, 52px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.02; }
+.lb-lead { margin: 0 0 28px; font-size: 16px; color: var(--ink-2); line-height: 1.55; max-width: 62ch; }
+
+.lb-metrics { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin-bottom: 22px; }
+@media (min-width: 800px) { .lb-metrics { grid-template-columns: repeat(4, 1fr); } }
+.lb-metric { background: var(--surface-2); border-radius: 16px; padding: 16px 18px; }
+.lb-metric .lab { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.lb-metric .val { margin: 6px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.lb-metric .sub { margin: 4px 0 0; font-size: 12px; color: var(--ink-3); }
+
+.lb-chips { display: grid; gap: 10px; grid-template-columns: 1fr; margin-bottom: 18px; }
+@media (min-width: 700px) { .lb-chips { grid-template-columns: 1fr 1fr; } }
+.lb-chip { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.lb-chip .lab { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.lb-chip .val { margin: 6px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.lb-chip .sub { margin: 4px 0 0; font-size: 12px; color: var(--ink-2); }
+
+.lb-card { background: #fff; border-radius: 24px; padding: clamp(22px, 3vw, 32px); box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.lb-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.lb-field label { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.lb-field input, .lb-field select, .lb-field textarea {
+  background: var(--surface); border: 1px solid transparent; border-radius: 14px;
+  padding: 14px 16px; font: inherit; font-size: 16px; color: var(--ink);
+}
+.lb-field input:focus, .lb-field select:focus, .lb-field textarea:focus {
+  outline: 0; border-color: var(--brand); background: #fff;
+  box-shadow: 0 6px 18px rgba(6,27,14,0.05);
+}
+.lb-field textarea { min-height: 110px; resize: vertical; }
+.lb-field .help { font-size: 12px; color: var(--ink-3); }
+.lb-field input[readonly] { background: var(--surface-2); color: var(--ink); }
+
+.lb-row { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .lb-row { grid-template-columns: 1fr 1fr; } }
+
+.lb-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.lb-pill {
+  border: 0; background: var(--surface-2); color: var(--ink);
+  border-radius: 999px; padding: 10px 16px; font: 700 13px/1 var(--font-sans);
+}
+.lb-pill[aria-pressed="true"] { background: var(--brand); color: #fbf9f5; }
+
+.lb-totals { display: grid; gap: 10px; grid-template-columns: 1fr; margin: 8px 0 18px; }
+@media (min-width: 640px) { .lb-totals { grid-template-columns: 1fr 1fr; } }
+.lb-total { background: var(--surface-2); border-radius: 16px; padding: 16px 18px; }
+.lb-total .lab { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.lb-total .val { margin: 6px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
+.lb-total .sub { margin: 4px 0 0; font-size: 12px; color: var(--ink-2); }
+
+.lb-cta {
+  width: 100%; border: 0; border-radius: 999px; padding: 16px 22px;
+  background: var(--brand); color: #fbf9f5; font: 700 15px/1 var(--font-sans);
+}
+.lb-cta:disabled { opacity: 0.45; cursor: not-allowed; }
+.lb-cta.ghost { background: var(--surface-2); color: var(--ink); }
+
+.lb-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 12px; }
+.lb-legal { margin: 20px 0 0; font-size: 12px; color: var(--ink-3); line-height: 1.5; max-width: 72ch; }
+.lb-status { margin: 14px 0 0; font-size: 14px; color: var(--ink-2); }
+
+/* Harvest booking */
+.hv-shell { padding: clamp(40px, 5vw, 72px) var(--shell-pad) clamp(64px, 8vw, 120px); }
+.hv-inner { max-width: 1120px; margin: 0 auto; display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 960px) { .hv-inner { grid-template-columns: 1.15fr 0.85fr; align-items: start; } }
+.hv-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 12px 0; }
+.hv-cal .dow { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-3); padding: 4px 0; }
+.hv-day {
+  border: 0; border-radius: 12px; min-height: 58px; padding: 8px 4px;
+  background: var(--surface-2); color: var(--ink-3); font: 700 13px/1.2 var(--font-sans);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.hv-day .q { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.hv-day.open { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; }
+.hv-day.open[aria-pressed="true"] { background: var(--brand); color: #fbf9f5; }
+.hv-day:disabled { cursor: default; opacity: 0.7; }
+.hv-slots { display: grid; gap: 8px; margin: 12px 0 0; }
+.hv-slot {
+  text-align: left; border: 0; border-radius: 14px; padding: 14px 16px;
+  background: var(--surface-2); color: var(--ink); font: inherit; cursor: pointer;
+}
+.hv-slot[aria-pressed="true"] { background: var(--brand); color: #fbf9f5; }
+.hv-slot .t { font-weight: 800; }
+.hv-slot .s { display: block; margin-top: 3px; font-size: 12px; opacity: 0.78; }
+.hv-quote {
+  background: var(--brand); color: #fbf9f5; border-radius: 24px; padding: 28px 26px;
+  position: sticky; top: 88px;
+}
+.hv-quote .lab { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,249,245,0.62); }
+.hv-quote .total { margin: 10px 0 0; font-size: clamp(36px, 5vw, 48px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+.hv-quote .sub { margin: 8px 0 18px; font-size: 14px; color: rgba(251,249,245,0.78); line-height: 1.45; }
+.hv-break { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.hv-break div { background: rgba(251,249,245,0.08); border-radius: 14px; padding: 14px 16px; }
+.hv-break .k { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,249,245,0.6); }
+.hv-break .v { margin-top: 4px; font-size: 20px; font-weight: 800; }
+.hv-note { font-size: 13px; color: rgba(251,249,245,0.72); line-height: 1.45; margin: 0 0 18px; }
+.hv-gate { font-size: 12px; color: rgba(251,249,245,0.62); line-height: 1.45; margin: 12px 0 0; }

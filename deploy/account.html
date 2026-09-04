@@ -122,6 +122,16 @@
 
     <!-- Quick actions -->
     <div class="qa-grid">
+      <a href="/list-animal?mode=pound" class="qa" id="acPoundQa" hidden>
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#scale"/></svg></span>
+        <h4>List by the pound</h4>
+        <p>Hanging $/lb for producers · 10% platform fee.</p>
+      </a>
+      <a href="/harvest" class="qa" id="acHarvestQa" hidden>
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
+        <h4>Book the trailer</h4>
+        <p>Stittsworth compass week · kill + trip.</p>
+      </a>
       <a href="/cut-sheet" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></span>
         <h4>Cut sheets</h4>
@@ -212,6 +222,7 @@
 <script src="/po-shell.js"></script>
 <script src="/po-api.js"></script>
 <script src="/po-social.js"></script>
+<script src="/lib/harvest-label.js"></script>
 <script>
 (async () => {
   const list = document.getElementById('acActiveList');
@@ -244,6 +255,12 @@
     return word.charAt(0).toUpperCase() + word.slice(1);
   })();
   document.querySelectorAll('[data-user-name]').forEach(e => e.textContent = firstName);
+  if (me.user.role === 'producer' || me.user.role === 'admin') {
+    const poundQa = document.getElementById('acPoundQa');
+    const harvestQa = document.getElementById('acHarvestQa');
+    if (poundQa) poundQa.hidden = false;
+    if (harvestQa) harvestQa.hidden = false;
+  }
 
   // Update day label (real date)
   const dayEl = document.getElementById('acDayLabel');
@@ -372,14 +389,14 @@
     }
   } catch {}
 
-  // Personalize sub-greeting based on next reservation
-  const next = activeNow.slice().sort((a,b) => new Date(a.expected_finish_date||0) - new Date(b.expected_finish_date||0))[0];
+  // Personalize sub-greeting from the listing harvest range (earliest → 30 months).
+  const next = activeNow.slice().sort((a,b) => new Date(a.harvest_window_start || a.expected_finish_date || 0) - new Date(b.harvest_window_start || b.expected_finish_date || 0))[0];
   const sub = document.getElementById('acGreetingSub');
   if (sub) {
     if (next) {
-      const days = Math.max(0, Math.round((new Date(next.expected_finish_date) - Date.now()) / 86400000));
+      const harvest = window.harvestLabel ? window.harvestLabel(next) : 'TBD';
       const shareLabel = next.share_size === 'whole' ? 'whole animal' : next.share_size === 'half' ? 'half share' : next.share_size === 'quarter' ? 'quarter share' : 'eighth';
-      sub.innerHTML = `Your <strong>${shareLabel} of ${next.number || next.breed || 'your reservation'}</strong> drops${days ? ' in ' + days + ' day' + (days===1?'':'s') : ' soon'}. ${hasCutSheet(next) ? 'Cut sheet is in.' : 'Cut sheet still needed.'}`;
+      sub.innerHTML = `Your <strong>${shareLabel} of ${next.number || next.breed || 'your reservation'}</strong> — harvest ${harvest}. ${hasCutSheet(next) ? 'Cut sheet is in.' : 'Cut sheet still needed.'}`;
     } else {
       sub.textContent = 'Welcome back. Browse new listings or check on your reservations below.';
     }

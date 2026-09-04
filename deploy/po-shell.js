@@ -70,7 +70,7 @@
       <p class="po-foot-meta">A whole animal, in three taps.<br>Born in Bemidji, MN.</p>
     </div>
     <div><h4>Marketplace</h4><ul><li><a href="/discover">Browse animals</a></li><li><a href="/producers">Farms</a></li><li><a href="/map">Map</a></li><li><a href="/community">Community</a></li><li><a href="/#how">How it works</a></li></ul></div>
-    <div><h4>For partners</h4><ul><li><a href="/#partners">Partner hub</a></li><li><a href="/farmer">Ranch dashboard</a></li><li><a href="/processor">Plant dashboard</a></li><li><a href="/hardware">Processing systems</a></li><li><a href="/processor-saas">Plant plans</a></li><li><a href="/donation-flow">Donation Depot</a></li></ul></div>
+    <div><h4>For partners</h4><ul><li><a href="/#partners">Partner hub</a></li><li><a href="/farmer">Ranch dashboard</a></li><li><a href="/list-animal?mode=pound">List by the pound</a></li><li><a href="/harvest">Book the trailer</a></li><li><a href="/processor">Plant dashboard</a></li><li><a href="/hardware">Processing systems</a></li><li><a href="/processor-saas">Plant plans</a></li><li><a href="/donation-flow">Donation Depot</a></li></ul></div>
     <div><h4>Help &amp; policy</h4><ul><li><a href="/faq">FAQ</a></li><li><a href="/policies/refunds">Refunds</a></li><li><a href="/policies/privacy">Privacy</a></li><li><a href="/policies/terms">Terms</a></li><li><a href="mailto:hello@proteinoutfitters.com">hello@proteinoutfitters.com</a></li></ul></div>
     <div><h4>Company</h4><ul><li><a href="/account">Account</a></li><li><a href="/brand">Brand</a></li><li><a href="/onboarding">Get started</a></li></ul></div>
   </div>
