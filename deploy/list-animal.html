@@ -1169,8 +1169,8 @@
     let target = (TARGET_WEIGHT[sp] && TARGET_WEIGHT[sp][S.sex]) || 1180;
     target = Math.round(target * (BREED_WEIGHT_MULT[S.breed] || 1.0));
 
-    const birth = BIRTH_WEIGHT[sp] || 80;
-    const days = Math.round((target - birth) / Math.max(0.05, adg));
+    const birthWeight = BIRTH_WEIGHT[sp] || 80;
+    const days = Math.round((target - birthWeight) / Math.max(0.05, adg));
     const months = (days / 30.44).toFixed(1);
 
     S.liveWeight = target;
@@ -1200,10 +1200,10 @@
     S.afterThirtyMonths = false;
     S.boneInAllowed = true;
     S.otmPricePending = false;
-    const birth = parseISO(S.birthDate);
-    if (birth) {
-      const earliest = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate() + days);
-      const latest = addMonths(birth, 30);
+    const birthDate = parseISO(S.birthDate);
+    if (birthDate) {
+      const earliest = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate() + days);
+      const latest = addMonths(birthDate, 30);
       S.harvestEarliest = earliest;
       S.harvestLatest = latest;
       S.harvestIso = isoLocal(earliest);
@@ -1361,8 +1361,8 @@
     const breedMult = adgT.byBreed[S.breed] || 1.0;
     const adg = +(feedADG * sexMult * breedMult).toFixed(2);
     const t = target(S);
-    const birth = BIRTH_WEIGHT[S.species] || 80;
-    const days = Math.round((t - birth) / Math.max(0.05, adg));
+    const birthWeight = BIRTH_WEIGHT[S.species] || 80;
+    const days = Math.round((t - birthWeight) / Math.max(0.05, adg));
     const take = Math.round(t * 0.37);
     let h = 'soon';
     if (S.birthDate) {
