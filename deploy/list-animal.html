@@ -30,22 +30,18 @@
 .wiz-progress .dot.done { background: var(--brand); }
 
 /* Stage that holds the steps with slide animation */
-.wiz-stage { position: relative; min-height: 580px; z-index: 0; pointer-events: none; }
+.wiz-stage { position: relative; z-index: 0; }
 .wiz-step {
   background: #fff; border-radius: 28px; padding: clamp(28px, 4vw, 48px);
   box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04);
-  position: absolute; inset: 0; opacity: 0;
-  transform: translateX(16px);
-  transition: transform .55s cubic-bezier(0.28, 0.11, 0.32, 1), opacity .35s ease;
-  pointer-events: none;
-  visibility: hidden;
-  z-index: 0;
+  display: none;
+  position: relative;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  visibility: visible;
 }
-.wiz-step:not(.active),
-.wiz-step:not(.active) * { pointer-events: none !important; }
-.wiz-step.active { opacity: 1; transform: translateX(0); pointer-events: auto; visibility: visible; z-index: 1; }
-.wiz-step.exit-left { transform: translateX(-20px); opacity: 0; }
-.wiz-step.enter-from-left { transform: translateX(-16px); }
+.wiz-step.active { display: block; }
 
 .wiz-step h1 {
   margin: 0 0 8px; font-size: clamp(28px, 3.4vw, 40px); font-weight: 700;
@@ -149,8 +145,13 @@
 .review-row .k { color: var(--ink-2); }
 .review-row .v { color: var(--ink); font-weight: 700; }
 
-/* Foot */
-.wiz-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; position: relative; z-index: 2; pointer-events: auto; }
+/* Foot — sticky so Continue stays mapped and tappable on tall steps */
+.wiz-foot {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  margin-top: 24px; position: sticky; bottom: 0; z-index: 5; pointer-events: auto;
+  background: linear-gradient(180deg, rgba(251,249,245,0) 0%, var(--bg, #fbf9f5) 28%, var(--bg, #fbf9f5) 100%);
+  padding: 18px 0 8px;
+}
 .wiz-back { background: transparent; border: 0; padding: 12px 16px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); border-radius: 999px; transition: color .2s, transform .2s; }
 .wiz-back:disabled { opacity: 0; pointer-events: none; }
 .wiz-back:hover:not(:disabled) { color: var(--ink); transform: translateX(-2px); }
@@ -249,11 +250,11 @@
         <p class="lead">Pick a species. We'll auto-tune everything from the breed list to the predicted finish weight.</p>
 
         <div class="species-grid">
-          <button class="species-card selected" data-species="beef"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#cow"/></svg><span class="name">Beef</span></button>
-          <button class="species-card" data-species="pork"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#pig"/></svg><span class="name">Pork</span></button>
-          <button class="species-card" data-species="lamb"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#sheep"/></svg><span class="name">Lamb</span></button>
-          <button class="species-card" data-species="venison"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#deer"/></svg><span class="name">Venison</span></button>
-          <button class="species-card" data-species="poultry"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#rooster"/></svg><span class="name">Poultry</span></button>
+          <button type="button" class="species-card selected" data-species="beef"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#cow"/></svg><span class="name">Beef</span></button>
+          <button type="button" class="species-card" data-species="pork"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#pig"/></svg><span class="name">Pork</span></button>
+          <button type="button" class="species-card" data-species="lamb"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#sheep"/></svg><span class="name">Lamb</span></button>
+          <button type="button" class="species-card" data-species="venison"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#deer"/></svg><span class="name">Venison</span></button>
+          <button type="button" class="species-card" data-species="poultry"><svg class="ico ico-2xl species-ico" aria-hidden="true"><use href="/icons.svg#rooster"/></svg><span class="name">Poultry</span></button>
         </div>
 
         <div class="row-2">
@@ -421,7 +422,7 @@
         <div class="desc-card">
           <div class="desc-head">
             <h4>Auto-generated description</h4>
-            <button class="desc-regen" id="regenBtn"><svg class="ico star" aria-hidden="true" style="color: var(--brand);"><use href="/icons.svg#sparkles"/></svg> Regenerate</button>
+            <button type="button" class="desc-regen" id="regenBtn"><svg class="ico star" aria-hidden="true" style="color: var(--brand);"><use href="/icons.svg#sparkles"/></svg> Regenerate</button>
           </div>
           <textarea class="desc-text" id="descText" rows="6"></textarea>
           <span class="help" style="display:block; margin-top: 8px; font-size: 12px; color: var(--ink-3);">Updates from your selections in step 1 + 2. Edit anything by hand.</span>
@@ -555,8 +556,8 @@
     </div>
 
     <footer class="wiz-foot">
-      <button class="wiz-back" id="wizBack" disabled>← Back</button>
-      <button class="wiz-next" id="wizNext">Continue →</button>
+      <button type="button" class="wiz-back" id="wizBack" disabled>← Back</button>
+      <button type="button" class="wiz-next" id="wizNext">Continue →</button>
     </footer>
   </div>
 </section>
@@ -669,17 +670,10 @@
   const next = document.getElementById('wizNext');
   let n = 1;
 
-  function setStep(i, dir) {
+  function setStep(i) {
     const tgt = document.querySelector(`.wiz-step[data-step="${i}"]`);
     if (!tgt) return;
-    // Clear all step state synchronously
-    document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('active', 'enter-from-left', 'exit-left'));
-    // Set initial state for slide direction (back = enter from left, forward = enter from right via default CSS)
-    if (dir === 'back') tgt.classList.add('enter-from-left');
-    // Force reflow so the transform applies before .active triggers transition back
-    void tgt.offsetWidth;
-    tgt.classList.remove('enter-from-left');
-    tgt.classList.add('active');
+    document.querySelectorAll('.wiz-step').forEach(s => s.classList.toggle('active', s === tgt));
     n = i;
     dots.forEach((d, idx) => { d.classList.toggle('active', idx === n - 1); d.classList.toggle('done', idx < n - 1); });
     back.disabled = n === 1 || n === 6;
@@ -691,13 +685,16 @@
       next.textContent = n === 5 ? 'Publish listing →' : 'Continue →';
     }
     if (i === 5) refreshReview();
+    const wiz = document.querySelector('.wiz');
+    const y = wiz ? Math.max(0, wiz.getBoundingClientRect().top + window.scrollY - 12) : 0;
+    window.scrollTo({ top: y, behavior: 'auto' });
   }
 
-  back.addEventListener('click', () => { if (n > 1) setStep(n - 1, 'back'); });
+  back.addEventListener('click', () => { if (n > 1) setStep(n - 1); });
   next.addEventListener('click', async () => {
     if (n < 5) {
       if (!validateStep(n)) return;
-      setStep(n + 1, 'forward');
+      setStep(n + 1);
       return;
     }
     if (n === 5) {
@@ -711,7 +708,7 @@
       try {
         const result = await publishListing();
         showPublished(result);
-        setStep(6, 'forward');
+        setStep(6);
       } catch (e) {
         next.disabled = false;
         next.textContent = 'Publish listing →';
@@ -865,7 +862,7 @@
       next.textContent = 'Publishing…';
       const result = await publishListing(r.farm.id);
       showPublished({ ...result, listing: { ...(result?.listing || {}), farm_slug: r.farm.slug } });
-      setStep(6, 'forward');
+      setStep(6);
     } catch (e) {
       alert('Could not create farm: ' + e.message);
       next.disabled = false;
@@ -959,11 +956,17 @@
     recompute();
   }));
 
-  ['breed','sex','animalId','birthDate','feedType','finishFeed','antibiotics','hormones','location','processor','currentWeight'].forEach(id => {
+  ['breed','sex','animalId','birthDate','feedType','finishFeed','antibiotics','hormones','location','processor','currentWeight','subbreed'].forEach(id => {
     const el = document.getElementById(id); if (!el) return;
     el.addEventListener('change', () => { S[id] = el.value; recompute(); });
     el.addEventListener('input', () => { S[id] = el.value; recompute(); });
   });
+  const certsEl = document.getElementById('certs');
+  if (certsEl) {
+    const syncCerts = () => { S.certs = [...certsEl.selectedOptions].map(o => o.value); };
+    certsEl.addEventListener('change', syncCerts);
+    syncCerts();
+  }
 
   // ============ ADG + FINISH WEIGHT LOOKUP TABLES ============
   const BIRTH_WEIGHT = { beef: 80, pork: 3, lamb: 9, venison: 8, poultry: 0.1 };
@@ -1060,8 +1063,8 @@
     let target = (TARGET_WEIGHT[sp] && TARGET_WEIGHT[sp][S.sex]) || 1180;
     target = Math.round(target * (BREED_WEIGHT_MULT[S.breed] || 1.0));
 
-    const birth = BIRTH_WEIGHT[sp] || 80;
-    const days = Math.round((target - birth) / Math.max(0.05, adg));
+    const birthWeight = BIRTH_WEIGHT[sp] || 80;
+    const days = Math.round((target - birthWeight) / Math.max(0.05, adg));
     const months = (days / 30.44).toFixed(1);
 
     S.liveWeight = target;
