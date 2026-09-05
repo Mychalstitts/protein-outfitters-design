@@ -21,7 +21,10 @@ import {
   type Processor,
 } from '@protein-outfitters/shared';
 import { supabase } from '@/lib/supabase';
-import { loadProcessorBySlug } from '@/lib/processors';
+import {
+  loadProcessorBySlug,
+  resolveSupabaseProcessorId,
+} from '@/lib/processors';
 
 type Role = 'owner' | 'manager' | 'employee' | 'other';
 
@@ -72,8 +75,18 @@ export default function ClaimScreen() {
     }
     setSubmitting(true);
     try {
+      // Claims still land in Supabase, which keys by the directory id —
+      // never the Neon UUID the detail read may have come from.
+      const processorId = await resolveSupabaseProcessorId(proc);
+      if (!processorId) {
+        Alert.alert(
+          'Not available yet',
+          `Claims for ${proc.name} aren't open in the app yet. Email support@proteinoutfitters.com and we'll set it up.`,
+        );
+        return;
+      }
       await submitClaim(supabase, {
-        processor_id: proc.id,
+        processor_id: processorId,
         claimant_user_id: userId,
         role_at_business: role,
         evidence_url: evidenceUrl.trim() || null,

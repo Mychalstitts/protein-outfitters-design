@@ -83,12 +83,21 @@ function servicesFrom(species?: string[] | null, capabilities?: unknown): Servic
   return [...new Set(out)] as Service[];
 }
 
+/** Prefix for slugs we synthesize when a Neon row has no slug yet. */
+export const SYNTHETIC_SLUG_PREFIX = 'neon-';
+
+export function isSyntheticSlug(slug: string): boolean {
+  return slug.startsWith(SYNTHETIC_SLUG_PREFIX);
+}
+
 function ensureSlug(row: { id: string; slug?: string | null; name?: string }): string {
   if (row.slug) return row.slug;
   // ~60% of Neon map-data rows currently lack slugs; synthesize a stable
-  // key so pins still render. Detail by this slug will 404 until Neon fills
-  // slug — UI should prefer rows that already have one when linking.
-  return `neon-${String(row.id).replace(/-/g, '').slice(0, 16)}`;
+  // key so pins still render. `/api/processors?slug=` will 404 for these,
+  // so `loadProcessorBySlug` serves them from the in-memory map-data set
+  // instead. Keep the full UUID so this stays reversible once the API
+  // supports lookup by id.
+  return `${SYNTHETIC_SLUG_PREFIX}${String(row.id)}`;
 }
 
 export function processorFromMapDataRow(row: MapDataProcessorRow): Processor | null {

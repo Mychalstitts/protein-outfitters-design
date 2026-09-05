@@ -20,7 +20,7 @@ function processorFromMapDataRow(row) {
   const city = row.city ?? null;
   const state = row.state ?? null;
   const zip = row.zip ?? null;
-  const slug = row.slug || `neon-${String(row.id).replace(/-/g, '').slice(0, 16)}`;
+  const slug = row.slug || `neon-${String(row.id)}`; // mirrors neonAdapter.ensureSlug
   return {
     id: String(row.id),
     slug,
@@ -60,6 +60,7 @@ const summary = {
   adapted: adapted.length,
   sample: adapted[0]?.slug,
   mn: adapted.filter((p) => p.address.state === 'MN').length,
+  synthetic_slugs: adapted.filter((p) => p.slug.startsWith('neon-')).length,
 };
 console.log(JSON.stringify(summary, null, 2));
 if (adapted.length < 2000) {

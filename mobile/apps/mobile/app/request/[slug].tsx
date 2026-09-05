@@ -23,7 +23,10 @@ import {
   type Processor,
 } from '@protein-outfitters/shared';
 import { supabase } from '@/lib/supabase';
-import { loadProcessorBySlug } from '@/lib/processors';
+import {
+  loadProcessorBySlug,
+  resolveSupabaseProcessorId,
+} from '@/lib/processors';
 
 const ANIMALS: { value: AnimalType; label: string }[] = [
   { value: 'beef', label: 'Beef' },
@@ -77,8 +80,18 @@ export default function RequestScreen() {
     }
     setSubmitting(true);
     try {
+      // Writes still land in Supabase, which keys by the directory id —
+      // never the Neon UUID the detail read may have come from.
+      const processorId = await resolveSupabaseProcessorId(proc);
+      if (!processorId) {
+        Alert.alert(
+          'Not available yet',
+          `Requests for ${proc.name} aren't open in the app yet. Try their phone or website from the listing.`,
+        );
+        return;
+      }
       await submitRequest(supabase, {
-        processor_id: proc.id,
+        processor_id: processorId,
         user_id: null,
         contact_name: name.trim(),
         contact_email: email.trim(),
