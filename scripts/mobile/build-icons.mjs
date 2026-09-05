@@ -1,11 +1,21 @@
 #!/usr/bin/env node
 /**
- * Placeholder — real build-icons.mjs is copied from protein-outfitters-app
- * during the subtree move (docs/mobile/MIGRATE.md §2). Paths must then be
- * rewritten from app/apps/mobile → mobile/ and web public output removed.
+ * Thin wrapper — real script is mobile/scripts/build-icons.mjs.
+ * Prefer: npm run mobile:build-icons
  */
-console.error(
-  '[protein-outfitters] scripts/mobile/build-icons.mjs not transplanted yet.\n' +
-    'See docs/mobile/MIGRATE.md §2 and §4.',
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+const nested = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'mobile',
+  'scripts',
+  'build-icons.mjs',
 );
-process.exit(1);
+const result = spawnSync(process.execPath, [nested, ...process.argv.slice(2)], {
+  stdio: 'inherit',
+});
+process.exit(result.status ?? 1);

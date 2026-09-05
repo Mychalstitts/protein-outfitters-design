@@ -1,130 +1,153 @@
 #!/usr/bin/env bash
-# move-source.sh — pull mobile/ + packages/shared source into the design repo
-# with history, on top of the Cursor scaffold branch.
+# move-source.sh — copy the mobile workspace out of protein-outfitters-app
+# into protein-outfitters-design (the canonical repo), per CONSOLIDATION.md
+# step 2: "move protein-outfitters-app/app/apps/mobile to mobile/".
 #
-# Run from any machine that can see BOTH repos (your Mac is fine). The Cursor
-# agent can't, because its token is scoped to one repo per run.
-#
+# Usage:
 #   APP=~/code/protein-outfitters-app DESIGN=~/code/protein-outfitters-design bash move-source.sh
+#   ... add --dry-run to see the plan without writing anything
+#   ... add FORCE=1 to overwrite an existing DESIGN/mobile
 #
-# Why not just the plain `git subtree add` from MIGRATE.md? The scaffold branch
-# already has placeholder dirs at mobile/ and packages/shared, and
-# `git subtree add` refuses to run when the prefix exists. This script removes
-# the placeholders, imports the real source, then restores the overlay files
-# (tsconfig/metro/eas/app.config/.env.example) that the import overwrote.
+# What lands in DESIGN/mobile/ (a self-contained npm workspace, so the
+# existing relative paths — ../../tsconfig.base.json, metro workspaceRoot —
+# keep working without edits):
+#   apps/mobile/       Expo / EAS app            (from APP/app/apps/mobile)
+#   packages/shared/   @protein-outfitters/shared (from APP/app/packages/shared)
+#   scripts/           build-icons, bundle-data, seed, check-env
+#   docs/              app-store readiness, store copy, privacy, terms
+#   package.json, tsconfig.base.json, .nvmrc, .env.example, .gitignore
 #
-# Nothing is pushed. Review `git log` and `git status` at the end, then push.
+# Deliberately NOT copied:
+#   apps/web/          Next.js site — design repo's deploy/ is canonical
+#   supabase/          already identical in DESIGN/supabase (only README added)
+#   node_modules, .expo, ios/, android/, package-lock.json (regenerate)
+#
+# Nothing is deleted from APP and nothing is committed — review `git status`
+# in DESIGN afterwards.
+
 set -euo pipefail
 
 APP="${APP:-$HOME/code/protein-outfitters-app}"
 DESIGN="${DESIGN:-$HOME/code/protein-outfitters-design}"
-BRANCH="${BRANCH:-cursor/mobile-workspace-scaffold-8023}"
-SKIP_INSTALL="${SKIP_INSTALL:-0}"
-
-say() { printf '\n\033[1;32m▶ %s\033[0m\n' "$*"; }
-die() { printf '\n\033[1;31m✖ %s\033[0m\n' "$*" >&2; exit 1; }
-
-[ -d "$APP/.git" ]    || die "APP repo not found at $APP"
-[ -d "$DESIGN/.git" ] || die "DESIGN repo not found at $DESIGN"
-git -C "$APP" subtree --help >/dev/null 2>&1 || die "git subtree not available (git >= 1.7.11)"
-
-# ---------------------------------------------------------------- 1. split
-say "Splitting app/apps/mobile and app/packages/shared out of $APP (history kept)"
-cd "$APP"
-[ -z "$(git status --porcelain)" ] || die "app repo has uncommitted changes — commit or stash first"
-git fetch -q origin
-git checkout -q main
-git pull -q --ff-only origin main
-git branch -f split/mobile "$(git subtree split --prefix=app/apps/mobile main)"
-git branch -f split/shared "$(git subtree split --prefix=app/packages/shared main)"
-echo "  split/mobile → $(git rev-parse --short split/mobile)  ($(git rev-list --count split/mobile) commits)"
-echo "  split/shared → $(git rev-parse --short split/shared)  ($(git rev-list --count split/shared) commits)"
-
-# ---------------------------------------------------------------- 2. import
-say "Importing into $DESIGN on branch $BRANCH"
-cd "$DESIGN"
-[ -z "$(git status --porcelain)" ] || die "design repo has uncommitted changes — commit or stash first"
-git fetch -q origin
-git checkout -q "$BRANCH"
-git pull -q --ff-only origin "$BRANCH" || true
-SCAFFOLD="$(git rev-parse HEAD)"
-echo "  scaffold commit: $(git rev-parse --short "$SCAFFOLD")"
-
-git remote get-url app >/dev/null 2>&1 || git remote add app "$APP"
-git fetch -q app
-
-say "Removing scaffold placeholders (git subtree add refuses an existing prefix)"
-git rm -rq mobile packages/shared
-git commit -qm "chore(mobile): drop scaffold placeholders ahead of subtree import"
-
-say "git subtree add → mobile/"
-git subtree add --prefix=mobile app split/mobile \
-  -m "feat(mobile): import Expo app from protein-outfitters-app (history preserved)"
-
-say "git subtree add → packages/shared/"
-git subtree add --prefix=packages/shared app split/shared \
-  -m "feat(shared): import shared package from protein-outfitters-app (history preserved)"
-
-# ---------------------------------------------------------------- 3. overlay
-say "Restoring overlay configs from the scaffold (subtree brought the app-repo versions)"
-git checkout "$SCAFFOLD" -- \
-  mobile/tsconfig.json \
-  mobile/metro.config.js \
-  mobile/eas.json \
-  mobile/app.config.js \
-  mobile/.env.example
-# packages/shared/tsconfig.json is identical at both depths — keep the imported one.
-
-say "Copying store docs from the app repo → docs/mobile/"
-mkdir -p docs/mobile
-for f in app-store-readiness reviewer-notes store-listing-copy setup-guide; do
-  [ -f "$APP/app/docs/$f.md" ] && cp "$APP/app/docs/$f.md" docs/mobile/
+DRY_RUN=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run|-n) DRY_RUN=1 ;;
+    -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
+    *) echo "unknown argument: $arg" >&2; exit 2 ;;
+  esac
 done
-# Fix the paths those docs reference
-if command -v sed >/dev/null; then
-  for f in docs/mobile/*.md; do
-    sed -i.bak -e 's#app/apps/mobile#mobile#g' -e 's#app/packages/shared#packages/shared#g' -e 's#app/docs/#docs/mobile/#g' "$f" && rm -f "$f.bak"
-  done
+
+SRC="$APP/app"
+DEST="$DESIGN/mobile"
+
+say()  { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
+warn() { printf '\033[1;33mwarn:\033[0m %s\n' "$*" >&2; }
+die()  { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
+
+# ---- preflight ------------------------------------------------------------
+[ -d "$SRC/apps/mobile" ]     || die "no Expo app at $SRC/apps/mobile (is APP right?)"
+[ -d "$SRC/packages/shared" ] || die "no shared package at $SRC/packages/shared"
+[ -f "$DESIGN/CONSOLIDATION.md" ] || die "$DESIGN doesn't look like protein-outfitters-design"
+command -v rsync >/dev/null    || die "rsync not found"
+
+if [ -e "$DEST" ] && [ "${FORCE:-0}" != "1" ]; then
+  die "$DEST already exists — remove it or re-run with FORCE=1"
 fi
 
-say "Stripping the plaintext Google Maps key from mobile/app.json (app.config.js supplies it from env)"
-node - <<'EOF'
-const fs = require('fs');
-const p = 'mobile/app.json';
-const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-if (j.expo?.android?.config?.googleMaps) {
-  delete j.expo.android.config;
-  fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
-  console.log('  removed expo.android.config.googleMaps.apiKey — ROTATE this key in Google Cloud, it is in the app repo history');
-} else {
-  console.log('  no googleMaps key in app.json, nothing to do');
+if git -C "$DESIGN" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if [ -n "$(git -C "$DESIGN" status --porcelain)" ] && [ "${FORCE:-0}" != "1" ]; then
+    die "$DESIGN has uncommitted changes — commit/stash first so the move is reviewable (or FORCE=1)"
+  fi
+fi
+
+APP_SHA="$(git -C "$APP" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+
+RSYNC_OPTS=(-a --exclude node_modules --exclude .expo --exclude .expo-shared \
+            --exclude ios --exclude android --exclude dist --exclude build \
+            --exclude '*.tsbuildinfo' --exclude .DS_Store --exclude .env --exclude '.env.local')
+[ "$DRY_RUN" = 1 ] && RSYNC_OPTS+=(--dry-run -v)
+
+copy() { # copy <src> <dest>
+  say "copy ${1#$APP/}  ->  ${2#$DESIGN/}"
+  [ "$DRY_RUN" = 1 ] || mkdir -p "$(dirname "$2")"
+  rsync "${RSYNC_OPTS[@]}" "$1/" "$2/"
 }
-EOF
 
-say "Removing the pending-source shim"
-git rm -q --ignore-unmatch scripts/mobile/pending-source.mjs scripts/mobile/pending-source.mjs
+copy_file() {
+  say "copy ${1#$APP/}  ->  ${2#$DESIGN/}"
+  [ "$DRY_RUN" = 1 ] && return 0
+  mkdir -p "$(dirname "$2")"; cp "$1" "$2"
+}
 
-# ---------------------------------------------------------------- 4. lockfile
-if [ "$SKIP_INSTALL" = "1" ]; then
-  say "SKIP_INSTALL=1 — not running npm install (lockfile will be stale)"
-else
-  say "npm install (regenerates root package-lock.json with the real workspace deps)"
-  npm install
+say "APP    = $APP  (HEAD $APP_SHA)"
+say "DESIGN = $DESIGN"
+say "DEST   = $DEST"
+[ "$DRY_RUN" = 1 ] && warn "dry run — nothing will be written"
+
+# ---- the move -------------------------------------------------------------
+copy "$SRC/apps/mobile"     "$DEST/apps/mobile"
+copy "$SRC/packages/shared" "$DEST/packages/shared"
+copy "$SRC/scripts"         "$DEST/scripts"
+copy "$SRC/docs"            "$DEST/docs"
+
+for f in tsconfig.base.json .nvmrc .env.example .gitignore; do
+  [ -f "$SRC/$f" ] && copy_file "$SRC/$f" "$DEST/$f"
+done
+
+# supabase: only the functions README is missing from the design repo
+if [ -f "$SRC/supabase/functions/README.md" ] && [ ! -f "$DESIGN/supabase/functions/README.md" ]; then
+  copy_file "$SRC/supabase/functions/README.md" "$DESIGN/supabase/functions/README.md"
 fi
 
-git add -A
-git commit -qm "feat(mobile): wire imported source into workspace (overlay configs, docs, app.json key removal, lockfile)"
+# workspace package.json — same as the app repo's root one, minus the web
+# workspace scripts (apps/web is not coming along).
+say "write mobile/package.json (workspace root, web scripts dropped)"
+if [ "$DRY_RUN" != 1 ]; then
+  node - "$SRC/package.json" "$DEST/package.json" <<'NODE'
+const fs = require('fs');
+const [src, dest] = process.argv.slice(2);
+const pkg = JSON.parse(fs.readFileSync(src, 'utf8'));
+pkg.name = 'protein-outfitters-mobile';
+pkg.description = 'Protein Outfitters mobile (Expo) + shared package — lives inside protein-outfitters-design';
+delete pkg.scripts.web;
+fs.writeFileSync(dest, JSON.stringify(pkg, null, 2) + '\n');
+NODE
+fi
 
-# ---------------------------------------------------------------- 5. report
-say "Done — nothing pushed yet"
-echo
-git log --oneline -8
-echo
-echo "  mobile/ files:          $(git ls-files mobile | wc -l | tr -d ' ')"
-echo "  packages/shared files:  $(git ls-files packages/shared | wc -l | tr -d ' ')"
-echo "  mobile history:         $(git log --oneline -- mobile | wc -l | tr -d ' ') commits"
-echo
-echo "Next:"
-echo "  npm run shared:test && npm run typecheck"
-echo "  git push origin $BRANCH"
-echo "  then open the PR (no auto-merge label) and set EXPO_TOKEN + the EAS secrets per docs/mobile/MIGRATE.md §7"
+say "write mobile/README.md"
+if [ "$DRY_RUN" != 1 ]; then
+  cat > "$DEST/README.md" <<EOF
+# Protein Outfitters — mobile workspace
+
+Moved here from \`Mychalstitts/protein-outfitters-app\` (\`app/\`, commit \`$APP_SHA\`)
+on $(date +%Y-%m-%d) by \`move-source.sh\`. The web app (\`apps/web\`) was **not**
+moved — the static site + API in \`../deploy/\` is canonical.
+
+\`\`\`
+cd mobile
+nvm use            # .nvmrc → Node $(cat "$SRC/.nvmrc" 2>/dev/null || echo 20)
+npm install        # workspaces: apps/mobile, packages/shared
+npm run mobile     # expo start
+npm run typecheck  # tsc --build across workspaces
+\`\`\`
+
+EAS builds/updates run from \`apps/mobile\` (\`npm run build:preview --workspace apps/mobile\`).
+Copy \`.env.example\` → \`.env\` with the Supabase values from \`../supabase/.env.example\`.
+
+See \`../CONSOLIDATION.md\` for the full consolidation map.
+EOF
+fi
+
+# ---- summary --------------------------------------------------------------
+if [ "$DRY_RUN" = 1 ]; then
+  say "dry run complete — re-run without --dry-run to copy"
+else
+  say "done. In $DESIGN:"
+  git -C "$DESIGN" status --short | head -40 || true
+  echo
+  say "next: cd $DESIGN/mobile && npm install && npm run typecheck"
+  say "then review, and commit with something like:"
+  echo "      git -C \"$DESIGN\" add mobile supabase/functions/README.md"
+  echo "      git -C \"$DESIGN\" commit -m 'Move mobile workspace from protein-outfitters-app ($APP_SHA)'"
+fi
