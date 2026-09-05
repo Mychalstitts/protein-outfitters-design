@@ -12,7 +12,8 @@ export default function HomeScreen() {
         </View>
         <Text style={styles.title}>Protein Outfitters</Text>
         <Text style={styles.subtitle}>
-          Find every meat processor in America. Book direct.
+          Find a meat plant near you. Send a cut request. Claim your shop if
+          you&apos;re listed.
         </Text>
       </View>
 
@@ -30,7 +31,7 @@ export default function HomeScreen() {
       </View>
 
       <Text style={styles.footer}>
-        509 processors across 24 states · expanding daily
+        Sign in to send a request or claim a listing.
       </Text>
     </SafeAreaView>
   );

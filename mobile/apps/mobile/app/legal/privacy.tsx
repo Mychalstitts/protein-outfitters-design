@@ -28,8 +28,9 @@ export default function PrivacyScreen() {
       <P>
         <Bold>Location.</Bold> With your permission, we use your device’s
         coarse location to center the map near you and to sort processors by
-        distance. You can decline this — the app will work, you’ll just need
-        to search by ZIP. We don’t store your location on our servers.
+        distance. You can decline this — the app still works; browse the map
+        and search by name, city, or service. We don’t store your location on
+        our servers.
       </P>
 
       <H2>What we don’t do</H2>

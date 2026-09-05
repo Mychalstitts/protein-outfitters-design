@@ -29,8 +29,7 @@
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "We use your location to show meat processors near you on the map. You can decline and search by ZIP instead.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "We use your location to show meat processors near you on the map. You can decline and search by ZIP instead.",
+        "NSLocationWhenInUseUsageDescription": "We use your location to show meat processors near you on the map. You can decline and still browse the map.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "associatedDomains": [
@@ -98,7 +97,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "We use your location to show meat processors near you on the map. You can decline and search by ZIP instead."
+          "locationWhenInUsePermission": "We use your location to show meat processors near you on the map. You can decline and still browse the map."
         }
       ],
       [

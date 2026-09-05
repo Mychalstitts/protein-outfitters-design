@@ -7,7 +7,7 @@ const BASE =
 
 function claimFrom(claimable, ownerId) {
   if (ownerId) return 'claimed';
-  if (claimable === false) return 'claimed';
+  // claimable=false is custom-exempt / not claimable — not “already claimed”.
   return 'unclaimed';
 }
 

@@ -16,10 +16,12 @@ import {
   radius,
   type Processor,
 } from '@protein-outfitters/shared';
-import { loadProcessorBySlug } from '@/lib/processors';
+import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
+import { isCustomExemptInspection } from '@/lib/neonAdapter';
 
 export default function ProcessorDetail() {
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { slug: slugParam } = useLocalSearchParams<{ slug: string }>();
+  const slug = normalizeRouteSlug(slugParam);
   const [proc, setProc] = useState<Processor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +79,15 @@ export default function ProcessorDetail() {
         </View>
       </View>
 
-      {proc.claim_status === 'unclaimed' ? (
+      {isCustomExemptInspection(proc.inspection_status) ? (
+        <View style={styles.unclaimedBanner}>
+          <Text style={styles.unclaimedText}>
+            Custom-exempt / not claimable. This shop is listed as
+            custom-exempt and cannot be claimed in the app. Prefer not to be
+            listed? Email support@proteinoutfitters.com.
+          </Text>
+        </View>
+      ) : proc.claim_status === 'unclaimed' && proc.slug ? (
         <Link href={`/claim/${proc.slug}`} asChild>
           <Pressable style={styles.unclaimedBanner}>
             <Text style={styles.unclaimedText}>
@@ -147,11 +157,13 @@ export default function ProcessorDetail() {
         </Text>
       </Section>
 
-      <Link href={`/request/${proc.slug}`} asChild>
-        <Pressable style={styles.cta}>
-          <Text style={styles.ctaText}>Request Service</Text>
-        </Pressable>
-      </Link>
+      {proc.slug ? (
+        <Link href={`/request/${proc.slug}`} asChild>
+          <Pressable style={styles.cta}>
+            <Text style={styles.ctaText}>Request Service</Text>
+          </Pressable>
+        </Link>
+      ) : null}
     </ScrollView>
   );
 }

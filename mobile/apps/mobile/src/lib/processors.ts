@@ -51,6 +51,14 @@ export function findBundledBySlug(slug: string): Processor | null {
   return BUNDLED.find((p) => p.slug === slug) ?? null;
 }
 
+/** Expo route params can be `string | string[]`; never navigate on empty. */
+export function normalizeRouteSlug(
+  raw: string | string[] | undefined,
+): string {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 async function fetchFromMapData(): Promise<Processor[]> {
   const data = await apiGet<{ processors?: MapDataProcessorRow[] }>(
     '/api/map-data',

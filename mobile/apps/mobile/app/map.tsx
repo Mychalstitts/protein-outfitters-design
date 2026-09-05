@@ -30,6 +30,12 @@ import {
 } from '@/lib/processors';
 import { FilterSheet } from '@/components/FilterSheet';
 
+function openProcessor(p: Processor) {
+  const slug = typeof p.slug === 'string' ? p.slug.trim() : '';
+  if (!slug) return;
+  router.push(`/processor/${slug}`);
+}
+
 const DEFAULT_REGION = {
   latitude: 39.8283,
   longitude: -98.5795,
@@ -179,11 +185,34 @@ export default function MapScreen() {
               title={p.name}
               description={p.address.full ?? undefined}
               pinColor={p.role === 'processor' ? colors.proc : colors.sup}
-              onCalloutPress={() => router.push(`/processor/${p.slug}`)}
+              onCalloutPress={() => openProcessor(p)}
             />
           ))}
         </MapView>
-      ) : (
+      ) : null}
+      {view === 'map' &&
+      visible.length === 0 &&
+      !loading &&
+      (query || activeFilterCount > 0) ? (
+        <View style={styles.mapEmptyOverlay} pointerEvents="box-none">
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>No matches</Text>
+            <Text style={styles.emptyBody}>
+              No processors match these filters.
+            </Text>
+            <Pressable
+              onPress={() => {
+                setQuery('');
+                setFilters({});
+              }}
+              style={styles.emptyBtn}
+            >
+              <Text style={styles.emptyBtnText}>Clear filters</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
+      {view === 'list' ? (
         <FlatList
           data={visible}
           keyExtractor={p => p.id}
@@ -194,7 +223,7 @@ export default function MapScreen() {
           }
           renderItem={({ item }) => (
             <Pressable
-              onPress={() => router.push(`/processor/${item.slug}`)}
+              onPress={() => openProcessor(item)}
               style={styles.card}
             >
               <View style={{ flex: 1 }}>
@@ -219,28 +248,35 @@ export default function MapScreen() {
             </Pressable>
           )}
           ListEmptyComponent={
-            query ? (
-              <View style={styles.empty}>
-                <Text style={styles.emptyTitle}>No matches</Text>
-                <Text style={styles.emptyBody}>
-                  Try a different name, city, or service.
-                </Text>
-                <Pressable
-                  onPress={() => setQuery('')}
-                  style={styles.emptyBtn}
-                >
-                  <Text style={styles.emptyBtnText}>Clear search</Text>
-                </Pressable>
-              </View>
-            ) : (
+            loading && processors.length === 0 ? (
               <View style={styles.empty}>
                 <ActivityIndicator color={colors.proc} />
                 <Text style={styles.emptyBody}>Loading processors…</Text>
               </View>
+            ) : (
+              <View style={styles.empty}>
+                <Text style={styles.emptyTitle}>No matches</Text>
+                <Text style={styles.emptyBody}>
+                  {query || activeFilterCount > 0
+                    ? 'No processors match these filters.'
+                    : 'No processors to show right now.'}
+                </Text>
+                {query || activeFilterCount > 0 ? (
+                  <Pressable
+                    onPress={() => {
+                      setQuery('');
+                      setFilters({});
+                    }}
+                    style={styles.emptyBtn}
+                  >
+                    <Text style={styles.emptyBtnText}>Clear filters</Text>
+                  </Pressable>
+                ) : null}
+              </View>
             )
           }
         />
-      )}
+      ) : null}
 
       <View style={styles.statusBar}>
         <View
@@ -343,6 +379,12 @@ const baseStyles = {
     borderRadius: radius.pill,
   },
   emptyBtnText: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' as const },
+  mapEmptyOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center' as const,
+    backgroundColor: 'rgba(15,17,21,0.72)',
+    paddingHorizontal: spacing.lg,
+  },
   statusBar: {
     position: 'absolute' as const,
     bottom: spacing.lg,

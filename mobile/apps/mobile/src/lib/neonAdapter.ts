@@ -46,9 +46,18 @@ export interface NeonProcessorRow {
   cover_url?: string | null;
 }
 
-function claimFrom(claimable?: boolean, ownerId?: string | null): ClaimStatus {
+/** Live map uses `custom-exempt`; do not treat that as “already claimed”. */
+export function isCustomExemptInspection(
+  inspection?: string | null,
+): boolean {
+  if (!inspection) return false;
+  return inspection.trim().toLowerCase().replace(/_/g, '-') === 'custom-exempt';
+}
+
+function claimFrom(_claimable?: boolean, ownerId?: string | null): ClaimStatus {
+  // Only an owner means claimed. `claimable: false` is custom-exempt
+  // (not claimable) — label that via inspection, not as “already claimed”.
   if (ownerId) return 'claimed';
-  if (claimable === false) return 'claimed';
   return 'unclaimed';
 }
 

@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -20,30 +19,19 @@ import {
   type Processor,
 } from '@protein-outfitters/shared';
 import { claimProcessor, getCachedUser, refreshCurrentUser, type AuthUser } from '@/lib/auth';
-import { loadProcessorBySlug } from '@/lib/processors';
-import { isSyntheticSlug } from '@/lib/neonAdapter';
+import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
+import { isCustomExemptInspection, isSyntheticSlug } from '@/lib/neonAdapter';
 import { ApiError } from '@/lib/api';
-
-type Role = 'owner' | 'manager' | 'employee' | 'other';
-
-const ROLES: { value: Role; label: string }[] = [
-  { value: 'owner', label: 'Owner' },
-  { value: 'manager', label: 'Manager' },
-  { value: 'employee', label: 'Employee' },
-  { value: 'other', label: 'Other' },
-];
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function ClaimScreen() {
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { slug: slugParam } = useLocalSearchParams<{ slug: string }>();
+  const slug = normalizeRouteSlug(slugParam);
   const [proc, setProc] = useState<Processor | null>(null);
   const [source, setSource] = useState<string>('bundled');
   const [user, setUser] = useState<AuthUser | null>(getCachedUser());
-  const [role, setRole] = useState<Role>('owner');
-  const [evidenceUrl, setEvidenceUrl] = useState('');
-  const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -58,6 +46,13 @@ export default function ClaimScreen() {
 
   const submit = async () => {
     if (!proc) return;
+    if (isCustomExemptInspection(proc.inspection_status)) {
+      Alert.alert(
+        'Not claimable',
+        'This listing is custom-exempt and cannot be claimed in the app.',
+      );
+      return;
+    }
     if (!user) {
       Alert.alert(
         'Sign in required',
@@ -81,13 +76,6 @@ export default function ClaimScreen() {
       );
       return;
     }
-    if (!evidenceUrl.trim() && !notes.trim()) {
-      Alert.alert(
-        'Need some proof',
-        'Add a website, business license, or a quick note about how we can verify you.',
-      );
-      return;
-    }
     setSubmitting(true);
     try {
       await claimProcessor(
@@ -97,7 +85,7 @@ export default function ClaimScreen() {
       );
       Alert.alert(
         'Listing claimed',
-        `${proc.name} is now linked to your account. You can manage it on proteinoutfitters.com. (Role noted: ${role}.)`,
+        `${proc.name} is now linked to your account. You can manage it on proteinoutfitters.com.`,
         [{ text: 'OK', onPress: () => router.back() }],
       );
     } catch (e: unknown) {
@@ -121,11 +109,23 @@ export default function ClaimScreen() {
     );
   }
 
+  if (isCustomExemptInspection(proc.inspection_status)) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.title}>Custom-exempt / not claimable</Text>
+        <Text style={[styles.body, { textAlign: 'center' }]}>
+          This shop is listed as custom-exempt and cannot be claimed in the
+          app. Prefer not to be listed? Email support@proteinoutfitters.com.
+        </Text>
+      </View>
+    );
+  }
+
   if (proc.claim_status === 'claimed') {
     return (
       <View style={styles.center}>
         <Text style={styles.title}>Already claimed</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.body, { textAlign: 'center' }]}>
           This listing has already been claimed. If you believe this is in
           error, contact support@proteinoutfitters.com.
         </Text>
@@ -145,58 +145,10 @@ export default function ClaimScreen() {
         <Text style={styles.kicker}>Claim listing</Text>
         <Text style={styles.h1}>{proc.name}</Text>
         <Text style={styles.body}>
-          Tell us how you&apos;re connected to this business. Claiming links the
-          listing to your Protein Outfitters account right away
-          {source === 'api' ? '' : ' (live directory preferred)'}. Free, always.
+          Claiming links this listing to your Protein Outfitters account
+          {source === 'api' ? '' : ' (live directory preferred)'}. Free. Sign in
+          required. Manage the listing on the web after you claim.
         </Text>
-
-        <Field label="Your role">
-          <View style={styles.chipRow}>
-            {ROLES.map(o => {
-              const active = o.value === role;
-              return (
-                <Pressable
-                  key={o.value}
-                  onPress={() => setRole(o.value)}
-                  style={[styles.chip, active && styles.chipActive]}
-                >
-                  <Text style={[styles.chipText, active && { color: '#fff' }]}>
-                    {o.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </Field>
-
-        <Field label="Website or proof URL">
-          <TextInput
-            style={styles.input}
-            value={evidenceUrl}
-            onChangeText={setEvidenceUrl}
-            placeholder="https://yourshop.com or USDA establishment URL"
-            placeholderTextColor={colors.textMute}
-            keyboardType="url"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <Text style={styles.hint}>
-            Anything that ties you to the business: your business website, a
-            license number, a Facebook page you own. (Stored for our team; the
-            claim itself is applied immediately on the live directory.)
-          </Text>
-        </Field>
-
-        <Field label="Notes for our team">
-          <TextInput
-            style={[styles.input, { height: 96, textAlignVertical: 'top' }]}
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-            placeholder="Anything else that helps us verify (you can also reply with proof to our follow-up email)."
-            placeholderTextColor={colors.textMute}
-          />
-        </Field>
 
         <Pressable
           style={[styles.cta, submitting && { opacity: 0.6 }]}
@@ -217,44 +169,12 @@ export default function ClaimScreen() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <View style={{ marginTop: spacing.lg }}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={{ marginTop: spacing.xs }}>{children}</View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg0, padding: spacing.lg },
   kicker: { color: colors.procLight, fontSize: fontSize.xs, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
   h1: { color: colors.text, fontSize: 24, fontWeight: '700', marginTop: 4, letterSpacing: -0.3 },
-  title: { color: colors.text, fontSize: fontSize.xl, fontWeight: '700' },
+  title: { color: colors.text, fontSize: fontSize.xl, fontWeight: '700', textAlign: 'center' },
   body: { color: colors.textDim, fontSize: fontSize.base, lineHeight: 22, marginTop: spacing.sm },
-  label: { color: colors.textMute, fontSize: fontSize.xs, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
-  hint: { color: colors.textMute, fontSize: fontSize.sm, marginTop: spacing.xs },
-  input: {
-    backgroundColor: colors.bg2,
-    borderWidth: 1,
-    borderColor: colors.bg4,
-    borderRadius: radius.lg,
-    color: colors.text,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: fontSize.base,
-  },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  chip: {
-    backgroundColor: colors.bg2,
-    borderWidth: 1,
-    borderColor: colors.bg4,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-  },
-  chipActive: { backgroundColor: colors.procDeep, borderColor: colors.proc },
-  chipText: { color: colors.text, fontSize: fontSize.sm },
   cta: {
     marginTop: spacing.xl,
     backgroundColor: colors.proc,
