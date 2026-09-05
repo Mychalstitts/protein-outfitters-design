@@ -21,7 +21,7 @@ import {
 import { claimProcessor, getCachedUser, refreshCurrentUser, type AuthUser } from '@/lib/auth';
 import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
 import {
-  CUSTOM_EXEMPT_LABEL,
+  CUSTOM_EXEMPT_CLAIM_LABEL,
   CUSTOM_EXEMPT_NOTE,
   isCustomExemptListing,
   isSyntheticSlug,
@@ -53,8 +53,8 @@ export default function ClaimScreen() {
     if (!proc) return;
     if (isCustomExemptListing(proc)) {
       Alert.alert(
-        'Not claimable',
-        CUSTOM_EXEMPT_LABEL,
+        CUSTOM_EXEMPT_CLAIM_LABEL,
+        'This listing is custom-exempt and not claimable.',
       );
       return;
     }
@@ -117,7 +117,7 @@ export default function ClaimScreen() {
   if (isCustomExemptListing(proc)) {
     return (
       <View style={styles.center}>
-        <Text style={styles.title}>{CUSTOM_EXEMPT_LABEL}</Text>
+        <Text style={styles.title}>{CUSTOM_EXEMPT_CLAIM_LABEL}</Text>
         <Text style={[styles.body, { textAlign: 'center' }]}>
           {CUSTOM_EXEMPT_NOTE}. This shop stays on the map for directory
           honesty. It is custom-exempt and not claimable. Prefer not to be
