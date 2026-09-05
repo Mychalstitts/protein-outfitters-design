@@ -34,7 +34,8 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "associatedDomains": [
-        "applinks:proteinoutfitters.com"
+        "applinks:proteinoutfitters.com",
+        "applinks:www.proteinoutfitters.com"
       ],
       "usesAppleSignIn": true
     },
@@ -63,6 +64,10 @@
             {
               "scheme": "https",
               "host": "proteinoutfitters.com"
+            },
+            {
+              "scheme": "https",
+              "host": "www.proteinoutfitters.com"
             }
           ],
           "category": [

@@ -1,0 +1,22 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "REPLACE_WITH_APPLE_TEAM_ID.com.proteinoutfitters.app",
+        "paths": [
+          "/auth/*",
+          "/p/*",
+          "/claim/*",
+          "/request/*",
+          "/r/*",
+          "/map",
+          "/map/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["REPLACE_WITH_APPLE_TEAM_ID.com.proteinoutfitters.app"]
+  }
+}

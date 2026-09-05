@@ -1,6 +1,6 @@
 # Mobile API swap — progress
 
-**Branch:** `cursor/mobile-processor-requests-8023` (Slice F on top of App Store path / PR #36)
+**On `main`:** App Store path (#36) + processor-requests (Slice F). See [APP-STORE-PATH.md](./APP-STORE-PATH.md) for human blockers.
 
 ## Done
 
@@ -17,8 +17,7 @@
 
 | Item | Notes |
 |------|--------|
-| Store humans | Apple $99, ASC IDs in `eas.json`, device QA, screenshots |
-| Merge order | Merge **PR #36** (App Store path) first, then this Slice F PR (or stack onto #36) |
+| Store humans | Apple $99, real ASC IDs in `eas.json` (no fakes), device QA, screenshots, AASA / assetlinks host files |
 
 ## Smoke
 

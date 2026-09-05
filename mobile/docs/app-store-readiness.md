@@ -18,7 +18,7 @@ Status legend: ✅ done in scaffold · 🟡 partially done, needs production val
 ### Required in-app capabilities
 
 - ✅ Account deletion in-app (App Store guideline 5.1.1(v)). Implemented in `app/account.tsx` via `POST /api/account-delete` (Neon session / Bearer).
-- ✅ Sign in with Apple (guideline 4.8). Implemented in `app/account.tsx` → `POST /api/auth/apple` (Neon session). Email magic link uses the same Neon identity store as the website.
+- ✅ Sign in with Apple (guideline 4.8). Implemented in `app/account.tsx` → `POST /api/auth/apple` (Neon session). Email magic link uses the same Neon identity store as the website. Expo: `ios.usesAppleSignIn` + `expo-apple-authentication` plugin. **Human:** enable Sign in with Apple on the App ID in Apple Developer before TestFlight SIWA works (see `docs/mobile/APP-STORE-PATH.md`).
 - 🟡 Privacy strings for location. Set in `app.json` → `ios.infoPlist`. **Edit the copy** to reflect your actual use ("show processors near you") before submission.
 - ✅ `ITSAppUsesNonExemptEncryption: false` declared so we skip the export compliance prompt every release.
 
@@ -37,9 +37,10 @@ We collect and need to declare:
 
 - 🟡 Bundle ID `com.proteinoutfitters.app` in `app.json`. Reserve it on App Store Connect when you create the app record.
 - ✅ EAS project ID set (`e2976642-b0da-43b5-b85f-138c93665c8d` in `app.json` / updates URL).
-- 🔴 Apple Team ID, Apple ID, ASC App ID. Replace placeholders in `eas.json` `submit.production.ios`.
-- ✅ App icon set at `assets/icon.png` (1024×1024). Regenerate from SVG: `cd mobile && npm i -D sharp && npm run build:icons`.
+- 🔴 Apple Team ID, Apple ID, ASC App ID. Replace placeholders in `eas.json` `submit.production.ios` **only with real ASC values** — never invent IDs.
+- ✅ App icon set at `assets/icon.png` (1024×1024). Regenerate from SVG: `cd mobile && npm i -D sharp && npm run build:icons` (`mobile/scripts/build-icons.mjs`).
 - ✅ Splash screen at `assets/splash.png`.
+- 🟡 Universal Links / App Links: `associatedDomains` + Android intent filters include apex + `www`. Host files still need real Team ID / Play SHA-256 — templates at `deploy/.well-known/*.example`.
 - 🔴 Screenshots — required at 6.7" (iPhone 15 Pro Max), 6.5" (older Pro Max), and 5.5" (older Plus). Three minimum each. Use Expo's simulator screenshots.
 - 🔴 App preview video (optional but lifts conversion ~20%).
 
