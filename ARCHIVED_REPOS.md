@@ -2,6 +2,8 @@
 
 Copy the block below into the README of archived repos (`protein-outfitters-app`, `protein-outfitters-storefront`, `PO2`).
 
+**Do not GitHub-archive `protein-outfitters-app` until** `mobile/` + `packages/shared` source have been transplanted (see `docs/mobile/MIGRATE.md`) and stray Vercel projects are paused/deleted.
+
 ---
 
 **This repository is archived.** All active development happens in:

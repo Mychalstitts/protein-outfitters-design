@@ -1,7 +1,44 @@
 .vercel
 node_modules/
-package-lock.json
 .DS_Store
 
 # scratch: mount cannot delete files, moved here instead
 _to_delete/
+
+# --- lockfiles -------------------------------------------------------------
+# The root lockfile is REQUIRED: `npm ci` (CI + EAS) refuses to run without
+# it, and EAS builds must be reproducible. Nested lockfiles stay ignored so
+# deploy/ keeps its current `npm install` behaviour on Vercel.
+package-lock.json
+!/package-lock.json
+
+# --- mobile / shared (from protein-outfitters-app) -------------------------
+dist/
+build/
+.expo/
+.expo-shared/
+*.tsbuildinfo
+mobile/ios/
+mobile/android/
+*.xcworkspace
+*.xcodeproj
+
+# Env / secrets — NEVER commit
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+mobile/play-store-service-account.json
+
+# Logs / editors / coverage
+*.log
+npm-debug.log*
+.vscode/
+.idea/
+*.swp
+coverage/

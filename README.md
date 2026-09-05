@@ -4,6 +4,22 @@
 
 Static HTML/CSS/JS in `deploy/` plus Vercel serverless APIs. Other repos (`protein-outfitters-app`, `protein-outfitters-storefront`, `PO2`) are being merged here — see [`CONSOLIDATION.md`](./CONSOLIDATION.md) for the full map of Vercel projects, feature parity, and merge status.
 
+## Mobile (iOS + Android)
+
+The Expo app lives in `mobile/` and shares types/logic via `packages/shared`. It talks to the same Supabase project as `deploy/api`.
+
+**Scaffold is in this repo; app source is transplanted next** — see [`docs/mobile/MIGRATE.md`](./docs/mobile/MIGRATE.md).
+
+```bash
+npm install                    # root — installs all workspaces
+cp mobile/.env.example mobile/.env   # fill in the anon key
+npm run mobile                 # expo start (after source lands)
+npm run typecheck              # shared + mobile
+npm run shared:test            # vitest
+```
+
+Builds go through EAS (`mobile/eas.json`): label a PR `mobile-build` for preview binaries (needs `EXPO_TOKEN` Actions secret). JS-only updates: Actions → **EAS Update**.
+
 ## Pages
 
 | Path | What it shows |

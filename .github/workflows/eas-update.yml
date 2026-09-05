@@ -1,0 +1,56 @@
+# Publish a JS/asset OTA to an EAS Update channel.
+#
+# Builds already listen on:
+#   development ← mobile/eas.json build.development.channel
+#   preview     ← mobile/eas.json build.preview.channel
+#   production  ← mobile/eas.json build.production.channel
+#
+# Requires EXPO_TOKEN in Actions secrets. Manual only — never auto-publishes
+# production on push.
+#
+# Usage: Actions → EAS Update → Run workflow → pick channel.
+
+name: EAS Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Channel that installed binaries will pull from
+        required: true
+        type: choice
+        options:
+          - preview
+          - production
+          - development
+        default: preview
+      message:
+        description: What changed (shows in Expo dashboard)
+        required: false
+        default: JS update
+
+jobs:
+  publish:
+    name: Publish to ${{ inputs.channel }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+        working-directory: .
+      - run: >
+          eas update
+          --channel ${{ inputs.channel }}
+          --message "${{ inputs.message }}"
+          --non-interactive

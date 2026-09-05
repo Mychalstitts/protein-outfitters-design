@@ -1,0 +1,16 @@
+{
+  "name": "mobile",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Protein Outfitters Expo app. Source pending git subtree from protein-outfitters-app — see docs/mobile/MIGRATE.md.",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "node ../scripts/mobile/pending-source.mjs start",
+    "ios": "node ../scripts/mobile/pending-source.mjs ios",
+    "android": "node ../scripts/mobile/pending-source.mjs android",
+    "typecheck": "node ../scripts/mobile/pending-source.mjs typecheck"
+  },
+  "dependencies": {
+    "@protein-outfitters/shared": "*"
+  }
+}

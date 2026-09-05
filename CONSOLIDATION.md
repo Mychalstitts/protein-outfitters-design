@@ -6,81 +6,92 @@
 
 This document tracks every Protein Outfitters codebase and Vercel project so work stops jumping between repos.
 
+**Last updated:** 2026-09-04 — mobile workspace scaffold landed; Expo/`shared` **source** still pending `git subtree` from private `protein-outfitters-app` ([docs/mobile/MIGRATE.md](./docs/mobile/MIGRATE.md)).
+
 ---
 
-## Vercel projects (as of June 2026)
+## Vercel projects (as of Sep 2026)
 
 | Vercel project | GitHub repo | Role | Status |
 |----------------|-------------|------|--------|
 | `protein-outfitters-design` | `protein-outfitters-design` | **Primary production** → `www.proteinoutfitters.com` | **Active** |
-| `protein-outfitters-design-3nci` | `protein-outfitters-design` | Duplicate project on same repo (legacy) | Deprecate → redirect to primary |
-| `protein-outfitters-design-ycmd` | `protein-outfitters-app` | Cross-linked preview | Deprecate after merge |
-| `protein-outfitters-app` | `protein-outfitters-app` | Next.js directory at `protein-outfitters-app1.vercel.app` | **Merge into design, then archive** |
+| `protein-outfitters-design-3nci` | `protein-outfitters-design` | Duplicate project on same repo (legacy) | Delete or pause |
+| `protein-outfitters-design-ycmd` | `protein-outfitters-app` | Cross-linked preview; still deploys from **app** repo | **Leak** — pause/delete |
+| `protein-outfitters-app` | `protein-outfitters-app` | Next.js project | Pause/delete after mobile source lands |
+| `protein-outfitters-app1` | `protein-outfitters-app` | **Still live** at `protein-outfitters-app1.vercel.app` | **Leak** — not redirected |
 
-**Rule:** All new work lands in `protein-outfitters-design` on `main`. Other Vercel projects should redirect to `www.proteinoutfitters.com` or be deleted from the Vercel dashboard.
+**Rule:** All new work lands in `protein-outfitters-design` on `main`.
+
+### Host-redirect caveat
+
+`deploy/vercel.json` host redirects only run **inside the design Vercel project**. Confirmed 2026-09-04: `protein-outfitters-app1.vercel.app/find-processors` → **200** (old Next.js). Fix is dashboard-only.
+
+Set **Ignored Build Step** on the design project to  
+`bash scripts/vercel-ignore-build.sh` (Root Directory = `deploy/`) so mobile-only commits do not redeploy www. Script: `deploy/scripts/vercel-ignore-build.sh`.
 
 ---
 
 ## GitHub repos
 
-| Repo | Stack | Best features | Consolidation status |
-|------|-------|---------------|----------------------|
-| **protein-outfitters-design** | Static HTML + Vercel serverless API | Full marketplace: reserve/checkout, cut-sheet, processor-ops, donations, hardware, admin, PWA, 70+ API routes | **Canonical** |
-| protein-outfitters-app | Next.js 14 + Expo + Supabase | Real map viewport search, `/find-processors`, `/find-suppliers`, compare/saved, processor profiles, mobile app | Homepage hub + redirects merged; map UX still to port |
-| protein-outfitters-storefront | Static deploy snapshot + Vite app + Shopify frontend | `supabase/` migrations, `docs/` specs, social-layer research | `supabase/` + `docs/` copied here |
-| PO2 | Vite React SPA | Early mobile nav patterns (Sell, Bag, Chat) | Archive — UX reference only |
-| Protein-Outfitters | Empty | — | Delete or archive |
-| PO / PO3 | Early prototypes | — | Archive |
-
-**Do not merge:** `storefront/frontend/` (Stittsworth Shopify storefront) — separate e-commerce product.
+| Repo | Visibility | Stack | Consolidation status |
+|------|------------|-------|----------------------|
+| **protein-outfitters-design** | Public | Static HTML + Vercel API + (new) `mobile/` + `packages/shared` workspace | **Canonical** |
+| protein-outfitters-app | **Private** | Next.js 14 + Expo 51 + Supabase monorepo | README archive notice; **not** GitHub-archived; still CI/deploys; source of mobile/`shared` |
+| protein-outfitters-storefront | — | Snapshot + Vite + Shopify | `supabase/` + `docs/` copied here |
+| PO2 / PO / PO3 | Public | Early prototypes | Archive — reference only |
 
 ---
 
-## Feature matrix (what lives where)
+## Feature matrix
 
 | Feature | Canonical (design) | Also in app | Action |
 |---------|-------------------|-------------|--------|
 | Stripe reserve + checkout | ✅ | — | Keep |
-| Cut sheet builder | ✅ | — | Keep |
-| Processor ops + QR check-in | ✅ | — | Keep |
-| Donation depot flow | ✅ | — | Keep |
-| Hardware / MPU leads | ✅ | — | Keep |
-| Farm map (`/map`) | ✅ static | ✅ viewport + clusters | Port viewport search from app |
-| Discover / listings | ✅ live API | ✅ Supabase farms | Keep design API |
-| Directory hub (processor / farm / opportunities CTAs) | ✅ merged | ✅ was homepage | Done |
-| `/find-processors` route | redirect → `/map` | ✅ | Done |
-| `/find-suppliers` route | redirect → `/discover` | ✅ | Done |
-| Compare processors | — | ✅ | Future: `compare.html` |
-| Saved favorites | — | ✅ | Future: account integration |
-| Referral `/r/[code]` | ✅ API exists | ✅ route | Future: vercel rewrite |
-| Expo iOS/Android | — | ✅ | Future: `mobile/` workspace |
-| Supabase migrations | ✅ copied | ✅ | Wire env vars |
-| Platform docs / runbooks | ✅ copied | partial | Keep in `docs/` |
+| Cut sheet / processor ops / donations / hardware | ✅ | — | Keep |
+| Map / discover / compare / referral redirects | ✅ | ✅ | Done on design; app1 still serves old Next pages |
+| Saved favorites | `/saved` → `/account` | ✅ localStorage | Wire account to persisted follows |
+| Expo iOS/Android | 🟡 `mobile/` scaffold + EAS/CI | ✅ full app | **Subtree source** — [MIGRATE.md](./docs/mobile/MIGRATE.md) |
+| Shared package | 🟡 `packages/shared` placeholder | ✅ `@protein-outfitters/shared` | **Subtree source** with mobile |
+| CI / EAS workflows | ✅ `mobile-ci`, `eas-preview`, `eas-update` | ✅ | Done (need `EXPO_TOKEN` secret) |
+
+---
+
+## Mobile workspace (this repo)
+
+```
+mobile/                 ← Expo app (config overlay in; source pending subtree)
+packages/shared/        ← @protein-outfitters/shared (placeholder until subtree)
+scripts/mobile/         ← bundle-data.mjs (+ build-icons after copy)
+docs/mobile/            ← MIGRATE.md + store docs (after copy)
+.github/workflows/      ← mobile-ci.yml, eas-preview.yml, eas-update.yml
+```
+
+Root `package.json` declares npm workspaces. Static-site CI uses
+`npm install --workspaces=false` so Expo deps do not slow every HTML change.
 
 ---
 
 ## What was merged (June 17, 2026)
 
-1. **Homepage directory hub** from `protein-outfitters-app` — three-path entry (processors, producers, supply intel) plus live animal listings below.
-2. **Route redirects** — `/find-processors`, `/find-suppliers`, `/admin/opportunities`, `/saved`, `/r/:code` → canonical pages.
-3. **Host redirects** — `protein-outfitters-app1.vercel.app`, `protein-outfitters-design-3nci`, `protein-outfitters-design-ycmd` → `www.proteinoutfitters.com` (in `deploy/vercel.json`).
-4. **Processor profiles** — `/p/:slug` via `processor-profile.html` + `api/processor-meta.js` (OG tags, request CTA, compare pin).
-5. **Map upgrade** — ZIP search, “Search this area”, viewport-filtered sidebar, processor profile links, compare pins.
-6. **Compare page** — `/compare` reads `localStorage` pins from map/profiles.
-7. **`supabase/`** — migrations, edge functions, seed from storefront.
-8. **`docs/`** — launch runbooks and platform specs from storefront.
+Homepage hub, route/host redirects, processor profiles, map upgrade, compare page, `supabase/`, `docs/` from storefront — see git history.
+
+## What landed (Sep 4, 2026)
+
+9. **Mobile workspace scaffold** — root workspaces, Expo/EAS config overlays, Metro/tsconfig for monorepo layout, path-filtered Mobile CI + EAS preview/update workflows, Vercel ignore-build script, migrate runbook. App + shared **source** still in private app repo.
 
 ---
 
-## Next consolidation steps (priority order)
+## Next consolidation steps
 
-1. **Vercel dashboard** — confirm only `protein-outfitters-design` owns `www.proteinoutfitters.com` (host redirects are in repo; delete duplicate projects when ready).
-2. **Mobile** — move `protein-outfitters-app/app/apps/mobile` to `mobile/` in this repo.
-3. **Archive sibling repos** — add `ARCHIVED.md` pointing here; set read-only on GitHub.
-4. **Saved favorites** — wire account page to persisted farm/processor follows.
+1. **`git subtree` mobile + shared** from `protein-outfitters-app` into this repo ([docs/mobile/MIGRATE.md](./docs/mobile/MIGRATE.md)). Requires a Cloud Agent / machine with access to the private repo.
+2. **GitHub Actions secret** `EXPO_TOKEN` on this repo; EAS secrets for Supabase + Maps.
+3. **Vercel dashboard** — delete/pause `protein-outfitters-app1`, `protein-outfitters-app`, `protein-outfitters-design-ycmd`; enable Ignored Build Step.
+4. **Archive** `protein-outfitters-app` after first successful EAS preview from this repo; remove its EAS workflows first.
+5. **Saved favorites** — wire `/account` to persisted follows.
+6. **Clean up** ~55 misplaced `audit-*.md` files at the app repo root (they audit www/design).
 
 ---
 
 ## Environment
 
-All deploy APIs use Supabase project `unybunaqyqrxhfyhvhfo` (see `supabase/.env.example`). Vercel env vars must match across any remaining preview projects until they are decommissioned.
+Shared Supabase project: **`unybunaqyqrxhfyhvhfo`** (`supabase/.env.example`). Mobile uses `EXPO_PUBLIC_SUPABASE_*` in `mobile/.env` (see `mobile/.env.example`).

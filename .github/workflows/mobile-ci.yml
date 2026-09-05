@@ -1,0 +1,64 @@
+# Typecheck + tests for the mobile app and shared package.
+#
+# Path-filtered so static-site-only commits don't run it, and the existing
+# "Static checks" workflow (validate-schema.yml) is untouched.
+
+name: Mobile CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.base.json'
+      - '.nvmrc'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.base.json'
+      - '.nvmrc'
+      - '.github/workflows/mobile-ci.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared:
+    name: Shared package — typecheck + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run typecheck --workspace packages/shared
+      - run: npm test --workspace packages/shared
+
+  mobile:
+    name: Mobile — typecheck + Expo doctor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run typecheck --workspace mobile
+      # Expo's doctor flags common config errors that show up at build time
+      - run: npx expo-doctor
+        working-directory: mobile
+        continue-on-error: true # warnings are informational, not blocking
