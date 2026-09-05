@@ -1,25 +1,31 @@
-# EAS preview — temporary diagnose job (build enqueue disabled).
+# EAS preview build on PRs that touch the mobile app.
+#
+# Preview binaries listen on the `preview` EAS Update channel
+# (mobile/apps/mobile/eas.json). JS-only follow-ups: Actions → EAS Update.
+#
+# Requires Actions secret:
+#   EXPO_TOKEN — expo.dev → Account Settings → Access Tokens
+#
+# Opt-in: only runs on PRs labeled "mobile-build".
+
 name: EAS preview
 
 on:
   pull_request:
-    types: [labeled, synchronize]
+    types: [labeled]
 
 jobs:
   build:
-    if: false
+    if: github.event.label.name == 'mobile-build'
+    name: Build preview for ${{ matrix.platform }}
     runs-on: ubuntu-latest
-    steps:
-      - run: 'true'
-
-  status:
-    if: >-
-      github.event.label.name == 'mobile-build' ||
-      (github.event.action == 'synchronize' && contains(join(github.event.pull_request.labels.*.name, ','), 'mobile-build'))
-    name: Recent EAS build status
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ios, android]
     steps:
       - uses: actions/checkout@v4
+      # Node 22 for eas-cli@latest (@oclif/plugin-autocomplete engines.node >=22).
+      # Keep mobile/.nvmrc on 20 for Expo SDK 51 local/dev and mobile-ci.yml.
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -31,48 +37,5 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
         working-directory: mobile
-      - name: Brotli-decode EAS iOS logs
+      - run: eas build --profile preview --platform ${{ matrix.platform }} --non-interactive --no-wait
         working-directory: mobile/apps/mobile
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EXPO_NO_TELEMETRY: 1
-        run: |
-          set -euo pipefail
-          pip install --quiet brotli
-          ID=6b083cb9-ba19-4555-b6ba-486c5736a034
-          eas build:view "$ID" --json > /tmp/ios-build.json
-          python3 <<'PY'
-          import json, urllib.request, brotli
-          raw=open("/tmp/ios-build.json").read()
-          d=json.loads(raw[raw.find("{"):])
-          print("error", d.get("error"))
-          u=(d.get("logFiles") or [])[0]
-          req=urllib.request.Request(u, headers={"Accept-Encoding": "identity"})
-          with urllib.request.urlopen(req, timeout=90) as r:
-            data=r.read()
-            print("ctype", r.headers.get("Content-Type"), "cenc", r.headers.get("Content-Encoding"), "bytes", len(data), "magic", data[:8].hex())
-          # Try brotli always; also try raw if already text
-          for name, blob in [("raw", data), ("brotli", None)]:
-            if name=="brotli":
-              try:
-                blob=brotli.decompress(data)
-              except Exception as e:
-                print("brotli fail", e)
-                continue
-            sample=blob[:4000]
-            printable=sum(32 <= b < 127 or b in (9,10,13) for b in sample)/max(1,len(sample))
-            print(f"{name}: len={len(blob)} printable={printable:.2f}")
-            if printable < 0.65:
-              continue
-            text=blob.decode("utf-8","replace")
-            open("/tmp/ios-log.txt","w").write(text)
-            lines=text.splitlines()
-            print("--- hits ---")
-            for ln in lines:
-              low=ln.lower()
-              if any(k in low for k in ("error","fail","pod","install pods","cocoapods","enoent","conflict","fatal","new architecture","unable","warning:","specs")):
-                print(ln)
-            print("--- last 120 ---")
-            print("\n".join(lines[-120:]))
-            break
-          PY

@@ -9,7 +9,7 @@ boots on bundled processor data (`mobile/apps/mobile/src/data/processors.bundled
 |------|--------|
 | Workspace | `mobile/` (npm workspaces) |
 | Expo app | `mobile/apps/mobile/` |
-| EAS config | `mobile/apps/mobile/eas.json` (`preview` profile, internal + iOS simulator) |
+| EAS config | `mobile/apps/mobile/eas.json` (`preview` = internal + iOS simulator; `preview-device` for later) |
 | Project ID | `e2976642-b0da-43b5-b85f-138c93665c8d` |
 | Owner / slug | `mychalstitts` / `protein-outfitters` |
 | Workflow | `.github/workflows/eas-preview.yml` |
@@ -45,5 +45,16 @@ npx eas build --profile preview --platform android --non-interactive --no-wait
 ## After the first green build
 
 - Install from the Expo/EAS build page (internal distribution).
+  - Android APK installs on device; iOS `preview` is a **simulator** `.app` (see `eas.json`).
+  - Real-device iOS: use profile `preview-device` after Apple credentials + `eas device:create`.
 - Confirm map/list UI loads from bundled data (no live API required).
 - Then proceed with API-swap work ([API-SWAP.md](./API-SWAP.md)); archive the old app repo when ready.
+
+## Known iOS gotcha (SDK 51 / RN 0.74.1)
+
+First iOS preview failed in **Install pods** with:
+
+`undefined method each for nil` in `privacy_manifest_utils.rb`
+
+Fix on this branch: `expo-build-properties` sets
+`ios.privacyManifestAggregationEnabled: false`, and `newArchEnabled` is off.

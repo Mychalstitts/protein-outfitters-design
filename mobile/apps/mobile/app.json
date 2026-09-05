@@ -84,6 +84,14 @@
       "expo-apple-authentication",
       "expo-updates",
       [
+        "expo-build-properties",
+        {
+          "ios": {
+            "privacyManifestAggregationEnabled": false
+          }
+        }
+      ],
+      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "We use your location to show meat processors near you on the map. You can decline and search by ZIP instead."
