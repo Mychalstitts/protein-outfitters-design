@@ -16,10 +16,16 @@ import {
   radius,
   type Processor,
 } from '@protein-outfitters/shared';
-import { loadProcessorBySlug } from '@/lib/processors';
+import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
+import {
+  CUSTOM_EXEMPT_LABEL,
+  CUSTOM_EXEMPT_NOTE,
+  isCustomExemptListing,
+} from '@/lib/neonAdapter';
 
 export default function ProcessorDetail() {
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { slug: slugParam } = useLocalSearchParams<{ slug: string }>();
+  const slug = normalizeRouteSlug(slugParam);
   const [proc, setProc] = useState<Processor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +83,15 @@ export default function ProcessorDetail() {
         </View>
       </View>
 
-      {proc.claim_status === 'unclaimed' ? (
+      {isCustomExemptListing(proc) ? (
+        <View style={styles.unclaimedBanner}>
+          <Text style={styles.unclaimedText}>
+            {CUSTOM_EXEMPT_LABEL}. {CUSTOM_EXEMPT_NOTE}. Listed for map
+            honesty. Prefer not to be listed? Email
+            support@proteinoutfitters.com.
+          </Text>
+        </View>
+      ) : proc.claim_status === 'unclaimed' && proc.slug ? (
         <Link href={`/claim/${proc.slug}`} asChild>
           <Pressable style={styles.unclaimedBanner}>
             <Text style={styles.unclaimedText}>
@@ -147,11 +161,13 @@ export default function ProcessorDetail() {
         </Text>
       </Section>
 
-      <Link href={`/request/${proc.slug}`} asChild>
-        <Pressable style={styles.cta}>
-          <Text style={styles.ctaText}>Request Service</Text>
-        </Pressable>
-      </Link>
+      {proc.slug ? (
+        <Link href={`/request/${proc.slug}`} asChild>
+          <Pressable style={styles.cta}>
+            <Text style={styles.ctaText}>Request Service</Text>
+          </Pressable>
+        </Link>
+      ) : null}
     </ScrollView>
   );
 }

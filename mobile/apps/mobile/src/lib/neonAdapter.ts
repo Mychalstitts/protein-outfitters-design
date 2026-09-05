@@ -46,8 +46,43 @@ export interface NeonProcessorRow {
   cover_url?: string | null;
 }
 
-function claimFrom(claimable?: boolean, ownerId?: string | null): ClaimStatus {
+/** Live map pin — Product YES: keep visible; label, do not hide. */
+export const CUSTOM_EXEMPT_SLUG = 'stittsworth-smokehouse-co';
+
+export const CUSTOM_EXEMPT_LABEL = 'Custom-exempt / not claimable';
+export const CUSTOM_EXEMPT_NOTE = 'Not sellable in the app';
+
+/** Live map uses `custom-exempt`. */
+export function isCustomExemptInspection(
+  inspection?: string | null,
+): boolean {
+  if (!inspection) return false;
+  return inspection.trim().toLowerCase().replace(/_/g, '-') === 'custom-exempt';
+}
+
+export function isCustomExemptListing(proc: {
+  slug?: string | null;
+  inspection_status?: string | null;
+}): boolean {
+  if (proc.slug === CUSTOM_EXEMPT_SLUG) return true;
+  return isCustomExemptInspection(proc.inspection_status);
+}
+
+function claimFrom(
+  claimable?: boolean,
+  ownerId?: string | null,
+  opts?: { inspection?: string | null; slug?: string | null },
+): ClaimStatus {
+  // Custom-exempt stays on the map and is labeled separately — never
+  // “already claimed” (UX must-fix).
+  if (
+    isCustomExemptInspection(opts?.inspection) ||
+    opts?.slug === CUSTOM_EXEMPT_SLUG
+  ) {
+    return 'unclaimed';
+  }
   if (ownerId) return 'claimed';
+  // GET /api/map-data sets claimable: !owner_id and omits owner_id.
   if (claimable === false) return 'claimed';
   return 'unclaimed';
 }
@@ -133,7 +168,10 @@ export function processorFromMapDataRow(row: MapDataProcessorRow): Processor | n
     usda_establishment_number: null,
     source: 'neon',
     source_url: null,
-    claim_status: claimFrom(row.claimable, undefined),
+    claim_status: claimFrom(row.claimable, undefined, {
+      inspection: row.inspection,
+      slug: row.slug,
+    }),
   };
 }
 
@@ -171,7 +209,10 @@ export function processorFromNeonRow(row: NeonProcessorRow): Processor | null {
     usda_establishment_number: null,
     source: 'neon',
     source_url: null,
-    claim_status: claimFrom(undefined, row.owner_id ?? null),
+    claim_status: claimFrom(undefined, row.owner_id ?? null, {
+      inspection: row.inspection,
+      slug: row.slug,
+    }),
     cover_photo_url: row.cover_url ?? null,
   };
 }

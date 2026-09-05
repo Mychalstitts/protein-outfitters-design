@@ -24,7 +24,6 @@ const COMMON_SERVICES = [
   'Sausage',
   'Game Processing',
   'Slaughter',
-  'USDA Inspected',
 ];
 
 interface Props {

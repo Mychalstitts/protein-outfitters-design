@@ -5,8 +5,17 @@
 const BASE =
   process.env.EXPO_PUBLIC_API_BASE_URL || 'https://www.proteinoutfitters.com';
 
-function claimFrom(claimable, ownerId) {
+function isCustomExempt(inspection, slug) {
+  if (slug === 'stittsworth-smokehouse-co') return true;
+  if (!inspection) return false;
+  return String(inspection).trim().toLowerCase().replace(/_/g, '-') === 'custom-exempt';
+}
+
+function claimFrom(claimable, ownerId, inspection, slug) {
+  // Custom-exempt is labeled separately — never “already claimed”.
+  if (isCustomExempt(inspection, slug)) return 'unclaimed';
   if (ownerId) return 'claimed';
+  // map-data: claimable === !owner_id (owner_id is not sent)
   if (claimable === false) return 'claimed';
   return 'unclaimed';
 }
@@ -45,7 +54,7 @@ function processorFromMapDataRow(row) {
     usda_establishment_number: null,
     source: 'neon',
     source_url: null,
-    claim_status: claimFrom(row.claimable),
+    claim_status: claimFrom(row.claimable, undefined, row.inspection, slug),
   };
 }
 

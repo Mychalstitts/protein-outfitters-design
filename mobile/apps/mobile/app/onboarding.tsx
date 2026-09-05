@@ -18,23 +18,23 @@ const { width } = Dimensions.get('window');
 const SLIDES = [
   {
     key: 'find',
-    title: 'Every meat processor in America',
+    title: 'Find a meat plant near you',
     body:
-      'Browse a live map of 500+ USDA and state-inspected processors and suppliers. We seed the map with public data so you never hit an empty page.',
+      'Browse processors on the map — custom cuts, smoking, sausage, game. Free.',
     accent: colors.proc,
   },
   {
     key: 'request',
-    title: 'Request work direct',
+    title: 'Send a cut request',
     body:
-      'Tell a processor what animal, what cuts, when you need it. They get a real warm lead — not a cold call. You get a real response.',
+      'Tell the plant what animal, what cuts, and when you need it. They reply to you direct. Sign in to send.',
     accent: colors.sup,
   },
   {
     key: 'claim',
     title: 'Are you a processor?',
     body:
-      'If your shop is on the map, claim your listing to manage requests, post photos, and build your reputation. Free to claim, always.',
+      'If your shop is listed, claim it free. Manage your listing on the web. Prefer not to be listed? Email support.',
     accent: colors.hw,
   },
 ];

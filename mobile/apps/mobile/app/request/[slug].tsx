@@ -27,7 +27,7 @@ import {
   submitProcessorRequest,
   type AuthUser,
 } from '@/lib/auth';
-import { loadProcessorBySlug } from '@/lib/processors';
+import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
 import { isSyntheticSlug } from '@/lib/neonAdapter';
 import { ApiError } from '@/lib/api';
 
@@ -57,7 +57,8 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function RequestScreen() {
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { slug: slugParam } = useLocalSearchParams<{ slug: string }>();
+  const slug = normalizeRouteSlug(slugParam);
   const [proc, setProc] = useState<Processor | null>(null);
   const [user, setUser] = useState<AuthUser | null>(getCachedUser());
   const [submitting, setSubmitting] = useState(false);

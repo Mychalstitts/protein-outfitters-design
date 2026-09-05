@@ -21,6 +21,7 @@ import {
   signOut,
   subscribeAuth,
 } from '@/lib/auth';
+import { SIWA_ENABLED } from '@/lib/flags';
 
 export default function AccountScreen() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -166,7 +167,7 @@ function SignInView() {
           </Text>
         </Pressable>
 
-        {Platform.OS === 'ios' ? (
+        {Platform.OS === 'ios' && SIWA_ENABLED ? (
           <>
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
