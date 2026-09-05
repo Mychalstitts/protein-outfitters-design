@@ -6,7 +6,7 @@
 
 | Slice | Status |
 |-------|--------|
-| **A+B** Map + detail reads via `GET /api/map-data` / `GET /api/processors?slug=` (+ bundled fallback) | ✅ |
+| **A+B** Map + detail reads via `GET /api/map-data` / `GET /api/processors?slug=` (+ bundled fallback); in-memory map-data cache for synthetic `neon-<uuid>` slugs | ✅ |
 | **C** `EXPO_PUBLIC_API_BASE_URL`; Supabase off the read path | ✅ |
 | **D** Auth bridge: Bearer in `currentUser`; JSON / deep-link verify; SecureStore; account → `/api/auth/*` + `/api/account-delete`; Apple → `/api/auth/apple` | ✅ |
 | **E** Claim → `POST /api/processors` with Bearer (`claim_slug` / `claim_id`) | ✅ |

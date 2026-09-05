@@ -21,6 +21,7 @@ import {
 } from '@protein-outfitters/shared';
 import { claimProcessor, getCachedUser, refreshCurrentUser, type AuthUser } from '@/lib/auth';
 import { loadProcessorBySlug } from '@/lib/processors';
+import { isSyntheticSlug } from '@/lib/neonAdapter';
 import { ApiError } from '@/lib/api';
 
 type Role = 'owner' | 'manager' | 'employee' | 'other';
@@ -69,8 +70,9 @@ export default function ClaimScreen() {
       return;
     }
     // Neon claim is by slug (preferred) or UUID. Bundled mamp-* ids will not work.
+    // Synthetic neon-<uuid> slugs aren't on /api/processors?slug= — claim by id.
     const canClaimBySlug =
-      Boolean(proc.slug) && !String(proc.slug).startsWith('neon-');
+      Boolean(proc.slug) && !isSyntheticSlug(String(proc.slug));
     const canClaimById = UUID_RE.test(String(proc.id));
     if (!canClaimBySlug && !canClaimById) {
       Alert.alert(
