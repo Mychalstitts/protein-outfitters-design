@@ -36,9 +36,28 @@ async function handler(req) {
   `;
 
   const origin = req.headers.get('origin') || 'https://www.proteinoutfitters.com';
+  // Mobile may pass a custom-scheme deep link (proteinoutfitters://auth/callback)
+  // or an https universal link. Relative paths stay on the web origin.
+  const nextRawMobile = typeof body.next === 'string' ? body.next.trim() : '';
+  const nextForLink = (() => {
+    if (nextPath) return nextPath;
+    if (!nextRawMobile) return null;
+    if (/^proteinoutfitters:\/\//i.test(nextRawMobile)) return nextRawMobile;
+    if (/^exp[s]?:\/\//i.test(nextRawMobile)) return nextRawMobile;
+    if (/^https:\/\/(www\.)?proteinoutfitters\.com\//i.test(nextRawMobile)) {
+      try {
+        const u = new URL(nextRawMobile);
+        return `${u.pathname}${u.search}`;
+      } catch { return null; }
+    }
+    return null;
+  })();
   const linkParams = new URLSearchParams({ token });
-  if (nextPath) linkParams.set('next', nextPath);
+  if (nextForLink) linkParams.set('next', nextForLink);
   if (refCode) linkParams.set('ref', refCode);
+  // Mobile clients can ask for JSON verify in the email landing path via
+  // format=json when they open the link inside the app WebView — optional.
+  if (body.client === 'mobile' && !nextForLink) linkParams.set('format', 'json');
   const link = `${origin}/api/auth/verify?${linkParams.toString()}`;
 
   // Try to send via Resend if configured

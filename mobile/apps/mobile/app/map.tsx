@@ -245,7 +245,7 @@ export default function MapScreen() {
       <View style={styles.statusBar}>
         <View
           style={styles.statusDot(
-            source === 'api' || source === 'server' ? 'live' : 'cached',
+            source === 'api' ? 'live' : 'cached',
           )}
         />
         <Text style={styles.statusText}>

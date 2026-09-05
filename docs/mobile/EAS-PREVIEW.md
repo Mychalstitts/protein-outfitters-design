@@ -48,7 +48,7 @@ npx eas build --profile preview --platform android --non-interactive --no-wait
   - Android APK installs on device; iOS `preview` is a **simulator** `.app` (see `eas.json`).
   - Real-device iOS: use profile `preview-device` after Apple credentials + `eas device:create`.
 - Confirm map/list UI loads from bundled data (no live API required).
-- Then proceed with API-swap work ([API-SWAP.md](./API-SWAP.md)); archive the old app repo when ready.
+- Auth / claim / Neon map path: see [API-SWAP-PROGRESS.md](./API-SWAP-PROGRESS.md) and [APP-STORE-PATH.md](./APP-STORE-PATH.md). Mapping doc may still live on PR #30 (`API-SWAP.md`).
 
 ## Known iOS gotcha (SDK 51 / RN 0.74.1)
 

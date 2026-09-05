@@ -1,10 +1,22 @@
-// GET /api/auth/verify?token=XXX&next=/account&ref=XYZ123
-// Consumes magic-link token, creates session, sets cookie, redirects.
+// GET /api/auth/verify?token=XXX&next=/account&ref=XYZ123[&format=json]
+// Consumes magic-link token, creates session.
+//
+// Web (default): 302 + Set-Cookie `po_session`, Location = `next`.
+// Mobile:
+//   - `format=json` (or Accept: application/json) → JSON { sessionToken, user }
+//   - `next` with a custom scheme (e.g. proteinoutfitters://…) → 302 to that
+//     URL with `?session=<id>` (or `&session=`) so the app can SecureStore it.
 //
 // `ref` (or `?ref=` embedded in `next`) is captured into users.referred_by_code
 // for newly created users. Triggers a referral_redemptions row so the credit
 // pipeline (stripe-webhook.js) can reward both sides on the first paid order.
-import { sql, randomToken, setSessionCookie, nodejsHandler } from '../_lib/db.js';
+import {
+  sql,
+  setSessionCookie,
+  createSession,
+  nodejsHandler,
+  getHeader,
+} from '../_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -25,12 +37,56 @@ function extractRefCode(url, nextRaw) {
   return null;
 }
 
+function wantsJson(req, url) {
+  if (url.searchParams.get('format') === 'json') return true;
+  if (url.searchParams.get('client') === 'mobile') return true;
+  const accept = (getHeader(req, 'accept') || '').toLowerCase();
+  return accept.includes('application/json') && !accept.includes('text/html');
+}
+
+/** Custom-scheme or known app deep-link hosts → mobile handoff. */
+function isAppDeepLink(next) {
+  if (!next || typeof next !== 'string') return false;
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(next) && !/^https?:\/\//i.test(next)) {
+    return true;
+  }
+  try {
+    const u = new URL(next);
+    return u.protocol === 'proteinoutfitters:' || u.protocol === 'exp:' || u.protocol === 'exps:';
+  } catch {
+    return false;
+  }
+}
+
+function appendSessionParam(next, sessionId) {
+  try {
+    // Relative paths are web-only; deep links need an absolute URL base.
+    const u = new URL(next, 'https://www.proteinoutfitters.com');
+    u.searchParams.set('session', sessionId);
+    // If next was relative, return path+query; if absolute/custom, href.
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(next)) return u.href;
+    return `${u.pathname}${u.search}${u.hash}`;
+  } catch {
+    const sep = next.includes('?') ? '&' : '?';
+    return `${next}${sep}session=${encodeURIComponent(sessionId)}`;
+  }
+}
+
 async function handler(req) {
   const url = new URL(req.url, 'http://' + (req.headers?.host || 'www.proteinoutfitters.com'));
   const token = url.searchParams.get('token');
   const next = url.searchParams.get('next') || '/account';
   const refCode = extractRefCode(url, next);
-  if (!token) return new Response('Missing token', { status: 400 });
+  const jsonMode = wantsJson(req, url);
+  if (!token) {
+    if (jsonMode) {
+      return new Response(JSON.stringify({ error: 'Missing token' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response('Missing token', { status: 400 });
+  }
 
   // Look up token
   const rows = await sql`
@@ -39,10 +95,22 @@ async function handler(req) {
     WHERE token = ${token}
     LIMIT 1
   `;
-  if (!rows[0]) return errorPage('Invalid sign-in link', 'This link is not valid. It may have already been used or never existed.');
+  if (!rows[0]) {
+    return jsonMode
+      ? jsonError(400, 'Invalid sign-in link', 'This link is not valid. It may have already been used or never existed.')
+      : errorPage('Invalid sign-in link', 'This link is not valid. It may have already been used or never existed.');
+  }
   const t = rows[0];
-  if (t.consumed_at) return errorPage('Already used', 'This sign-in link has already been used. Request a new one.');
-  if (new Date(t.expires_at) < new Date()) return errorPage('Expired', 'This sign-in link has expired. Request a new one.');
+  if (t.consumed_at) {
+    return jsonMode
+      ? jsonError(400, 'Already used', 'This sign-in link has already been used. Request a new one.')
+      : errorPage('Already used', 'This sign-in link has already been used. Request a new one.');
+  }
+  if (new Date(t.expires_at) < new Date()) {
+    return jsonMode
+      ? jsonError(400, 'Expired', 'This sign-in link has expired. Request a new one.')
+      : errorPage('Expired', 'This sign-in link has expired. Request a new one.');
+  }
 
   // Mark token consumed
   await sql`UPDATE auth_tokens SET consumed_at = NOW() WHERE token = ${token}`;
@@ -89,20 +157,46 @@ async function handler(req) {
     }
   }
 
-  // Create session
-  const sessionId = randomToken(40);
-  const expiresAt = new Date(Date.now() + 30 * 86400 * 1000); // 30 days
-  await sql`
-    INSERT INTO sessions (id, user_id, expires_at)
-    VALUES (${sessionId}, ${userId}, ${expiresAt})
+  const sessionId = await createSession(userId);
+  const profile = await sql`
+    SELECT id, email, name, role, zip, avatar_url, phone
+    FROM users WHERE id = ${userId} LIMIT 1
   `;
+  const user = profile[0] || { id: userId, email: t.email };
+
+  if (jsonMode) {
+    return new Response(JSON.stringify({
+      ok: true,
+      sessionToken: sessionId,
+      user,
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': setSessionCookie(sessionId),
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
+
+  // Mobile deep link: hand the session id to the app (RN cannot read HttpOnly cookies).
+  const location = isAppDeepLink(next)
+    ? appendSessionParam(next, sessionId)
+    : next;
 
   return new Response(null, {
     status: 302,
     headers: {
       'Set-Cookie': setSessionCookie(sessionId),
-      'Location': next
-    }
+      'Location': location,
+    },
+  });
+}
+
+function jsonError(status, title, message) {
+  return new Response(JSON.stringify({ error: title, message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 

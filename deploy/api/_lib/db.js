@@ -166,14 +166,21 @@ export function isUuid(s) {
   return typeof s === 'string' && UUID_RE.test(s);
 }
 
-// ─── Cookie helpers ────────────────────────────────────────
+// ─── Header / cookie helpers ───────────────────────────────
 // Handle both runtimes: Edge (Web Fetch req with headers.get) and
 // Node.js (IncomingMessage with headers as plain object).
-export function parseCookies(req) {
+export function getHeader(req, name) {
   const headers = req.headers;
-  const cookie = (typeof headers?.get === 'function')
-    ? (headers.get('cookie') || '')
-    : (headers?.cookie || headers?.Cookie || '');
+  if (!headers) return '';
+  const lower = String(name).toLowerCase();
+  if (typeof headers.get === 'function') {
+    return headers.get(lower) || headers.get(name) || '';
+  }
+  return headers[lower] || headers[name] || '';
+}
+
+export function parseCookies(req) {
+  const cookie = getHeader(req, 'cookie');
   return Object.fromEntries(
     cookie.split(';').filter(Boolean).map(c => {
       const [k, ...v] = c.trim().split('=');
@@ -192,9 +199,22 @@ export function clearSessionCookie() {
   return `po_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }
 
+/**
+ * Session id for this request.
+ * Prefer HttpOnly cookie `po_session` (web). Fall back to
+ * `Authorization: Bearer <sessionId>` for React Native / Expo.
+ */
+export function getSessionToken(req) {
+  const fromCookie = parseCookies(req).po_session;
+  if (fromCookie) return fromCookie;
+  const auth = getHeader(req, 'authorization');
+  const m = /^Bearer\s+(.+)$/i.exec(auth.trim());
+  return m ? m[1].trim() : null;
+}
+
 // ─── Session lookup ────────────────────────────────────────
 export async function currentUser(req) {
-  const sessionId = parseCookies(req).po_session;
+  const sessionId = getSessionToken(req);
   if (!sessionId) return null;
   const rows = await sql`
     SELECT u.id, u.email, u.name, u.role, u.zip, u.avatar_url, u.phone
@@ -203,7 +223,21 @@ export async function currentUser(req) {
     WHERE s.id = ${sessionId} AND s.expires_at > NOW()
     LIMIT 1
   `;
-  return rows[0] || null;
+  const user = rows[0] || null;
+  // Soft-deleted accounts keep a row for FK integrity but must not auth.
+  if (user && user.role === 'deleted') return null;
+  return user;
+}
+
+/** Create a session row; returns the session id (also the Bearer token). */
+export async function createSession(userId, maxAgeDays = 30) {
+  const sessionId = randomToken(40);
+  const expiresAt = new Date(Date.now() + maxAgeDays * 86400 * 1000);
+  await sql`
+    INSERT INTO sessions (id, user_id, expires_at)
+    VALUES (${sessionId}, ${userId}, ${expiresAt})
+  `;
+  return sessionId;
 }
 
 export async function requireUser(req) {

@@ -1,51 +1,81 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { colors, fontSize, spacing } from '@protein-outfitters/shared';
-import { supabase } from '@/lib/supabase';
+import { establishSession, exchangeAuthToken } from '@/lib/auth';
 
 /**
- * The user clicked the magic link in their email. The app opened via the
- * "proteinoutfitters://auth/callback" deep link, with `access_token` and
- * `refresh_token` as query params (Supabase OTP flow).
+ * Deep-link landing after magic-link verify.
  *
- * We hand them to supabase-js to establish the session, then route home.
+ * Neon flow (preferred):
+ *   - Browser hits /api/auth/verify?token=…&next=proteinoutfitters://auth/callback
+ *   - API 302s to proteinoutfitters://auth/callback?session=<sessionId>
+ *   - We SecureStore the session and confirm via /api/auth/me
+ *
+ * Also accepts:
+ *   - ?token=<auth_token> → exchange via GET /api/auth/verify?format=json
+ *   - Legacy Supabase ?access_token=&refresh_token= (ignored; send user to account)
  */
 export default function AuthCallback() {
   const params = useLocalSearchParams<{
+    session?: string;
+    token?: string;
     access_token?: string;
     refresh_token?: string;
     error?: string;
     error_description?: string;
   }>();
+  const [message, setMessage] = useState('Signing you in…');
 
   useEffect(() => {
+    let alive = true;
     (async () => {
       if (params.error) {
-        // Common: link expired or already used
+        if (alive) setMessage('Sign-in link expired. Please try again.');
         router.replace('/account');
         return;
       }
-      if (params.access_token && params.refresh_token) {
-        const { error } = await supabase.auth.setSession({
-          access_token: params.access_token,
-          refresh_token: params.refresh_token,
-        });
-        if (error) {
+
+      try {
+        if (params.session) {
+          await establishSession(String(params.session));
+          router.replace('/');
+          return;
+        }
+        if (params.token) {
+          await exchangeAuthToken(String(params.token));
+          router.replace('/');
+          return;
+        }
+        // Legacy Supabase deep link — Neon is the auth backend now.
+        if (params.access_token) {
+          if (alive) {
+            setMessage('Please request a new sign-in link from the Account screen.');
+          }
           router.replace('/account');
           return;
         }
+        router.replace('/account');
+      } catch {
+        if (alive) setMessage('Sign-in failed. Please try again.');
+        router.replace('/account');
       }
-      router.replace('/');
     })();
-  }, [params.access_token, params.refresh_token, params.error]);
+    return () => {
+      alive = false;
+    };
+  }, [
+    params.session,
+    params.token,
+    params.access_token,
+    params.refresh_token,
+    params.error,
+  ]);
 
   return (
     <View style={styles.root}>
       <ActivityIndicator color={colors.proc} />
-      <Text style={styles.text}>
-        {params.error ? 'Sign-in link expired. Please try again.' : 'Signing you in…'}
-      </Text>
+      <Text style={styles.text}>{message}</Text>
     </View>
   );
 }

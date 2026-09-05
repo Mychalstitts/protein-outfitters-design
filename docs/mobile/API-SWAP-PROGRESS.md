@@ -1,21 +1,36 @@
-# Mobile API swap — PR A+B (map + detail reads)
+# Mobile API swap — progress
 
-**Status:** Implemented on branch `cursor/mobile-api-map-data-8023` (2026-09-05).
+**Branch:** `cursor/mobile-app-store-path-8023` (folds PR #32 map/detail + auth bridge + claim)
 
-## What changed
+## Done
 
-| Path | Role |
-|------|------|
-| `apps/mobile/src/lib/api.ts` | `EXPO_PUBLIC_API_BASE_URL` (default `https://www.proteinoutfitters.com`) + `apiGet` |
-| `apps/mobile/src/lib/neonAdapter.ts` | Neon `/api/map-data` + `/api/processors?slug=` → `Processor` |
-| `apps/mobile/src/lib/processors.ts` | Load order: **map-data → Supabase (optional) → bundled** |
-| Detail / claim / request screens | Reads via `loadProcessorBySlug` (API → bundled → Supabase) |
-| `scripts/smoke-map-data.mjs` | Live probe; expects ≥2000 adapted pins |
+| Slice | Status |
+|-------|--------|
+| **A+B** Map + detail reads via `GET /api/map-data` / `GET /api/processors?slug=` (+ bundled fallback) | ✅ |
+| **C** `EXPO_PUBLIC_API_BASE_URL`; Supabase off the read path | ✅ |
+| **D** Auth bridge: Bearer in `currentUser`; JSON / deep-link verify; SecureStore; account → `/api/auth/*` + `/api/account-delete`; Apple → `/api/auth/apple` | ✅ |
+| **E** Claim → `POST /api/processors` with Bearer (`claim_slug` / `claim_id`) | ✅ |
+| **G** Account delete uses `sessions.id` (not nonexistent `token` column); revokes all user sessions | ✅ |
 
-Writes (claim/request submit) and auth remain on Supabase until later PRs (D–F in `API-SWAP.md`).
+## Still open (not this PR)
 
-## Notes
+| Slice | Notes |
+|-------|--------|
+| **F** `POST /api/processor-requests` (+ email) | Request screen still uses Supabase `submitRequest` |
+| Store humans | Apple $99, ASC IDs in `eas.json`, device QA, screenshots |
 
-- ~60% of Neon map rows lack `slug`; we synthesize `neon-<id>` so pins still render. Prefer real Neon slugs when linking to detail.
-- Neon UUIDs ≠ bundled `mamp-*` ids — always key writes by **slug** after auth bridge.
-- Smoke: `node mobile/apps/mobile/scripts/smoke-map-data.mjs`
+## Smoke
+
+```bash
+node mobile/apps/mobile/scripts/smoke-map-data.mjs
+cd mobile && npm run typecheck --workspace apps/mobile
+```
+
+## Auth transport
+
+| Client | Session |
+|--------|---------|
+| Web | HttpOnly cookie `po_session` |
+| Mobile | SecureStore → `Authorization: Bearer <sessionId>` |
+
+Magic link: `POST /api/auth/request-link` with `next=proteinoutfitters://auth/callback` → verify 302s to deep link with `?session=`.

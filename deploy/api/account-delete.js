@@ -2,12 +2,12 @@
 //
 // Apple App Store + Google Play both REQUIRE that any app supporting account
 // creation also exposes an in-app account deletion path. This endpoint is the
-// programmatic side; the UI button lives on /settings.
+// programmatic side; the UI button lives on /settings (web) and account (mobile).
 //
 // What gets soft-deleted (set deleted_at, scrub PII, keep auditable financial
 // rows for 7-year IRS retention):
 //   • users row → email + name scrubbed; deleted_at = NOW(); role = 'deleted'
-//   • All session tokens revoked
+//   • All session tokens revoked (sessions.id — there is no sessions.token column)
 //   • map_stripe_subscription_id → Stripe subscription canceled at period end
 //   • Reservations with status NOT IN ('completed','picked-up') → status='cancelled'
 //
@@ -15,9 +15,17 @@
 //   • Past reservations, invoices, tax letters
 //   • Email_log entries (anonymized via user_id link only)
 //
-// POST. Authenticated. Idempotent.
+// POST. Authenticated (cookie or Bearer). Idempotent.
 
-import { sql, currentUser, err, json, parseCookies, nodejsHandler } from './_lib/db.js';
+import {
+  sql,
+  currentUser,
+  err,
+  json,
+  getSessionToken,
+  clearSessionCookie,
+  nodejsHandler,
+} from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
@@ -83,10 +91,16 @@ async function handler(req) {
         deletion_reason = ${reason || null}
     WHERE id = ${user.id}`;
 
-  // Revoke session cookie
-  const cookies = parseCookies(req);
-  if (cookies?.po_session) {
-    try { await sql`DELETE FROM sessions WHERE token = ${cookies.po_session}`; } catch {}
+  // Revoke ALL sessions for this user (cookie + any mobile Bearer tokens).
+  // sessions primary key is `id` (the opaque token) — not a `token` column.
+  try {
+    await sql`DELETE FROM sessions WHERE user_id = ${user.id}`;
+  } catch (e) {
+    // Fallback: at least drop the caller's current session
+    const sessionId = getSessionToken(req);
+    if (sessionId) {
+      try { await sql`DELETE FROM sessions WHERE id = ${sessionId}`; } catch {}
+    }
   }
 
   return new Response(JSON.stringify({
@@ -98,8 +112,8 @@ async function handler(req) {
     status: 200,
     headers: {
       'content-type': 'application/json',
-      // Clear the session cookie immediately
-      'set-cookie': 'po_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
+      // Clear the session cookie immediately (web); mobile clears SecureStore client-side
+      'set-cookie': clearSessionCookie(),
     },
   });
 }

@@ -10,28 +10,36 @@ import {
   View,
 } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import * as Linking from 'expo-linking';
 import { Link, router } from 'expo-router';
 import { colors, spacing, fontSize, radius } from '@protein-outfitters/shared';
-import { supabase } from '@/lib/supabase';
+import {
+  type AuthUser,
+  deleteAccount,
+  refreshCurrentUser,
+  requestMagicLink,
+  signInWithAppleToken,
+  signOut,
+  subscribeAuth,
+} from '@/lib/auth';
 
 export default function AccountScreen() {
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ? { id: data.user.id, email: data.user.email } : null);
-      setLoading(false);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(
-        session?.user
-          ? { id: session.user.id, email: session.user.email }
-          : null,
-      );
-    });
-    return () => sub.subscription.unsubscribe();
+    let alive = true;
+    (async () => {
+      const u = await refreshCurrentUser();
+      if (alive) {
+        setUser(u);
+        setLoading(false);
+      }
+    })();
+    const unsub = subscribeAuth((u) => setUser(u));
+    return () => {
+      alive = false;
+      unsub();
+    };
   }, []);
 
   if (loading) {
@@ -54,6 +62,7 @@ function SignInView() {
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [devLink, setDevLink] = useState<string | null>(null);
 
   const sendMagicLink = async () => {
     const trimmed = email.trim();
@@ -63,13 +72,9 @@ function SignInView() {
     }
     setSending(true);
     try {
-      const redirect = Linking.createURL('/auth/callback');
-      const { error } = await supabase.auth.signInWithOtp({
-        email: trimmed,
-        options: { emailRedirectTo: redirect },
-      });
-      if (error) throw error;
+      const result = await requestMagicLink(trimmed);
       setSentTo(trimmed);
+      setDevLink(result.devLink ?? null);
     } catch (e: unknown) {
       Alert.alert(
         'Could not send link',
@@ -89,11 +94,17 @@ function SignInView() {
         ],
       });
       if (!credential.identityToken) throw new Error('No identity token from Apple.');
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: 'apple',
-        token: credential.identityToken,
+      await signInWithAppleToken({
+        identityToken: credential.identityToken,
+        email: credential.email,
+        fullName: credential.fullName
+          ? {
+              givenName: credential.fullName.givenName,
+              familyName: credential.fullName.familyName,
+            }
+          : null,
       });
-      if (error) throw error;
+      router.replace('/');
     } catch (e: unknown) {
       if ((e as { code?: string }).code === 'ERR_REQUEST_CANCELED') return;
       Alert.alert('Sign in failed', e instanceof Error ? e.message : 'Try again.');
@@ -106,9 +117,16 @@ function SignInView() {
         <View style={styles.section}>
           <Text style={styles.title}>Check your email</Text>
           <Text style={styles.body}>
-            We sent a sign-in link to <Text style={{ color: colors.text, fontWeight: '600' }}>{sentTo}</Text>.
-            Tap the link from your phone to finish signing in.
+            We sent a sign-in link to{' '}
+            <Text style={{ color: colors.text, fontWeight: '600' }}>{sentTo}</Text>.
+            Open it on this phone — it returns you to the app signed in.
           </Text>
+          {devLink ? (
+            <Text style={[styles.body, { marginTop: spacing.md, fontSize: fontSize.sm }]}>
+              Dev link (no Resend key): open this URL on the device or paste the
+              token into the app callback flow.
+            </Text>
+          ) : null}
           <Pressable style={styles.btn} onPress={() => setSentTo(null)}>
             <Text style={styles.btnText}>Use a different email</Text>
           </Pressable>
@@ -122,8 +140,8 @@ function SignInView() {
       <View style={styles.section}>
         <Text style={styles.title}>Sign in</Text>
         <Text style={styles.body}>
-          Sign in to track requests, save favorites, and get notified when a
-          processor responds.
+          Sign in to claim a listing, track activity, and manage your account.
+          Same account as proteinoutfitters.com.
         </Text>
 
         <Text style={[styles.label, { marginTop: spacing.lg }]}>Email</Text>
@@ -191,29 +209,31 @@ function SignInView() {
 // Signed-in view
 // ============================================================================
 
-function SignedInView({ user }: { user: { id: string; email?: string } }) {
-  const signOut = async () => {
-    await supabase.auth.signOut();
+function SignedInView({ user }: { user: AuthUser }) {
+  const onSignOut = async () => {
+    await signOut();
     router.replace('/');
   };
 
-  const deleteAccount = () => {
+  const onDeleteAccount = () => {
     Alert.alert(
       'Delete account?',
-      'This permanently removes your account, profile, and all submitted requests. This cannot be undone.',
+      'This permanently removes your account profile. Tax records are retained anonymously per IRS rules. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            const { error } = await supabase.rpc('delete_my_account');
-            if (error) {
-              Alert.alert('Error', error.message);
-              return;
+            try {
+              await deleteAccount();
+              router.replace('/');
+            } catch (e: unknown) {
+              Alert.alert(
+                'Error',
+                e instanceof Error ? e.message : 'Could not delete account.',
+              );
             }
-            await supabase.auth.signOut();
-            router.replace('/');
           },
         },
       ],
@@ -224,20 +244,25 @@ function SignedInView({ user }: { user: { id: string; email?: string } }) {
     <View style={styles.root}>
       <View style={styles.section}>
         <Text style={styles.title}>Signed in</Text>
-        <Text style={styles.body}>{user.email ?? user.id}</Text>
+        <Text style={styles.body}>{user.email ?? user.name ?? user.id}</Text>
+        {user.role ? (
+          <Text style={[styles.body, { marginTop: spacing.xs }]}>
+            Role: {user.role}
+          </Text>
+        ) : null}
       </View>
 
-      <Pressable style={styles.btn} onPress={signOut}>
+      <Pressable style={styles.btn} onPress={onSignOut}>
         <Text style={styles.btnText}>Sign out</Text>
       </Pressable>
 
-      <Pressable style={[styles.btn, styles.btnDanger]} onPress={deleteAccount}>
+      <Pressable style={[styles.btn, styles.btnDanger]} onPress={onDeleteAccount}>
         <Text style={[styles.btnText, { color: '#fff' }]}>Delete my account</Text>
       </Pressable>
 
       <Text style={styles.fineprint}>
-        Deleting your account permanently removes your profile and any submitted
-        requests. Required by App Store policy and our privacy commitment.
+        Deleting your account scrubbs your profile and revokes all sessions.
+        Required by App Store policy and our privacy commitment.
       </Text>
 
       <View style={styles.legalRow}>

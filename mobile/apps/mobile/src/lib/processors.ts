@@ -1,21 +1,16 @@
 /**
- * Resilient processor loader (API-SWAP PR A+B).
+ * Resilient processor loader (API-SWAP PR A+B + auth-bridge cleanup).
  *
  * Strategy:
  *   1. Paint bundled JSON immediately (caller uses loadBundledProcessors).
  *   2. Prefer live Neon via GET /api/map-data (national pin set ~2.3k).
- *   3. Optional tertiary: Supabase if still configured.
- *   4. On any failure → keep bundled.
+ *   3. On failure → keep bundled.
  *
- * Detail by slug: API → bundled → Supabase.
+ * Detail by slug: API → bundled.
+ * Supabase is no longer on the read path (writes: request screen only).
  */
 
 import type { Processor } from '@protein-outfitters/shared';
-import {
-  getAllProcessors,
-  getProcessorBySlug,
-} from '@protein-outfitters/shared';
-import { supabase, isSupabaseConfigured } from './supabase';
 import { apiGet } from './api';
 import {
   processorFromMapDataRow,
@@ -27,7 +22,7 @@ import bundled from '../data/processors.bundled.json';
 
 const BUNDLED: Processor[] = bundled as Processor[];
 
-export type DataSource = 'api' | 'server' | 'bundled' | 'merged';
+export type DataSource = 'api' | 'bundled';
 
 export interface LoadResult {
   processors: Processor[];
@@ -47,6 +42,7 @@ export function findBundledBySlug(slug: string): Processor | null {
 async function fetchFromMapData(): Promise<Processor[]> {
   const data = await apiGet<{ processors?: MapDataProcessorRow[] }>(
     '/api/map-data',
+    { auth: false },
   );
   const rows = Array.isArray(data.processors) ? data.processors : [];
   const out: Processor[] = [];
@@ -57,7 +53,7 @@ async function fetchFromMapData(): Promise<Processor[]> {
   return out;
 }
 
-/** Async list — Neon map-data first, then Supabase, then bundled. */
+/** Async list — Neon map-data first, then bundled. */
 export async function loadProcessors(): Promise<LoadResult> {
   try {
     const apiRows = await fetchFromMapData();
@@ -66,27 +62,6 @@ export async function loadProcessors(): Promise<LoadResult> {
     }
   } catch (e) {
     const apiErr = e instanceof Error ? e.message : 'map-data unreachable';
-    if (isSupabaseConfigured()) {
-      try {
-        const data = await getAllProcessors(supabase);
-        if (data?.length) {
-          return {
-            processors: data,
-            source: 'server',
-            error: `API unavailable (${apiErr}); using Supabase.`,
-          };
-        }
-      } catch (e2) {
-        return {
-          processors: BUNDLED,
-          source: 'bundled',
-          error:
-            e2 instanceof Error
-              ? e2.message
-              : 'Servers unreachable — showing cached data.',
-        };
-      }
-    }
     return {
       processors: BUNDLED,
       source: 'bundled',
@@ -94,19 +69,10 @@ export async function loadProcessors(): Promise<LoadResult> {
     };
   }
 
-  if (isSupabaseConfigured()) {
-    try {
-      const data = await getAllProcessors(supabase);
-      if (data?.length) return { processors: data, source: 'server' };
-    } catch {
-      /* bundled below */
-    }
-  }
-
   return { processors: BUNDLED, source: 'bundled' };
 }
 
-/** Detail by slug — API, then bundled, then Supabase. */
+/** Detail by slug — API, then bundled. */
 export async function loadProcessorBySlug(slug: string): Promise<{
   processor: Processor | null;
   source: DataSource;
@@ -119,31 +85,19 @@ export async function loadProcessorBySlug(slug: string): Promise<{
   try {
     const data = await apiGet<{ processor?: NeonProcessorRow }>(
       `/api/processors?slug=${encodeURIComponent(slug)}`,
+      { auth: false },
     );
     if (data.processor) {
       const p = processorFromNeonRow(data.processor);
       if (p) return { processor: p, source: 'api' };
     }
   } catch {
-    /* try fallbacks */
+    /* try bundled */
   }
 
   const bundledHit = findBundledBySlug(slug);
   if (bundledHit) {
     return { processor: bundledHit, source: 'bundled' };
-  }
-
-  if (isSupabaseConfigured()) {
-    try {
-      const data = await getProcessorBySlug(supabase, slug);
-      if (data) return { processor: data, source: 'server' };
-    } catch (e) {
-      return {
-        processor: null,
-        source: 'server',
-        error: e instanceof Error ? e.message : 'Failed to load.',
-      };
-    }
   }
 
   return { processor: null, source: 'bundled', error: 'Processor not found.' };

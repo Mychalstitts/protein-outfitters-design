@@ -17,11 +17,11 @@ import {
   spacing,
   fontSize,
   radius,
-  submitClaim,
   type Processor,
 } from '@protein-outfitters/shared';
-import { supabase } from '@/lib/supabase';
+import { claimProcessor, getCachedUser, refreshCurrentUser, type AuthUser } from '@/lib/auth';
 import { loadProcessorBySlug } from '@/lib/processors';
+import { ApiError } from '@/lib/api';
 
 type Role = 'owner' | 'manager' | 'employee' | 'other';
 
@@ -32,10 +32,14 @@ const ROLES: { value: Role; label: string }[] = [
   { value: 'other', label: 'Other' },
 ];
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default function ClaimScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const [proc, setProc] = useState<Processor | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [source, setSource] = useState<string>('bundled');
+  const [user, setUser] = useState<AuthUser | null>(getCachedUser());
   const [role, setRole] = useState<Role>('owner');
   const [evidenceUrl, setEvidenceUrl] = useState('');
   const [notes, setNotes] = useState('');
@@ -45,14 +49,15 @@ export default function ClaimScreen() {
     (async () => {
       const result = await loadProcessorBySlug(slug);
       setProc(result.processor);
-      const { data: auth } = await supabase.auth.getUser();
-      setUserId(auth.user?.id ?? null);
+      setSource(result.source);
+      const u = await refreshCurrentUser();
+      setUser(u);
     })();
   }, [slug]);
 
   const submit = async () => {
     if (!proc) return;
-    if (!userId) {
+    if (!user) {
       Alert.alert(
         'Sign in required',
         'You need an account to claim a listing. Sign in and try again.',
@@ -60,6 +65,17 @@ export default function ClaimScreen() {
           { text: 'Cancel', style: 'cancel' },
           { text: 'Sign in', onPress: () => router.replace('/account') },
         ],
+      );
+      return;
+    }
+    // Neon claim is by slug (preferred) or UUID. Bundled mamp-* ids will not work.
+    const canClaimBySlug =
+      Boolean(proc.slug) && !String(proc.slug).startsWith('neon-');
+    const canClaimById = UUID_RE.test(String(proc.id));
+    if (!canClaimBySlug && !canClaimById) {
+      Alert.alert(
+        'Listing not on the live map yet',
+        'This pin is from offline cache and is not claimable until it syncs to our directory. Open it from a live search result and try again.',
       );
       return;
     }
@@ -72,23 +88,24 @@ export default function ClaimScreen() {
     }
     setSubmitting(true);
     try {
-      await submitClaim(supabase, {
-        processor_id: proc.id,
-        claimant_user_id: userId,
-        role_at_business: role,
-        evidence_url: evidenceUrl.trim() || null,
-        evidence_notes: notes.trim() || null,
-      });
+      await claimProcessor(
+        canClaimBySlug
+          ? { claim_slug: proc.slug }
+          : { claim_id: String(proc.id) },
+      );
       Alert.alert(
-        'Claim submitted',
-        `We'll review your claim for ${proc.name} and get back to you within 1–2 business days.`,
+        'Listing claimed',
+        `${proc.name} is now linked to your account. You can manage it on proteinoutfitters.com. (Role noted: ${role}.)`,
         [{ text: 'OK', onPress: () => router.back() }],
       );
     } catch (e: unknown) {
-      Alert.alert(
-        'Could not submit',
-        e instanceof Error ? e.message : 'Try again in a moment.',
-      );
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : 'Try again in a moment.';
+      Alert.alert('Could not claim', msg);
     } finally {
       setSubmitting(false);
     }
@@ -126,8 +143,9 @@ export default function ClaimScreen() {
         <Text style={styles.kicker}>Claim listing</Text>
         <Text style={styles.h1}>{proc.name}</Text>
         <Text style={styles.body}>
-          Tell us how you're connected to this business. We'll verify and give
-          you control of the page within 1–2 business days. Free, always.
+          Tell us how you&apos;re connected to this business. Claiming links the
+          listing to your Protein Outfitters account right away
+          {source === 'api' ? '' : ' (live directory preferred)'}. Free, always.
         </Text>
 
         <Field label="Your role">
@@ -162,7 +180,8 @@ export default function ClaimScreen() {
           />
           <Text style={styles.hint}>
             Anything that ties you to the business: your business website, a
-            license number, a Facebook page you own.
+            license number, a Facebook page you own. (Stored for our team; the
+            claim itself is applied immediately on the live directory.)
           </Text>
         </Field>
 
@@ -183,7 +202,7 @@ export default function ClaimScreen() {
           disabled={submitting}
         >
           <Text style={styles.ctaText}>
-            {submitting ? 'Submitting…' : 'Submit claim'}
+            {submitting ? 'Claiming…' : 'Claim this listing'}
           </Text>
         </Pressable>
 

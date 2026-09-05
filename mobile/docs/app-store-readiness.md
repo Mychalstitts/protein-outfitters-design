@@ -17,8 +17,8 @@ Status legend: ✅ done in scaffold · 🟡 partially done, needs production val
 
 ### Required in-app capabilities
 
-- ✅ Account deletion in-app (App Store guideline 5.1.1(v)). Implemented in `app/account.tsx` via the `delete_my_account()` Supabase RPC.
-- ✅ Sign in with Apple (guideline 4.8). Implemented in `app/account.tsx`. Required because we plan to add Google/email login later.
+- ✅ Account deletion in-app (App Store guideline 5.1.1(v)). Implemented in `app/account.tsx` via `POST /api/account-delete` (Neon session / Bearer).
+- ✅ Sign in with Apple (guideline 4.8). Implemented in `app/account.tsx` → `POST /api/auth/apple` (Neon session). Email magic link uses the same Neon identity store as the website.
 - 🟡 Privacy strings for location. Set in `app.json` → `ios.infoPlist`. **Edit the copy** to reflect your actual use ("show processors near you") before submission.
 - ✅ `ITSAppUsesNonExemptEncryption: false` declared so we skip the export compliance prompt every release.
 
@@ -36,10 +36,10 @@ We collect and need to declare:
 ### Build & release config
 
 - 🟡 Bundle ID `com.proteinoutfitters.app` in `app.json`. Reserve it on App Store Connect when you create the app record.
-- 🔴 EAS project ID. Run `eas init` to get one; replace `REPLACE_WITH_EAS_PROJECT_ID` in `app.json`.
+- ✅ EAS project ID set (`e2976642-b0da-43b5-b85f-138c93665c8d` in `app.json` / updates URL).
 - 🔴 Apple Team ID, Apple ID, ASC App ID. Replace placeholders in `eas.json` `submit.production.ios`.
-- 🔴 App icon set. Need `assets/icon.png` (1024×1024, no alpha, no rounded corners — Apple rounds them).
-- 🔴 Splash screen. Need `assets/splash.png` (any size, will be letterboxed against the configured background).
+- ✅ App icon set at `assets/icon.png` (1024×1024). Regenerate from SVG: `cd mobile && npm i -D sharp && npm run build:icons`.
+- ✅ Splash screen at `assets/splash.png`.
 - 🔴 Screenshots — required at 6.7" (iPhone 15 Pro Max), 6.5" (older Pro Max), and 5.5" (older Plus). Three minimum each. Use Expo's simulator screenshots.
 - 🔴 App preview video (optional but lifts conversion ~20%).
 
