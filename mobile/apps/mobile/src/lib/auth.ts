@@ -138,3 +138,26 @@ export async function claimProcessor(opts: {
     claim_id: opts.claim_id,
   });
 }
+
+export interface ProcessorRequestPayload {
+  processor_id?: string;
+  processor_slug?: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone?: string | null;
+  contact_zip?: string | null;
+  animal_type: string;
+  service_requested: string;
+  preferred_date?: string | null;
+  notes?: string | null;
+}
+
+/** Submit a warm-lead request to Neon (Bearer). Replaces Supabase submitRequest. */
+export async function submitProcessorRequest(
+  payload: ProcessorRequestPayload,
+): Promise<{ request: unknown }> {
+  if (!payload.processor_id && !payload.processor_slug) {
+    throw new Error('processor_id or processor_slug required');
+  }
+  return apiPost('/api/processor-requests', payload);
+}

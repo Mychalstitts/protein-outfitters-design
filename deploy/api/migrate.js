@@ -687,6 +687,29 @@ const SCHEMA_STATEMENTS = [
    END $$`,
   `CREATE INDEX IF NOT EXISTS harvest_jobs_pay_idx ON harvest_jobs(pay_status)`,
 
+  // Mobile / map warm-lead requests (Slice F). Also bootstrapped lazily by
+  // /api/processor-requests on first call.
+  `CREATE TABLE IF NOT EXISTS processor_requests (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     processor_id UUID NOT NULL REFERENCES processors(id) ON DELETE CASCADE,
+     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+     contact_name TEXT NOT NULL,
+     contact_email TEXT NOT NULL,
+     contact_phone TEXT,
+     contact_zip TEXT,
+     animal_type TEXT NOT NULL,
+     service_requested TEXT NOT NULL,
+     preferred_date DATE,
+     notes TEXT,
+     status TEXT NOT NULL DEFAULT 'pending'
+       CHECK (status IN ('pending','accepted','declined','needs_info','completed','cancelled')),
+     created_at TIMESTAMPTZ DEFAULT NOW(),
+     updated_at TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS processor_requests_processor_idx ON processor_requests(processor_id)`,
+  `CREATE INDEX IF NOT EXISTS processor_requests_user_idx ON processor_requests(user_id)`,
+  `CREATE INDEX IF NOT EXISTS processor_requests_status_idx ON processor_requests(status)`,
+
   // credentials.html has always PATCHed these; the column never existed, so
   // every uploaded inspection document was silently discarded.
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS credentials_docs JSONB DEFAULT '{}'::jsonb`,
