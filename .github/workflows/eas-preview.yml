@@ -31,7 +31,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
         working-directory: mobile
-      - name: Fetch iOS logFiles
+      - name: Fetch and gunzip iOS logs
         working-directory: mobile/apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -41,32 +41,26 @@ jobs:
           ID=6b083cb9-ba19-4555-b6ba-486c5736a034
           eas build:view "$ID" --json > /tmp/ios-build.json
           python3 <<'PY'
-          import json, urllib.request, re
+          import json, urllib.request, gzip, io, re
           raw=open("/tmp/ios-build.json").read()
           d=json.loads(raw[raw.find("{"):])
-          print("status", d.get("status"))
           print("error", d.get("error"))
-          urls=d.get("logFiles") or d.get("logFileUrls") or []
-          print("log count", len(urls))
+          urls=d.get("logFiles") or []
           for i,u in enumerate(urls):
-            print(f"\n===== LOG FILE {i} =====")
+            with urllib.request.urlopen(u, timeout=90) as r:
+              data=r.read()
+            # try gzip
             try:
-              with urllib.request.urlopen(u, timeout=90) as r:
-                text=r.read().decode("utf-8","replace")
-            except Exception as e:
-              print("fetch fail", type(e).__name__, e)
-              continue
+              text=gzip.GzipFile(fileobj=io.BytesIO(data)).read().decode("utf-8","replace")
+            except Exception:
+              text=data.decode("utf-8","replace")
+            open(f"/tmp/log-{i}.txt","w").write(text)
             lines=text.splitlines()
-            print("lines", len(lines), "bytes", len(text))
-            # Prefer Install pods section
-            joined="\n".join(lines)
-            for marker in ["Install pods", "INSTALL_PODS", "pod install", "CocoaPods"]:
-              if marker.lower() in joined.lower():
-                print(f"found marker: {marker}")
-            hits=[ln for ln in lines if re.search(r"(?i)error|fail|pod |cocoapods|conflict|unable|ENOENT|undefined|new.?arch|RCT-|fatal", ln)]
-            print("--- hit lines (last 120) ---")
-            for ln in hits[-120:]:
+            print(f"LOG {i}: lines={len(lines)} bytes={len(text)}")
+            hits=[ln for ln in lines if re.search(r"(?i)error|fail|pod |cocoapods|conflict|unable|ENOENT|undefined|new.?arch|RCT-|fatal|Install pods|phase", ln)]
+            print("--- hits (last 150) ---")
+            for ln in hits[-150:]:
               print(ln)
-            print("--- last 80 lines ---")
-            print("\n".join(lines[-80:]))
+            print("--- last 100 ---")
+            print("\n".join(lines[-100:]))
           PY
