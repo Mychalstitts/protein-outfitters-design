@@ -3,11 +3,10 @@
  * Refresh the offline processor bundle shipped inside the mobile app.
  *
  * Source of truth in this repo: supabase/seed/processors.bundled.json
- * (the same file scripts/seed-supabase.mjs loads into Postgres).
- * Destination: mobile/src/data/processors.bundled.json — imported at build
- * time so the map renders on first launch with no network.
+ * Destination: mobile/apps/mobile/src/data/processors.bundled.json
  *
- * Filters out rows without lat/lng (can't render on the map). Idempotent.
+ * Prefer: npm run mobile:bundle-data  (delegates to mobile/scripts/bundle-data.mjs
+ * after that script is pointed at the design-repo seed — see below).
  *
  *   npm run mobile:bundle-data
  */
@@ -18,7 +17,15 @@ import { dirname, resolve } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..', '..');
 const SRC = resolve(ROOT, 'supabase', 'seed', 'processors.bundled.json');
-const DST = resolve(ROOT, 'mobile', 'src', 'data', 'processors.bundled.json');
+const DST = resolve(
+  ROOT,
+  'mobile',
+  'apps',
+  'mobile',
+  'src',
+  'data',
+  'processors.bundled.json',
+);
 
 const raw = JSON.parse(readFileSync(SRC, 'utf8'));
 const all = Array.isArray(raw) ? raw : Object.values(raw)[0];

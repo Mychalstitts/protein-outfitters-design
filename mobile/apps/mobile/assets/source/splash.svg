@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Splash master — 2048×2048. Expo letterboxes this against the configured
+  background color (#0f1115 in app.json), so any aspect ratio works.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="2048" height="2048">
+  <rect width="2048" height="2048" fill="#0f1115"/>
+
+  <g transform="translate(1024, 970)">
+    <!-- Mark -->
+    <g transform="translate(-180,-180)">
+      <path d="
+          M 180 0
+          C 332 0 432 100 432 240
+          C 432 370 312 460 180 560
+          C 48 460 -72 370 -72 240
+          C -72 100 28 0 180 0
+          Z
+        "
+        fill="#2c9a52"/>
+      <circle cx="180" cy="230" r="74" fill="#0f1115"/>
+      <text x="180" y="266"
+            font-family="-apple-system, Inter, system-ui, sans-serif"
+            font-size="92"
+            font-weight="800"
+            letter-spacing="-3"
+            text-anchor="middle"
+            fill="#ffffff">PO</text>
+    </g>
+  </g>
+
+  <text x="1024" y="1240"
+        font-family="-apple-system, Inter, system-ui, sans-serif"
+        font-size="64"
+        font-weight="700"
+        letter-spacing="-2"
+        text-anchor="middle"
+        fill="#e8ebf0">Protein Outfitters</text>
+</svg>

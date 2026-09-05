@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+.expo/
+.expo-shared/
+*.tsbuildinfo
+
+# Native
+ios/
+android/
+*.xcworkspace
+*.xcodeproj
+
+# Env / secrets — NEVER commit
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Testing
+coverage/
+.nyc_output/
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Seed normalization — raw inputs are scrape dumps, never commit
+scripts/normalize-seed/input/*
+!scripts/normalize-seed/input/.gitkeep

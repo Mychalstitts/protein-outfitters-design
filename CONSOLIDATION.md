@@ -6,7 +6,7 @@
 
 This document tracks every Protein Outfitters codebase and Vercel project so work stops jumping between repos.
 
-**Last updated:** 2026-09-05 — mobile workspace scaffold **merged** (PR #26). Stray Vercel projects **paused** (app1/app/ycmd/3nci → 503). Expo/`shared` **source** still pending `move-source.sh` / `git subtree` from private `protein-outfitters-app` ([docs/mobile/MIGRATE.md](./docs/mobile/MIGRATE.md)).
+**Last updated:** 2026-09-05 — nested mobile workspace **landed** from private `protein-outfitters-app` @ `d212c9f` (`mobile/apps/mobile` + `mobile/packages/shared`). Flat scaffold placeholders removed. Stray Vercel projects remain **paused**. Set `EXPO_TOKEN` for EAS Actions.
 
 ---
 
@@ -35,8 +35,8 @@ Set **Ignored Build Step** on the design project to
 
 | Repo | Visibility | Stack | Consolidation status |
 |------|------------|-------|----------------------|
-| **protein-outfitters-design** | Public | Static HTML + Vercel API + (new) `mobile/` + `packages/shared` workspace | **Canonical** |
-| protein-outfitters-app | **Private** | Next.js 14 + Expo 51 + Supabase monorepo | README archive notice; **not** GitHub-archived; still CI/deploys; source of mobile/`shared` |
+| **protein-outfitters-design** | Public | Static HTML + Vercel API + nested `mobile/` workspace | **Canonical** |
+| protein-outfitters-app | **Private** | Next.js 14 + Expo 51 + Supabase monorepo | README archive notice; source **copied** into design `mobile/`; archive after first EAS preview from this repo |
 | protein-outfitters-storefront | — | Snapshot + Vite + Shopify | `supabase/` + `docs/` copied here |
 | PO2 / PO / PO3 | Public | Early prototypes | Archive — reference only |
 
@@ -48,26 +48,34 @@ Set **Ignored Build Step** on the design project to
 |---------|-------------------|-------------|--------|
 | Stripe reserve + checkout | ✅ | — | Keep |
 | Cut sheet / processor ops / donations / hardware | ✅ | — | Keep |
-| Map / discover / compare / referral redirects | ✅ | ✅ | Done on design; app1 still serves old Next pages |
+| Map / discover / compare / referral redirects | ✅ | ✅ | Done on design; app1 paused |
 | Saved favorites | `/saved` → `/account` | ✅ localStorage | Wire account to persisted follows |
-| Expo iOS/Android | 🟡 `mobile/` scaffold + EAS/CI | ✅ full app | **Subtree source** — [MIGRATE.md](./docs/mobile/MIGRATE.md) |
-| Shared package | 🟡 `packages/shared` placeholder | ✅ `@protein-outfitters/shared` | **Subtree source** with mobile |
-| CI / EAS workflows | ✅ `mobile-ci`, `eas-preview`, `eas-update` | ✅ | Done (need `EXPO_TOKEN` secret) |
+| Expo iOS/Android | ✅ `mobile/apps/mobile` | ✅ (source of copy) | **Landed** — run EAS from nested app |
+| Shared package | ✅ `mobile/packages/shared` | ✅ (source of copy) | **Landed** with mobile |
+| CI / EAS workflows | ✅ retargeted to nested paths | ✅ | Need `EXPO_TOKEN` secret |
 
 ---
 
 ## Mobile workspace (this repo)
 
+Nested npm workspace (self-contained under `mobile/`):
+
 ```
-mobile/                 ← Expo app (config overlay in; source pending subtree)
-packages/shared/        ← @protein-outfitters/shared (placeholder until subtree)
-scripts/mobile/         ← bundle-data.mjs (+ build-icons after copy)
-docs/mobile/            ← MIGRATE.md + store docs (after copy)
-.github/workflows/      ← mobile-ci.yml, eas-preview.yml, eas-update.yml
+mobile/
+├── apps/mobile/       Expo / EAS app (app.config.js, eas.json, Metro)
+├── packages/shared/   @protein-outfitters/shared
+├── scripts/           bundle-data, build-icons, seed, check-env
+├── docs/              store readiness, privacy, terms, …
+├── package.json       workspaces: apps/*, packages/*
+└── package-lock.json  committed for Mobile CI + EAS
 ```
 
-Root `package.json` declares npm workspaces. Static-site CI uses
-`npm install --workspaces=false` so Expo deps do not slow every HTML change.
+Root `package.json` does **not** declare Expo workspaces. Convenience scripts
+delegate with `npm run … --prefix mobile`. Static-site CI uses plain
+`npm install` at the repo root.
+
+Runbook / history: [docs/mobile/MIGRATE.md](./docs/mobile/MIGRATE.md).  
+App README: [mobile/README.md](./mobile/README.md).
 
 ---
 
@@ -75,17 +83,18 @@ Root `package.json` declares npm workspaces. Static-site CI uses
 
 Homepage hub, route/host redirects, processor profiles, map upgrade, compare page, `supabase/`, `docs/` from storefront — see git history.
 
-## What landed (Sep 4, 2026)
+## What landed (Sep 2026)
 
-9. **Mobile workspace scaffold** — root workspaces, Expo/EAS config overlays, Metro/tsconfig for monorepo layout, path-filtered Mobile CI + EAS preview/update workflows, Vercel ignore-build script, migrate runbook. App + shared **source** still in private app repo.
+9. **Mobile workspace scaffold** (PR #26) — overlays, CI/EAS stubs, migrate runbook.
+10. **Nested Expo + shared source** — rsync/`move-source` from `protein-outfitters-app` @ `d212c9f` into `mobile/`; root delegates; workflows point at `mobile/` + `mobile/apps/mobile`.
 
 ---
 
 ## Next consolidation steps
 
-1. **`git subtree` mobile + shared** from `protein-outfitters-app` into this repo ([docs/mobile/MIGRATE.md](./docs/mobile/MIGRATE.md)). Requires a Cloud Agent / machine with access to the private repo.
-2. **GitHub Actions secret** `EXPO_TOKEN` on this repo; EAS secrets for Supabase + Maps.
-3. **Vercel dashboard** — delete/pause `protein-outfitters-app1`, `protein-outfitters-app`, `protein-outfitters-design-ycmd`; enable Ignored Build Step.
+1. **GitHub Actions secret** `EXPO_TOKEN` on this repo; EAS secrets for Supabase + Maps (`GOOGLE_MAPS_ANDROID_KEY`, `EXPO_PUBLIC_SUPABASE_*`).
+2. **Label a PR `mobile-build`** (or run EAS locally from `mobile/apps/mobile`) for the first preview binary from this repo.
+3. **Vercel dashboard** — delete paused stray projects when ready; confirm Ignored Build Step.
 4. **Archive** `protein-outfitters-app` after first successful EAS preview from this repo; remove its EAS workflows first.
 5. **Saved favorites** — wire `/account` to persisted follows.
 6. **Clean up** ~55 misplaced `audit-*.md` files at the app repo root (they audit www/design).
@@ -94,4 +103,9 @@ Homepage hub, route/host redirects, processor profiles, map upgrade, compare pag
 
 ## Environment
 
-Shared Supabase project: **`unybunaqyqrxhfyhvhfo`** (`supabase/.env.example`). Mobile uses `EXPO_PUBLIC_SUPABASE_*` in `mobile/.env` (see `mobile/.env.example`).
+Shared Supabase project: **`unybunaqyqrxhfyhvhfo`** (`supabase/.env.example`).
+
+Mobile Expo env (copy examples → local `.env`; never commit secrets):
+
+- Workspace / scripts: `mobile/.env.example`
+- Expo (required for `expo start`): `mobile/apps/mobile/.env.example` → `mobile/apps/mobile/.env`
