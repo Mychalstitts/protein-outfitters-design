@@ -31,7 +31,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
         working-directory: mobile
-      - name: Dump full build JSON keys + phase logs
+      - name: Fetch iOS logFiles
         working-directory: mobile/apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -41,21 +41,32 @@ jobs:
           ID=6b083cb9-ba19-4555-b6ba-486c5736a034
           eas build:view "$ID" --json > /tmp/ios-build.json
           python3 <<'PY'
-          import json
+          import json, urllib.request, re
           raw=open("/tmp/ios-build.json").read()
           d=json.loads(raw[raw.find("{"):])
-          print("TOP_KEYS", sorted(d.keys()))
-          # Print compact summary of all non-huge fields
-          for k,v in sorted(d.items()):
-            s=json.dumps(v, default=str)
-            if len(s)>500:
-              print(f"{k}: <len {len(s)}> sample={s[:400]}")
-            else:
-              print(f"{k}: {s}")
+          print("status", d.get("status"))
+          print("error", d.get("error"))
+          urls=d.get("logFiles") or d.get("logFileUrls") or []
+          print("log count", len(urls))
+          for i,u in enumerate(urls):
+            print(f"\n===== LOG FILE {i} =====")
+            try:
+              with urllib.request.urlopen(u, timeout=90) as r:
+                text=r.read().decode("utf-8","replace")
+            except Exception as e:
+              print("fetch fail", type(e).__name__, e)
+              continue
+            lines=text.splitlines()
+            print("lines", len(lines), "bytes", len(text))
+            # Prefer Install pods section
+            joined="\n".join(lines)
+            for marker in ["Install pods", "INSTALL_PODS", "pod install", "CocoaPods"]:
+              if marker.lower() in joined.lower():
+                print(f"found marker: {marker}")
+            hits=[ln for ln in lines if re.search(r"(?i)error|fail|pod |cocoapods|conflict|unable|ENOENT|undefined|new.?arch|RCT-|fatal", ln)]
+            print("--- hit lines (last 120) ---")
+            for ln in hits[-120:]:
+              print(ln)
+            print("--- last 80 lines ---")
+            print("\n".join(lines[-80:]))
           PY
-          # Try eas CLI for logs if available
-          eas build:view "$ID" 2>&1 | head -80 || true
-          # Common artifact log endpoint patterns via expo API used by CLI
-          # npx may expose: eas build:inspect
-          eas build --help 2>&1 | head -5 || true
-          (eas build:view --help 2>&1 || true) | head -40
