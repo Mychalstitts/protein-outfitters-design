@@ -6,7 +6,7 @@
 
 This document tracks every Protein Outfitters codebase and Vercel project so work stops jumping between repos.
 
-**Last updated:** 2026-09-04 — mobile workspace scaffold landed; Expo/`shared` **source** still pending `git subtree` from private `protein-outfitters-app` ([docs/mobile/MIGRATE.md](./docs/mobile/MIGRATE.md)).
+**Last updated:** 2026-09-05 — mobile workspace scaffold **merged** (PR #26). Stray Vercel projects **paused** (app1/app/ycmd/3nci → 503). Expo/`shared` **source** still pending `move-source.sh` / `git subtree` from private `protein-outfitters-app` ([docs/mobile/MIGRATE.md](./docs/mobile/MIGRATE.md)).
 
 ---
 
@@ -15,16 +15,16 @@ This document tracks every Protein Outfitters codebase and Vercel project so wor
 | Vercel project | GitHub repo | Role | Status |
 |----------------|-------------|------|--------|
 | `protein-outfitters-design` | `protein-outfitters-design` | **Primary production** → `www.proteinoutfitters.com` | **Active** |
-| `protein-outfitters-design-3nci` | `protein-outfitters-design` | Duplicate project on same repo (legacy) | Delete or pause |
-| `protein-outfitters-design-ycmd` | `protein-outfitters-app` | Cross-linked preview; still deploys from **app** repo | **Leak** — pause/delete |
-| `protein-outfitters-app` | `protein-outfitters-app` | Next.js project | Pause/delete after mobile source lands |
-| `protein-outfitters-app1` | `protein-outfitters-app` | **Still live** at `protein-outfitters-app1.vercel.app` | **Leak** — not redirected |
+| `protein-outfitters-design-3nci` | `protein-outfitters-design` | Duplicate project on same repo (legacy) | **Paused** 2026-09-05 (503) |
+| `protein-outfitters-design-ycmd` | `protein-outfitters-app` | Cross-linked preview from app repo | **Paused** 2026-09-05 (503) |
+| `protein-outfitters-app` | `protein-outfitters-app` | Next.js project | **Paused** 2026-09-05 (503) |
+| `protein-outfitters-app1` | `protein-outfitters-app` | Old Next live site | **Paused** 2026-09-05 (503) — was the public leak |
 
 **Rule:** All new work lands in `protein-outfitters-design` on `main`.
 
 ### Host-redirect caveat
 
-`deploy/vercel.json` host redirects only run **inside the design Vercel project**. Confirmed 2026-09-04: `protein-outfitters-app1.vercel.app/find-processors` → **200** (old Next.js). Fix is dashboard-only.
+`deploy/vercel.json` host redirects only run **inside the design Vercel project**. Confirmed 2026-09-04: `protein-outfitters-app1.vercel.app/find-processors` → **200** (old Next.js). **Paused 2026-09-05** — that host now returns **503 DEPLOYMENT_PAUSED**. Production www still **200**.
 
 Set **Ignored Build Step** on the design project to  
 `bash scripts/vercel-ignore-build.sh` (Root Directory = `deploy/`) so mobile-only commits do not redeploy www. Script: `deploy/scripts/vercel-ignore-build.sh`.
