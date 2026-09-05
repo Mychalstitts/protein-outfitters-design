@@ -32,9 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Node 22 for eas-cli@latest (@oclif/plugin-autocomplete engines.node >=22).
+      # Keep mobile/.nvmrc on 20 for Expo SDK 51 local/dev and mobile-ci.yml.
       - uses: actions/setup-node@v4
         with:
-          node-version-file: mobile/.nvmrc
+          node-version: '22'
           cache: npm
           cache-dependency-path: mobile/package-lock.json
       - uses: expo/expo-github-action@v8

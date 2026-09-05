@@ -1,0 +1,53 @@
+# One-shot: print EAS build status/error for given build IDs (no secrets logged).
+# Trigger: Actions → EAS build status → Run workflow, or:
+#   gh workflow run eas-build-status.yml -f build_ids='id1,id2'
+
+name: EAS build status
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_ids:
+        description: Comma-separated EAS build UUIDs
+        required: true
+        type: string
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Query build status
+        working-directory: mobile/apps/mobile
+        env:
+          BUILD_IDS: ${{ inputs.build_ids }}
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra IDS <<< "$BUILD_IDS"
+          for id in "${IDS[@]}"; do
+            id="$(echo "$id" | xargs)"
+            [ -n "$id" ] || continue
+            echo "::group::Build $id"
+            # JSON summary (no credentials)
+            npx --yes eas-cli@latest build:view "$id" --json 2>/dev/null \
+              | python3 -c '
+            import json,sys
+            d=json.load(sys.stdin)
+            keys=("id","status","platform","buildProfile","distribution","isForIosSimulator",
+                  "appIdentifier","error","message","artifacts","logFileUrls","completedAt")
+            out={k:d.get(k) for k in keys}
+            err=d.get("error") or {}
+            if isinstance(err, dict):
+              out["errorCode"]=err.get("errorCode")
+              out["errorMessage"]=err.get("message")
+            print(json.dumps(out, indent=2, default=str))
+            '
+            echo "::endgroup::"
+          done

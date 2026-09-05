@@ -28,7 +28,9 @@ EAS builds/updates run from `apps/mobile`:
 npm run build:preview --workspace apps/mobile
 ```
 
-Preview CI: label a PR `mobile-build` (needs `EXPO_TOKEN` Actions secret).
+Preview CI: label a PR `mobile-build` (needs `EXPO_TOKEN` **Actions** secret —
+Cursor Cloud secrets do not feed GitHub Actions). First preview boots on bundled
+data; see [`docs/mobile/EAS-PREVIEW.md`](../docs/mobile/EAS-PREVIEW.md).
 
 See [`docs/mobile/MIGRATE.md`](../docs/mobile/MIGRATE.md) and
 [`CONSOLIDATION.md`](../CONSOLIDATION.md).

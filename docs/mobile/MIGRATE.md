@@ -57,7 +57,8 @@ cd mobile/apps/mobile
 npx eas build --profile preview --platform ios
 ```
 
-Preview CI: label a PR `mobile-build` (requires `EXPO_TOKEN` Actions secret).
+Preview CI: label a PR `mobile-build` (requires `EXPO_TOKEN` **Actions** secret).
+See [EAS-PREVIEW.md](./EAS-PREVIEW.md) for the first-binary checklist.
 
 ## How the source got here
 

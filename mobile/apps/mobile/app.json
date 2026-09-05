@@ -7,7 +7,6 @@
     "icon": "./assets/icon.png",
     "scheme": "proteinoutfitters",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -83,6 +82,14 @@
       "expo-router",
       "expo-apple-authentication",
       "expo-updates",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "privacyManifestAggregationEnabled": false
+          }
+        }
+      ],
       [
         "expo-location",
         {

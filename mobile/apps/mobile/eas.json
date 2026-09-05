@@ -12,11 +12,17 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "node": "22.13.0",
       "ios": { "simulator": true }
+    },
+    "preview-device": {
+      "extends": "preview",
+      "ios": { "simulator": false }
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "node": "22.13.0"
     }
   },
   "submit": {
