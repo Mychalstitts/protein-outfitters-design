@@ -22,13 +22,10 @@
 // Kill + trip are computed server-side from deploy/lib/stittsworth-harvest.js.
 // Does not charge a card, read CHECKOUT_ENABLED, or publish listing 123.
 
-import { createRequire } from 'module';
 import { sql, rawQuery, currentUser, err, json, isUuid, nodejsHandler } from './_lib/db.js';
+import * as Jobs from '../lib/harvest-jobs.js';
 
 export const config = { runtime: 'nodejs' };
-
-const require = createRequire(import.meta.url);
-const Jobs = require('../lib/harvest-jobs.js');
 
 const CREATE_TABLE = `
   CREATE TABLE IF NOT EXISTS harvest_jobs (
