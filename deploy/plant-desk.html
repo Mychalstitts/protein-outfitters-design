@@ -38,7 +38,7 @@
     <div>
       <p class="lb-kicker">Stittsworth Smokehouse · Turtle River</p>
       <h1 class="lb-title">Trailer days. App + phone on one list.</h1>
-      <p class="lb-lead">Jeff’s harvest calendar. Online farm requests land here. Call-ins you add by hand land here. Check this between farms — kill + trip is quoted, cards are not charged.</p>
+      <p class="lb-lead">Jeff’s harvest calendar. Online farm requests land here. Call-ins you add by hand land here. Mark each job Unpaid, Cash (on site), or App (through Protein Outfitters — flag only). Cards are not charged here.</p>
 
       <div id="pdGate" class="lb-card">
         <p class="lb-status" style="margin:0;">Sign in as Smokehouse staff (processor or admin) to see the shared trailer list and add phone jobs.</p>
@@ -61,7 +61,10 @@
             <p class="lb-kicker" id="pdDayKicker">Selected day</p>
             <h2 class="pd-day-title" id="pdDayTitle">Pick a trailer day</h2>
           </div>
-          <p class="pd-cap" id="pdCap">—</p>
+          <div class="pd-day-meta">
+            <p class="pd-cap" id="pdCap">—</p>
+            <p class="pd-pay-sum" id="pdPaySum"></p>
+          </div>
         </div>
         <div id="pdJobs" class="pd-jobs"></div>
       </div>
@@ -70,7 +73,7 @@
     <aside class="lb-card" id="pdFormWrap" hidden>
       <p class="lb-kicker" id="pdFormKicker">Phone call-in</p>
       <h2 class="pd-form-title" id="pdFormTitle">Add a phone job</h2>
-      <p class="help">Farm called the smokehouse. Same record as an app request. Cash vs card is a later PR.</p>
+      <p class="help">Farm called the smokehouse. Same record as an app request. After it lands, mark kill+mileage Unpaid, Cash, or App. App is a flag only — this desk does not charge a card.</p>
 
       <form id="pdForm">
         <input type="hidden" id="pdEditId" />
@@ -231,11 +234,18 @@ import * as J from '/lib/harvest-jobs.js';
     return 'Requested';
   }
 
+  function payLabel(s) {
+    if (s === 'cash') return 'Cash';
+    if (s === 'app') return 'App';
+    return 'Unpaid';
+  }
+
   function paintDay() {
     const iso = state.selected;
     if (!iso) {
       $('pdDayTitle').textContent = 'Pick a trailer day';
       $('pdCap').textContent = '';
+      $('pdPaySum').textContent = '';
       $('pdJobs').innerHTML = '';
       return;
     }
@@ -245,20 +255,36 @@ import * as J from '/lib/harvest-jobs.js';
     $('pdDayTitle').textContent = H.formatShort(iso);
     $('pdCap').textContent = used + ' / 4 heads · ' + left + ' leftover';
     const jobs = state.jobs.filter((j) => j.trailer_day === iso);
+    const totals = J.payTotals(jobs);
+    $('pdPaySum').innerHTML = jobs.length
+      ? '<span class="unpaid">Unpaid ' + money(totals.unpaid) + '</span>' +
+        '<span class="paid">Collected ' + money(totals.collected) + '</span>' +
+        '<span>Day ' + money(totals.total) + '</span>'
+      : '';
     if (!jobs.length) {
       $('pdJobs').innerHTML = '<p class="help">No farms on this trailer day yet. Add a phone job or wait for an app request.</p>';
       return;
     }
     $('pdJobs').innerHTML = jobs.map((j) => {
       const cancelled = j.status === 'cancelled';
-      return '<article class="pd-job' + (cancelled ? ' cancelled' : '') + '">' +
+      const pay = J.normalizePayStatus(j.pay_status);
+      const paid = J.isPaid(pay);
+      const klass = 'pd-job' + (cancelled ? ' cancelled' : '') + (paid ? ' paid' : ' unpaid');
+      const payBtns = ['unpaid', 'cash', 'app'].map((p) => {
+        const pressed = pay === p ? 'true' : 'false';
+        return '<button type="button" class="pd-pay-btn" data-pay="' + p + '" data-id="' + j.id + '" aria-pressed="' + pressed + '">' + payLabel(p) + '</button>';
+      }).join('');
+      return '<article class="' + klass + '">' +
         '<div class="pd-job-top"><strong>' + escapeHtml(j.farm_name) + '</strong>' +
         '<span class="pd-src">' + j.source + '</span></div>' +
-        '<p>' + escapeHtml(j.town) + ' · ' + j.heads + ' ' + j.species + ' · ' + j.share_label +
-        ' · ' + money(j.total_due) + ' kill+trip</p>' +
-        '<p class="help">' + statusLabel(j.status) + (j.phone ? ' · ' + escapeHtml(j.phone) : '') +
+        '<p>' + escapeHtml(j.town) + ' · ' + j.heads + ' ' + j.species + ' · ' + j.share_label + '</p>' +
+        '<p class="pd-due">' + money(j.total_due) + ' kill+trip · ' + money(j.kill_due) + ' kill · ' + money(j.trip_due) + ' mileage</p>' +
+        '<p class="help">' + statusLabel(j.status) + ' · ' + payLabel(pay) +
+        (j.phone ? ' · ' + escapeHtml(j.phone) : '') +
         (j.notes ? ' · ' + escapeHtml(j.notes) : '') + '</p>' +
-        (cancelled ? '' : '<div class="pd-job-actions">' +
+        (cancelled ? '' :
+          '<div class="pd-pay" role="group" aria-label="Kill and mileage payment">' + payBtns + '</div>' +
+          '<div class="pd-job-actions">' +
           '<button type="button" data-edit="' + j.id + '">Edit</button>' +
           '<button type="button" data-used="' + j.id + '">Mark capacity used</button>' +
           '<button type="button" data-cancel="' + j.id + '">Cancel</button></div>') +
@@ -268,6 +294,9 @@ import * as J from '/lib/harvest-jobs.js';
     $('pdJobs').querySelectorAll('[data-used]').forEach((b) => b.addEventListener('click', () => patchJob(b.getAttribute('data-used'), { status: 'capacity_used' })));
     $('pdJobs').querySelectorAll('[data-cancel]').forEach((b) => b.addEventListener('click', () => {
       if (confirm('Cancel this trailer job? Leftover harvest opens back up.')) patchJob(b.getAttribute('data-cancel'), { status: 'cancelled' });
+    }));
+    $('pdJobs').querySelectorAll('[data-pay]').forEach((b) => b.addEventListener('click', () => {
+      patchJob(b.getAttribute('data-id'), { pay_status: b.getAttribute('data-pay') });
     }));
   }
 

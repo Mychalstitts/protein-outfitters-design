@@ -17,16 +17,19 @@ import {
   spacing,
   fontSize,
   radius,
-  submitRequest,
   type AnimalType,
   type ServiceRequested,
   type Processor,
 } from '@protein-outfitters/shared';
-import { supabase } from '@/lib/supabase';
 import {
-  loadProcessorBySlug,
-  resolveSupabaseProcessorId,
-} from '@/lib/processors';
+  getCachedUser,
+  refreshCurrentUser,
+  submitProcessorRequest,
+  type AuthUser,
+} from '@/lib/auth';
+import { loadProcessorBySlug } from '@/lib/processors';
+import { isSyntheticSlug } from '@/lib/neonAdapter';
+import { ApiError } from '@/lib/api';
 
 const ANIMALS: { value: AnimalType; label: string }[] = [
   { value: 'beef', label: 'Beef' },
@@ -50,9 +53,13 @@ const SERVICES: { value: ServiceRequested; label: string }[] = [
   { value: 'consultation', label: 'Just a question' },
 ];
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default function RequestScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const [proc, setProc] = useState<Processor | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(getCachedUser());
   const [submitting, setSubmitting] = useState(false);
 
   const [name, setName] = useState('');
@@ -69,29 +76,52 @@ export default function RequestScreen() {
     (async () => {
       const result = await loadProcessorBySlug(slug);
       setProc(result.processor);
+      const u = await refreshCurrentUser();
+      setUser(u);
+      if (u) {
+        if (u.name) setName(prev => prev || u.name || '');
+        if (u.email) setEmail(prev => prev || u.email || '');
+        if (u.zip) setZip(prev => prev || u.zip || '');
+        if (u.phone) setPhone(prev => prev || u.phone || '');
+      }
     })();
   }, [slug]);
 
   const submit = async () => {
     if (!proc) return;
+    if (!user) {
+      Alert.alert(
+        'Sign in required',
+        'You need an account to send a request. Sign in and try again.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign in', onPress: () => router.replace('/account') },
+        ],
+      );
+      return;
+    }
     if (!name.trim() || !email.trim()) {
       Alert.alert('Missing info', 'Please add your name and email.');
       return;
     }
+
+    const canBySlug =
+      Boolean(proc.slug) && !isSyntheticSlug(String(proc.slug));
+    const canById = UUID_RE.test(String(proc.id));
+    if (!canBySlug && !canById) {
+      Alert.alert(
+        'Listing not on the live map yet',
+        'This pin is from offline cache. Open it from a live search result and try again.',
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
-      // Writes still land in Supabase until Slice F; never send a Neon UUID.
-      const processorId = await resolveSupabaseProcessorId(proc);
-      if (!processorId) {
-        Alert.alert(
-          'Not available yet',
-          `Requests for ${proc.name} aren't open in the app yet. Try their phone or website from the listing.`,
-        );
-        return;
-      }
-      await submitRequest(supabase, {
-        processor_id: processorId,
-        user_id: null,
+      await submitProcessorRequest({
+        ...(canBySlug
+          ? { processor_slug: proc.slug }
+          : { processor_id: String(proc.id) }),
         contact_name: name.trim(),
         contact_email: email.trim(),
         contact_phone: phone.trim() || null,
@@ -107,10 +137,13 @@ export default function RequestScreen() {
         [{ text: 'OK', onPress: () => router.back() }],
       );
     } catch (e: unknown) {
-      Alert.alert(
-        'Could not send',
-        e instanceof Error ? e.message : 'Try again in a moment.',
-      );
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : 'Try again in a moment.';
+      Alert.alert('Could not send', msg);
     } finally {
       setSubmitting(false);
     }
@@ -136,6 +169,20 @@ export default function RequestScreen() {
       >
         <Text style={styles.lead}>Request service from</Text>
         <Text style={styles.name}>{proc.name}</Text>
+
+        {!user ? (
+          <View style={styles.signInBanner}>
+            <Text style={styles.signInText}>
+              Sign in to send this request — we notify the plant and email you a confirmation.
+            </Text>
+            <Pressable
+              style={styles.signInCta}
+              onPress={() => router.replace('/account')}
+            >
+              <Text style={styles.signInCtaText}>Sign in</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         <Field label="Your name *">
           <TextInput
@@ -314,4 +361,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   fineprintLink: { color: colors.procLight, fontWeight: '600' },
+  signInBanner: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.bg2,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.bg4,
+  },
+  signInText: { color: colors.textMute, fontSize: fontSize.sm, lineHeight: 20 },
+  signInCta: {
+    marginTop: spacing.sm,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.procDeep,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.lg,
+  },
+  signInCtaText: { color: '#fff', fontWeight: '700', fontSize: fontSize.sm },
 });

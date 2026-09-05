@@ -1,6 +1,6 @@
 # Mobile API swap — progress
 
-**Branch:** `cursor/mobile-app-store-path-8023` (folds PR #32 map/detail + auth bridge + claim)
+**Branch:** `cursor/mobile-processor-requests-8023` (Slice F on top of App Store path / PR #36)
 
 ## Done
 
@@ -10,19 +10,22 @@
 | **C** `EXPO_PUBLIC_API_BASE_URL`; Supabase off the read path | ✅ |
 | **D** Auth bridge: Bearer in `currentUser`; JSON / deep-link verify; SecureStore; account → `/api/auth/*` + `/api/account-delete`; Apple → `/api/auth/apple` | ✅ |
 | **E** Claim → `POST /api/processors` with Bearer (`claim_slug` / `claim_id`) | ✅ |
+| **F** `POST /api/processor-requests` (+ Resend email) — mobile request screen uses Bearer, Neon table | ✅ |
 | **G** Account delete uses `sessions.id` (not nonexistent `token` column); revokes all user sessions | ✅ |
 
-## Still open (not this PR)
+## Still open
 
-| Slice | Notes |
-|-------|--------|
-| **F** `POST /api/processor-requests` (+ email) | Request screen still uses Supabase `submitRequest` |
+| Item | Notes |
+|------|--------|
 | Store humans | Apple $99, ASC IDs in `eas.json`, device QA, screenshots |
+| Merge order | Merge **PR #36** (App Store path) first, then this Slice F PR (or stack onto #36) |
 
 ## Smoke
 
 ```bash
 node mobile/apps/mobile/scripts/smoke-map-data.mjs
+# Optional: exercise processor-requests (needs session + live plant slug)
+node mobile/apps/mobile/scripts/smoke-processor-requests.mjs
 cd mobile && npm run typecheck --workspace apps/mobile
 ```
 
@@ -34,3 +37,14 @@ cd mobile && npm run typecheck --workspace apps/mobile
 | Mobile | SecureStore → `Authorization: Bearer <sessionId>` |
 
 Magic link: `POST /api/auth/request-link` with `next=proteinoutfitters://auth/callback` → verify 302s to deep link with `?session=`.
+
+## Processor requests
+
+| Method | Path | Notes |
+|--------|------|-------|
+| POST | `/api/processor-requests` | Auth required; body uses `processor_id` (Neon UUID) or `processor_slug` |
+| GET | `/api/processor-requests?mine=1` | Caller's requests |
+| GET | `/api/processor-requests?slug=` | Plant owner / admin |
+| PATCH | `/api/processor-requests?id=` | Owner/admin status update |
+
+Emails need `RESEND_API_KEY` (+ optional `REQUESTS_FALLBACK_EMAIL` when plant has no email). Table is created lazily and via `/api/migrate`.

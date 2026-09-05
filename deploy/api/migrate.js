@@ -641,7 +641,8 @@ const SCHEMA_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS cut_sheets_buyer_idx       ON cut_sheets(buyer_id)`,
   `CREATE INDEX IF NOT EXISTS cut_sheets_status_idx      ON cut_sheets(status)`,
 
-  // Stittsworth Smokehouse trailer desk (Phase A1). Shared app + phone jobs.
+  // Stittsworth Smokehouse trailer desk (Phase A2). Shared app + phone jobs.
+  // pay_status is a flag only — does not charge a card or touch checkout.
   // Smokehouse-only. Also bootstrapped on first /api/harvest-jobs call.
   `CREATE TABLE IF NOT EXISTS harvest_jobs (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -659,6 +660,10 @@ const SCHEMA_STATEMENTS = [
      kill_due NUMERIC(10,2) NOT NULL DEFAULT 0,
      trip_due NUMERIC(10,2) NOT NULL DEFAULT 0,
      total_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+     pay_status TEXT NOT NULL DEFAULT 'unpaid'
+                CHECK (pay_status IN ('unpaid','cash','app')),
+     paid_at TIMESTAMPTZ,
+     paid_note TEXT,
      phone TEXT,
      notes TEXT,
      listing_id UUID REFERENCES listings(id) ON DELETE SET NULL,
@@ -668,6 +673,42 @@ const SCHEMA_STATEMENTS = [
    )`,
   `CREATE INDEX IF NOT EXISTS harvest_jobs_day_idx ON harvest_jobs(processor_slug, trailer_day)`,
   `CREATE INDEX IF NOT EXISTS harvest_jobs_status_idx ON harvest_jobs(status)`,
+  // Live A1 tables have no pay columns — ALTER first, then index.
+  `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS pay_status TEXT NOT NULL DEFAULT 'unpaid'`,
+  `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ`,
+  `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS paid_note TEXT`,
+  `DO $$ BEGIN
+     IF NOT EXISTS (
+       SELECT 1 FROM pg_constraint WHERE conname = 'harvest_jobs_pay_status_check'
+     ) THEN
+       ALTER TABLE harvest_jobs ADD CONSTRAINT harvest_jobs_pay_status_check
+         CHECK (pay_status IN ('unpaid','cash','app'));
+     END IF;
+   END $$`,
+  `CREATE INDEX IF NOT EXISTS harvest_jobs_pay_idx ON harvest_jobs(pay_status)`,
+
+  // Mobile / map warm-lead requests (Slice F). Also bootstrapped lazily by
+  // /api/processor-requests on first call.
+  `CREATE TABLE IF NOT EXISTS processor_requests (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     processor_id UUID NOT NULL REFERENCES processors(id) ON DELETE CASCADE,
+     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+     contact_name TEXT NOT NULL,
+     contact_email TEXT NOT NULL,
+     contact_phone TEXT,
+     contact_zip TEXT,
+     animal_type TEXT NOT NULL,
+     service_requested TEXT NOT NULL,
+     preferred_date DATE,
+     notes TEXT,
+     status TEXT NOT NULL DEFAULT 'pending'
+       CHECK (status IN ('pending','accepted','declined','needs_info','completed','cancelled')),
+     created_at TIMESTAMPTZ DEFAULT NOW(),
+     updated_at TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS processor_requests_processor_idx ON processor_requests(processor_id)`,
+  `CREATE INDEX IF NOT EXISTS processor_requests_user_idx ON processor_requests(user_id)`,
+  `CREATE INDEX IF NOT EXISTS processor_requests_status_idx ON processor_requests(status)`,
 
   // credentials.html has always PATCHed these; the column never existed, so
   // every uploaded inspection document was silently discarded.

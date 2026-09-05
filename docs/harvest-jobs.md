@@ -1,4 +1,4 @@
-# Harvest jobs — Stittsworth Smokehouse trailer desk (Phase A1)
+# Harvest jobs — Stittsworth Smokehouse trailer desk (Phase A2)
 
 Shared calendar for Jeff Campbell at Turtle River. Online farm requests and phone call-ins are the same rows.
 
@@ -8,9 +8,9 @@ Shared calendar for Jeff Campbell at Turtle River. Online farm requests and phon
 | --- | --- |
 | Table | `harvest_jobs` (Neon / Postgres) |
 | Schema | `deploy/db/schema.sql` |
-| Migrate | `POST /api/migrate` (also `CREATE TABLE IF NOT EXISTS` on first `/api/harvest-jobs` call) |
+| Migrate | `POST /api/migrate` (also `CREATE TABLE IF NOT EXISTS` + `ALTER` on first `/api/harvest-jobs` call) |
 | API | `deploy/api/harvest-jobs.js` → `/api/harvest-jobs` |
-| Helpers | `deploy/lib/harvest-jobs.js` (quotes + leftover-head math) |
+| Helpers | `deploy/lib/harvest-jobs.js` (quotes + leftover-head math + pay_status) |
 | Plant desk | `/plant-desk` (alias `/smokehouse/schedule`) |
 | Farm request | `/harvest` → `POST /api/harvest-jobs` with `source=app` |
 
@@ -23,17 +23,19 @@ Shared calendar for Jeff Campbell at Turtle River. Online farm requests and phon
 - source = `app` \| `phone`
 - status = `requested` \| `confirmed` \| `capacity_used` \| `cancelled`
 - kill + trip + total (server-quoted; Turtle River trip is $0)
-- optional phone / notes / listing_id
+- **pay_status** = `unpaid` (default) \| `cash` (collected on site) \| `app` (collected through Protein Outfitters — **flag only**)
+- optional `paid_at`, `paid_note`, phone / notes / listing_id
 
-Cancelled jobs do not count toward the day’s 4-head leftover. Checkout is not involved. Listing 123 is never published from this flow.
+Cancelled jobs do not count toward the day’s 4-head leftover. Checkout is not involved. Listing 123 is never published from this flow. Setting `pay_status=app` does **not** charge a card or open Stripe Checkout.
 
 ## Who can do what
 
 - `GET ?view=capacity` — public leftover heads by day (no farm names)
-- `GET` job list — processor or admin
-- `POST source=app` — any signed-in user (farmer request)
+- `GET` job list — processor or admin (includes pay fields)
+- `POST source=app` — any signed-in user (farmer request). New jobs are always `unpaid`.
 - `POST source=phone` / `PATCH` — processor or admin
+- `PATCH pay_status` — processor or admin only
 
 ## Out of this PR
 
-Payment capture, animal ID / cut sheets, 60-mile listing gate, mobile, Connect, checkout, publishing listing 123.
+Actual Stripe charge, animal ID / cut sheets, 60-mile listing gate, mobile, Connect, checkout, publishing listing 123.

@@ -32,6 +32,7 @@ const ENV_SPEC = [
   // Email + lifecycle
   { key: 'RESEND_API_KEY',        group: 'Email',    required: true,  purpose: 'Send lifecycle emails. Without this, emails are logged-only (skipped)' },
   { key: 'RESEND_FROM',           group: 'Email',    required: false, purpose: 'From address (defaults to "Protein Outfitters <hello@proteinoutfitters.com>")' },
+  { key: 'REQUESTS_FALLBACK_EMAIL', group: 'Email',  required: false, purpose: 'Inbox when a plant has no email on file for /api/processor-requests' },
   { key: 'EMAIL_TICK_SECRET',     group: 'Email',    required: true,  purpose: 'Gate for /api/email-tick + cron sweepers (ad-hoc URL trigger)' },
   { key: 'CRON_SECRET',           group: 'Email',    required: true,  purpose: 'Bearer token Vercel sends to authenticate cron callers' },
 

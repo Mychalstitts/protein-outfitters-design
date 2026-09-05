@@ -1,6 +1,6 @@
 # App Store path — remaining human + ops checklist
 
-Code on `cursor/mobile-app-store-path-8023` covers Neon map/detail, auth bridge, claim, and account delete. The items below **cannot** be finished by an agent alone.
+Code on `cursor/mobile-app-store-path-8023` (+ Slice F on `cursor/mobile-processor-requests-8023`) covers Neon map/detail, auth bridge, claim, account delete, and processor-request submit. The items below **cannot** be finished by an agent alone.
 
 ## Blockers (humans)
 
@@ -11,7 +11,7 @@ Code on `cursor/mobile-app-store-path-8023` covers Neon map/detail, auth bridge,
 | Fill `eas.json` → `submit.production.ios` | Replace `REPLACE_WITH_APPLE_ID`, `REPLACE_WITH_APP_STORE_CONNECT_APP_ID`, `REPLACE_WITH_APPLE_TEAM_ID` |
 | Play Console + service account JSON | Android submit (`play-store-service-account.json`, not committed) |
 | Hosted privacy + terms URLs | Reviewers expect https pages (in-app legal also ships) |
-| Device QA | Sign-in, claim, delete-account, airplane-mode map on real hardware |
+| Device QA | Sign-in, claim, request-submit, delete-account, airplane-mode map on real hardware |
 | Screenshots / listing copy | Use drafts in `mobile/docs/store-listing-copy.md` + `reviewer-notes.md` |
 
 ## Already in repo (code / assets)
@@ -23,6 +23,7 @@ Code on `cursor/mobile-app-store-path-8023` covers Neon map/detail, auth bridge,
 - ✅ Sign in with Apple → `POST /api/auth/apple` (Neon session)
 - ✅ Magic link → Neon + SecureStore Bearer
 - ✅ Map offline via bundled JSON; live upgrade via `/api/map-data`
+- ✅ Processor request submit → `POST /api/processor-requests` (Bearer; Neon + Resend)
 
 ## Trigger preview build
 
@@ -35,5 +36,6 @@ npx eas build --profile preview --platform android --non-interactive --no-wait
 
 ## Related PRs
 
-- This branch supersedes the implementation of draft **PR #32** (map/detail API). Prefer merging this App Store path PR and closing #32 as duplicate once reviewed.
+- App Store path **PR #36** supersedes the implementation of draft **PR #32** (map/detail API). Prefer merging #36 and closing #32 as duplicate once reviewed.
+- Slice F (**processor-requests**) stacks on #36 — merge #36 first, then the Slice F PR (or merge the stack).
 - Draft **PR #30** remains the mapping doc (`API-SWAP.md`); keep for history or merge docs-only.

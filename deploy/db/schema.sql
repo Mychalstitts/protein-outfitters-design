@@ -259,12 +259,13 @@ CREATE TABLE IF NOT EXISTS social_comments (
 );
 CREATE INDEX IF NOT EXISTS social_comments_post_idx ON social_comments(post_id, created_at);
 
--- ─── HARVEST JOBS (Stittsworth Smokehouse trailer desk, Phase A1) ──
+-- ─── HARVEST JOBS (Stittsworth Smokehouse trailer desk, Phase A2) ──
 -- Shared calendar for online /harvest requests (source=app) and phone
 -- call-ins Jeff adds on /plant-desk (source=phone). Smokehouse-only:
 -- processor_slug is always stittsworth-smokehouse. Not checkout, not
 -- listing 123, not a national multi-processor desk.
--- Also created by /api/harvest-jobs on first call and by /api/migrate.
+-- pay_status is a flag only (unpaid / cash on site / app collected).
+-- Does not charge a card. Also created by /api/harvest-jobs + /api/migrate.
 CREATE TABLE IF NOT EXISTS harvest_jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   processor_slug TEXT NOT NULL DEFAULT 'stittsworth-smokehouse',
@@ -281,6 +282,10 @@ CREATE TABLE IF NOT EXISTS harvest_jobs (
   kill_due NUMERIC(10,2) NOT NULL DEFAULT 0,
   trip_due NUMERIC(10,2) NOT NULL DEFAULT 0,
   total_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+  pay_status TEXT NOT NULL DEFAULT 'unpaid'
+              CHECK (pay_status IN ('unpaid','cash','app')),
+  paid_at TIMESTAMPTZ,
+  paid_note TEXT,
   phone TEXT,
   notes TEXT,
   listing_id UUID REFERENCES listings(id) ON DELETE SET NULL,
@@ -290,6 +295,7 @@ CREATE TABLE IF NOT EXISTS harvest_jobs (
 );
 CREATE INDEX IF NOT EXISTS harvest_jobs_day_idx ON harvest_jobs(processor_slug, trailer_day);
 CREATE INDEX IF NOT EXISTS harvest_jobs_status_idx ON harvest_jobs(status);
+CREATE INDEX IF NOT EXISTS harvest_jobs_pay_idx ON harvest_jobs(pay_status);
 
 -- ─── SEED DATA — Demo farms, processors, listings ─────────
 -- (only inserted if tables are empty)
