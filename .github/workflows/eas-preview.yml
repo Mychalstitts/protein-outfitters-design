@@ -46,93 +46,50 @@ jobs:
     name: Recent EAS build status
     runs-on: ubuntu-latest
     steps:
-      - name: Query EAS builds via GraphQL
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: View target builds
+        working-directory: mobile/apps/mobile
         run: |
           set -euo pipefail
-          python3 <<'PY'
-          import json, os, urllib.request
-
-          token = os.environ["EXPO_TOKEN"]
-          ids = [
-            "6b083cb9-ba19-4555-b6ba-486c5736a034",
-            "30eb0ce5-8c60-4005-a776-b2774d9a0303",
-          ]
-          query = """
-          query($id: ID!) {
-            builds {
-              byId(buildId: $id) {
-                id
-                status
-                platform
-                buildProfile
-                distribution
-                isForIosSimulator
-                appIdentifier
-                message
-                completedAt
-                logFileUrls
-                artifacts {
-                  buildUrl
-                  applicationArchiveUrl
-                }
-                error {
-                  errorCode
-                  message
-                }
-              }
-            }
-          }
-          """
-
-          def gql(qid):
-            body = json.dumps({"query": query, "variables": {"id": qid}}).encode()
-            req = urllib.request.Request(
-              "https://api.expo.dev/graphql",
-              data=body,
-              headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {token}",
-              },
-              method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=60) as resp:
-              return json.load(resp)
-
-          for bid in ids:
-            print(f"=== {bid} ===")
-            data = gql(bid)
-            if data.get("errors"):
-              # Never print token; errors are safe
-              print(json.dumps({"errors": data["errors"]}, indent=2)[:4000])
+          for id in 6b083cb9-ba19-4555-b6ba-486c5736a034 30eb0ce5-8c60-4005-a776-b2774d9a0303; do
+            echo "=== $id ==="
+            # Capture JSON; keep stderr visible for diagnosis
+            if ! OUT=$(eas build:view "$id" --json --non-interactive); then
+              echo "eas build:view failed for $id"
               continue
-            b = data["data"]["builds"]["byId"]
-            err = b.get("error") or {}
-            print(json.dumps({
-              "id": b.get("id"),
-              "status": b.get("status"),
-              "platform": b.get("platform"),
-              "buildProfile": b.get("buildProfile"),
-              "distribution": b.get("distribution"),
-              "isForIosSimulator": b.get("isForIosSimulator"),
-              "appIdentifier": b.get("appIdentifier"),
-              "errorCode": err.get("errorCode") if isinstance(err, dict) else None,
-              "errorMessage": err.get("message") if isinstance(err, dict) else err,
-              "message": b.get("message"),
-              "artifacts": b.get("artifacts"),
-              "logFileUrls": b.get("logFileUrls"),
-              "completedAt": b.get("completedAt"),
-            }, indent=2))
-            # Fetch last ~80 lines of first log file if present (public signed URL)
-            urls = b.get("logFileUrls") or []
-            if urls and b.get("status") == "ERRORED":
-              try:
-                with urllib.request.urlopen(urls[0], timeout=60) as lr:
-                  text = lr.read().decode("utf-8", errors="replace")
-                lines = text.strip().splitlines()
-                print("--- log tail ---")
-                print("\n".join(lines[-80:]))
-              except Exception as e:
-                print(f"(could not fetch logs: {type(e).__name__})")
-          PY
+            fi
+            printf '%s\n' "$OUT" | python3 -c '
+          import json,sys
+          raw=sys.stdin.read()
+          # eas may print non-json banners; find first {
+          i=raw.find("{")
+          if i<0:
+            print("NO_JSON"); print(raw[:2000]); raise SystemExit(1)
+          d=json.loads(raw[i:])
+          err=d.get("error") or {}
+          arts=d.get("artifacts") or {}
+          print(json.dumps({
+            "id": d.get("id"),
+            "status": d.get("status"),
+            "platform": d.get("platform"),
+            "buildProfile": d.get("buildProfile"),
+            "distribution": d.get("distribution"),
+            "isForIosSimulator": d.get("isForIosSimulator"),
+            "appIdentifier": d.get("appIdentifier"),
+            "errorCode": err.get("errorCode") if isinstance(err, dict) else None,
+            "errorMessage": err.get("message") if isinstance(err, dict) else err,
+            "message": d.get("message"),
+            "buildUrl": arts.get("buildUrl") if isinstance(arts, dict) else None,
+            "applicationArchiveUrl": arts.get("applicationArchiveUrl") if isinstance(arts, dict) else None,
+            "logFileUrls": d.get("logFileUrls"),
+            "completedAt": d.get("completedAt"),
+          }, indent=2))
+          '
+          done
