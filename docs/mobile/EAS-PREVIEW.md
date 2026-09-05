@@ -13,6 +13,7 @@ boots on bundled processor data (`mobile/apps/mobile/src/data/processors.bundled
 | Project ID | `e2976642-b0da-43b5-b85f-138c93665c8d` |
 | Owner / slug | `mychalstitts` / `protein-outfitters` |
 | Workflow | `.github/workflows/eas-preview.yml` |
+| CI Node | **22** in EAS workflows only (`eas-cli@latest` needs ≥22). App `.nvmrc` stays **20** for Expo SDK 51. |
 
 ## Secrets (two places)
 
