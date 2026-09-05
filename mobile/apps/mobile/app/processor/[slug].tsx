@@ -19,6 +19,7 @@ import {
 import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
 import {
   CUSTOM_EXEMPT_LABEL,
+  CUSTOM_EXEMPT_NOTE,
   isCustomExemptListing,
 } from '@/lib/neonAdapter';
 
@@ -85,8 +86,8 @@ export default function ProcessorDetail() {
       {isCustomExemptListing(proc) ? (
         <View style={styles.unclaimedBanner}>
           <Text style={styles.unclaimedText}>
-            {CUSTOM_EXEMPT_LABEL}. Listed for map honesty — not claimable and
-            not sellable in the app. Prefer not to be listed? Email
+            {CUSTOM_EXEMPT_LABEL}. {CUSTOM_EXEMPT_NOTE}. Listed for map
+            honesty. Prefer not to be listed? Email
             support@proteinoutfitters.com.
           </Text>
         </View>

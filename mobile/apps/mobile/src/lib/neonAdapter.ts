@@ -49,8 +49,8 @@ export interface NeonProcessorRow {
 /** Live map pin — Product YES: keep visible; label, do not hide. */
 export const CUSTOM_EXEMPT_SLUG = 'stittsworth-smokehouse-co';
 
-export const CUSTOM_EXEMPT_LABEL =
-  'Custom-exempt / not claimable / already claimed / not sellable';
+export const CUSTOM_EXEMPT_LABEL = 'Custom-exempt / not claimable';
+export const CUSTOM_EXEMPT_NOTE = 'Not sellable in the app';
 
 /** Live map uses `custom-exempt`. */
 export function isCustomExemptInspection(

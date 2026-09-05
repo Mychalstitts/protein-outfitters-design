@@ -31,6 +31,7 @@ import {
 import { FilterSheet } from '@/components/FilterSheet';
 import {
   CUSTOM_EXEMPT_LABEL,
+  CUSTOM_EXEMPT_NOTE,
   isCustomExemptListing,
 } from '@/lib/neonAdapter';
 
@@ -241,9 +242,14 @@ export default function MapScreen() {
                   {item.address.state ? `, ${item.address.state}` : ''}
                 </Text>
                 {isCustomExemptListing(item) ? (
-                  <Text style={styles.cardServices} numberOfLines={2}>
-                    {CUSTOM_EXEMPT_LABEL}
-                  </Text>
+                  <>
+                    <Text style={styles.cardServices} numberOfLines={1}>
+                      {CUSTOM_EXEMPT_LABEL}
+                    </Text>
+                    <Text style={styles.cardServices} numberOfLines={1}>
+                      {CUSTOM_EXEMPT_NOTE}
+                    </Text>
+                  </>
                 ) : item.services.length > 0 ? (
                   <Text style={styles.cardServices} numberOfLines={1}>
                     {item.services.join(' · ')}

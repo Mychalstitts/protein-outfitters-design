@@ -22,6 +22,7 @@ import { claimProcessor, getCachedUser, refreshCurrentUser, type AuthUser } from
 import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
 import {
   CUSTOM_EXEMPT_LABEL,
+  CUSTOM_EXEMPT_NOTE,
   isCustomExemptListing,
   isSyntheticSlug,
 } from '@/lib/neonAdapter';
@@ -118,9 +119,9 @@ export default function ClaimScreen() {
       <View style={styles.center}>
         <Text style={styles.title}>{CUSTOM_EXEMPT_LABEL}</Text>
         <Text style={[styles.body, { textAlign: 'center' }]}>
-          This shop stays on the map for directory honesty. It is custom-exempt,
-          already claimed / not claimable, and not sellable in the app. Prefer
-          not to be listed? Email support@proteinoutfitters.com.
+          {CUSTOM_EXEMPT_NOTE}. This shop stays on the map for directory
+          honesty. It is custom-exempt and not claimable. Prefer not to be
+          listed? Email support@proteinoutfitters.com.
         </Text>
       </View>
     );
