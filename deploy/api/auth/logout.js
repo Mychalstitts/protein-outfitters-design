@@ -1,10 +1,16 @@
 // POST /api/auth/logout — clears session cookie + DB row
-import { sql, parseCookies, clearSessionCookie, nodejsHandler } from '../_lib/db.js';
+// Also accepts Authorization: Bearer <sessionId> (mobile).
+import {
+  sql,
+  getSessionToken,
+  clearSessionCookie,
+  nodejsHandler,
+} from '../_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
 async function handler(req) {
-  const sessionId = parseCookies(req).po_session;
+  const sessionId = getSessionToken(req);
   if (sessionId) {
     try { await sql`DELETE FROM sessions WHERE id = ${sessionId}`; } catch {}
   }

@@ -17,13 +17,16 @@ import {
   spacing,
   fontSize,
   radius,
-  getProcessorBySlug,
   submitRequest,
   type AnimalType,
   type ServiceRequested,
   type Processor,
 } from '@protein-outfitters/shared';
 import { supabase } from '@/lib/supabase';
+import {
+  loadProcessorBySlug,
+  resolveSupabaseProcessorId,
+} from '@/lib/processors';
 
 const ANIMALS: { value: AnimalType; label: string }[] = [
   { value: 'beef', label: 'Beef' },
@@ -64,8 +67,8 @@ export default function RequestScreen() {
 
   useEffect(() => {
     (async () => {
-      const data = await getProcessorBySlug(supabase, slug);
-      setProc(data);
+      const result = await loadProcessorBySlug(slug);
+      setProc(result.processor);
     })();
   }, [slug]);
 
@@ -77,8 +80,17 @@ export default function RequestScreen() {
     }
     setSubmitting(true);
     try {
+      // Writes still land in Supabase until Slice F; never send a Neon UUID.
+      const processorId = await resolveSupabaseProcessorId(proc);
+      if (!processorId) {
+        Alert.alert(
+          'Not available yet',
+          `Requests for ${proc.name} aren't open in the app yet. Try their phone or website from the listing.`,
+        );
+        return;
+      }
       await submitRequest(supabase, {
-        processor_id: proc.id,
+        processor_id: processorId,
         user_id: null,
         contact_name: name.trim(),
         contact_email: email.trim(),
