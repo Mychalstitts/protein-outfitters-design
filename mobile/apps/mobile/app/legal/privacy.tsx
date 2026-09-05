@@ -5,73 +5,106 @@ export default function PrivacyScreen() {
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.content}>
       <Text style={styles.h1}>Privacy Policy</Text>
-      <Text style={styles.dim}>Last updated: May 6, 2026</Text>
+      <Text style={styles.dim}>Effective date: September 5, 2026</Text>
+      <Text style={styles.dim}>
+        Operator: Stittsworth Meats, Bemidji, Minnesota · Brand: Protein Outfitters
+      </Text>
 
+      <H2>1. Scope</H2>
       <P>
-        This privacy policy describes how Protein Outfitters (“we,” “us”)
-        collects, uses, and shares information when you use our mobile and web
-        apps.
-      </P>
-
-      <H2>What we collect</H2>
-      <P>
-        <Bold>Account information.</Bold> If you create an account, we collect
-        your name, email address, and an authentication identifier from your
-        sign-in provider (Apple, Google, or email).
-      </P>
-      <P>
-        <Bold>Service requests.</Bold> When you submit a service request, we
-        collect the contact information you enter (name, email, phone, ZIP),
-        the animal type and service you’re requesting, your preferred date,
-        and any notes you write.
-      </P>
-      <P>
-        <Bold>Location.</Bold> With your permission, we use your device’s
-        coarse location to center the map near you and to sort processors by
-        distance. You can decline this — the app still works; browse the map
-        and search by name, city, or service. We don’t store your location on
-        our servers.
+        This Privacy Policy describes how Stittsworth Meats (“we,” “us,”
+        “Operator”), operating Protein Outfitters, collects, uses, and shares
+        information when you use our website, mobile app, and related services
+        (the “Service”).
       </P>
 
-      <H2>What we don’t do</H2>
+      <H2>2. What we collect</H2>
+      <P>
+        <Bold>Account info.</Bold> Email, name (optional), role, and any
+        address you save for pickup.
+      </P>
+      <P>
+        <Bold>Authentication.</Bold> Magic link and/or Sign in with Apple. We
+        do not store passwords.
+      </P>
+      <P>
+        <Bold>Reservation data.</Bold> Animals you reserve, share size,
+        drop-off and pickup details, and cut-sheet selections.
+      </P>
+      <P>
+        <Bold>Payment data.</Bold> Handled by Stripe. We never store full card
+        numbers (PAN).
+      </P>
+      <P>
+        <Bold>Producer / processor profile.</Bold> Farm or plant name,
+        location, certifications, schedule, capabilities, and public bio.
+      </P>
+      <P>
+        <Bold>Device and usage logs.</Bold> Standard server logs for security,
+        reliability, and abuse prevention.
+      </P>
+      <P>
+        <Bold>Maps and search.</Bold> Google Maps and Gemini power geocoding
+        and search. We do not run third-party advertising trackers.
+      </P>
+
+      <H2>3. Why we collect it</H2>
       <View style={{ gap: spacing.xs, marginTop: spacing.xs }}>
-        <Bullet>We don’t sell your personal information</Bullet>
-        <Bullet>We don’t track you across other apps or websites</Bullet>
-        <Bullet>We don’t share your information with advertisers</Bullet>
-        <Bullet>We don’t run third-party fingerprinting analytics</Bullet>
+        <Bullet>Operate the marketplace</Bullet>
+        <Bullet>USDA / state / equal-to recordkeeping</Bullet>
+        <Bullet>Reliability, fraud prevention, and law</Bullet>
       </View>
 
-      <H2>Sharing</H2>
+      <H2>4. Who can see your data</H2>
+      <View style={{ gap: spacing.xs, marginTop: spacing.xs }}>
+        <Bullet>You — from your account or on request</Bullet>
+        <Bullet>The producer and processor on that reservation</Bullet>
+        <Bullet>
+          Service providers: Stripe, Resend, Supabase, Vercel, Google Maps /
+          Gemini, Apple
+        </Bullet>
+        <Bullet>Government when required</Bullet>
+        <Bullet>We do not sell or rent data to advertisers</Bullet>
+      </View>
+
+      <H2>5. Cookies and localStorage</H2>
       <P>
-        When you submit a request to a processor, we share the contact info
-        you entered with that specific processor (or send it to them by email
-        if they haven’t claimed their listing yet). That’s the whole point of
-        the request.
+        Session and preferences only. No advertising cookies.
       </P>
 
-      <H2>Your choices</H2>
+      <H2>6. Public profiles</H2>
+      <P>
+        Producer and processor profiles are public. Buyer profiles are not.
+      </P>
+
+      <H2>7. Retention and deletion</H2>
+      <P>
+        Delete your account in-app with Delete my account, or email
+        hello@proteinoutfitters.com. We keep tax and regulatory records
+        typically up to 7 years.
+      </P>
+
+      <H2>8. Children</H2>
+      <P>
+        The Service is not directed at children under 13. You must be of legal
+        age to reserve (see Terms).
+      </P>
+
+      <H2>9. Your choices</H2>
       <View style={{ gap: spacing.xs, marginTop: spacing.xs }}>
+        <Bullet>Update your account information</Bullet>
+        <Bullet>Access, correct, or delete via the app or hello@</Bullet>
         <Bullet>
-          <Bold>Delete your account:</Bold> Account → Delete my account.
-          Permanent and immediate.
-        </Bullet>
-        <Bullet>
-          <Bold>Export your data:</Bold> email privacy@proteinoutfitters.com
-        </Bullet>
-        <Bullet>
-          <Bold>CCPA / GDPR:</Bold> contact us at privacy@proteinoutfitters.com
-          for additional rights.
+          Opt out of marketing email. Transactional messages are still sent.
         </Bullet>
       </View>
 
-      <H2>Children</H2>
-      <P>
-        The app is not directed to children under 13, and we don’t knowingly
-        collect their information.
-      </P>
+      <H2>10. Changes</H2>
+      <P>Material changes will be emailed and/or posted.</P>
 
-      <H2>Contact</H2>
-      <P>privacy@proteinoutfitters.com</P>
+      <H2>11. Contact</H2>
+      <P>hello@proteinoutfitters.com</P>
+      <P>Operator: Stittsworth Meats, Bemidji, Minnesota.</P>
 
       <View style={{ height: spacing.xxl }} />
     </ScrollView>

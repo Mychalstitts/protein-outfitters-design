@@ -1,55 +1,77 @@
 # Privacy Policy
 
-**Last updated: May 6, 2026**
+**Operator:** Stittsworth Meats, Bemidji, Minnesota  
+**Brand:** Protein Outfitters  
+**Effective date:** September 5, 2026
 
-This privacy policy describes how Protein Outfitters ("we," "us") collects, uses, and shares information when you use our mobile and web apps.
+This Privacy Policy describes how Stittsworth Meats (“we,” “us,” “Operator”), operating Protein Outfitters, collects, uses, and shares information when you use our website, mobile app, and related services (the “Service”).
 
-## What we collect
+## 1. Scope
 
-**Account information.** If you create an account, we collect your name, email address, and an authentication identifier from your sign-in provider (Apple, Google, or email).
+Stittsworth Meats privacy for the Protein Outfitters website, app, and Service.
 
-**Service requests.** When you submit a service request to a processor, we collect the contact information you enter (name, email, phone, ZIP), the animal type and service you're requesting, your preferred date, and any notes you write.
+## 2. What we collect
 
-**Location.** With your permission, we use your device's coarse location to center the map near you and to sort processors by distance. You can decline this — the app will work, you'll just need to search by ZIP. We don't store your location on our servers.
+**Account info.** Email, name (optional), role (buyer / producer / processor / institution), and any address you save for pickup.
 
-**Device and usage data.** Standard server logs (IP address, timestamps, user-agent) are kept for security and operational purposes for up to 30 days.
+**Authentication.** You sign in with a magic link sent to your email and/or Sign in with Apple. We do not store passwords.
 
-## What we do with it
+**Reservation data.** Which animals you reserve, the share size, drop-off and pickup details, and cut-sheet selections.
 
-- Show you processors near you on the map
-- Forward your service request to the processor you selected
-- Notify you when a processor responds to your request
-- Operate, debug, and improve the service
+**Payment data.** Handled by Stripe. We see payment status and limited card details such as the last four digits. We never store full primary account numbers (PAN).
 
-## What we don't do
+**Producer / processor profile data.** Farm or plant name, location, certifications, schedule, capabilities, and the public bio you write.
 
-- We don't sell your personal information
-- We don't track you across other apps or websites
-- We don't share your information with advertisers
-- We don't run third-party analytics that fingerprint you
+**Device and usage logs.** Standard server logs (IP, user agent, timestamp) for security, reliability, and abuse prevention.
 
-## Sharing
+**Maps and search.** Google Maps and Gemini power geocoding and search on the Service.
 
-When you submit a request to a processor, we share the contact information you entered with that specific processor (or send it to them by email if they haven't claimed their listing yet). That's the whole point of the request — we have to share it for the service to work.
+We do not run third-party advertising trackers.
 
-We use Supabase as our database and authentication provider. Their privacy policy is at supabase.com/privacy.
+## 3. Why we collect it
 
-## Your choices
+- To operate the marketplace
+- To keep USDA, state, and equal-to inspection recordkeeping
+- To keep the Service reliable
+- To prevent fraud and abuse
+- To comply with law
 
-- **Access or export your data:** email privacy@proteinoutfitters.com
-- **Delete your account:** open the app, go to Account, tap Delete my account. This permanently removes your profile and all associated requests. There is no recovery.
-- **Opt out of marketing email:** every email has an unsubscribe link
-- **California (CCPA) and EU (GDPR) residents:** you have additional rights to access, correct, delete, and port your data. Contact us at privacy@proteinoutfitters.com to exercise them.
+## 4. Who can see your data
 
-## Children
+- **You** — information we have on you is visible from your account or available on request.
+- **The producer and processor on that reservation** — they see what they need for that reservation.
+- **Service providers** — Stripe, Resend, Supabase, Vercel, Google Maps and Gemini, and Apple. Each receives only what they need to do their job.
+- **Government** when required.
 
-The app is not directed to children under 13, and we don't knowingly collect their information. If you believe a child has signed up, contact us and we'll delete the account.
+We do not sell or rent your data to advertisers.
 
-## Changes
+## 5. Cookies and localStorage
 
-If we make material changes to this policy we'll notify users in-app and by email at least 30 days before they take effect.
+We use a session cookie to keep you signed in and localStorage for preferences. We do not use advertising cookies.
 
-## Contact
+## 6. Public profiles
 
-Protein Outfitters
-privacy@proteinoutfitters.com
+Producer and processor profile pages are public. Buyer profiles are not public.
+
+## 7. Retention and deletion
+
+Delete your account in-app with **Delete my account**, or email hello@proteinoutfitters.com. We keep tax and regulatory records for the period the law requires — typically up to 7 years.
+
+## 8. Children
+
+The Service is not directed at children under 13. You must be of legal age to reserve (see Terms).
+
+## 9. Your choices
+
+- Update account information from your account settings.
+- Access, correct, or delete your information from the app or by emailing hello@proteinoutfitters.com.
+- Opt out of marketing email. We still send transactional messages about your account and reservations.
+
+## 10. Changes
+
+Material changes will be emailed to active accounts and/or posted on this page.
+
+## 11. Contact
+
+hello@proteinoutfitters.com  
+Operator: Stittsworth Meats, Bemidji, Minnesota.
