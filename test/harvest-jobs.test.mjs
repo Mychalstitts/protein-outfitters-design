@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'module';
+import * as J from '../deploy/lib/harvest-jobs.js';
 
 const require = createRequire(import.meta.url);
 const H = require('../deploy/lib/stittsworth-harvest.js');
-const J = require('../deploy/lib/harvest-jobs.js');
 
 test('Smokehouse slug is hardcoded — not a national desk', () => {
   assert.equal(J.PROCESSOR_SLUG, 'stittsworth-smokehouse');

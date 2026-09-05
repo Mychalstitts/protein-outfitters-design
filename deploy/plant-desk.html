@@ -136,12 +136,11 @@
 <script src="/po-shell.js"></script>
 <script src="/po-api.js"></script>
 <script src="/lib/stittsworth-harvest.js"></script>
-<script src="/lib/harvest-jobs.js"></script>
-<script>
+<script type="module">
+import * as J from '/lib/harvest-jobs.js';
 (function () {
   'use strict';
   const H = window.POStittsworth;
-  const J = window.POHarvestJobs;
   const money = (n) => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const $ = (id) => document.getElementById(id);
   const state = {
