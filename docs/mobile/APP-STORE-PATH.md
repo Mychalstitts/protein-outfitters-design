@@ -8,7 +8,7 @@
 |------|-----|
 | Apple Developer Program ($99/yr) | Required for TestFlight / App Store |
 | App Store Connect app record + Bundle ID | `com.proteinoutfitters.app` |
-| Fill `eas.json` → `submit.production.ios` | Replace `REPLACE_WITH_APPLE_ID`, `REPLACE_WITH_APP_STORE_CONNECT_APP_ID`, `REPLACE_WITH_APPLE_TEAM_ID` — **do not invent fake ASC IDs**; leave placeholders until the ASC app exists |
+| Fill `eas.json` → `submit.production.ios` | Done — `appleId` `mychalstitts@gmail.com`, `ascAppId` `6809018963`, `appleTeamId` `JD6HMNCKHQ` |
 | Play Console + service account JSON | Android submit (`play-store-service-account.json`, not committed) |
 | Hosted privacy + terms URLs | Reviewers expect https pages (in-app legal also ships) |
 | Device QA | Sign-in, claim, delete-account, airplane-mode map, processor request on real hardware |
@@ -20,7 +20,7 @@
 - ✅ EAS project id in `app.json` / updates URL
 - ✅ Icon / splash / adaptive PNGs under `mobile/apps/mobile/assets/` (regenerate via `cd mobile && npm run build:icons` after `npm i -D sharp`)
 - ✅ Icons script: `mobile/scripts/build-icons.mjs` (`npm run build:icons` in `mobile/`)
-- ✅ `eas.json` submit placeholders for iOS + Android track (no fake ASC values)
+- ✅ `eas.json` iOS submit IDs filled (`appleId` / `ascAppId` / `appleTeamId`); Android still uses the service-account path placeholder
 - ✅ Account deletion in-app → `POST /api/account-delete`
 - ✅ Sign in with Apple → `POST /api/auth/apple` (Neon session); Expo entitlement via `ios.usesAppleSignIn` + `expo-apple-authentication` plugin
 - ✅ Magic link → Neon + SecureStore Bearer (`proteinoutfitters://auth/callback`)
@@ -35,7 +35,7 @@ In-app + Expo config are done. Before a device/TestFlight build that uses SIWA:
 1. Apple Developer → Identifiers → App ID `com.proteinoutfitters.app` → enable **Sign in with Apple**.
 2. EAS credentials / provisioning profile must include the Sign in with Apple entitlement (Expo sets this when `ios.usesAppleSignIn` is true and the capability is on the App ID).
 3. Native audience is the **Bundle ID** (not a Services ID). Web magic-link remains separate (`/api/auth/*`).
-4. Do **not** put fabricated Team / ASC IDs into `eas.json` — only real values from App Store Connect after the app record exists.
+4. `eas.json` `submit.production.ios` now has the real ASC values (`appleId` `mychalstitts@gmail.com`, `ascAppId` `6809018963`, `appleTeamId` `JD6HMNCKHQ`). Do not invent replacements.
 
 ## Deep links / associated domains
 
