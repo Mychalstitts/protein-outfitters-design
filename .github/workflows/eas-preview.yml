@@ -35,47 +35,40 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
         working-directory: mobile
-      - name: View builds
+      - name: Fetch iOS install-pods log
         working-directory: mobile/apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_NO_TELEMETRY: 1
         run: |
           set -euo pipefail
-          for id in 6b083cb9-ba19-4555-b6ba-486c5736a034 30eb0ce5-8c60-4005-a776-b2774d9a0303; do
-            echo "=== $id ==="
-            eas build:view "$id" --json | python3 -c '
-          import json,sys,urllib.request
-          raw=sys.stdin.read()
-          i=raw.find("{")
-          d=json.loads(raw[i:])
-          err=d.get("error") or {}
-          arts=d.get("artifacts") or {}
-          out={
-            "id": d.get("id"),
-            "status": d.get("status"),
-            "platform": d.get("platform"),
-            "buildProfile": d.get("buildProfile"),
-            "distribution": d.get("distribution"),
-            "isForIosSimulator": d.get("isForIosSimulator"),
-            "appIdentifier": d.get("appIdentifier"),
-            "errorCode": err.get("errorCode") if isinstance(err, dict) else None,
-            "errorMessage": err.get("message") if isinstance(err, dict) else err,
-            "errorPhase": err.get("buildPhase") if isinstance(err, dict) else None,
-            "message": d.get("message"),
-            "buildUrl": arts.get("buildUrl") if isinstance(arts, dict) else None,
-            "applicationArchiveUrl": arts.get("applicationArchiveUrl") if isinstance(arts, dict) else None,
-            "completedAt": d.get("completedAt"),
-          }
-          print(json.dumps(out, indent=2))
+          ID=6b083cb9-ba19-4555-b6ba-486c5736a034
+          eas build:view "$ID" --json > /tmp/ios-build.json
+          python3 <<'PY'
+          import json, urllib.request, re
+          raw=open("/tmp/ios-build.json").read()
+          d=json.loads(raw[raw.find("{"):])
+          print("status", d.get("status"))
+          print("error", d.get("error"))
           urls=d.get("logFileUrls") or []
-          if urls and d.get("status")=="ERRORED":
+          print("logFileUrls count", len(urls))
+          for i,u in enumerate(urls):
+            print(f"URL[{i}]", u[:120], "...")
             try:
-              with urllib.request.urlopen(urls[0], timeout=60) as r:
-                lines=r.read().decode("utf-8","replace").splitlines()
-              print("--- log tail ---")
-              print("\n".join(lines[-100:]))
+              with urllib.request.urlopen(u, timeout=90) as r:
+                text=r.read().decode("utf-8","replace")
             except Exception as e:
-              print("log fetch failed:", type(e).__name__, str(e)[:200])
-          '
-          done
+              print("fetch fail", type(e).__name__, e)
+              continue
+            open(f"/tmp/log-{i}.txt","w").write(text)
+            # Find Install pods / error sections
+            lines=text.splitlines()
+            print(f"log[{i}] lines={len(lines)} bytes={len(text)}")
+            # Print lines mentioning error/fail/pod
+            hits=[ln for ln in lines if re.search(r"error|Error|FAILED| cocopod|pod install|CocoaPods|Unable|conflict", ln)]
+            print("--- matching lines (up to 80) ---")
+            for ln in hits[-80:]:
+              print(ln)
+            print("--- last 60 lines ---")
+            print("\n".join(lines[-60:]))
+          PY
