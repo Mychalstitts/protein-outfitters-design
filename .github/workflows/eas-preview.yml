@@ -12,11 +12,11 @@ name: EAS preview
 
 on:
   pull_request:
-    types: [labeled]
+    types: [labeled, synchronize]
 
 jobs:
   # Temporary: skip enqueueing new builds while we diagnose remote ERRORED iOS.
-  # Re-enable after eas.json fix lands (set if back to label check only).
+  # Re-enable after eas.json fix lands.
   build:
     if: false
     name: Build preview for ${{ matrix.platform }}
@@ -41,7 +41,9 @@ jobs:
         working-directory: mobile/apps/mobile
 
   status:
-    if: github.event.label.name == 'mobile-build'
+    if: >-
+      github.event.label.name == 'mobile-build' ||
+      (github.event.action == 'synchronize' && contains(join(github.event.pull_request.labels.*.name, ','), 'mobile-build'))
     name: Recent EAS build status
     runs-on: ubuntu-latest
     steps:
