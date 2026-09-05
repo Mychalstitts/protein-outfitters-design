@@ -17,15 +17,14 @@ Thank you for reviewing Protein Outfitters.
 
 **What the app does:** Protein Outfitters is a directory and request platform for meat processors in the United States. Consumers browse a map of processors, see services and contact info, and submit a service request. The processor receives the request by email and responds directly to the consumer.
 
-**Sign-in required.** Submitting a service request and account features require Sign in with Apple (or the demo account below). There is **no guest request** path — please do not expect to send a request while signed out.
+**Sign-in required for claim and request.** Claiming a plant or submitting a service request requires Sign in with Apple (or the demo account below). There is **no guest claim/request** path — do not expect those while signed out. Map browse may still work signed out.
 
 **How to review:**
-
 1. Sign in with Apple, or use the demo account below
 2. Browse the map
 3. Search by name, city, or service
 4. Open a processor detail screen
-5. Submit a service request while signed in
+5. Claim a plant or submit a service request while signed in
 
 After signing in, the user can track requests and delete their account from the Account screen (in-app — guideline 5.1.1(v)).
 
