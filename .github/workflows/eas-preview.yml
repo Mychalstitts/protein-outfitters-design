@@ -8,11 +8,7 @@ on:
 jobs:
   build:
     if: false
-    name: Build preview for ${{ matrix.platform }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [ios, android]
     steps:
       - run: 'true'
 
@@ -35,7 +31,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
         working-directory: mobile
-      - name: Fetch iOS install-pods log
+      - name: Dump full build JSON keys + phase logs
         working-directory: mobile/apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -45,30 +41,21 @@ jobs:
           ID=6b083cb9-ba19-4555-b6ba-486c5736a034
           eas build:view "$ID" --json > /tmp/ios-build.json
           python3 <<'PY'
-          import json, urllib.request, re
+          import json
           raw=open("/tmp/ios-build.json").read()
           d=json.loads(raw[raw.find("{"):])
-          print("status", d.get("status"))
-          print("error", d.get("error"))
-          urls=d.get("logFileUrls") or []
-          print("logFileUrls count", len(urls))
-          for i,u in enumerate(urls):
-            print(f"URL[{i}]", u[:120], "...")
-            try:
-              with urllib.request.urlopen(u, timeout=90) as r:
-                text=r.read().decode("utf-8","replace")
-            except Exception as e:
-              print("fetch fail", type(e).__name__, e)
-              continue
-            open(f"/tmp/log-{i}.txt","w").write(text)
-            # Find Install pods / error sections
-            lines=text.splitlines()
-            print(f"log[{i}] lines={len(lines)} bytes={len(text)}")
-            # Print lines mentioning error/fail/pod
-            hits=[ln for ln in lines if re.search(r"error|Error|FAILED| cocopod|pod install|CocoaPods|Unable|conflict", ln)]
-            print("--- matching lines (up to 80) ---")
-            for ln in hits[-80:]:
-              print(ln)
-            print("--- last 60 lines ---")
-            print("\n".join(lines[-60:]))
+          print("TOP_KEYS", sorted(d.keys()))
+          # Print compact summary of all non-huge fields
+          for k,v in sorted(d.items()):
+            s=json.dumps(v, default=str)
+            if len(s)>500:
+              print(f"{k}: <len {len(s)}> sample={s[:400]}")
+            else:
+              print(f"{k}: {s}")
           PY
+          # Try eas CLI for logs if available
+          eas build:view "$ID" 2>&1 | head -80 || true
+          # Common artifact log endpoint patterns via expo API used by CLI
+          # npx may expose: eas build:inspect
+          eas build --help 2>&1 | head -5 || true
+          (eas build:view --help 2>&1 || true) | head -40
