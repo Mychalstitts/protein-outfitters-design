@@ -19,6 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/theme.css">
 <link rel="stylesheet" href="/po-shell.css">
+<link rel="stylesheet" href="/stittsworth-harvest.css">
 <style>
 .wiz-shell { padding: clamp(48px, 6vw, 88px) var(--shell-pad) clamp(64px, 8vw, 120px); min-height: calc(100vh - 80px); display: flex; align-items: flex-start; justify-content: center; }
 .wiz { width: 100%; max-width: 720px; }
@@ -226,13 +227,104 @@
 <div class="po-nav-wrap">
   <nav class="po-nav">
     <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
-    <div class="po-nav-links"><a href="/farmer">My ranch</a><a href="/list-animal" class="active">List animal</a><a href="/map">Book a plant</a><a href="/credentials">Credentials</a><a href="/finance">Finance</a></div>
+    <div class="po-nav-links"><a href="/farmer">My ranch</a><a href="/list-animal" class="active">List animal</a><a href="/harvest">Book trailer</a><a href="/map">Book a plant</a><a href="/credentials">Credentials</a></div>
     <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
   </nav>
 </div>
 
 <section class="wiz-shell">
-  <div class="wiz" id="wiz">
+  <div class="wiz" id="wiz" style="max-width:980px;">
+    <div class="po-mode-tabs" id="listModeTabs">
+      <a href="/list-animal" id="tabWizard">Guided wizard</a>
+      <a href="/list-animal?mode=pound" id="tabPound">List by the pound</a>
+    </div>
+
+    <div id="poundRoot" hidden>
+      <p class="lb-kicker">Bemidji · Stittsworth Smokehouse</p>
+      <h1 class="lb-title">List by the pound.</h1>
+      <p class="lb-lead">You set the hanging price. Households buy whole, two sides, or four quarters. We take 10% when a share sells. Processing (cut &amp; wrap) is a separate plant charge. Stittsworth Smokehouse brings the trailer on your compass week.</p>
+
+      <div class="lb-metrics">
+        <div class="lb-metric"><p class="lab">You keep</p><p class="val" id="lbKeep">$0.00</p><p class="sub">No shares sold yet</p></div>
+        <div class="lb-metric"><p class="lab">Gross</p><p class="val" id="lbGross">$0.00</p><p class="sub">Paid by households</p></div>
+        <div class="lb-metric"><p class="lab" id="lbFeeLab">Fee 10%</p><p class="val" id="lbFee">$0.00</p><p class="sub">Taken on the animal sale</p></div>
+        <div class="lb-metric"><p class="lab">On the book</p><p class="val" id="lbBook">0</p><p class="sub">Publish below</p></div>
+      </div>
+
+      <div class="lb-chips">
+        <div class="lb-field" style="margin:0;">
+          <label for="lbFarm">Farm name</label>
+          <input id="lbFarm" type="text" placeholder="Your farm" />
+        </div>
+        <div class="lb-field" style="margin:0;">
+          <label for="lbTown">Town</label>
+          <select id="lbTown"></select>
+        </div>
+        <div class="lb-chip"><p class="lab">Compass</p><p class="val" id="lbCompass">North</p><p class="sub" id="lbCompassSub">—</p></div>
+        <div class="lb-chip"><p class="lab">Next trailer week</p><p class="val" id="lbNext">—</p><p class="sub" id="lbNextSub">Leftover harvest slots on this town’s compass</p></div>
+        <div class="lb-chip"><p class="lab">Kill</p><p class="val" id="lbKill">$0.00</p><p class="sub" id="lbKillSub">Due before trailer leaves</p></div>
+        <div class="lb-chip"><p class="lab">Trip</p><p class="val" id="lbTrip">$0.00</p><p class="sub" id="lbTripSub">One-way from Turtle River</p></div>
+      </div>
+
+      <div class="lb-card">
+        <div class="lb-field">
+          <label for="lbTitle">Listing title</label>
+          <input id="lbTitle" type="text" value="Finished Angus steer" />
+        </div>
+        <div class="lb-field">
+          <label>Species</label>
+          <div class="lb-pills">
+            <button type="button" class="lb-pill" data-species="beef">Beef</button>
+            <button type="button" class="lb-pill" data-species="hog">Hog</button>
+            <button type="button" class="lb-pill" data-species="lamb">Lamb</button>
+            <button type="button" class="lb-pill" data-species="goat">Goat</button>
+            <button type="button" class="lb-pill" data-species="bison">Bison</button>
+          </div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-field">
+            <label for="lbPerLb">$ / lb hanging</label>
+            <input id="lbPerLb" type="number" step="0.05" min="0" />
+            <span class="help" id="lbLockHelp" hidden></span>
+          </div>
+          <div class="lb-field">
+            <label for="lbHangLb">Est. hanging lb</label>
+            <input id="lbHangLb" type="number" min="1" />
+          </div>
+        </div>
+        <div class="lb-totals">
+          <div class="lb-total"><p class="lab">Whole</p><p class="val" id="lbWhole">$0.00</p><p class="sub" id="lbWholeSub"></p></div>
+          <div class="lb-total"><p class="lab">Side (½)</p><p class="val" id="lbSide">$0.00</p><p class="sub">Hanging ÷ 2</p></div>
+          <div class="lb-total"><p class="lab">Quarter</p><p class="val" id="lbQuarter">$0.00</p><p class="sub">Hanging ÷ 4</p></div>
+          <div class="lb-total"><p class="lab">Kill + trip</p><p class="val" id="lbKillTrip">$0.00</p><p class="sub">Due before the trailer leaves Turtle River</p></div>
+        </div>
+        <p class="help" id="lbWrapHint" style="margin:-4px 0 16px;"></p>
+        <div class="lb-field">
+          <label>Share option toggles</label>
+          <div class="lb-pills">
+            <button type="button" class="lb-pill" data-share="whole">Whole</button>
+            <button type="button" class="lb-pill" data-share="half">Side (½)</button>
+            <button type="button" class="lb-pill" data-share="quarter">Quarter</button>
+          </div>
+        </div>
+        <div class="lb-field">
+          <label for="lbNotes">Notes</label>
+          <textarea id="lbNotes" placeholder="Pasture notes for households"></textarea>
+        </div>
+        <button type="button" class="lb-cta" id="lbPublish">Save listing</button>
+        <p class="lb-status" id="lbPublishStatus"></p>
+        <a id="lbListingLink" hidden href="/farmer" class="lb-status" style="display:inline-block;font-weight:700;color:var(--accent-2);">View listing →</a>
+      </div>
+
+      <div class="lb-nav">
+        <a class="lb-pill" href="/finance">Payouts</a>
+        <button type="button" class="lb-pill" id="lbBookTrailer" aria-pressed="true">Book the trailer</button>
+      </div>
+      <p class="lb-status">Nothing of yours on the market yet. Save a listing above, then book a trailer day. Listing harvest stays a range (earliest → 30 months) — never a single invented date.</p>
+      <p class="lb-legal">Custom-exempt: you buy a live share for household use. Stittsworth Smokehouse harvests on the farm, then finishes at Turtle River. Not for resale. Protein Outfitters is the marketplace — Bemidji first, more processors later.</p>
+    </div>
+
+    <div id="wizRoot">
     <div class="wiz-progress" aria-hidden="true">
       <span class="dot active" data-d="1"></span>
       <span class="dot" data-d="2"></span>
@@ -558,15 +650,32 @@
       <button class="wiz-back" id="wizBack" disabled>← Back</button>
       <button class="wiz-next" id="wizNext">Continue →</button>
     </footer>
+    </div>
   </div>
 </section>
 
 <div id="po-shell-host"></div>
 <script src="/po-shell.js"></script>
 <script src="/po-api.js"></script>
+<script src="/lib/harvest-label.js"></script>
+<script src="/lib/stittsworth-harvest.js"></script>
 <script>
 (function () {
   'use strict';
+  const poundMode = new URLSearchParams(location.search).get('mode') === 'pound';
+  const tabW = document.getElementById('tabWizard');
+  const tabP = document.getElementById('tabPound');
+  const wizRoot = document.getElementById('wizRoot');
+  const poundRoot = document.getElementById('poundRoot');
+  if (tabW) tabW.classList.toggle('active', !poundMode);
+  if (tabP) tabP.classList.toggle('active', poundMode);
+  if (poundMode) {
+    if (wizRoot) wizRoot.hidden = true;
+    if (poundRoot) poundRoot.hidden = false;
+    return;
+  }
+  if (poundRoot) poundRoot.hidden = true;
+
 
   // ============ STATE ============
   const S = {
@@ -1060,8 +1169,8 @@
     let target = (TARGET_WEIGHT[sp] && TARGET_WEIGHT[sp][S.sex]) || 1180;
     target = Math.round(target * (BREED_WEIGHT_MULT[S.breed] || 1.0));
 
-    const birth = BIRTH_WEIGHT[sp] || 80;
-    const days = Math.round((target - birth) / Math.max(0.05, adg));
+    const birthWeight = BIRTH_WEIGHT[sp] || 80;
+    const days = Math.round((target - birthWeight) / Math.max(0.05, adg));
     const months = (days / 30.44).toFixed(1);
 
     S.liveWeight = target;
@@ -1091,10 +1200,10 @@
     S.afterThirtyMonths = false;
     S.boneInAllowed = true;
     S.otmPricePending = false;
-    const birth = parseISO(S.birthDate);
-    if (birth) {
-      const earliest = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate() + days);
-      const latest = addMonths(birth, 30);
+    const birthDate = parseISO(S.birthDate);
+    if (birthDate) {
+      const earliest = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate() + days);
+      const latest = addMonths(birthDate, 30);
       S.harvestEarliest = earliest;
       S.harvestLatest = latest;
       S.harvestIso = isoLocal(earliest);
@@ -1252,8 +1361,8 @@
     const breedMult = adgT.byBreed[S.breed] || 1.0;
     const adg = +(feedADG * sexMult * breedMult).toFixed(2);
     const t = target(S);
-    const birth = BIRTH_WEIGHT[S.species] || 80;
-    const days = Math.round((t - birth) / Math.max(0.05, adg));
+    const birthWeight = BIRTH_WEIGHT[S.species] || 80;
+    const days = Math.round((t - birthWeight) / Math.max(0.05, adg));
     const take = Math.round(t * 0.37);
     let h = 'soon';
     if (S.birthDate) {
@@ -1296,5 +1405,6 @@
   recompute();
 })();
 </script>
+<script src="/lib/list-by-pound.js"></script>
 </body>
 </html>

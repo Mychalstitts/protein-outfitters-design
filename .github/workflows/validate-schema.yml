@@ -35,6 +35,8 @@ jobs:
           node-version: '20'
       - name: Lint (parse-check every JS file + duplicate-decl scan)
         run: npm run lint
+      - name: Unit tests (harvest label + Stittsworth fees/compass)
+        run: npm run test:unit
 
   test-auth:
     runs-on: ubuntu-latest
