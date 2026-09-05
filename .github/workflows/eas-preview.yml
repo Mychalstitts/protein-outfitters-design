@@ -31,68 +31,48 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
         working-directory: mobile
-      - name: Detect log compression + extract text
+      - name: Brotli-decode EAS iOS logs
         working-directory: mobile/apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_NO_TELEMETRY: 1
         run: |
           set -euo pipefail
+          pip install --quiet brotli
           ID=6b083cb9-ba19-4555-b6ba-486c5736a034
           eas build:view "$ID" --json > /tmp/ios-build.json
           python3 <<'PY'
-          import json, urllib.request, gzip, zlib
+          import json, urllib.request, brotli
           raw=open("/tmp/ios-build.json").read()
           d=json.loads(raw[raw.find("{"):])
-          urls=d.get("logFiles") or []
-          u=urls[0]
-          with urllib.request.urlopen(u, timeout=90) as r:
+          print("error", d.get("error"))
+          u=(d.get("logFiles") or [])[0]
+          req=urllib.request.Request(u, headers={"Accept-Encoding": "identity"})
+          with urllib.request.urlopen(req, timeout=90) as r:
             data=r.read()
-            ctype=r.headers.get("Content-Type")
-            cenc=r.headers.get("Content-Encoding")
-          print("bytes", len(data), "ctype", ctype, "cenc", cenc)
-          print("magic", data[:16].hex())
-          candidates=[]
-          candidates.append(("raw", data))
-          try:
-            candidates.append(("gzip", gzip.decompress(data)))
-          except Exception as e:
-            print("gzip fail", e)
-          try:
-            candidates.append(("zlib", zlib.decompress(data)))
-          except Exception as e:
-            print("zlib fail", e)
-          for w in (16+zlib.MAX_WBITS, -zlib.MAX_WBITS, zlib.MAX_WBITS):
-            try:
-              candidates.append((f"zlib{w}", zlib.decompress(data, w)))
-            except Exception:
-              pass
-          try:
-            import zstandard as zstd
-            candidates.append(("zstd", zstd.ZstdDecompressor().decompress(data)))
-          except Exception as e:
-            print("zstd skip", type(e).__name__)
-          try:
-            import brotli
-            candidates.append(("brotli", brotli.decompress(data)))
-          except Exception as e:
-            print("brotli skip", type(e).__name__)
-
-          for name, blob in candidates:
-            sample=blob[:5000]
+            print("ctype", r.headers.get("Content-Type"), "cenc", r.headers.get("Content-Encoding"), "bytes", len(data), "magic", data[:8].hex())
+          # Try brotli always; also try raw if already text
+          for name, blob in [("raw", data), ("brotli", None)]:
+            if name=="brotli":
+              try:
+                blob=brotli.decompress(data)
+              except Exception as e:
+                print("brotli fail", e)
+                continue
+            sample=blob[:4000]
             printable=sum(32 <= b < 127 or b in (9,10,13) for b in sample)/max(1,len(sample))
-            print(f"candidate {name}: len={len(blob)} printable={printable:.2f}")
-            if printable > 0.7:
-              text=blob.decode("utf-8","replace")
-              lines=text.splitlines()
-              print(f"--- {name} hits ---")
-              for ln in lines:
-                low=ln.lower()
-                if any(k in low for k in ("error","fail","pod","install pods","cocoapods","enoent","conflict","fatal","new architecture","unable")):
-                  print(ln)
-              print(f"--- {name} last 80 ---")
-              print("\n".join(lines[-80:]))
-              break
-          else:
-            print("NO printable candidate")
+            print(f"{name}: len={len(blob)} printable={printable:.2f}")
+            if printable < 0.65:
+              continue
+            text=blob.decode("utf-8","replace")
+            open("/tmp/ios-log.txt","w").write(text)
+            lines=text.splitlines()
+            print("--- hits ---")
+            for ln in lines:
+              low=ln.lower()
+              if any(k in low for k in ("error","fail","pod","install pods","cocoapods","enoent","conflict","fatal","new architecture","unable","warning:","specs")):
+                print(ln)
+            print("--- last 120 ---")
+            print("\n".join(lines[-120:]))
+            break
           PY
