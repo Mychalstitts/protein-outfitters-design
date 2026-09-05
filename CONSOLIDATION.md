@@ -97,7 +97,7 @@ Homepage hub, route/host redirects, processor profiles, map upgrade, compare pag
    - GitHub Actions: same name on this repo (`eas-preview.yml`). Cursor secrets do **not** feed Actions.
    - Optional later: EAS secrets for Maps / Supabase public keys.
 2. **Trigger preview** — label a PR `mobile-build`, or run `eas build --profile preview --non-interactive` from `mobile/apps/mobile`.
-3. **Mobile → Vercel/Neon API swap** — docs PR #30 / [docs/mobile/API-SWAP.md](./docs/mobile/API-SWAP.md) when merged.
+3. **Mobile → Vercel/Neon API swap** — map of call sites in docs PR #30 (`docs/mobile/API-SWAP.md` once merged). Do not keep long-term mobile traffic on Supabase once reads/auth are bridged.
 4. **Vercel dashboard** — delete paused stray projects when ready; confirm Ignored Build Step.
 5. **Archive** `protein-outfitters-app` after first successful EAS preview from this repo; remove its EAS workflows first.
 6. **Saved favorites** — wire `/account` to persisted follows.
