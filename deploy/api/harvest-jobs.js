@@ -1,4 +1,4 @@
-// /api/harvest-jobs — Stittsworth Smokehouse trailer calendar (Phase A1).
+// /api/harvest-jobs — Stittsworth Smokehouse trailer calendar (Phase A2).
 //
 // Shared jobs for online farm requests (source=app from /harvest) and
 // phone call-ins Jeff adds on /plant-desk (source=phone).
@@ -14,9 +14,12 @@
 //              source=app|phone, phone?, notes?, listing_id?
 //     source=app   → any signed-in user (farmer request)
 //     source=phone → processor/admin only
+//     New jobs always start pay_status=unpaid
 //   PATCH ?id=  body: farm_name?, town?, species?, heads?, share_kind?,
-//                     trailer_day?, phone?, notes?, status?
+//                     trailer_day?, phone?, notes?, status?, pay_status?,
+//                     paid_note?
 //     status: requested | confirmed | capacity_used | cancelled
+//     pay_status: unpaid | cash | app  (flag only — does not charge a card)
 //     processor/admin only
 //
 // Kill + trip are computed server-side from deploy/lib/stittsworth-harvest.js.
@@ -44,6 +47,10 @@ const CREATE_TABLE = `
     kill_due NUMERIC(10,2) NOT NULL DEFAULT 0,
     trip_due NUMERIC(10,2) NOT NULL DEFAULT 0,
     total_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+    pay_status TEXT NOT NULL DEFAULT 'unpaid'
+      CHECK (pay_status IN ('unpaid','cash','app')),
+    paid_at TIMESTAMPTZ,
+    paid_note TEXT,
     phone TEXT,
     notes TEXT,
     listing_id UUID REFERENCES listings(id) ON DELETE SET NULL,
@@ -52,12 +59,31 @@ const CREATE_TABLE = `
     updated_at TIMESTAMPTZ DEFAULT NOW()
   )`;
 
+const ALTER_PAY_COLUMNS = [
+  `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS pay_status TEXT NOT NULL DEFAULT 'unpaid'`,
+  `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ`,
+  `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS paid_note TEXT`,
+  `DO $$ BEGIN
+     IF NOT EXISTS (
+       SELECT 1 FROM pg_constraint WHERE conname = 'harvest_jobs_pay_status_check'
+     ) THEN
+       ALTER TABLE harvest_jobs ADD CONSTRAINT harvest_jobs_pay_status_check
+         CHECK (pay_status IN ('unpaid','cash','app'));
+     END IF;
+   END $$`,
+];
+
 let schemaReady = false;
 async function ensureSchema() {
   if (schemaReady) return;
   await rawQuery(CREATE_TABLE);
   await rawQuery(`CREATE INDEX IF NOT EXISTS harvest_jobs_day_idx ON harvest_jobs(processor_slug, trailer_day)`);
   await rawQuery(`CREATE INDEX IF NOT EXISTS harvest_jobs_status_idx ON harvest_jobs(status)`);
+  // Live A1 tables have no pay_status yet — ALTER first, then index.
+  for (const stmt of ALTER_PAY_COLUMNS) {
+    await rawQuery(stmt);
+  }
+  await rawQuery(`CREATE INDEX IF NOT EXISTS harvest_jobs_pay_idx ON harvest_jobs(pay_status)`);
   schemaReady = true;
 }
 
@@ -116,7 +142,7 @@ async function handler(req) {
     }
     const user = await currentUser(req);
     if (!Jobs.isPlantStaff(user)) return err(401, 'Sign in as Smokehouse staff to see the trailer list');
-    return json({ ...cap, from, to, jobs });
+    return json({ ...cap, from, to, jobs, pay_totals: Jobs.payTotals(jobs) });
   }
 
   if (req.method === 'POST') {
@@ -134,7 +160,7 @@ async function handler(req) {
     const windowFrom = isoParam(body && (body.trailer_day || body.date)) || from;
     const windowTo = isoParam(body && (body.trailer_day || body.date)) || to;
     const existing = await loadJobs(windowFrom, windowTo);
-    const checked = Jobs.validateJobInput(Object.assign({}, body, { source }), {
+    const checked = Jobs.validateJobInput(Object.assign({}, body, { source, pay_status: 'unpaid' }), {
       existingJobs: existing,
       now: new Date(),
     });
@@ -145,14 +171,16 @@ async function handler(req) {
       INSERT INTO harvest_jobs (
         processor_slug, farm_name, town, species, heads, share_kind,
         trailer_day, source, status, kill_due, trip_due, total_due,
+        pay_status, paid_at, paid_note,
         phone, notes, listing_id, created_by
       ) VALUES (
         ${Jobs.PROCESSOR_SLUG}, ${j.farm_name}, ${j.town}, ${j.species}, ${j.heads}, ${j.share_kind},
         ${j.trailer_day}::date, ${j.source}, ${j.status}, ${j.kill_due}, ${j.trip_due}, ${j.total_due},
+        ${'unpaid'}, ${null}, ${null},
         ${j.phone}, ${j.notes}, ${j.listing_id}, ${user.id}
       )
       RETURNING *`;
-    return json({ job: Jobs.publicJob(rows[0]), checkout_touched: false, listing_123_published: false }, { status: 201 });
+    return json({ job: Jobs.publicJob(rows[0]), checkout_touched: false, listing_123_published: false, charged: false }, { status: 201 });
   }
 
   if (req.method === 'PATCH') {
@@ -171,6 +199,10 @@ async function handler(req) {
     const row = current[0];
     if (!row) return err(404, 'Job not found');
 
+    if (body.pay_status != null && body.pay_status !== '' && !Jobs.isKnownPayStatus(body.pay_status)) {
+      return err(400, 'pay_status must be unpaid, cash, or app');
+    }
+
     const merged = {
       farm_name: body.farm_name != null ? body.farm_name : row.farm_name,
       town: body.town != null ? body.town : row.town,
@@ -180,6 +212,9 @@ async function handler(req) {
       trailer_day: body.trailer_day != null ? body.trailer_day : row.trailer_day,
       source: row.source,
       status: body.status != null ? body.status : row.status,
+      pay_status: body.pay_status != null ? body.pay_status : (row.pay_status || 'unpaid'),
+      paid_at: row.paid_at,
+      paid_note: body.paid_note !== undefined ? body.paid_note : row.paid_note,
       phone: body.phone !== undefined ? body.phone : row.phone,
       notes: body.notes !== undefined ? body.notes : row.notes,
       listing_id: row.listing_id,
@@ -195,6 +230,10 @@ async function handler(req) {
     if (!checked.ok) return err(400, checked.errors[0], { errors: checked.errors });
 
     const j = checked.job;
+    const stamp = Jobs.payStamp(j.pay_status, row);
+    const paidNote = body.paid_note !== undefined
+      ? (String(body.paid_note || '').trim().slice(0, 200) || null)
+      : (row.paid_note || null);
     const updated = await sql`
       UPDATE harvest_jobs SET
         farm_name = ${j.farm_name},
@@ -207,12 +246,15 @@ async function handler(req) {
         kill_due = ${j.kill_due},
         trip_due = ${j.trip_due},
         total_due = ${j.total_due},
+        pay_status = ${stamp.pay_status},
+        paid_at = ${stamp.paid_at},
+        paid_note = ${paidNote},
         phone = ${j.phone},
         notes = ${j.notes},
         updated_at = NOW()
       WHERE id = ${id} AND processor_slug = ${Jobs.PROCESSOR_SLUG}
       RETURNING *`;
-    return json({ job: Jobs.publicJob(updated[0]), checkout_touched: false });
+    return json({ job: Jobs.publicJob(updated[0]), checkout_touched: false, charged: false });
   }
 
   return err(405, 'Method not allowed');
