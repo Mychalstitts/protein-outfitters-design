@@ -673,8 +673,7 @@ const SCHEMA_STATEMENTS = [
    )`,
   `CREATE INDEX IF NOT EXISTS harvest_jobs_day_idx ON harvest_jobs(processor_slug, trailer_day)`,
   `CREATE INDEX IF NOT EXISTS harvest_jobs_status_idx ON harvest_jobs(status)`,
-  `CREATE INDEX IF NOT EXISTS harvest_jobs_pay_idx ON harvest_jobs(pay_status)`,
-  // A1 tables already exist without pay columns — add them if missing.
+  // Live A1 tables have no pay columns — ALTER first, then index.
   `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS pay_status TEXT NOT NULL DEFAULT 'unpaid'`,
   `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ`,
   `ALTER TABLE harvest_jobs ADD COLUMN IF NOT EXISTS paid_note TEXT`,
@@ -686,6 +685,7 @@ const SCHEMA_STATEMENTS = [
          CHECK (pay_status IN ('unpaid','cash','app'));
      END IF;
    END $$`,
+  `CREATE INDEX IF NOT EXISTS harvest_jobs_pay_idx ON harvest_jobs(pay_status)`,
 
   // credentials.html has always PATCHed these; the column never existed, so
   // every uploaded inspection document was silently discarded.

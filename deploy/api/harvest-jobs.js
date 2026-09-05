@@ -79,10 +79,11 @@ async function ensureSchema() {
   await rawQuery(CREATE_TABLE);
   await rawQuery(`CREATE INDEX IF NOT EXISTS harvest_jobs_day_idx ON harvest_jobs(processor_slug, trailer_day)`);
   await rawQuery(`CREATE INDEX IF NOT EXISTS harvest_jobs_status_idx ON harvest_jobs(status)`);
-  await rawQuery(`CREATE INDEX IF NOT EXISTS harvest_jobs_pay_idx ON harvest_jobs(pay_status)`);
+  // Live A1 tables have no pay_status yet — ALTER first, then index.
   for (const stmt of ALTER_PAY_COLUMNS) {
     await rawQuery(stmt);
   }
+  await rawQuery(`CREATE INDEX IF NOT EXISTS harvest_jobs_pay_idx ON harvest_jobs(pay_status)`);
   schemaReady = true;
 }
 

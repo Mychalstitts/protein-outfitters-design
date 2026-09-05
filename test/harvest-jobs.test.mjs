@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import * as HarvestNS from '../deploy/lib/stittsworth-harvest.js';
 import * as J from '../deploy/lib/harvest-jobs.js';
 
@@ -243,4 +244,20 @@ test('cancelled jobs do not consume leftover harvest', () => {
     existingJobs: [{ id: 'z', trailer_day: '2026-09-22', heads: 4, status: 'cancelled' }],
   });
   assert.equal(checked.ok, true);
+});
+
+test('pay index is created after pay_status ALTER on A1 tables', async () => {
+  const files = [
+    'deploy/api/harvest-jobs.js',
+    'deploy/api/migrate.js',
+  ];
+  for (const path of files) {
+    const src = await readFile(path, 'utf8');
+    const alterPay = src.indexOf('ADD COLUMN IF NOT EXISTS pay_status');
+    const payIdx = src.indexOf('harvest_jobs_pay_idx');
+    assert.ok(alterPay !== -1, path + ' must ALTER ADD pay_status');
+    assert.ok(payIdx !== -1, path + ' must create harvest_jobs_pay_idx');
+    assert.ok(payIdx > alterPay, path + ' must create pay index after ADD COLUMN pay_status');
+    assert.match(src, /CHECK \(pay_status IN \('unpaid','cash','app'\)\)/);
+  }
 });
