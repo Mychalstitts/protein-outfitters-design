@@ -1,106 +1,80 @@
-# Store Listing Copy
+# Protein Outfitters — App Store listing (Marketing signed · CTO counts 2026-09-05)
 
-Paste these into App Store Connect and Google Play Console at submission time. Edit numbers (processor count, state count) to match what's live.
+Not live until demo password set. Processor-map only — do not pitch empty reserves / Draft 123.
 
----
+## Verified counts (CTO + CEO lock 2026-09-05 — do not invent)
+- Offline bundle: **472** processors (`processors.bundled.json`)
+- Live `/api/map-data`: **2321** processors
+- Inspection live: None **1877** · state **443** · custom-exempt **1** (stittsworth-smokehouse-co) · USDA value **0**
+- Offline inspection_status: all null; usda_establishment_number: 0 filled
 
-## Apple App Store
+**Listing body ships with NO hard plant/state digit** (472 vs 2321 would confuse reviewers; map grows). Never ship **509**.
 
-### App name (30 chars max)
-**Protein Outfitters**
+## Apple
 
-### Subtitle (30 chars max)
-**Find a Meat Processor**
+**App name:** Protein Outfitters  
+**Subtitle:** Find a Meat Processor  
 
-### Promotional text (170 chars — can change without resubmitting)
-The fastest way to find a USDA-inspected local meat processor. Browse 509+ shops on a map. Submit a service request in 30 seconds. Free.
+**Promotional text:**  
+Find a local meat plant on the map. Browse plants. Send a cut request in under a minute. Free.
 
-### Description (4000 chars)
-Protein Outfitters is the first nationwide map of meat processors. Whether you're buying a half beef from a local rancher, processing a deer, or just want a real butcher who'll cut things the way you ask — Protein Outfitters helps you find them.
+**Description:**  
+Protein Outfitters puts meat processors on one map.
+
+If you're buying a half or a whole from a rancher, processing a deer, or looking for a butcher who will cut it your way — start here. Find the plant. See what they do. Send a real request.
 
 What you can do:
 
-• Browse the map. We seed every state with public listings from state meat processor associations, so the map is never empty.
+• Browse the map of meat processors across the U.S. Listings come from public state meat-processor association directories.
 
 • Search by name, city, or service — custom cuts, smoking, sausage, game processing, retail, wholesale.
 
-• See the details. Address, phone, services offered, USDA establishment number when published, and direct contact info.
+• Open a listing for address, phone, services, and establishment details when published. State-inspected where listed — not every pin is USDA.
 
-• Send a request. Tell the processor what animal, what cuts, and when you need it. They'll respond directly to you. No middleman, no fees.
+• Send a request. Sign in to send. Tell the plant what animal, what cuts, and when you need it. They reply to you direct.
 
 Why we built it:
 
-Finding a good meat processor is harder than it should be. The information lives in PDFs, Facebook posts, and word-of-mouth. Meanwhile, every shop owner we know has open weeks they could fill — they just can't reach the customers who need them.
+For years I've told families which animal they're buying — and then watched them hunt for a plant by PDF, Facebook, and phone tag. Good shops still have open weeks. Buyers still can't find them. We put the shops on a map and made the ask simple: one request a plant can answer yes or no.
 
-We put it all on one map. We seeded it with every state-association-listed processor we could find. Then we made it easy for consumers to send a real warm lead — not a cold call, not a wasted phone tag, but a specific request a shop can answer with a yes or no.
+If you're a processor and your shop is listed, claim it free. Manage requests. Update your services. Prefer not to be listed? Email support and we remove you.
 
-If you're a processor and your shop is on the map, you can claim it for free. Manage your requests, post photos, build your reputation. If you'd rather not be listed at all, we honor removal requests within 7 days.
+Sources include state meat-processor association directories (MAMP, IMPPA, WAMP, PAMP, IMPA, and growing).
 
-Sources: MAMP, IMPPA, WAMP, PAMP, IMPA, and growing.
+Inspection: look for USDA, state, or equal-to plants when that data is published. Custom-exempt is never sold on our reserve marketplace. Do not treat every map pin as USDA-inspected.
 
-Privacy: We don't track you across other apps. We don't sell your data. We share your contact info with the specific processor you request — that's it. Delete your account in-app at any time.
+Privacy: we don't sell your data. We share your contact with the processor you request — that's it. Delete your account in-app anytime.
 
-### Keywords (100 chars total, comma-separated, no spaces)
-meatprocessor,butcher,beefprocessing,deerprocessing,custombutcher,USDA,localmeat,gameprocessing
+**Keywords:** meatprocessor,butcher,beefprocessing,deerprocessing,localmeat,gameprocessing,plantpickup
 
-### Support URL
-https://proteinoutfitters.com/support
+_(Marketing+SEO lock 2026-09-05: butcher in, custombutcher out. 88 chars. Share terms parked.)_
 
-### Marketing URL
-https://proteinoutfitters.com
+**Support:** https://www.proteinoutfitters.com/support  
+**Marketing:** https://www.proteinoutfitters.com  
+**Category:** Food & Drink / Lifestyle  
+**Age:** 12+
 
-### Category
-Primary: **Food & Drink**
-Secondary: **Lifestyle**
+## Screenshot captions
+### TestFlight active (map / claim / auth / plant-desk)
+1. Map — Find a plant near you.
+2. Claim — Processors: claim your plant free.
+3. Auth — Sign in. Keep your requests.
+4. Plant desk — If calendar UI: Run the plant calendar. / Bookings in one place. Else: Manage your plant listing. / Requests in one place.
 
-### Age rating
-**12+** — Infrequent/mild references to animal slaughter in service descriptions. No graphic content.
+### App Store consumer 5 (parked until inventory/UI ready)
+1. Map — Find a plant near you.
+2. Search — Search by city or service.
+3. Detail — See what the plant does.
+4. Request — Tell them the animal and the cuts.
+5. Claim — Processors: claim your plant free.
 
----
+Art: Graphic Arts · Inter · forest #061b0e · parchment #fbf9f5. No counts on frames. No USDA-only overlay.
 
-## Google Play Console
+## Play
+**Short:** Find a local meat processor. Map, request cuts, book direct.  
+**Full:** same body as Apple.
 
-### App name (30 chars)
-**Protein Outfitters**
-
-### Short description (80 chars)
-Find every meat processor in America. Map, request service, book direct.
-
-### Full description (4000 chars)
-Same as App Store description above. Google Play allows light HTML; if you want a paragraph break that's more visible, separate sections with `<br><br>` and use `<b>` for emphasis. (Use sparingly — Play's algorithm slightly penalizes heavily-formatted descriptions.)
-
-### Tagged keywords (Play uses search internally — these go in the description naturally, not a field)
-meat processor, butcher, USDA, local meat, deer processing, game processing, custom cuts, smoking, sausage, wholesale meat, retail meat, beef processing, pork processing
-
-### Category
-**Food & Drink**
-
-### Tags (Play, choose 5)
-Local, Food & Drink, Marketplace, Maps, Services
-
-### Content rating
-Apply through Play's IARC questionnaire. Expected outcome: **Everyone** or **Teen** (depending on whether they classify processing references as mild violence). Answer honestly — they verify.
-
----
-
-## Web (proteinoutfitters.com — for SEO)
-
-### Page title (60 chars)
-Protein Outfitters — Find a Meat Processor Near You
-
-### Meta description (160 chars)
-The nationwide map of meat processors. Find USDA-inspected local shops, custom cuts, smoking, and game processing. Browse 509+ listings free.
-
-### H1
-Every meat processor in America, on one map.
-
-### Sub
-Find a USDA-inspected local shop, request custom cuts or game processing, and book direct. No fees, no middleman.
-
----
-
-## Notes when filling out
-
-- The numbers (509 processors, 24 states) update over time. Keep this file in sync with reality before each release.
-- Apple's "Promotional Text" is the only field you can change without going through review again — use it for time-sensitive announcements.
-- Don't include version-specific marketing claims ("New in 1.2!") in the description. Those go in the "What's New in This Version" field per release.
+## Still held
+1. Demo password — set or drop line in reviewer notes.
+2. Custom-exempt `stittsworth-smokehouse-co` labeled not claimable on map (CTO PR #39).
+3. Screenshots — Graphic Arts after CTO preview/sim.

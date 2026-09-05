@@ -1,6 +1,13 @@
-# App Store Reviewer Notes
+# App Store Reviewer Notes — CEO lock 2026-09-05 (sign-in required)
 
-Paste this into App Store Connect → App Information → Review Notes when you submit. A clear note dramatically reduces rejection rate — the reviewer is a real human who has minutes to figure out what your app does.
+Paste into App Store Connect → Review Notes at submit.
+
+**Holds before submit:**
+1. Demo password — replace `[SET PASSWORD BEFORE SUBMISSION]` or delete the demo-account line. (Needs Mychal/ops.) Critical now that sign-in is required.
+2. SLA is “we respond during business hours” — no “within an hour” unless ops proves it.
+3. Custom-exempt pin `stittsworth-smokehouse-co` stays on the map. Buyer-facing badge: “Custom-exempt · not on the reserve marketplace.” Claim path: “Custom-exempt — not claimable.” (CTO PR #39 / #41 / Product YES).
+
+Verified: offline bundle **472**; live map **2321**. Do **not** tell the reviewer “509.” Do **not** say the map is USDA-inspected (0 USDA inspection values live; offline all null).
 
 ---
 
@@ -8,47 +15,47 @@ Paste this into App Store Connect → App Information → Review Notes when you 
 
 Thank you for reviewing Protein Outfitters.
 
-**What the app does:** Protein Outfitters is a directory and request platform for meat processors in the United States. Consumers browse a map of processors, see services and contact info, and submit a cut/service request. The processor receives the request by email and responds directly to the consumer.
+**What the app does:** Protein Outfitters is a directory and request platform for meat processors in the United States. Consumers browse a map of processors, see services and contact info, and submit a service request. The processor receives the request by email and responds directly to the consumer.
 
-**About the listings:** Listings are sourced from publicly available state meat processor association directories and our live directory. No personal information is shown for any processor — only the business contact information they have already published publicly. Processors can claim their listing (free) or request removal at any time via support@proteinoutfitters.com. The custom-exempt listing (Stittsworth Smokehouse Co.) stays on the map. Buyer-facing badge: “Custom-exempt · not on the reserve marketplace.” Claim path: “Custom-exempt — not claimable.”
+**Sign-in required.** Submitting a service request and account features require Sign in with Apple (or the demo account below). There is **no guest request** path — please do not expect to send a request while signed out.
 
-**Sign-in is required to send a request or claim a listing.** Guests can browse the map and open processor details without an account. Guests cannot submit a request or claim a listing.
+**How to review:**
 
-A reviewer can open the app and immediately:
+1. Sign in with Apple, or use the demo account below
+2. Browse the map
+3. Search by name, city, or service
+4. Open a processor detail screen
+5. Submit a service request while signed in
 
-1. Browse the map of processors
-2. Search by name, city, or service
-3. Tap any processor to see details
+After signing in, the user can track requests and delete their account from the Account screen (in-app — guideline 5.1.1(v)).
 
-To send a request or claim a listing, sign in first (email magic link). There is no guest submit.
+**About the listings:** Processor listings are sourced from publicly available state meat processor association directories (MAMP, IMPPA, WAMP, PAMP, IMPA — recorded on each listing where available). We show business contact information already published publicly. Processors can claim a listing (free) or request removal via support@proteinoutfitters.com.
 
-**Sign-in** uses an email magic link (same account as proteinoutfitters.com). Sign in with Apple is implemented but hidden in this build until the App ID capability is enabled — see the PR / EAS note for `EXPO_PUBLIC_SIWA_ENABLED`. After signing in, the user can:
+The app ships with an offline seed of public listings and refreshes from our map API when online. Counts change as the directory grows — do not treat any single number in old docs as current.
 
-- Send a cut request to a plant
-- Claim an eligible listing
-- Delete their account from the Account screen (in-app, not just by email — per guideline 5.1.1(v))
+**Inspection:** Listings may show state inspection (or other published status) when that data exists. Many pins have no inspection flag yet. Custom-exempt is never sold on our reserve marketplace. Do not treat every pin as USDA-inspected.
 
-**Demo account (if needed):** demo@proteinoutfitters.com / [SET PASSWORD BEFORE SUBMISSION]
+**Demo account:** demo@proteinoutfitters.com / [SET PASSWORD BEFORE SUBMISSION]
 
-**Location permission:** the app asks for foreground (When In Use) location only, to center the map on the user. The user can decline — the app falls back to a US-wide view and works normally. There is no ZIP search UI and we do not request Always location.
+**Location permission:** foreground only, to center the map. Decline is fine — app falls back to a U.S.-wide view.
 
-**Encryption:** the app uses only standard HTTPS. We've declared `ITSAppUsesNonExemptEncryption: false` in the Info.plist.
+**Encryption:** standard HTTPS. `ITSAppUsesNonExemptEncryption: false`.
 
-**Privacy policy:** https://www.proteinoutfitters.com/policies/privacy
-**Terms of service:** https://www.proteinoutfitters.com/policies/terms
+**Privacy:** https://www.proteinoutfitters.com/policies/privacy  
+**Terms:** https://www.proteinoutfitters.com/policies/terms
 
-If you have any questions, reply to the submission or email support@proteinoutfitters.com — we'll respond within an hour during business hours.
+Questions: support@proteinoutfitters.com — we respond during business hours.
 
 ---
 
-## Common questions reviewers ask, and our answers
+## Common questions
 
-**"Where does your data come from?"** State meat processor association directories and our live directory. Each listing's source is recorded when available (visible on the processor detail screen).
+**Where does the data come from?** State meat processor association directories. Source recorded when available.
 
-**"Have any processors complained?"** No — we honor removal requests within 7 days, and no current listing has been disputed. (Update this answer truthfully before submission.)
+**Have processors complained?** Update truthfully before submission. We honor removal requests.
 
-**"What's the business model?"** Free for consumers. Processors who claim their listing get a free profile. Paid features for processors (priority placement, analytics) are a future addition and not in this submission.
+**Business model?** Free for consumers. Free claim for processors. Paid processor features are not in this submission.
 
-**"Is this medical or food safety advice?"** No. The app helps users find processors. We do not certify food safety, inspection status, or quality. Verifying those things is the user's responsibility, and we say so in the Terms.
+**Medical / food-safety advice?** No. We help users find processors. We do not certify inspection or quality.
 
-**"Can children use this?"** The app is rated 12+ for occasional references to animal processing in service descriptions. We don't market to children.
+**Children?** Rated 12+ for occasional animal-processing references. We do not market to children.
