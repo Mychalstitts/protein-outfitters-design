@@ -132,6 +132,11 @@
         <h4>Book the trailer</h4>
         <p>Stittsworth compass week · kill + trip.</p>
       </a>
+      <a href="/plant-desk" class="qa" id="acPlantDeskQa" hidden>
+        <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#calendar"/></svg></span>
+        <h4>Smokehouse trailer desk</h4>
+        <p>Jeff’s harvest calendar · app + phone jobs.</p>
+      </a>
       <a href="/cut-sheet" class="qa">
         <span class="qa-glyph"><svg class="ico" aria-hidden="true"><use href="/icons.svg#sparkles"/></svg></span>
         <h4>Cut sheets</h4>
@@ -260,6 +265,10 @@
     const harvestQa = document.getElementById('acHarvestQa');
     if (poundQa) poundQa.hidden = false;
     if (harvestQa) harvestQa.hidden = false;
+  }
+  if (me.user.role === 'processor' || me.user.role === 'admin') {
+    const deskQa = document.getElementById('acPlantDeskQa');
+    if (deskQa) deskQa.hidden = false;
   }
 
   // Update day label (real date)

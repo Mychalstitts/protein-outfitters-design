@@ -10,6 +10,10 @@
         {
             "source": "/p/:slug([^/.]+)",
             "destination": "/api/processor-meta?slug=:slug"
+        },
+        {
+            "source": "/smokehouse/schedule",
+            "destination": "/plant-desk"
         }
     ],
     "redirects": [
