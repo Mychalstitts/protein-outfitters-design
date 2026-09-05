@@ -15,8 +15,10 @@ on:
     types: [labeled]
 
 jobs:
+  # Temporary: skip enqueueing new builds while we diagnose remote ERRORED iOS.
+  # Re-enable after eas.json fix lands (set if back to label check only).
   build:
-    if: github.event.label.name == 'mobile-build'
+    if: false
     name: Build preview for ${{ matrix.platform }}
     runs-on: ubuntu-latest
     strategy:
@@ -24,8 +26,6 @@ jobs:
         platform: [ios, android]
     steps:
       - uses: actions/checkout@v4
-      # Node 22 for eas-cli@latest (@oclif/plugin-autocomplete engines.node >=22).
-      # Keep mobile/.nvmrc on 20 for Expo SDK 51 local/dev and mobile-ci.yml.
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -39,3 +39,69 @@ jobs:
         working-directory: mobile
       - run: eas build --profile preview --platform ${{ matrix.platform }} --non-interactive --no-wait
         working-directory: mobile/apps/mobile
+
+  status:
+    if: github.event.label.name == 'mobile-build'
+    name: Recent EAS build status
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: List recent builds (status + error only)
+        working-directory: mobile/apps/mobile
+        run: |
+          set -euo pipefail
+          eas build:list --limit 8 --non-interactive --json 2>/dev/null \
+            | python3 -c '
+          import json,sys
+          builds=json.load(sys.stdin)
+          if isinstance(builds, dict) and "builds" in builds:
+            builds=builds["builds"]
+          for b in builds:
+            err=b.get("error") or {}
+            print(json.dumps({
+              "id": b.get("id"),
+              "status": b.get("status"),
+              "platform": b.get("platform"),
+              "buildProfile": b.get("buildProfile"),
+              "distribution": b.get("distribution"),
+              "isForIosSimulator": b.get("isForIosSimulator"),
+              "appIdentifier": b.get("appIdentifier"),
+              "errorCode": err.get("errorCode") if isinstance(err, dict) else None,
+              "errorMessage": err.get("message") if isinstance(err, dict) else err,
+              "message": b.get("message"),
+              "artifacts": b.get("artifacts"),
+              "completedAt": b.get("completedAt"),
+            }, indent=2, default=str))
+            print("---")
+          '
+          echo "::group::Target builds"
+          for id in 6b083cb9-ba19-4555-b6ba-486c5736a034 30eb0ce5-8c60-4005-a776-b2774d9a0303; do
+            echo "=== $id ==="
+            eas build:view "$id" --json 2>/dev/null | python3 -c '
+          import json,sys
+          d=json.load(sys.stdin)
+          err=d.get("error") or {}
+          print(json.dumps({
+            "id": d.get("id"),
+            "status": d.get("status"),
+            "platform": d.get("platform"),
+            "buildProfile": d.get("buildProfile"),
+            "distribution": d.get("distribution"),
+            "isForIosSimulator": d.get("isForIosSimulator"),
+            "errorCode": err.get("errorCode") if isinstance(err, dict) else None,
+            "errorMessage": err.get("message") if isinstance(err, dict) else err,
+            "message": d.get("message"),
+            "artifacts": d.get("artifacts"),
+            "logFileUrls": d.get("logFileUrls"),
+            "completedAt": d.get("completedAt"),
+          }, indent=2, default=str))
+          '
+          done
+          echo "::endgroup::"
