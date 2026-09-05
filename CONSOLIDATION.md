@@ -92,12 +92,13 @@ Homepage hub, route/host redirects, processor profiles, map upgrade, compare pag
 
 ## Next consolidation steps
 
-1. **GitHub Actions secret** `EXPO_TOKEN` on this repo; EAS secrets for Supabase + Maps (`GOOGLE_MAPS_ANDROID_KEY`, `EXPO_PUBLIC_SUPABASE_*`).
-2. **Label a PR `mobile-build`** (or run EAS locally from `mobile/apps/mobile`) for the first preview binary from this repo.
-3. **Vercel dashboard** — delete paused stray projects when ready; confirm Ignored Build Step.
-4. **Archive** `protein-outfitters-app` after first successful EAS preview from this repo; remove its EAS workflows first.
-5. **Saved favorites** — wire `/account` to persisted follows.
-6. **Clean up** ~55 misplaced `audit-*.md` files at the app repo root (they audit www/design).
+1. **GitHub Actions secret** `EXPO_TOKEN` on this repo; EAS secrets for Maps (`GOOGLE_MAPS_ANDROID_KEY`). First preview can ship on **bundled** processors (no live backend required).
+2. **Mobile → Vercel/Neon API swap** — map of call sites, gaps, and safe PR sequence: [docs/mobile/API-SWAP.md](./docs/mobile/API-SWAP.md). Do not keep long-term mobile traffic on Supabase once reads/auth are bridged.
+3. **Label a PR `mobile-build`** (or run EAS locally from `mobile/apps/mobile`) for the first preview binary from this repo.
+4. **Vercel dashboard** — delete paused stray projects when ready; confirm Ignored Build Step.
+5. **Archive** `protein-outfitters-app` after first successful EAS preview from this repo; remove its EAS workflows first.
+6. **Saved favorites** — wire `/account` to persisted follows.
+7. **Clean up** ~55 misplaced `audit-*.md` files at the app repo root (they audit www/design).
 
 ---
 
