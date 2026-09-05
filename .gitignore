@@ -6,20 +6,20 @@ node_modules/
 _to_delete/
 
 # --- lockfiles -------------------------------------------------------------
-# The root lockfile is REQUIRED: `npm ci` (CI + EAS) refuses to run without
-# it, and EAS builds must be reproducible. Nested lockfiles stay ignored so
-# deploy/ keeps its current `npm install` behaviour on Vercel.
+# Root lockfile: static-site CI. Mobile lockfile: Mobile CI + EAS (npm ci).
+# Other nested lockfiles stay ignored so deploy/ keeps `npm install` on Vercel.
 package-lock.json
 !/package-lock.json
+!/mobile/package-lock.json
 
-# --- mobile / shared (from protein-outfitters-app) -------------------------
+# --- mobile / shared (nested under mobile/) -------------------------------
 dist/
 build/
 .expo/
 .expo-shared/
 *.tsbuildinfo
-mobile/ios/
-mobile/android/
+mobile/apps/mobile/ios/
+mobile/apps/mobile/android/
 *.xcworkspace
 *.xcodeproj
 

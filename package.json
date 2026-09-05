@@ -2,11 +2,7 @@
   "name": "protein-outfitters-design",
   "version": "1.0.0",
   "private": true,
-  "description": "Protein Outfitters — canonical site (deploy/), Supabase backend, shared package, and Expo mobile app",
-  "workspaces": [
-    "mobile",
-    "packages/*"
-  ],
+  "description": "Protein Outfitters — canonical site (deploy/), Supabase backend, and nested Expo mobile workspace under mobile/",
   "scripts": {
     "validate:jsonld": "node scripts/validate-jsonld.js",
     "check:no-dupe-decls": "node scripts/check-no-dupe-decls.js",
@@ -15,15 +11,15 @@
     "test:auth": "node scripts/test-auth-retry.mjs",
     "test:auth:once": "node --test test/auth/*.test.mjs test/connect-onboarding.test.mjs test/connect-split.test.mjs test/harvest-label.test.mjs test/stittsworth-harvest.test.mjs",
     "test": "npm run lint && npm run test:unit && npm run test:auth",
-    "mobile": "npm run start --workspace mobile",
-    "mobile:ios": "npm run ios --workspace mobile",
-    "mobile:android": "npm run android --workspace mobile",
-    "mobile:typecheck": "npm run typecheck --workspace mobile",
-    "mobile:bundle-data": "node scripts/mobile/bundle-data.mjs",
-    "mobile:build-icons": "node scripts/mobile/build-icons.mjs",
-    "shared:typecheck": "npm run typecheck --workspace packages/shared",
-    "shared:test": "npm test --workspace packages/shared",
-    "typecheck": "npm run shared:typecheck && npm run mobile:typecheck"
+    "mobile": "npm run mobile --prefix mobile",
+    "mobile:ios": "npm run mobile:ios --prefix mobile",
+    "mobile:android": "npm run mobile:android --prefix mobile",
+    "mobile:typecheck": "npm run typecheck --prefix mobile",
+    "mobile:bundle-data": "npm run bundle:data --prefix mobile",
+    "mobile:build-icons": "npm run build:icons --prefix mobile",
+    "shared:typecheck": "npm --prefix mobile run typecheck --workspace packages/shared",
+    "shared:test": "npm run shared:test --prefix mobile",
+    "typecheck": "npm run typecheck --prefix mobile"
   },
   "devDependencies": {
     "cheerio": "^1.0.0",

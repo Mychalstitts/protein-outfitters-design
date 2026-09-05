@@ -20,8 +20,8 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        # Root workspaces include Expo; static checks only need root deps.
-        run: npm install --workspaces=false
+        # Root package.json has no Expo workspaces; mobile installs under mobile/.
+        run: npm install
 
       - name: Validate JSON-LD in all HTML files
         run: npm run validate:jsonld

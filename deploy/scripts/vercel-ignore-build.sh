@@ -2,8 +2,8 @@
 # Vercel "Ignored Build Step" for the protein-outfitters-design project.
 #
 # Vercel redeploys the static site on EVERY commit to main, including ones
-# that only touch mobile/ or packages/. This script tells Vercel to skip
-# the build when nothing the site depends on changed.
+# that only touch mobile/ (nested Expo workspace). This script tells Vercel
+# to skip the build when nothing the site depends on changed.
 #
 # Exit 0  → skip the build      Exit 1 → build as normal
 #
@@ -27,7 +27,7 @@ if [ -z "$CHANGED" ]; then
 fi
 
 # Paths that the site does NOT depend on. Anything outside this list → build.
-MOBILE_ONLY='^(mobile/|packages/|docs/mobile/|scripts/mobile/|\.github/|tsconfig\.base\.json$|\.nvmrc$|package\.json$|package-lock\.json$)'
+MOBILE_ONLY='^(mobile/|docs/mobile/|scripts/mobile/|move-source\.sh$|\.github/|tsconfig\.base\.json$|\.nvmrc$|package\.json$|package-lock\.json$)'
 
 if echo "$CHANGED" | grep -vqE "$MOBILE_ONLY"; then
   echo "ignore-build: site-relevant files changed, building"

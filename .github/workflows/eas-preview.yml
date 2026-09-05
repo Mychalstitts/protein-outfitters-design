@@ -1,9 +1,9 @@
 # EAS preview build on PRs that touch the mobile app.
 #
 # Preview binaries listen on the `preview` EAS Update channel
-# (mobile/eas.json build.preview.channel). JS-only follow-ups: Actions → EAS Update.
+# (mobile/apps/mobile/eas.json). JS-only follow-ups: Actions → EAS Update.
 #
-# Requires in this repo's Actions secrets:
+# Requires Actions secret:
 #   EXPO_TOKEN — expo.dev → Account Settings → Access Tokens
 #
 # Opt-in: only runs on PRs labeled "mobile-build".
@@ -22,20 +22,18 @@ jobs:
     strategy:
       matrix:
         platform: [ios, android]
-    defaults:
-      run:
-        working-directory: mobile
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version-file: mobile/.nvmrc
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: mobile/package-lock.json
       - uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
-        working-directory: .
+        working-directory: mobile
       - run: eas build --profile preview --platform ${{ matrix.platform }} --non-interactive --no-wait
+        working-directory: mobile/apps/mobile
