@@ -144,6 +144,18 @@
     // Bookings status updates (used by processor-ops action buttons)
     updateBooking: (id, patch) => jsonFetch('/api/bookings?id=' + encodeURIComponent(id), { method: 'PATCH', body: patch }),
 
+    // Stittsworth Smokehouse trailer jobs (plant desk + /harvest requests)
+    harvestJobs: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return jsonFetch('/api/harvest-jobs' + (q ? '?' + q : ''));
+    },
+    harvestCapacity: (params = {}) => {
+      const q = new URLSearchParams({ view: 'capacity', ...params }).toString();
+      return jsonFetch('/api/harvest-jobs?' + q);
+    },
+    createHarvestJob: (data) => jsonFetch('/api/harvest-jobs', { method: 'POST', body: data }),
+    updateHarvestJob: (id, data) => jsonFetch('/api/harvest-jobs?id=' + encodeURIComponent(id), { method: 'PATCH', body: data }),
+
     reviews: (subject_type, subject_id) =>
       jsonFetch(`/api/reviews?subject_type=${encodeURIComponent(subject_type)}&subject_id=${encodeURIComponent(subject_id)}`),
     submitReview: (data) => jsonFetch('/api/reviews', { method: 'POST', body: data }),

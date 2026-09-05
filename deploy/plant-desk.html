@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+<title>Smokehouse trailer desk · Protein Outfitters</title>
+<meta name="description" content="Stittsworth Smokehouse harvest calendar. App requests and phone call-ins on one trailer list." />
+<meta property="og:title" content="Smokehouse trailer desk · Protein Outfitters" />
+<meta property="og:description" content="Shared trailer calendar for Stittsworth Smokehouse — Turtle River." />
+<meta property="og:image" content="https://www.proteinoutfitters.com/brand/og-image.svg" />
+<meta property="og:url" content="https://www.proteinoutfitters.com/plant-desk" />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/po-shell.css">
+<link rel="stylesheet" href="/stittsworth-harvest.css">
+</head>
+<body>
+<div class="po-nav-wrap">
+  <nav class="po-nav">
+    <a href="/" class="po-mark"><img src="/brand/logo-monogram.svg" alt="" aria-hidden="true">Protein Outfitters</a>
+    <div class="po-nav-links">
+      <a href="/processor">My plant</a>
+      <a href="/plant-desk" class="active">Trailer desk</a>
+      <a href="/processor-schedule">Schedule</a>
+      <a href="/processor-checkin">Check-in</a>
+      <a href="/harvest">Farm request</a>
+    </div>
+    <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
+  </nav>
+</div>
+
+<section class="pd-shell">
+  <div class="pd-inner">
+    <div>
+      <p class="lb-kicker">Stittsworth Smokehouse · Turtle River</p>
+      <h1 class="lb-title">Trailer days. App + phone on one list.</h1>
+      <p class="lb-lead">Jeff’s harvest calendar. Online farm requests land here. Call-ins you add by hand land here. Check this between farms — kill + trip is quoted, cards are not charged.</p>
+
+      <div id="pdGate" class="lb-card">
+        <p class="lb-status" style="margin:0;">Sign in as Smokehouse staff (processor or admin) to see the shared trailer list and add phone jobs.</p>
+        <button type="button" class="lb-cta" id="pdSignIn" style="margin-top:16px;">Sign in to the plant desk</button>
+      </div>
+
+      <div id="pdApp" hidden>
+        <div class="lb-card">
+          <div class="pd-cal-head">
+            <button type="button" class="pd-nav" id="pdPrev" aria-label="Previous month">‹</button>
+            <h2 id="pdMonth">—</h2>
+            <button type="button" class="pd-nav" id="pdNext" aria-label="Next month">›</button>
+          </div>
+          <div class="hv-cal" id="pdCal" aria-label="Smokehouse trailer calendar"></div>
+          <p class="help" id="pdDayHint">Tap a harvest weekday (Tue–Thu). Grey days are shop-closed.</p>
+        </div>
+
+        <div class="pd-day-head">
+          <div>
+            <p class="lb-kicker" id="pdDayKicker">Selected day</p>
+            <h2 class="pd-day-title" id="pdDayTitle">Pick a trailer day</h2>
+          </div>
+          <p class="pd-cap" id="pdCap">—</p>
+        </div>
+        <div id="pdJobs" class="pd-jobs"></div>
+      </div>
+    </div>
+
+    <aside class="lb-card" id="pdFormWrap" hidden>
+      <p class="lb-kicker" id="pdFormKicker">Phone call-in</p>
+      <h2 class="pd-form-title" id="pdFormTitle">Add a phone job</h2>
+      <p class="help">Farm called the smokehouse. Same record as an app request. Cash vs card is a later PR.</p>
+
+      <form id="pdForm">
+        <input type="hidden" id="pdEditId" />
+        <div class="lb-field">
+          <label for="pdFarm">Farm</label>
+          <input id="pdFarm" type="text" required placeholder="Farm that called" />
+        </div>
+        <div class="lb-field">
+          <label for="pdTown">Town</label>
+          <select id="pdTown"></select>
+        </div>
+        <div class="lb-field">
+          <label>Species</label>
+          <div class="lb-pills" id="pdSpecies">
+            <button type="button" class="lb-pill" data-species="beef">Beef</button>
+            <button type="button" class="lb-pill" data-species="hog">Hog</button>
+            <button type="button" class="lb-pill" data-species="lamb">Lamb</button>
+            <button type="button" class="lb-pill" data-species="goat">Goat</button>
+            <button type="button" class="lb-pill" data-species="bison">Bison</button>
+          </div>
+        </div>
+        <div class="lb-field">
+          <label>Heads</label>
+          <div class="lb-pills" id="pdHeads">
+            <button type="button" class="lb-pill" data-heads="1">1</button>
+            <button type="button" class="lb-pill" data-heads="2">2</button>
+            <button type="button" class="lb-pill" data-heads="3">3</button>
+            <button type="button" class="lb-pill" data-heads="4">4</button>
+          </div>
+        </div>
+        <div class="lb-field">
+          <label>Share</label>
+          <div class="lb-pills" id="pdShare">
+            <button type="button" class="lb-pill" data-share="whole">Whole</button>
+            <button type="button" class="lb-pill" data-share="half">Side (½)</button>
+            <button type="button" class="lb-pill" data-share="quarter">Quarter</button>
+          </div>
+        </div>
+        <div class="lb-field">
+          <label for="pdDate">Harvest weekday</label>
+          <select id="pdDate"></select>
+        </div>
+        <div class="lb-row">
+          <div class="lb-field">
+            <label for="pdPhone">Phone (optional)</label>
+            <input id="pdPhone" type="tel" placeholder="218-…" />
+          </div>
+          <div class="lb-field">
+            <label for="pdNotes">Notes (optional)</label>
+            <input id="pdNotes" type="text" placeholder="Gate code, time…" />
+          </div>
+        </div>
+        <p class="pd-quote" id="pdQuote">Kill + trip —</p>
+        <button type="submit" class="lb-cta" id="pdSave">Add phone job</button>
+        <button type="button" class="lb-cta ghost" id="pdReset" hidden>Clear form</button>
+        <p class="lb-status" id="pdStatus"></p>
+      </form>
+    </aside>
+  </div>
+</section>
+
+<div id="po-shell-host"></div>
+<script src="/po-shell.js"></script>
+<script src="/po-api.js"></script>
+<script src="/lib/stittsworth-harvest.js"></script>
+<script src="/lib/harvest-jobs.js"></script>
+<script>
+(function () {
+  'use strict';
+  const H = window.POStittsworth;
+  const J = window.POHarvestJobs;
+  const money = (n) => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    user: null,
+    jobs: [],
+    booked: {},
+    cursor: new Date(),
+    selected: null,
+    species: 'beef',
+    heads: 1,
+    share: 'whole',
+    town: 'Turtle River',
+    editing: null,
+  };
+
+  function monthBounds(d) {
+    const start = new Date(d.getFullYear(), d.getMonth(), 1);
+    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    return { from: H.isoDate(start), to: H.isoDate(end) };
+  }
+
+  function paintPills() {
+    document.querySelectorAll('#pdSpecies [data-species]').forEach((b) => {
+      b.setAttribute('aria-pressed', b.getAttribute('data-species') === state.species ? 'true' : 'false');
+    });
+    document.querySelectorAll('#pdHeads [data-heads]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(state.heads) === b.getAttribute('data-heads') ? 'true' : 'false');
+    });
+    document.querySelectorAll('#pdShare [data-share]').forEach((b) => {
+      b.setAttribute('aria-pressed', b.getAttribute('data-share') === state.share ? 'true' : 'false');
+    });
+    const due = H.harvestDue(state.species, state.town, state.heads);
+    $('pdQuote').textContent = 'Kill + trip ' + money(due.total) + ' · ' + money(due.kill) + ' kill · ' + money(due.trip) + ' mileage';
+  }
+
+  function paintTowns() {
+    $('pdTown').innerHTML = H.TOWNS.map((t) => {
+      const sel = t.name === state.town ? ' selected' : '';
+      return '<option value="' + t.name + '"' + sel + '>' + H.townSelectLabel(t) + '</option>';
+    }).join('');
+  }
+
+  function paintDates() {
+    const hub = H.resolveTown('Turtle River');
+    const days = H.listSelectableTrailerDays(hub, { limit: 24, horizon: 90, booked: state.booked });
+    const extra = state.selected && !days.some((d) => d.iso === state.selected)
+      ? [{ iso: state.selected, date: H.startOfDay(state.selected) }]
+      : [];
+    const all = extra.concat(days);
+    $('pdDate').innerHTML = all.map((d) => {
+      const sel = d.iso === state.selected ? ' selected' : '';
+      const left = J.remainingCapacity(d.iso, state.booked, 4);
+      return '<option value="' + d.iso + '"' + sel + '>' + H.formatShort(d.date || d.iso) + ' · ' + left + ' open</option>';
+    }).join('') || '<option value="">No leftover harvest weekdays</option>';
+    if (!state.selected && days[0]) state.selected = days[0].iso;
+  }
+
+  function paintCalendar() {
+    const y = state.cursor.getFullYear();
+    const m = state.cursor.getMonth();
+    const month = H.calendarMonthDays(y, m, H.resolveTown('Turtle River'), { booked: state.booked, now: new Date(y, m, 1) });
+    $('pdMonth').textContent = state.cursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const firstDow = new Date(y, m, 1).getDay();
+    const cells = [];
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach((d) => cells.push('<div class="dow">' + d + '</div>'));
+    for (let i = 0; i < firstDow; i++) cells.push('<div></div>');
+    month.days.forEach((info) => {
+      const used = Number(state.booked[info.iso]) || 0;
+      const harvest = H.isHarvestWeekday(info.date);
+      if (harvest) {
+        const pressed = state.selected === info.iso ? 'true' : 'false';
+        const klass = used >= info.capacity ? 'hv-day open pd-full' : 'hv-day open';
+        cells.push('<button type="button" class="' + klass + '" data-iso="' + info.iso + '" aria-pressed="' + pressed + '"><span>' + info.date.getDate() + '</span><span class="q">' + used + '/' + info.capacity + '</span></button>');
+      } else {
+        cells.push('<button type="button" class="hv-day" disabled><span>' + info.date.getDate() + '</span></button>');
+      }
+    });
+    $('pdCal').innerHTML = cells.join('');
+    $('pdCal').querySelectorAll('button.open').forEach((btn) => {
+      btn.addEventListener('click', () => { state.selected = btn.getAttribute('data-iso'); $('pdDate').value = state.selected; paintDay(); paintCalendar(); });
+    });
+  }
+
+  function statusLabel(s) {
+    if (s === 'capacity_used') return 'Capacity used';
+    if (s === 'cancelled') return 'Cancelled';
+    if (s === 'confirmed') return 'Booked';
+    return 'Requested';
+  }
+
+  function paintDay() {
+    const iso = state.selected;
+    if (!iso) {
+      $('pdDayTitle').textContent = 'Pick a trailer day';
+      $('pdCap').textContent = '';
+      $('pdJobs').innerHTML = '';
+      return;
+    }
+    const used = Number(state.booked[iso]) || 0;
+    const left = J.remainingCapacity(iso, state.booked, 4);
+    $('pdDayKicker').textContent = H.compassQuadrantForDate(iso);
+    $('pdDayTitle').textContent = H.formatShort(iso);
+    $('pdCap').textContent = used + ' / 4 heads · ' + left + ' leftover';
+    const jobs = state.jobs.filter((j) => j.trailer_day === iso);
+    if (!jobs.length) {
+      $('pdJobs').innerHTML = '<p class="help">No farms on this trailer day yet. Add a phone job or wait for an app request.</p>';
+      return;
+    }
+    $('pdJobs').innerHTML = jobs.map((j) => {
+      const cancelled = j.status === 'cancelled';
+      return '<article class="pd-job' + (cancelled ? ' cancelled' : '') + '">' +
+        '<div class="pd-job-top"><strong>' + escapeHtml(j.farm_name) + '</strong>' +
+        '<span class="pd-src">' + j.source + '</span></div>' +
+        '<p>' + escapeHtml(j.town) + ' · ' + j.heads + ' ' + j.species + ' · ' + j.share_label +
+        ' · ' + money(j.total_due) + ' kill+trip</p>' +
+        '<p class="help">' + statusLabel(j.status) + (j.phone ? ' · ' + escapeHtml(j.phone) : '') +
+        (j.notes ? ' · ' + escapeHtml(j.notes) : '') + '</p>' +
+        (cancelled ? '' : '<div class="pd-job-actions">' +
+          '<button type="button" data-edit="' + j.id + '">Edit</button>' +
+          '<button type="button" data-used="' + j.id + '">Mark capacity used</button>' +
+          '<button type="button" data-cancel="' + j.id + '">Cancel</button></div>') +
+        '</article>';
+    }).join('');
+    $('pdJobs').querySelectorAll('[data-edit]').forEach((b) => b.addEventListener('click', () => startEdit(b.getAttribute('data-edit'))));
+    $('pdJobs').querySelectorAll('[data-used]').forEach((b) => b.addEventListener('click', () => patchJob(b.getAttribute('data-used'), { status: 'capacity_used' })));
+    $('pdJobs').querySelectorAll('[data-cancel]').forEach((b) => b.addEventListener('click', () => {
+      if (confirm('Cancel this trailer job? Leftover harvest opens back up.')) patchJob(b.getAttribute('data-cancel'), { status: 'cancelled' });
+    }));
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  function startEdit(id) {
+    const j = state.jobs.find((x) => x.id === id);
+    if (!j) return;
+    state.editing = id;
+    state.species = j.species;
+    state.heads = j.heads;
+    state.share = j.share_kind;
+    state.town = j.town;
+    state.selected = j.trailer_day;
+    $('pdEditId').value = id;
+    $('pdFarm').value = j.farm_name;
+    $('pdTown').value = j.town;
+    $('pdPhone').value = j.phone || '';
+    $('pdNotes').value = j.notes || '';
+    $('pdDate').value = j.trailer_day;
+    $('pdFormKicker').textContent = j.source === 'app' ? 'App request' : 'Phone call-in';
+    $('pdFormTitle').textContent = 'Edit job';
+    $('pdSave').textContent = 'Save changes';
+    $('pdReset').hidden = false;
+    paintPills();
+    paintCalendar();
+    paintDay();
+  }
+
+  function resetForm() {
+    state.editing = null;
+    $('pdEditId').value = '';
+    $('pdFarm').value = '';
+    $('pdPhone').value = '';
+    $('pdNotes').value = '';
+    $('pdFormKicker').textContent = 'Phone call-in';
+    $('pdFormTitle').textContent = 'Add a phone job';
+    $('pdSave').textContent = 'Add phone job';
+    $('pdReset').hidden = true;
+    $('pdStatus').textContent = '';
+    paintPills();
+  }
+
+  async function loadJobs() {
+    const b = monthBounds(state.cursor);
+    const data = await window.PO_API.harvestJobs({ from: b.from, to: b.to });
+    state.jobs = data.jobs || [];
+    state.booked = data.booked || J.bookedHeadsByDay(state.jobs);
+  }
+
+  async function paint() {
+    paintTowns();
+    paintDates();
+    paintCalendar();
+    paintPills();
+    paintDay();
+  }
+
+  async function refresh() {
+    $('pdStatus').textContent = '';
+    await loadJobs();
+    paint();
+  }
+
+  async function patchJob(id, body) {
+    $('pdStatus').textContent = 'Saving…';
+    try {
+      await window.PO_API.updateHarvestJob(id, body);
+      await refresh();
+      $('pdStatus').textContent = 'Saved on the Smokehouse calendar.';
+    } catch (e) {
+      $('pdStatus').textContent = e.message || 'Could not update job';
+    }
+  }
+
+  async function onSubmit(ev) {
+    ev.preventDefault();
+    const farm = $('pdFarm').value.trim();
+    if (!farm) { $('pdStatus').textContent = 'Farm name required.'; return; }
+    const payload = {
+      farm_name: farm,
+      town: $('pdTown').value,
+      species: state.species,
+      heads: state.heads,
+      share_kind: state.share,
+      trailer_day: $('pdDate').value || state.selected,
+      phone: $('pdPhone').value.trim() || null,
+      notes: $('pdNotes').value.trim() || null,
+    };
+    const btn = $('pdSave');
+    btn.disabled = true;
+    try {
+      if (state.editing) {
+        await window.PO_API.updateHarvestJob(state.editing, payload);
+        $('pdStatus').textContent = 'Job updated.';
+        resetForm();
+      } else {
+        payload.source = 'phone';
+        await window.PO_API.createHarvestJob(payload);
+        $('pdStatus').textContent = 'Phone job on the shared calendar.';
+        $('pdFarm').value = '';
+        $('pdPhone').value = '';
+        $('pdNotes').value = '';
+      }
+      if (payload.trailer_day) state.selected = payload.trailer_day;
+      await refresh();
+    } catch (e) {
+      $('pdStatus').textContent = e.message || 'Could not save job';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  $('pdTown').addEventListener('change', (e) => { state.town = e.target.value; paintPills(); });
+  $('pdDate').addEventListener('change', (e) => { state.selected = e.target.value; paintCalendar(); paintDay(); });
+  document.querySelectorAll('#pdSpecies [data-species]').forEach((b) => b.addEventListener('click', () => { state.species = b.getAttribute('data-species'); paintPills(); }));
+  document.querySelectorAll('#pdHeads [data-heads]').forEach((b) => b.addEventListener('click', () => { state.heads = parseInt(b.getAttribute('data-heads'), 10); paintPills(); }));
+  document.querySelectorAll('#pdShare [data-share]').forEach((b) => b.addEventListener('click', () => { state.share = b.getAttribute('data-share'); paintPills(); }));
+  $('pdForm').addEventListener('submit', onSubmit);
+  $('pdReset').addEventListener('click', resetForm);
+  $('pdPrev').addEventListener('click', async () => {
+    state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() - 1, 1);
+    await refresh();
+  });
+  $('pdNext').addEventListener('click', async () => {
+    state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() + 1, 1);
+    await refresh();
+  });
+  $('pdSignIn').addEventListener('click', () => {
+    window.PO_API.openAuth('Sign in to the Smokehouse desk', 'processor', { next: '/plant-desk' });
+  });
+
+  (async function boot() {
+    const me = await window.PO_API.me().catch(() => ({ user: null }));
+    state.user = me.user || null;
+    if (!J.isPlantStaff(state.user)) {
+      $('pdGate').hidden = false;
+      $('pdApp').hidden = true;
+      $('pdFormWrap').hidden = true;
+      return;
+    }
+    $('pdGate').hidden = true;
+    $('pdApp').hidden = false;
+    $('pdFormWrap').hidden = false;
+    try {
+      await refresh();
+    } catch (e) {
+      $('pdStatus').textContent = e.message || 'Could not load jobs';
+      paintTowns();
+      paintPills();
+    }
+  })();
+})();
+</script>
+</body>
+</html>

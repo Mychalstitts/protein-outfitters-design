@@ -641,6 +641,34 @@ const SCHEMA_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS cut_sheets_buyer_idx       ON cut_sheets(buyer_id)`,
   `CREATE INDEX IF NOT EXISTS cut_sheets_status_idx      ON cut_sheets(status)`,
 
+  // Stittsworth Smokehouse trailer desk (Phase A1). Shared app + phone jobs.
+  // Smokehouse-only. Also bootstrapped on first /api/harvest-jobs call.
+  `CREATE TABLE IF NOT EXISTS harvest_jobs (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     processor_slug TEXT NOT NULL DEFAULT 'stittsworth-smokehouse',
+     farm_name TEXT NOT NULL,
+     town TEXT NOT NULL,
+     species TEXT NOT NULL,
+     heads INT NOT NULL CHECK (heads BETWEEN 1 AND 4),
+     share_kind TEXT NOT NULL DEFAULT 'whole'
+                CHECK (share_kind IN ('whole','half','quarter')),
+     trailer_day DATE NOT NULL,
+     source TEXT NOT NULL CHECK (source IN ('app','phone')),
+     status TEXT NOT NULL DEFAULT 'requested'
+                CHECK (status IN ('requested','confirmed','capacity_used','cancelled')),
+     kill_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+     trip_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+     total_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+     phone TEXT,
+     notes TEXT,
+     listing_id UUID REFERENCES listings(id) ON DELETE SET NULL,
+     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+     created_at TIMESTAMPTZ DEFAULT NOW(),
+     updated_at TIMESTAMPTZ DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS harvest_jobs_day_idx ON harvest_jobs(processor_slug, trailer_day)`,
+  `CREATE INDEX IF NOT EXISTS harvest_jobs_status_idx ON harvest_jobs(status)`,
+
   // credentials.html has always PATCHed these; the column never existed, so
   // every uploaded inspection document was silently discarded.
   `ALTER TABLE processors ADD COLUMN IF NOT EXISTS credentials_docs JSONB DEFAULT '{}'::jsonb`,

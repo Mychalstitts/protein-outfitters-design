@@ -8,6 +8,7 @@
 --   farms        — producer profiles (one or more per user with role=producer)
 --   listings     — animals for sale
 --   reservations — buyer holds against listings
+--   harvest_jobs — Stittsworth Smokehouse trailer calendar (app + phone)
 --   processors   — meat processors with capabilities & schedule
 --   reviews      — three-way mutual reveal reviews
 --   donations    — animal donations to food bank 501(c)(3)
@@ -257,6 +258,38 @@ CREATE TABLE IF NOT EXISTS social_comments (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS social_comments_post_idx ON social_comments(post_id, created_at);
+
+-- ─── HARVEST JOBS (Stittsworth Smokehouse trailer desk, Phase A1) ──
+-- Shared calendar for online /harvest requests (source=app) and phone
+-- call-ins Jeff adds on /plant-desk (source=phone). Smokehouse-only:
+-- processor_slug is always stittsworth-smokehouse. Not checkout, not
+-- listing 123, not a national multi-processor desk.
+-- Also created by /api/harvest-jobs on first call and by /api/migrate.
+CREATE TABLE IF NOT EXISTS harvest_jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  processor_slug TEXT NOT NULL DEFAULT 'stittsworth-smokehouse',
+  farm_name TEXT NOT NULL,
+  town TEXT NOT NULL,
+  species TEXT NOT NULL,
+  heads INT NOT NULL CHECK (heads BETWEEN 1 AND 4),
+  share_kind TEXT NOT NULL DEFAULT 'whole'
+              CHECK (share_kind IN ('whole','half','quarter')),
+  trailer_day DATE NOT NULL,
+  source TEXT NOT NULL CHECK (source IN ('app','phone')),
+  status TEXT NOT NULL DEFAULT 'requested'
+              CHECK (status IN ('requested','confirmed','capacity_used','cancelled')),
+  kill_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+  trip_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+  total_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+  phone TEXT,
+  notes TEXT,
+  listing_id UUID REFERENCES listings(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS harvest_jobs_day_idx ON harvest_jobs(processor_slug, trailer_day);
+CREATE INDEX IF NOT EXISTS harvest_jobs_status_idx ON harvest_jobs(status);
 
 -- ─── SEED DATA — Demo farms, processors, listings ─────────
 -- (only inserted if tables are empty)

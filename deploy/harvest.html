@@ -26,6 +26,7 @@
       <a href="/farmer">My ranch</a>
       <a href="/list-animal?mode=pound">List by the pound</a>
       <a href="/harvest" class="active">Book trailer</a>
+      <a href="/plant-desk">Plant desk</a>
       <a href="/map">Book a plant</a>
     </div>
     <div class="po-nav-actions"><a href="/account" class="signin">Sign in</a></div>
@@ -103,7 +104,7 @@
       </div>
       <p class="hv-note">One trip fee covers 1–4 head on the same farm. Processing (cut sheets) is billed later on Stripe — hanging price is the animal only.</p>
       <button type="button" class="lb-cta" id="hvRequest">Request this trailer day</button>
-      <p class="hv-gate" id="hvGate">Trailer capacity is not live yet. This saves a request and, when a listing is attached with no harvest window, writes that week as a range. It does not charge a card, touch checkout, or publish listing 123.</p>
+      <p class="hv-gate" id="hvGate">This writes the same Smokehouse harvest_jobs row the plant desk reads. Leftover heads come from those rows. It does not charge a card, touch checkout, or publish listing 123.</p>
       <p class="hv-gate" id="hvStatus"></p>
       <p class="hv-gate" id="hvListingHarvest"></p>
     </aside>
@@ -131,6 +132,7 @@
     listingId: params.get('listing') || '',
     listing: null,
     cursor: new Date(),
+    booked: {},
   };
 
   const $ = (id) => document.getElementById(id);
@@ -181,7 +183,7 @@
   function paintCalendar() {
     const y = state.cursor.getFullYear();
     const m = state.cursor.getMonth();
-    const month = H.calendarMonthDays(y, m, town(), {});
+    const month = H.calendarMonthDays(y, m, town(), { booked: state.booked });
     const firstDow = new Date(y, m, 1).getDay();
     const letters = { north: 'N', west: 'W', south: 'S', east: 'E' };
     const cells = [];
@@ -203,7 +205,7 @@
   }
 
   function paintSlots() {
-    const days = H.listSelectableTrailerDays(town(), { limit: 9, horizon: 90 });
+    const days = H.listSelectableTrailerDays(town(), { limit: 9, horizon: 90, booked: state.booked });
     $('hvSlots').innerHTML = days.map((d) => {
       const pressed = state.selected === d.iso ? 'true' : 'false';
       const quad = d.quadrant.charAt(0).toUpperCase() + d.quadrant.slice(1);
@@ -239,7 +241,21 @@
       const data = await window.PO_API.listing(state.listingId);
       state.listing = data.listing || data;
       if (state.listing?.species) state.species = H.normalizeSpecies(state.listing.species);
+      if (!state.farm && state.listing?.farm_name) {
+        state.farm = state.listing.farm_name;
+        $('hvFarm').value = state.farm;
+      }
     } catch (_) { /* optional */ }
+  }
+
+  async function loadBooked() {
+    if (!window.PO_API?.harvestCapacity) return;
+    try {
+      const start = new Date(state.cursor.getFullYear(), state.cursor.getMonth(), 1);
+      const end = new Date(state.cursor.getFullYear(), state.cursor.getMonth() + 3, 0);
+      const data = await window.PO_API.harvestCapacity({ from: H.isoDate(start), to: H.isoDate(end) });
+      state.booked = data.booked || {};
+    } catch (_) { state.booked = {}; }
   }
 
   function weekRangeForIso(iso) {
@@ -261,27 +277,27 @@
     const status = $('hvStatus');
     const btn = $('hvRequest');
     if (!state.selected) { status.textContent = 'Pick a trailer day first.'; return; }
+    const farmName = (state.farm || $('hvFarm').value || state.listing?.farm_name || '').trim();
+    if (!farmName) { status.textContent = 'Add a farm name so the smokehouse can see who to pick up.'; return; }
     const t = town();
     const due = H.harvestDue(state.species, t, state.heads);
     const payload = {
+      farm_name: farmName,
       town: t.name,
       species: state.species,
       heads: state.heads,
       share: state.share,
+      share_kind: state.share,
       trailer_day: state.selected,
+      source: 'app',
+      listing_id: state.listingId || null,
       kill: due.kill,
       trip: due.trip,
       total: due.total,
-      listing_id: state.listingId || null,
-      capacity_live: false,
       checkout_touched: false,
     };
     try { sessionStorage.setItem('po_trailer_request', JSON.stringify(payload)); } catch (_) { /* ignore */ }
 
-    if (!state.listingId) {
-      status.textContent = 'Request saved on this device. Open List by the pound to attach it to a draft listing. Trailer capacity is not booked live, and checkout is unchanged.';
-      return;
-    }
     if (!window.PO_API) { status.textContent = 'API helper not loaded.'; return; }
     btn.disabled = true;
     try {
@@ -290,25 +306,33 @@
         window.PO_API.openAuth('Sign in to save a trailer request', 'producer', { next: location.pathname + location.search });
         return;
       }
-      const listing = state.listing || (await window.PO_API.listing(state.listingId)).listing;
-      const locked = H.isLockedDraft123(listing?.number);
-      const patch = {};
-      const hasWindow = !!(listing?.harvest_window_start || listing?.harvest_window_end);
-      if (!hasWindow) {
-        const range = weekRangeForIso(state.selected);
-        if (range) {
-          patch.harvest_window_start = range.start;
-          patch.harvest_window_end = range.end;
+      await window.PO_API.createHarvestJob(payload);
+      await loadBooked();
+      paint();
+
+      if (state.listingId) {
+        const listing = state.listing || (await window.PO_API.listing(state.listingId)).listing;
+        const locked = H.isLockedDraft123(listing?.number);
+        const patch = {};
+        const hasWindow = !!(listing?.harvest_window_start || listing?.harvest_window_end);
+        if (!hasWindow) {
+          const range = weekRangeForIso(state.selected);
+          if (range) {
+            patch.harvest_window_start = range.start;
+            patch.harvest_window_end = range.end;
+          }
         }
+        if (locked) patch.status = 'draft';
+        if (Object.keys(patch).length) {
+          const updated = await window.PO_API.updateListing(state.listingId, patch);
+          state.listing = updated.listing || state.listing;
+        }
+        const harvest = window.harvestLabel ? window.harvestLabel(state.listing) : 'TBD';
+        status.textContent = 'On the Smokehouse calendar: ' + H.formatShort(state.selected) + ' · ' + farmName + ' · ' + money(due.total) + ' kill+trip. Harvest window on the listing: ' + harvest + '. Checkout was not touched.' + (locked ? ' Draft 123 stays draft.' : '');
+        paintListingHarvest();
+      } else {
+        status.textContent = 'On the Smokehouse calendar: ' + H.formatShort(state.selected) + ' · ' + farmName + ' · ' + money(due.total) + ' kill+trip. Jeff sees this on the plant desk. Checkout was not touched.';
       }
-      if (locked) patch.status = 'draft';
-      if (Object.keys(patch).length) {
-        const updated = await window.PO_API.updateListing(state.listingId, patch);
-        state.listing = updated.listing || state.listing;
-      }
-      const harvest = window.harvestLabel ? window.harvestLabel(state.listing) : 'TBD';
-      status.textContent = 'Trailer day ' + H.formatShort(state.selected) + ' requested for ' + t.name + ' · ' + money(due.total) + ' due at the smokehouse. Harvest window on the listing: ' + harvest + '. Capacity is not decremented (not live). Checkout hold was not touched.' + (locked ? ' Draft 123 stays draft.' : '');
-      paintListingHarvest();
     } catch (e) {
       status.textContent = e.message || 'Could not save trailer request';
     } finally {
@@ -324,7 +348,7 @@
   $('hvRequest').addEventListener('click', requestDay);
 
   paintTowns();
-  loadListing().then(paint);
+  Promise.all([loadListing(), loadBooked()]).then(paint);
   paint();
 })();
 </script>

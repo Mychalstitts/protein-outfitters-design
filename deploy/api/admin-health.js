@@ -53,6 +53,7 @@ const TABLES = [
   'donations', 'donation_funds', 'institutions',
   'reviews', 'discovered_partners',
   'bookings', 'farmer_deposits', 'checkin_codes',
+  'harvest_jobs',
   'disputes', 'complaints',
   'referral_codes', 'referral_redemptions',
   'hardware_leads', 'notifications', 'email_log',
