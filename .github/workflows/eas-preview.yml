@@ -1,13 +1,4 @@
-# EAS preview build on PRs that touch the mobile app.
-#
-# Preview binaries listen on the `preview` EAS Update channel
-# (mobile/apps/mobile/eas.json). JS-only follow-ups: Actions → EAS Update.
-#
-# Requires Actions secret:
-#   EXPO_TOKEN — expo.dev → Account Settings → Access Tokens
-#
-# Opt-in: only runs on PRs labeled "mobile-build" (or synchronize while labeled).
-
+# EAS preview — temporary diagnose job (build enqueue disabled).
 name: EAS preview
 
 on:
@@ -15,7 +6,6 @@ on:
     types: [labeled, synchronize]
 
 jobs:
-  # Temporary: skip enqueueing new builds while diagnosing remote ERRORED iOS.
   build:
     if: false
     name: Build preview for ${{ matrix.platform }}
@@ -24,20 +14,7 @@ jobs:
       matrix:
         platform: [ios, android]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: mobile/package-lock.json
-      - uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-      - run: npm ci
-        working-directory: mobile
-      - run: eas build --profile preview --platform ${{ matrix.platform }} --non-interactive --no-wait
-        working-directory: mobile/apps/mobile
+      - run: 'true'
 
   status:
     if: >-
@@ -54,42 +31,49 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - name: View target builds
+      - name: Diagnose builds
         working-directory: mobile/apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_NO_TELEMETRY: 1
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          eas whoami || true
+          echo "--- build:list ---"
+          eas build:list --limit 5 --non-interactive --json > /tmp/list.json 2>/tmp/list.err || true
+          echo "list stderr:"; head -c 3000 /tmp/list.err || true
+          echo
+          echo "list stdout head:"; head -c 4000 /tmp/list.json || true
+          echo
           for id in 6b083cb9-ba19-4555-b6ba-486c5736a034 30eb0ce5-8c60-4005-a776-b2774d9a0303; do
-            echo "=== $id ==="
-            # Capture JSON; keep stderr visible for diagnosis
-            if ! OUT=$(eas build:view "$id" --json --non-interactive); then
-              echo "eas build:view failed for $id"
-              continue
-            fi
-            printf '%s\n' "$OUT" | python3 -c '
-          import json,sys
-          raw=sys.stdin.read()
-          # eas may print non-json banners; find first {
-          i=raw.find("{")
-          if i<0:
-            print("NO_JSON"); print(raw[:2000]); raise SystemExit(1)
-          d=json.loads(raw[i:])
-          err=d.get("error") or {}
-          arts=d.get("artifacts") or {}
-          print(json.dumps({
-            "id": d.get("id"),
-            "status": d.get("status"),
-            "platform": d.get("platform"),
-            "buildProfile": d.get("buildProfile"),
-            "distribution": d.get("distribution"),
-            "isForIosSimulator": d.get("isForIosSimulator"),
-            "appIdentifier": d.get("appIdentifier"),
-            "errorCode": err.get("errorCode") if isinstance(err, dict) else None,
-            "errorMessage": err.get("message") if isinstance(err, dict) else err,
-            "message": d.get("message"),
-            "buildUrl": arts.get("buildUrl") if isinstance(arts, dict) else None,
-            "applicationArchiveUrl": arts.get("applicationArchiveUrl") if isinstance(arts, dict) else None,
-            "logFileUrls": d.get("logFileUrls"),
-            "completedAt": d.get("completedAt"),
-          }, indent=2))
-          '
+            echo "=== view $id ==="
+            eas build:view "$id" --json --non-interactive >"/tmp/view-$id.json" 2>"/tmp/view-$id.err" || true
+            echo "stderr:"; head -c 4000 "/tmp/view-$id.err" || true
+            echo
+            echo "stdout:"; head -c 6000 "/tmp/view-$id.json" || true
+            echo
           done
+          # GraphQL with several auth header variants (never print token)
+          python3 <<'PY'
+          import json, os, urllib.request, urllib.error
+          token=os.environ["EXPO_TOKEN"]
+          q='query($id:ID!){builds{byId(buildId:$id){id status platform error{errorCode message} isForIosSimulator distribution buildProfile artifacts{buildUrl applicationArchiveUrl} logFileUrls}}}'
+          body=json.dumps({"query":q,"variables":{"id":"6b083cb9-ba19-4555-b6ba-486c5736a034"}}).encode()
+          headers_list=[
+            {"Content-Type":"application/json","Authorization":f"Bearer {token}"},
+            {"Content-Type":"application/json","Authorization":f"Token {token}"},
+            {"Content-Type":"application/json","expo-session":token},
+          ]
+          for h in headers_list:
+            label=list(h.keys())
+            try:
+              req=urllib.request.Request("https://api.expo.dev/graphql", data=body, headers=h, method="POST")
+              with urllib.request.urlopen(req, timeout=30) as r:
+                data=json.load(r)
+              print("AUTH_OK", label)
+              # redact nothing secret in response
+              print(json.dumps(data, indent=2)[:5000])
+              break
+            except urllib.error.HTTPError as e:
+              print("AUTH_FAIL", label, e.code, e.read()[:300])
+          PY
