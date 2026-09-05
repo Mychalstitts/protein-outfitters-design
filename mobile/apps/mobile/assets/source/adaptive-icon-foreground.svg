@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Android adaptive-icon foreground — 1024×1024 with transparent background.
+  Critical elements live inside the 66% center safe zone (radius ~340 from
+  center) because the OS may mask the rest with the device's icon shape.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="markFg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#dbe7df"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <path d="
+        M 512 280
+        C 660 280 760 380 760 520
+        C 760 650 640 740 512 840
+        C 384 740 264 650 264 520
+        C 264 380 364 280 512 280
+        Z
+      "
+      fill="url(#markFg)"/>
+    <circle cx="512" cy="510" r="92" fill="#0f5028"/>
+    <text x="512" y="552"
+          font-family="-apple-system, Inter, system-ui, sans-serif"
+          font-size="118"
+          font-weight="800"
+          letter-spacing="-4"
+          text-anchor="middle"
+          fill="#ffffff">PO</text>
+  </g>
+</svg>
