@@ -1,0 +1,246 @@
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import {
+  colors,
+  spacing,
+  fontSize,
+  radius,
+  getProcessorBySlug,
+  submitClaim,
+  type Processor,
+} from '@protein-outfitters/shared';
+import { supabase } from '@/lib/supabase';
+
+type Role = 'owner' | 'manager' | 'employee' | 'other';
+
+const ROLES: { value: Role; label: string }[] = [
+  { value: 'owner', label: 'Owner' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'employee', label: 'Employee' },
+  { value: 'other', label: 'Other' },
+];
+
+export default function ClaimScreen() {
+  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const [proc, setProc] = useState<Processor | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [role, setRole] = useState<Role>('owner');
+  const [evidenceUrl, setEvidenceUrl] = useState('');
+  const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const data = await getProcessorBySlug(supabase, slug);
+      setProc(data);
+      const { data: auth } = await supabase.auth.getUser();
+      setUserId(auth.user?.id ?? null);
+    })();
+  }, [slug]);
+
+  const submit = async () => {
+    if (!proc) return;
+    if (!userId) {
+      Alert.alert(
+        'Sign in required',
+        'You need an account to claim a listing. Sign in and try again.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign in', onPress: () => router.replace('/account') },
+        ],
+      );
+      return;
+    }
+    if (!evidenceUrl.trim() && !notes.trim()) {
+      Alert.alert(
+        'Need some proof',
+        'Add a website, business license, or a quick note about how we can verify you.',
+      );
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await submitClaim(supabase, {
+        processor_id: proc.id,
+        claimant_user_id: userId,
+        role_at_business: role,
+        evidence_url: evidenceUrl.trim() || null,
+        evidence_notes: notes.trim() || null,
+      });
+      Alert.alert(
+        'Claim submitted',
+        `We'll review your claim for ${proc.name} and get back to you within 1–2 business days.`,
+        [{ text: 'OK', onPress: () => router.back() }],
+      );
+    } catch (e: unknown) {
+      Alert.alert(
+        'Could not submit',
+        e instanceof Error ? e.message : 'Try again in a moment.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!proc) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={colors.proc} />
+      </View>
+    );
+  }
+
+  if (proc.claim_status === 'claimed') {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.title}>Already claimed</Text>
+        <Text style={styles.body}>
+          This listing has already been claimed. If you believe this is in
+          error, contact support@proteinoutfitters.com.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.bg0 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={{ padding: spacing.lg, paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.kicker}>Claim listing</Text>
+        <Text style={styles.h1}>{proc.name}</Text>
+        <Text style={styles.body}>
+          Tell us how you're connected to this business. We'll verify and give
+          you control of the page within 1–2 business days. Free, always.
+        </Text>
+
+        <Field label="Your role">
+          <View style={styles.chipRow}>
+            {ROLES.map(o => {
+              const active = o.value === role;
+              return (
+                <Pressable
+                  key={o.value}
+                  onPress={() => setRole(o.value)}
+                  style={[styles.chip, active && styles.chipActive]}
+                >
+                  <Text style={[styles.chipText, active && { color: '#fff' }]}>
+                    {o.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Field>
+
+        <Field label="Website or proof URL">
+          <TextInput
+            style={styles.input}
+            value={evidenceUrl}
+            onChangeText={setEvidenceUrl}
+            placeholder="https://yourshop.com or USDA establishment URL"
+            placeholderTextColor={colors.textMute}
+            keyboardType="url"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <Text style={styles.hint}>
+            Anything that ties you to the business: your business website, a
+            license number, a Facebook page you own.
+          </Text>
+        </Field>
+
+        <Field label="Notes for our team">
+          <TextInput
+            style={[styles.input, { height: 96, textAlignVertical: 'top' }]}
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            placeholder="Anything else that helps us verify (you can also reply with proof to our follow-up email)."
+            placeholderTextColor={colors.textMute}
+          />
+        </Field>
+
+        <Pressable
+          style={[styles.cta, submitting && { opacity: 0.6 }]}
+          onPress={submit}
+          disabled={submitting}
+        >
+          <Text style={styles.ctaText}>
+            {submitting ? 'Submitting…' : 'Submit claim'}
+          </Text>
+        </Pressable>
+
+        <Text style={styles.fineprint}>
+          Submitting a fraudulent claim is a violation of our Terms and may
+          result in account suspension.
+        </Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <View style={{ marginTop: spacing.lg }}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={{ marginTop: spacing.xs }}>{children}</View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg0, padding: spacing.lg },
+  kicker: { color: colors.procLight, fontSize: fontSize.xs, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
+  h1: { color: colors.text, fontSize: 24, fontWeight: '700', marginTop: 4, letterSpacing: -0.3 },
+  title: { color: colors.text, fontSize: fontSize.xl, fontWeight: '700' },
+  body: { color: colors.textDim, fontSize: fontSize.base, lineHeight: 22, marginTop: spacing.sm },
+  label: { color: colors.textMute, fontSize: fontSize.xs, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
+  hint: { color: colors.textMute, fontSize: fontSize.sm, marginTop: spacing.xs },
+  input: {
+    backgroundColor: colors.bg2,
+    borderWidth: 1,
+    borderColor: colors.bg4,
+    borderRadius: radius.lg,
+    color: colors.text,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+    fontSize: fontSize.base,
+  },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  chip: {
+    backgroundColor: colors.bg2,
+    borderWidth: 1,
+    borderColor: colors.bg4,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+  },
+  chipActive: { backgroundColor: colors.procDeep, borderColor: colors.proc },
+  chipText: { color: colors.text, fontSize: fontSize.sm },
+  cta: {
+    marginTop: spacing.xl,
+    backgroundColor: colors.proc,
+    paddingVertical: 14,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+  },
+  ctaText: { color: '#fff', fontSize: fontSize.lg, fontWeight: '700' },
+  fineprint: { color: colors.textMute, fontSize: fontSize.xs, marginTop: spacing.md, lineHeight: 16, textAlign: 'center' },
+});

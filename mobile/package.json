@@ -1,0 +1,32 @@
+{
+  "name": "protein-outfitters-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Protein Outfitters mobile (Expo) + shared package — lives inside protein-outfitters-design",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "mobile": "npm run start --workspace apps/mobile",
+    "mobile:ios": "npm run ios --workspace apps/mobile",
+    "mobile:android": "npm run android --workspace apps/mobile",
+    "shared:build": "npm run build --workspace packages/shared",
+    "bundle:data": "node scripts/bundle-data.mjs",
+    "build:icons": "node scripts/build-icons.mjs",
+    "seed": "node scripts/seed-supabase.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "prettier": "^3.2.5",
+    "eslint": "^8.57.0",
+    "@types/node": "^20.12.7"
+  },
+  "engines": {
+    "node": ">=20.10.0",
+    "npm": ">=10.0.0"
+  }
+}

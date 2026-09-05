@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  App icon master — 1024×1024.
+  Apple: NO transparency, NO rounded corners (iOS rounds them automatically).
+  Google: alpha + rounded corners are fine, but the adaptive-icon foreground
+  has a "safe zone" — keep critical elements within the inner 66% circle.
+
+  Render to PNGs with: node scripts/build-icons.mjs
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f7a3f"/>
+      <stop offset="100%" stop-color="#0f5028"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#dbe7df"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
+      <feOffset dx="0" dy="6"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background — solid green for App Store -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- Subtle radial glow -->
+  <circle cx="512" cy="420" r="380" fill="#ffffff" opacity="0.06"/>
+
+  <!--
+    The mark: a stylized "PO" pin that doubles as a map marker —
+    a teardrop shape with the wordmark inset. Sized to fit Google's
+    safe zone (inner 690×690 area centered) so it works as both the
+    iOS icon and the Android adaptive-icon foreground.
+  -->
+  <g filter="url(#shadow)">
+    <!-- Pin teardrop -->
+    <path d="
+        M 512 200
+        C 700 200 820 320 820 500
+        C 820 660 660 760 512 880
+        C 364 760 204 660 204 500
+        C 204 320 324 200 512 200
+        Z
+      "
+      fill="url(#mark)"/>
+    <!-- Inner cutout to make it look like a marker, not a dot -->
+    <circle cx="512" cy="490" r="118" fill="url(#bg)"/>
+    <!-- Wordmark -->
+    <text x="512" y="538"
+          font-family="-apple-system, Inter, system-ui, sans-serif"
+          font-size="148"
+          font-weight="800"
+          letter-spacing="-6"
+          text-anchor="middle"
+          fill="#ffffff">PO</text>
+  </g>
+</svg>
