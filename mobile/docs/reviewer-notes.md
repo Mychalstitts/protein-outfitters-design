@@ -10,7 +10,7 @@ Thank you for reviewing Protein Outfitters.
 
 **What the app does:** Protein Outfitters is a directory and request platform for meat processors in the United States. Consumers browse a map of processors, see services and contact info, and submit a cut/service request. The processor receives the request by email and responds directly to the consumer.
 
-**About the listings:** Listings are sourced from publicly available state meat processor association directories and our live directory. No personal information is shown for any processor — only the business contact information they have already published publicly. Processors can claim their listing (free) or request removal at any time via support@proteinoutfitters.com. The custom-exempt listing (Stittsworth Smokehouse Co.) stays on the map and is labeled “Custom-exempt / not claimable.”
+**About the listings:** Listings are sourced from publicly available state meat processor association directories and our live directory. No personal information is shown for any processor — only the business contact information they have already published publicly. Processors can claim their listing (free) or request removal at any time via support@proteinoutfitters.com. The custom-exempt listing (Stittsworth Smokehouse Co.) stays on the map. Buyer-facing badge: “Custom-exempt · not on the reserve marketplace.” Claim path: “Custom-exempt — not claimable.”
 
 **Sign-in is required to send a request or claim a listing.** Guests can browse the map and open processor details without an account. Guests cannot submit a request or claim a listing.
 
