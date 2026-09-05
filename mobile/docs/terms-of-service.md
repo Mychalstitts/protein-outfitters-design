@@ -1,61 +1,59 @@
 # Terms of Service
 
-**Last updated: May 6, 2026**
+**Operator:** Stittsworth Meats, Bemidji, Minnesota  
+**Brand:** Protein Outfitters  
+**Effective date:** September 5, 2026
 
-These terms govern your use of the Protein Outfitters apps and website. By using the service you agree to them. If you don't agree, please don't use the service.
+## 1. Who we are
 
-## What the service is
+Protein Outfitters is a marketplace operated by Stittsworth Meats (Bemidji, Minnesota). We connect buyers who reserve a share of a named animal, producers who raise the animal, and processors who slaughter, cut, wrap, and store it. Animals sold through the marketplace are processed at a USDA federally inspected, state-inspected, or equal-to plant. Custom-exempt processing is never sold. Institutions may use Donation Depot to receive donated animals on behalf of qualified feeding programs.
 
-Protein Outfitters is a directory and request platform that connects consumers with meat processors. We list processors based on public information from state meat processor associations and other public sources. We facilitate contact between consumers and processors. We are not the processor and we don't process meat.
+## 2. Agreement
 
-## Your account
+By accessing or using the website, app, or Service, you agree to these Terms of Service and the Refund policy. If you do not agree, do not use the Service.
 
-You're responsible for keeping your account credentials safe. You must be at least 18 to create an account.
+## 3. Account
 
-## How requests work
+You sign in with a magic link sent to your email and/or Sign in with Apple. We do not store passwords. You must be of legal age to reserve. In the United States that means 18 or older. You may delete your account in-app with **Delete my account**, or by emailing hello@proteinoutfitters.com.
 
-When you submit a service request, you authorize us to forward your contact information and the details of your request to the processor you selected. The processor decides whether to respond, what to charge, and what services to perform. Any agreement you reach with a processor is between you and them — we are not a party to it.
+## 4. Reservations
 
-## Processor listings
+A reservation is a commitment to take delivery of a share of a specific animal at a specific processor. When checkout is enabled, you pay a deposit at reservation. The listed meat price is hanging weight dollars per pound: the producer’s rate plus Protein Outfitters’ 10% marketplace fee on that rate. Kill, cut, and wrap are set by the processor the producer books and paid at the plant. The first paid reservation locks the hanging-weight $/lb for that animal. Until checkout is enabled, we do not collect payment. There is no refund for unpaid amounts.
 
-If you are a processor and you find your business listed, you can claim the listing for free. We'll verify your ownership and give you control of the page. If you'd rather not be listed at all, contact us and we'll remove the listing within 7 days.
+## 5. Cancellation and refunds
 
-## Acceptable use
+If the animal does not pass inspection, we refund what you paid. That is the refund rule. We do not offer condemnation insurance, a reserve, or a shared pool.
 
-You agree not to:
+## 6. Inspection
 
-- Use the service for any unlawful purpose
-- Submit false or misleading requests
-- Harass or threaten any user or processor
-- Scrape, copy, or resell our listings or data without permission
-- Attempt to access accounts or data that aren't yours
-- Use automated tools to flood the request system
+Animals sold through the marketplace are processed at a USDA federally inspected, state-inspected, or equal-to plant. Custom-exempt processing is never sold. Do not assume every plant is USDA-inspected; look for the inspection type on the listing.
 
-## Content you submit
+## 7. Producers and processors
 
-You keep ownership of anything you write or upload. You give us a license to display it as part of operating the service.
+Producers control their listings, prices, and which processor handles their animals. Processors set their own kill fees, processing rates, schedule, and capabilities. When checkout is enabled and payment is collected, funds settle through Stripe Connect.
 
-## Disclaimers
+## 8. What you may not do
 
-The service is provided "as is" without warranty. We don't guarantee that processors will respond, perform work, or meet your standards. We don't certify processors' inspection status, food safety practices, or business reliability beyond what's in their listing. Verify those things directly with the processor.
+You may not resell platform-purchased meat as a regulated retail product without your own license; bypass the platform on any reservation that started here; misrepresent practices, certifications, or animal identity; or use the Service for anything other than buying, selling, processing, or donating livestock and meat as described here.
 
-## Liability
+## 9. Disclaimers
 
-To the maximum extent allowed by law, we are not liable for indirect, incidental, or consequential damages arising from your use of the service. Our total liability to you is limited to the greater of $50 or the amount you paid us in the past twelve months.
+The Service is provided as is. We operate a marketplace. Except for the refund rule in section 5, we do not guarantee hanging weight, timing, or that a reservation will complete.
 
-## Termination
+## 10. Limitation of liability
 
-You can stop using the service at any time and delete your account from the app. We can suspend or terminate accounts that violate these terms.
+These Terms are governed by the laws of the State of Minnesota. To the maximum extent allowed by law, our total liability to you is limited to the amounts you paid us for a reservation in the prior 12 months.
 
-## Changes
+## 11. Disputes
 
-We may update these terms. If we make material changes, we'll notify you in-app and by email. Continued use after the change means you accept the new terms.
+Email hello@proteinoutfitters.com first. Disputes that cannot be resolved are subject to binding arbitration in Beltrami County, Minnesota.
 
-## Governing law
+## 12. Changes
 
-These terms are governed by the laws of the State of [TO BE DETERMINED — typically your state of incorporation], without regard to conflict-of-laws rules.
+We may update these terms. Material changes will be emailed to active accounts and/or posted. Continued use after a change means you accept the update.
 
-## Contact
+## 13. Contact
 
-Protein Outfitters
-support@proteinoutfitters.com
+hello@proteinoutfitters.com  
+Donation Depot: depot@proteinoutfitters.com  
+Operator: Stittsworth Meats, Bemidji, Minnesota.
