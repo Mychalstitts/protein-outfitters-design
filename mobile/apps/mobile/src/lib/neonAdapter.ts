@@ -68,10 +68,22 @@ export function isCustomExemptListing(proc: {
   return isCustomExemptInspection(proc.inspection_status);
 }
 
-function claimFrom(_claimable?: boolean, ownerId?: string | null): ClaimStatus {
-  // Owner means claimed for filters. Custom-exempt stays on the map either
-  // way — label via CUSTOM_EXEMPT_LABEL, do not drop the pin.
+function claimFrom(
+  claimable?: boolean,
+  ownerId?: string | null,
+  opts?: { inspection?: string | null; slug?: string | null },
+): ClaimStatus {
+  // Custom-exempt stays on the map and is labeled separately — never
+  // “already claimed” (UX must-fix).
+  if (
+    isCustomExemptInspection(opts?.inspection) ||
+    opts?.slug === CUSTOM_EXEMPT_SLUG
+  ) {
+    return 'unclaimed';
+  }
   if (ownerId) return 'claimed';
+  // GET /api/map-data sets claimable: !owner_id and omits owner_id.
+  if (claimable === false) return 'claimed';
   return 'unclaimed';
 }
 
@@ -156,7 +168,10 @@ export function processorFromMapDataRow(row: MapDataProcessorRow): Processor | n
     usda_establishment_number: null,
     source: 'neon',
     source_url: null,
-    claim_status: claimFrom(row.claimable, undefined),
+    claim_status: claimFrom(row.claimable, undefined, {
+      inspection: row.inspection,
+      slug: row.slug,
+    }),
   };
 }
 
@@ -194,7 +209,10 @@ export function processorFromNeonRow(row: NeonProcessorRow): Processor | null {
     usda_establishment_number: null,
     source: 'neon',
     source_url: null,
-    claim_status: claimFrom(undefined, row.owner_id ?? null),
+    claim_status: claimFrom(undefined, row.owner_id ?? null, {
+      inspection: row.inspection,
+      slug: row.slug,
+    }),
     cover_photo_url: row.cover_url ?? null,
   };
 }
