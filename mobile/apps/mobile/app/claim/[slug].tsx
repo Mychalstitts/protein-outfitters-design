@@ -17,11 +17,11 @@ import {
   spacing,
   fontSize,
   radius,
-  getProcessorBySlug,
   submitClaim,
   type Processor,
 } from '@protein-outfitters/shared';
 import { supabase } from '@/lib/supabase';
+import { loadProcessorBySlug } from '@/lib/processors';
 
 type Role = 'owner' | 'manager' | 'employee' | 'other';
 
@@ -43,8 +43,8 @@ export default function ClaimScreen() {
 
   useEffect(() => {
     (async () => {
-      const data = await getProcessorBySlug(supabase, slug);
-      setProc(data);
+      const result = await loadProcessorBySlug(slug);
+      setProc(result.processor);
       const { data: auth } = await supabase.auth.getUser();
       setUserId(auth.user?.id ?? null);
     })();

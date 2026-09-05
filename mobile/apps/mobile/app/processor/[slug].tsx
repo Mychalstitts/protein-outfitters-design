@@ -14,10 +14,9 @@ import {
   spacing,
   fontSize,
   radius,
-  getProcessorBySlug,
   type Processor,
 } from '@protein-outfitters/shared';
-import { supabase } from '@/lib/supabase';
+import { loadProcessorBySlug } from '@/lib/processors';
 
 export default function ProcessorDetail() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -29,10 +28,10 @@ export default function ProcessorDetail() {
     let cancelled = false;
     (async () => {
       try {
-        const data = await getProcessorBySlug(supabase, slug);
+        const result = await loadProcessorBySlug(slug);
         if (!cancelled) {
-          if (!data) setError('Processor not found.');
-          else setProc(data);
+          if (!result.processor) setError(result.error ?? 'Processor not found.');
+          else setProc(result.processor);
         }
       } catch (e: unknown) {
         if (!cancelled)
