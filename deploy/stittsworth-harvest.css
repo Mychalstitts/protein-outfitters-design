@@ -123,15 +123,33 @@
 .pd-day-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 22px 0 12px; }
 .pd-day-title { margin: 4px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
 .pd-cap { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.pd-day-meta { text-align: right; }
 .pd-jobs { display: grid; gap: 10px; }
-.pd-job { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); }
+.pd-job { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.04); border: 1px solid transparent; }
 .pd-job.cancelled { opacity: 0.55; }
+.pd-job.unpaid { border-color: #e8c36a; background: #fffaf0; }
+.pd-job.paid { border-color: #9ccc9a; background: #f4faf3; }
 .pd-job-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .pd-job p { margin: 6px 0 0; font-size: 14px; color: var(--ink-2); }
+.pd-job .pd-due { font-weight: 700; color: var(--ink); }
+.pd-job.unpaid .pd-due { color: #8a5a00; }
+.pd-job.paid .pd-due { color: #1f6b2c; }
 .pd-src {
   font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
   background: var(--accent-soft); color: var(--brand); border-radius: 999px; padding: 4px 8px;
 }
+.pd-pay { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.pd-pay-btn {
+  border: 1px solid var(--line, #ddd); border-radius: 999px; padding: 8px 12px;
+  background: #fff; color: var(--ink); font: 700 12px/1 var(--font-sans); cursor: pointer;
+}
+.pd-pay-btn[aria-pressed="true"] { color: #fff; }
+.pd-job.unpaid .pd-pay-btn[data-pay="unpaid"][aria-pressed="true"] { background: #b8860b; border-color: #b8860b; }
+.pd-job.paid .pd-pay-btn[data-pay="cash"][aria-pressed="true"],
+.pd-job.paid .pd-pay-btn[data-pay="app"][aria-pressed="true"] { background: #2a7a38; border-color: #2a7a38; }
+.pd-pay-sum { margin: 4px 0 0; font-size: 13px; font-weight: 700; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.pd-pay-sum .unpaid { color: #8a5a00; }
+.pd-pay-sum .paid { color: #1f6b2c; }
 .pd-job-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .pd-job-actions button {
   border: 0; border-radius: 999px; padding: 8px 12px;

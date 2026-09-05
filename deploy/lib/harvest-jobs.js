@@ -1,7 +1,8 @@
-// Stittsworth Smokehouse harvest jobs — shared trailer calendar (Phase A1).
-// Pure helpers: validate payloads, quote kill+trip, roll up daily capacity.
+// Stittsworth Smokehouse harvest jobs — shared trailer calendar (Phase A2).
+// Pure helpers: validate payloads, quote kill+trip, roll up daily capacity,
+// and normalize kill+mileage pay_status (unpaid | cash | app).
 // Persistence lives in /api/harvest-jobs → harvest_jobs (Neon). This file
-// does not write a database and does not touch checkout or listing 123.
+// does not write a database, charge a card, or touch checkout or listing 123.
 // Smokehouse-only: processor_slug is always stittsworth-smokehouse.
 //
 // ESM named exports so Vercel Node can `import * as Jobs` (do not use
@@ -23,6 +24,7 @@ export const PROCESSOR_SLUG = 'stittsworth-smokehouse';
 export const PROCESSOR_NAME = 'Stittsworth Smokehouse';
 export const SOURCES = ['app', 'phone'];
 export const STATUSES = ['requested', 'confirmed', 'capacity_used', 'cancelled'];
+export const PAY_STATUSES = ['unpaid', 'cash', 'app'];
 export const SHARE_KINDS = ['whole', 'half', 'quarter'];
 export const SPECIES = ['beef', 'hog', 'lamb', 'goat', 'bison'];
 
@@ -48,6 +50,57 @@ export function normalizeStatus(raw) {
   const s = String(raw || '').toLowerCase().trim();
   if (STATUSES.indexOf(s) !== -1) return s;
   return 'requested';
+}
+
+export function normalizePayStatus(raw) {
+  const s = String(raw || '').toLowerCase().trim();
+  if (PAY_STATUSES.indexOf(s) !== -1) return s;
+  return 'unpaid';
+}
+
+export function isKnownPayStatus(raw) {
+  const s = String(raw || '').toLowerCase().trim();
+  return PAY_STATUSES.indexOf(s) !== -1;
+}
+
+export function isPaid(payStatus) {
+  const s = normalizePayStatus(payStatus);
+  return s === 'cash' || s === 'app';
+}
+
+export function payStamp(nextStatus, prev) {
+  const pay_status = normalizePayStatus(nextStatus);
+  const prior = prev && typeof prev === 'object' ? prev : {};
+  if (!isPaid(pay_status)) {
+    return { pay_status: 'unpaid', paid_at: null };
+  }
+  const samePaid = isPaid(prior.pay_status) && prior.paid_at;
+  return {
+    pay_status: pay_status,
+    paid_at: samePaid ? prior.paid_at : new Date().toISOString(),
+  };
+}
+
+export function payTotals(jobs) {
+  let unpaid = 0;
+  let cash = 0;
+  let app = 0;
+  (jobs || []).forEach((j) => {
+    if (!j || normalizeStatus(j.status) === 'cancelled') return;
+    const amt = Number(j.total_due) || 0;
+    const pay = normalizePayStatus(j.pay_status);
+    if (pay === 'cash') cash += amt;
+    else if (pay === 'app') app += amt;
+    else unpaid += amt;
+  });
+  return {
+    unpaid: unpaid,
+    cash: cash,
+    app: app,
+    collected: cash + app,
+    due: unpaid,
+    total: unpaid + cash + app,
+  };
 }
 
 export function isKnownTown(name) {
@@ -146,6 +199,19 @@ export function validateJobInput(body, opts) {
   const town = H.resolveTown(townName);
   const quote = quoteJob(species, town, heads);
   const status = raw.status ? normalizeStatus(raw.status) : defaultStatusForSource(source);
+  if (raw.pay_status != null && raw.pay_status !== '' && !isKnownPayStatus(raw.pay_status)) {
+    errors.push('pay_status must be unpaid, cash, or app');
+  }
+  const pay_status = raw.pay_status != null && raw.pay_status !== ''
+    ? normalizePayStatus(raw.pay_status)
+    : 'unpaid';
+  const paid_note = raw.paid_note != null
+    ? String(raw.paid_note).trim().slice(0, 200) || null
+    : null;
+  const stamp = payStamp(pay_status, {
+    pay_status: raw.pay_status,
+    paid_at: raw.paid_at || null,
+  });
 
   const job = {
     processor_slug: PROCESSOR_SLUG,
@@ -160,6 +226,9 @@ export function validateJobInput(body, opts) {
     kill_due: quote.kill_due,
     trip_due: quote.trip_due,
     total_due: quote.total_due,
+    pay_status: stamp.pay_status,
+    paid_at: stamp.paid_at,
+    paid_note: paid_note,
     phone: phone || null,
     notes: notes || null,
     listing_id: listing_id || null,
@@ -197,11 +266,14 @@ export function publicJob(row) {
     share_label: H.SHARE_LABELS[share] || 'Whole',
     trailer_day: isoDay(row.trailer_day),
     source: normalizeSource(row.source),
-    status: normalizeStatus(row.status),
-    kill_due: Number(row.kill_due) || 0,
-    trip_due: Number(row.trip_due) || 0,
-    total_due: Number(row.total_due) || 0,
-    phone: row.phone || null,
+      status: normalizeStatus(row.status),
+      kill_due: Number(row.kill_due) || 0,
+      trip_due: Number(row.trip_due) || 0,
+      total_due: Number(row.total_due) || 0,
+      pay_status: normalizePayStatus(row.pay_status),
+      paid_at: row.paid_at || null,
+      paid_note: row.paid_note || null,
+      phone: row.phone || null,
     notes: row.notes || null,
     listing_id: row.listing_id || null,
     created_by: row.created_by || null,
@@ -220,12 +292,18 @@ const api = {
   PROCESSOR_NAME: PROCESSOR_NAME,
   SOURCES: SOURCES,
   STATUSES: STATUSES,
+  PAY_STATUSES: PAY_STATUSES,
   SHARE_KINDS: SHARE_KINDS,
   SPECIES: SPECIES,
   clampHeads: clampHeads,
   normalizeShare: normalizeShare,
   normalizeSource: normalizeSource,
   normalizeStatus: normalizeStatus,
+  normalizePayStatus: normalizePayStatus,
+  isKnownPayStatus: isKnownPayStatus,
+  isPaid: isPaid,
+  payStamp: payStamp,
+  payTotals: payTotals,
   isKnownTown: isKnownTown,
   isAllowedSpecies: isAllowedSpecies,
   countsTowardCapacity: countsTowardCapacity,
