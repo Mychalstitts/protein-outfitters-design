@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "scheme": "proteinoutfitters",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "runtimeVersion": {
       "policy": "appVersion"
     },

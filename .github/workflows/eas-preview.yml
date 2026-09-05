@@ -31,7 +31,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
         working-directory: mobile
-      - name: Fetch and gunzip iOS logs
+      - name: Detect log compression + extract text
         working-directory: mobile/apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -41,26 +41,58 @@ jobs:
           ID=6b083cb9-ba19-4555-b6ba-486c5736a034
           eas build:view "$ID" --json > /tmp/ios-build.json
           python3 <<'PY'
-          import json, urllib.request, gzip, io, re
+          import json, urllib.request, gzip, zlib
           raw=open("/tmp/ios-build.json").read()
           d=json.loads(raw[raw.find("{"):])
-          print("error", d.get("error"))
           urls=d.get("logFiles") or []
-          for i,u in enumerate(urls):
-            with urllib.request.urlopen(u, timeout=90) as r:
-              data=r.read()
-            # try gzip
+          u=urls[0]
+          with urllib.request.urlopen(u, timeout=90) as r:
+            data=r.read()
+            ctype=r.headers.get("Content-Type")
+            cenc=r.headers.get("Content-Encoding")
+          print("bytes", len(data), "ctype", ctype, "cenc", cenc)
+          print("magic", data[:16].hex())
+          candidates=[]
+          candidates.append(("raw", data))
+          try:
+            candidates.append(("gzip", gzip.decompress(data)))
+          except Exception as e:
+            print("gzip fail", e)
+          try:
+            candidates.append(("zlib", zlib.decompress(data)))
+          except Exception as e:
+            print("zlib fail", e)
+          for w in (16+zlib.MAX_WBITS, -zlib.MAX_WBITS, zlib.MAX_WBITS):
             try:
-              text=gzip.GzipFile(fileobj=io.BytesIO(data)).read().decode("utf-8","replace")
+              candidates.append((f"zlib{w}", zlib.decompress(data, w)))
             except Exception:
-              text=data.decode("utf-8","replace")
-            open(f"/tmp/log-{i}.txt","w").write(text)
-            lines=text.splitlines()
-            print(f"LOG {i}: lines={len(lines)} bytes={len(text)}")
-            hits=[ln for ln in lines if re.search(r"(?i)error|fail|pod |cocoapods|conflict|unable|ENOENT|undefined|new.?arch|RCT-|fatal|Install pods|phase", ln)]
-            print("--- hits (last 150) ---")
-            for ln in hits[-150:]:
-              print(ln)
-            print("--- last 100 ---")
-            print("\n".join(lines[-100:]))
+              pass
+          try:
+            import zstandard as zstd
+            candidates.append(("zstd", zstd.ZstdDecompressor().decompress(data)))
+          except Exception as e:
+            print("zstd skip", type(e).__name__)
+          try:
+            import brotli
+            candidates.append(("brotli", brotli.decompress(data)))
+          except Exception as e:
+            print("brotli skip", type(e).__name__)
+
+          for name, blob in candidates:
+            sample=blob[:5000]
+            printable=sum(32 <= b < 127 or b in (9,10,13) for b in sample)/max(1,len(sample))
+            print(f"candidate {name}: len={len(blob)} printable={printable:.2f}")
+            if printable > 0.7:
+              text=blob.decode("utf-8","replace")
+              lines=text.splitlines()
+              print(f"--- {name} hits ---")
+              for ln in lines:
+                low=ln.lower()
+                if any(k in low for k in ("error","fail","pod","install pods","cocoapods","enoent","conflict","fatal","new architecture","unable")):
+                  print(ln)
+              print(f"--- {name} last 80 ---")
+              print("\n".join(lines[-80:]))
+              break
+          else:
+            print("NO printable candidate")
           PY
