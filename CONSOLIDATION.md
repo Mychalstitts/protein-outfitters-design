@@ -89,7 +89,7 @@ Homepage hub, route/host redirects, processor profiles, map upgrade, compare pag
 
 ## Next consolidation steps
 
-1. **Run [`move-source.sh`](./move-source.sh)** on a machine with private app access (`FORCE=1` if scaffold `mobile/` exists). Then `cd mobile && npm install && npm run typecheck`, adjust CI/EAS paths, commit. Alternate: git subtree (flat layout) in [MIGRATE.md](./docs/mobile/MIGRATE.md).
+1. **Finish [`move-source.sh`](./move-source.sh) on the Mac** (app clone at `~/code/protein-outfitters-app` @ `d212c9f`; dry-run verified; real run may have completed before disconnect). Confirm `mobile/apps/mobile` exists (`FORCE=1` if still scaffold-only), then `cd mobile && npm install && npm run typecheck`, retarget CI/EAS, commit + push. Nested layout is intentional. Alternate: git subtree (flat) in [MIGRATE.md](./docs/mobile/MIGRATE.md).
 2. **GitHub Actions secret** `EXPO_TOKEN` on this repo; EAS secrets for Supabase + Maps.
 3. **Vercel dashboard** — paused projects already 503; delete when ready; enable Ignored Build Step.
 4. **Archive** `protein-outfitters-app` after first successful EAS preview from this repo; remove its EAS workflows first.

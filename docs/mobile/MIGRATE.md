@@ -16,22 +16,55 @@ DESIGN/mobile/
 └── README.md
 ```
 
-**Not copied:** `apps/web` (design `deploy/` is canonical), full `supabase/`
-(only adds `supabase/functions/README.md` if missing), `node_modules`,
-`.expo`, native `ios/`/`android/`, lockfiles.
+**Not copied (by design):**
+- `apps/web` — design `deploy/` is canonical
+- full `supabase/` — only adds `supabase/functions/README.md` if missing
+  (migrations/functions were already identical)
+- `node_modules`, `.expo`, native `ios/`/`android/`, lockfiles (regenerate)
+
+**Also not copied (app-repo extras — optional follow-up if you want them):**
+- Root docs: `DEPLOY.md`, `SHIPPED.md`, `processor-directory-plan.md`,
+  `friesla-pricing-reference.md`
+- `processor_import/`, `data/`, `protein_outfitters_map_system.html`
+
+**Nested layout (kept on purpose):** `mobile/apps/mobile` rather than flattening
+to root `mobile/`. Flattening would require editing `metro.config.js`, both
+`tsconfig.json`s, and workspace globs. Flat layout remains available via the
+git-subtree alternate below if you prefer it later.
 
 Requires a machine that can read private `protein-outfitters-app`. This Cloud
-Agent cannot.
+Agent cannot. Expected app HEAD when first cloned for the move: `d212c9f`
+(“Fix shared package typecheck so CI tests run”).
 
 ```bash
+# Prefer the copy in the design repo (or ~/code/move-source.sh if that’s where you saved it)
 APP=~/code/protein-outfitters-app \
 DESIGN=~/code/protein-outfitters-design \
-bash move-source.sh
-# FORCE=1  — replace existing DESIGN/mobile (needed after PR #26 scaffold)
+FORCE=1 bash ~/code/protein-outfitters-design/move-source.sh
+# FORCE=1 required after PR #26 scaffold (DESIGN/mobile already exists)
 # --dry-run — preview only
 ```
 
 Same entrypoint: `scripts/mobile/move-source.sh` (wrapper → root script).
+
+### Verify the copy landed (Mac)
+
+Connection can drop mid-run. On the Mac:
+
+```bash
+# Nested source present?
+ls ~/code/protein-outfitters-design/mobile/apps/mobile
+ls ~/code/protein-outfitters-design/mobile/packages/shared
+
+# Or re-run without FORCE — if it says mobile/ already exists, the first run landed
+APP=~/code/protein-outfitters-app \
+DESIGN=~/code/protein-outfitters-design \
+bash ~/code/protein-outfitters-design/move-source.sh
+```
+
+If `mobile/` is still the flat scaffold (only `app.config.js` / `eas.json` /
+`package.json` at `mobile/` root, no `apps/`), re-run with `FORCE=1`.
+Clear a stale `DESIGN/.git/index.lock` if a sandboxed dry-run left one behind.
 
 ### After a successful copy
 
@@ -41,9 +74,9 @@ Same entrypoint: `scripts/mobile/move-source.sh` (wrapper → root script).
    # only if still present and empty of real source
    rm -rf packages/shared
    ```
-2. Point root tooling at the nested workspace, or work only inside it:
+2. Install and typecheck inside the nested workspace:
    ```bash
-   cd mobile && nvm use && npm install && npm run typecheck
+   cd ~/code/protein-outfitters-design/mobile && nvm use && npm install && npm run typecheck
    ```
 3. Update CI / EAS paths if still assuming root `mobile/` = Expo app and
    root `packages/shared`:
@@ -55,11 +88,12 @@ Same entrypoint: `scripts/mobile/move-source.sh` (wrapper → root script).
    rotate the key (it is in app-repo history). Prefer env / EAS secrets.
 5. Commit from design repo, e.g.:
    ```bash
-   git add mobile supabase/functions/README.md
-   git commit -m "feat(mobile): move workspace from protein-outfitters-app"
+   git -C ~/code/protein-outfitters-design add mobile supabase/functions/README.md
+   git -C ~/code/protein-outfitters-design commit -m "feat(mobile): move workspace from protein-outfitters-app"
    ```
 
 Nothing is deleted from the app repo and the script does **not** commit.
+Until that commit is pushed, GitHub still shows only the PR #26 scaffold.
 
 ---
 
