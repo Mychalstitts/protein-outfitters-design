@@ -6,7 +6,7 @@
 
 This document tracks every Protein Outfitters codebase and Vercel project so work stops jumping between repos.
 
-**Last updated:** 2026-09-05 — nested mobile workspace **landed** from private `protein-outfitters-app` @ `d212c9f` (`mobile/apps/mobile` + `mobile/packages/shared`). Flat scaffold placeholders removed. Stray Vercel projects remain **paused**. Set `EXPO_TOKEN` for EAS Actions.
+**Last updated:** 2026-09-05 — nested mobile workspace **landed** (PR #29). EAS project `e2976642-b0da-43b5-b85f-138c93665c8d` under `mobile/apps/mobile`. First phone preview: label a PR `mobile-build` (workflow `.github/workflows/eas-preview.yml`). Needs **both** Cursor Cloud secret `EXPO_TOKEN` (agent `eas` CLI) **and** GitHub Actions secret `EXPO_TOKEN` (CI). Stray Vercel projects remain **paused**.
 
 ---
 
@@ -92,12 +92,16 @@ Homepage hub, route/host redirects, processor profiles, map upgrade, compare pag
 
 ## Next consolidation steps
 
-1. **GitHub Actions secret** `EXPO_TOKEN` on this repo; EAS secrets for Supabase + Maps (`GOOGLE_MAPS_ANDROID_KEY`, `EXPO_PUBLIC_SUPABASE_*`).
-2. **Label a PR `mobile-build`** (or run EAS locally from `mobile/apps/mobile`) for the first preview binary from this repo.
-3. **Vercel dashboard** — delete paused stray projects when ready; confirm Ignored Build Step.
-4. **Archive** `protein-outfitters-app` after first successful EAS preview from this repo; remove its EAS workflows first.
-5. **Saved favorites** — wire `/account` to persisted follows.
-6. **Clean up** ~55 misplaced `audit-*.md` files at the app repo root (they audit www/design).
+1. **Secrets for first EAS preview (no product-code change)** — app boots on `processors.bundled.json`. Details: [docs/mobile/EAS-PREVIEW.md](./docs/mobile/EAS-PREVIEW.md).
+   - Cursor Cloud Agents: `EXPO_TOKEN` (in-agent `eas` CLI).
+   - GitHub Actions: same name on this repo (`eas-preview.yml`). Cursor secrets do **not** feed Actions.
+   - Optional later: EAS secrets for Maps / Supabase public keys.
+2. **Trigger preview** — label a PR `mobile-build`, or run `eas build --profile preview --non-interactive` from `mobile/apps/mobile`.
+3. **Mobile → Vercel/Neon API swap** — docs PR #30 / [docs/mobile/API-SWAP.md](./docs/mobile/API-SWAP.md) when merged.
+4. **Vercel dashboard** — delete paused stray projects when ready; confirm Ignored Build Step.
+5. **Archive** `protein-outfitters-app` after first successful EAS preview from this repo; remove its EAS workflows first.
+6. **Saved favorites** — wire `/account` to persisted follows.
+7. **Clean up** ~55 misplaced `audit-*.md` files at the app repo root (they audit www/design).
 
 ---
 
