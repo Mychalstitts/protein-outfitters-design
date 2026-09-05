@@ -17,7 +17,10 @@ import {
   type Processor,
 } from '@protein-outfitters/shared';
 import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
-import { isCustomExemptInspection } from '@/lib/neonAdapter';
+import {
+  CUSTOM_EXEMPT_LABEL,
+  isCustomExemptListing,
+} from '@/lib/neonAdapter';
 
 export default function ProcessorDetail() {
   const { slug: slugParam } = useLocalSearchParams<{ slug: string }>();
@@ -79,12 +82,12 @@ export default function ProcessorDetail() {
         </View>
       </View>
 
-      {isCustomExemptInspection(proc.inspection_status) ? (
+      {isCustomExemptListing(proc) ? (
         <View style={styles.unclaimedBanner}>
           <Text style={styles.unclaimedText}>
-            Custom-exempt / not claimable. This shop is listed as
-            custom-exempt and cannot be claimed in the app. Prefer not to be
-            listed? Email support@proteinoutfitters.com.
+            {CUSTOM_EXEMPT_LABEL}. Listed for map honesty — not claimable and
+            not sellable in the app. Prefer not to be listed? Email
+            support@proteinoutfitters.com.
           </Text>
         </View>
       ) : proc.claim_status === 'unclaimed' && proc.slug ? (

@@ -46,7 +46,13 @@ export interface NeonProcessorRow {
   cover_url?: string | null;
 }
 
-/** Live map uses `custom-exempt`; do not treat that as “already claimed”. */
+/** Live map pin — Product YES: keep visible; label, do not hide. */
+export const CUSTOM_EXEMPT_SLUG = 'stittsworth-smokehouse-co';
+
+export const CUSTOM_EXEMPT_LABEL =
+  'Custom-exempt / not claimable / already claimed / not sellable';
+
+/** Live map uses `custom-exempt`. */
 export function isCustomExemptInspection(
   inspection?: string | null,
 ): boolean {
@@ -54,9 +60,17 @@ export function isCustomExemptInspection(
   return inspection.trim().toLowerCase().replace(/_/g, '-') === 'custom-exempt';
 }
 
+export function isCustomExemptListing(proc: {
+  slug?: string | null;
+  inspection_status?: string | null;
+}): boolean {
+  if (proc.slug === CUSTOM_EXEMPT_SLUG) return true;
+  return isCustomExemptInspection(proc.inspection_status);
+}
+
 function claimFrom(_claimable?: boolean, ownerId?: string | null): ClaimStatus {
-  // Only an owner means claimed. `claimable: false` is custom-exempt
-  // (not claimable) — label that via inspection, not as “already claimed”.
+  // Owner means claimed for filters. Custom-exempt stays on the map either
+  // way — label via CUSTOM_EXEMPT_LABEL, do not drop the pin.
   if (ownerId) return 'claimed';
   return 'unclaimed';
 }

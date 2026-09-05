@@ -29,6 +29,10 @@ import {
   type DataSource,
 } from '@/lib/processors';
 import { FilterSheet } from '@/components/FilterSheet';
+import {
+  CUSTOM_EXEMPT_LABEL,
+  isCustomExemptListing,
+} from '@/lib/neonAdapter';
 
 function openProcessor(p: Processor) {
   const slug = typeof p.slug === 'string' ? p.slug.trim() : '';
@@ -183,7 +187,11 @@ export default function MapScreen() {
               key={p.id}
               coordinate={{ latitude: p.lat, longitude: p.lng }}
               title={p.name}
-              description={p.address.full ?? undefined}
+              description={
+                isCustomExemptListing(p)
+                  ? CUSTOM_EXEMPT_LABEL
+                  : p.address.full ?? undefined
+              }
               pinColor={p.role === 'processor' ? colors.proc : colors.sup}
               onCalloutPress={() => openProcessor(p)}
             />
@@ -232,7 +240,11 @@ export default function MapScreen() {
                   {item.address.city ?? ''}
                   {item.address.state ? `, ${item.address.state}` : ''}
                 </Text>
-                {item.services.length > 0 ? (
+                {isCustomExemptListing(item) ? (
+                  <Text style={styles.cardServices} numberOfLines={2}>
+                    {CUSTOM_EXEMPT_LABEL}
+                  </Text>
+                ) : item.services.length > 0 ? (
                   <Text style={styles.cardServices} numberOfLines={1}>
                     {item.services.join(' · ')}
                   </Text>

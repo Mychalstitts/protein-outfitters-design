@@ -7,7 +7,7 @@ const BASE =
 
 function claimFrom(claimable, ownerId) {
   if (ownerId) return 'claimed';
-  // claimable=false is custom-exempt / not claimable — not “already claimed”.
+  // claimable=false is custom-exempt — keep the pin; label, do not hide.
   return 'unclaimed';
 }
 

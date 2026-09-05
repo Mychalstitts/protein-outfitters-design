@@ -20,7 +20,11 @@ import {
 } from '@protein-outfitters/shared';
 import { claimProcessor, getCachedUser, refreshCurrentUser, type AuthUser } from '@/lib/auth';
 import { loadProcessorBySlug, normalizeRouteSlug } from '@/lib/processors';
-import { isCustomExemptInspection, isSyntheticSlug } from '@/lib/neonAdapter';
+import {
+  CUSTOM_EXEMPT_LABEL,
+  isCustomExemptListing,
+  isSyntheticSlug,
+} from '@/lib/neonAdapter';
 import { ApiError } from '@/lib/api';
 
 const UUID_RE =
@@ -46,10 +50,10 @@ export default function ClaimScreen() {
 
   const submit = async () => {
     if (!proc) return;
-    if (isCustomExemptInspection(proc.inspection_status)) {
+    if (isCustomExemptListing(proc)) {
       Alert.alert(
         'Not claimable',
-        'This listing is custom-exempt and cannot be claimed in the app.',
+        CUSTOM_EXEMPT_LABEL,
       );
       return;
     }
@@ -109,13 +113,14 @@ export default function ClaimScreen() {
     );
   }
 
-  if (isCustomExemptInspection(proc.inspection_status)) {
+  if (isCustomExemptListing(proc)) {
     return (
       <View style={styles.center}>
-        <Text style={styles.title}>Custom-exempt / not claimable</Text>
+        <Text style={styles.title}>{CUSTOM_EXEMPT_LABEL}</Text>
         <Text style={[styles.body, { textAlign: 'center' }]}>
-          This shop is listed as custom-exempt and cannot be claimed in the
-          app. Prefer not to be listed? Email support@proteinoutfitters.com.
+          This shop stays on the map for directory honesty. It is custom-exempt,
+          already claimed / not claimable, and not sellable in the app. Prefer
+          not to be listed? Email support@proteinoutfitters.com.
         </Text>
       </View>
     );
