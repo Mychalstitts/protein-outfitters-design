@@ -49,7 +49,14 @@ export interface NeonProcessorRow {
 /** Live map pin — Product YES: keep visible; label, do not hide. */
 export const CUSTOM_EXEMPT_SLUG = 'stittsworth-smokehouse-co';
 
-export const CUSTOM_EXEMPT_LABEL = 'Custom-exempt / not claimable';
+/** Buyer-facing map callout, list card, and processor-detail banner. */
+export const CUSTOM_EXEMPT_MAP_LABEL =
+  'Custom-exempt · not on the reserve marketplace';
+/** Tight pin/callout fallback. */
+export const CUSTOM_EXEMPT_MAP_LABEL_SHORT = 'Custom-exempt';
+/** Claim screen title + not-claimable Alert only. */
+export const CUSTOM_EXEMPT_CLAIM_LABEL = 'Custom-exempt — not claimable';
+/** Claim-path honesty only — not used on map/detail badges. */
 export const CUSTOM_EXEMPT_NOTE = 'Not sellable in the app';
 
 /** Live map uses `custom-exempt`. */

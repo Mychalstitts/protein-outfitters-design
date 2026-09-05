@@ -30,8 +30,7 @@ import {
 } from '@/lib/processors';
 import { FilterSheet } from '@/components/FilterSheet';
 import {
-  CUSTOM_EXEMPT_LABEL,
-  CUSTOM_EXEMPT_NOTE,
+  CUSTOM_EXEMPT_MAP_LABEL,
   isCustomExemptListing,
 } from '@/lib/neonAdapter';
 
@@ -190,7 +189,7 @@ export default function MapScreen() {
               title={p.name}
               description={
                 isCustomExemptListing(p)
-                  ? CUSTOM_EXEMPT_LABEL
+                  ? CUSTOM_EXEMPT_MAP_LABEL
                   : p.address.full ?? undefined
               }
               pinColor={p.role === 'processor' ? colors.proc : colors.sup}
@@ -242,14 +241,9 @@ export default function MapScreen() {
                   {item.address.state ? `, ${item.address.state}` : ''}
                 </Text>
                 {isCustomExemptListing(item) ? (
-                  <>
-                    <Text style={styles.cardServices} numberOfLines={1}>
-                      {CUSTOM_EXEMPT_LABEL}
-                    </Text>
-                    <Text style={styles.cardServices} numberOfLines={1}>
-                      {CUSTOM_EXEMPT_NOTE}
-                    </Text>
-                  </>
+                  <Text style={styles.cardServices} numberOfLines={2}>
+                    {CUSTOM_EXEMPT_MAP_LABEL}
+                  </Text>
                 ) : item.services.length > 0 ? (
                   <Text style={styles.cardServices} numberOfLines={1}>
                     {item.services.join(' · ')}
