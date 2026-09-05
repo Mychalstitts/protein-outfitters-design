@@ -17,13 +17,13 @@ import {
   spacing,
   fontSize,
   radius,
-  getProcessorBySlug,
   submitRequest,
   type AnimalType,
   type ServiceRequested,
   type Processor,
 } from '@protein-outfitters/shared';
 import { supabase } from '@/lib/supabase';
+import { loadProcessorBySlug } from '@/lib/processors';
 
 const ANIMALS: { value: AnimalType; label: string }[] = [
   { value: 'beef', label: 'Beef' },
@@ -64,8 +64,8 @@ export default function RequestScreen() {
 
   useEffect(() => {
     (async () => {
-      const data = await getProcessorBySlug(supabase, slug);
-      setProc(data);
+      const result = await loadProcessorBySlug(slug);
+      setProc(result.processor);
     })();
   }, [slug]);
 
