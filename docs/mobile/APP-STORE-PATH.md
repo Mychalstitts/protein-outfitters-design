@@ -8,7 +8,7 @@ Code on `cursor/mobile-app-store-path-8023` (+ Slice F on `cursor/mobile-process
 |------|-----|
 | Apple Developer Program ($99/yr) | Required for TestFlight / App Store |
 | App Store Connect app record + Bundle ID | `com.proteinoutfitters.app` |
-| Fill `eas.json` → `submit.production.ios` | Replace `REPLACE_WITH_APPLE_ID`, `REPLACE_WITH_APP_STORE_CONNECT_APP_ID`, `REPLACE_WITH_APPLE_TEAM_ID` |
+| Fill `eas.json` → `submit.production.ios` | Done — `appleId` `mychalstitts@gmail.com`, `ascAppId` `6809018963`, `appleTeamId` `JD6HMNCKHQ` |
 | Play Console + service account JSON | Android submit (`play-store-service-account.json`, not committed) |
 | Hosted privacy + terms URLs | Reviewers expect https pages (in-app legal also ships) |
 | Device QA | Sign-in, claim, request-submit, delete-account, airplane-mode map on real hardware |
@@ -18,7 +18,7 @@ Code on `cursor/mobile-app-store-path-8023` (+ Slice F on `cursor/mobile-process
 
 - ✅ EAS project id in `app.json` / updates URL
 - ✅ Icon / splash / adaptive PNGs under `mobile/apps/mobile/assets/` (regenerate via `cd mobile && npm run build:icons` after `npm i -D sharp`)
-- ✅ `eas.json` submit placeholders for iOS + Android track
+- ✅ `eas.json` iOS submit IDs filled (`appleId` / `ascAppId` / `appleTeamId`); Android still uses the service-account path placeholder
 - ✅ Account deletion in-app → `POST /api/account-delete`
 - ✅ Sign in with Apple → `POST /api/auth/apple` (Neon session)
 - ✅ Magic link → Neon + SecureStore Bearer
