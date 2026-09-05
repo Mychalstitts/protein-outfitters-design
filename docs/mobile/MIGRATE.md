@@ -1,44 +1,108 @@
 # Mobile move: `protein-outfitters-app` → `protein-outfitters-design`
 
-> **Scaffold status (design repo):** workspace overlays from `mobile-move.zip` are already on branch `cursor/mobile-workspace-scaffold-8023` (PR). Steps **1–2** (git subtree of real `mobile/` + `packages/shared` source from private `protein-outfitters-app`) and the hand-edits in **§4** are still required before EAS builds work.
+## Preferred: `move-source.sh` (rsync) — 2026-09-05
+
+Copies the app monorepo’s mobile workspace into **`DESIGN/mobile/`** as a
+self-contained npm workspace (same relative paths as `APP/app/`):
+
+```
+DESIGN/mobile/
+├── apps/mobile/       ← Expo / EAS (from APP/app/apps/mobile)
+├── packages/shared/   ← @protein-outfitters/shared
+├── scripts/           ← build-icons, bundle-data, seed, check-env
+├── docs/              ← store readiness, privacy, terms, …
+├── package.json       ← workspaces root (web scripts dropped)
+├── tsconfig.base.json, .nvmrc, .env.example, .gitignore
+└── README.md
+```
+
+**Not copied:** `apps/web` (design `deploy/` is canonical), full `supabase/`
+(only adds `supabase/functions/README.md` if missing), `node_modules`,
+`.expo`, native `ios/`/`android/`, lockfiles.
+
+Requires a machine that can read private `protein-outfitters-app`. This Cloud
+Agent cannot.
+
+```bash
+APP=~/code/protein-outfitters-app \
+DESIGN=~/code/protein-outfitters-design \
+bash move-source.sh
+# FORCE=1  — replace existing DESIGN/mobile (needed after PR #26 scaffold)
+# --dry-run — preview only
+```
+
+Same entrypoint: `scripts/mobile/move-source.sh` (wrapper → root script).
+
+### After a successful copy
+
+1. Remove the **flat** scaffold leftovers that PR #26 put at the repo root
+   (source now lives under `mobile/`):
+   ```bash
+   # only if still present and empty of real source
+   rm -rf packages/shared
+   ```
+2. Point root tooling at the nested workspace, or work only inside it:
+   ```bash
+   cd mobile && nvm use && npm install && npm run typecheck
+   ```
+3. Update CI / EAS paths if still assuming root `mobile/` = Expo app and
+   root `packages/shared`:
+   - `.github/workflows/mobile-ci.yml` → `working-directory: mobile`,
+     workspaces `apps/mobile` / `packages/shared`
+   - `.github/workflows/eas-preview.yml` / `eas-update.yml` →
+     `mobile/apps/mobile`
+4. Strip any literal Google Maps key from `mobile/apps/mobile/app.json`;
+   rotate the key (it is in app-repo history). Prefer env / EAS secrets.
+5. Commit from design repo, e.g.:
+   ```bash
+   git add mobile supabase/functions/README.md
+   git commit -m "feat(mobile): move workspace from protein-outfitters-app"
+   ```
+
+Nothing is deleted from the app repo and the script does **not** commit.
+
+---
+
+## Alternate: git subtree (flat `mobile/` + `packages/shared/`)
+
+Use this if you need history grafted at the **repo root** as `mobile/` and
+`packages/shared/` (PR #26 scaffold layout) instead of nested
+`mobile/apps/…`.
 
 Moves `app/apps/mobile` and `app/packages/shared` into the canonical repo as
-`mobile/` and `packages/shared/`, per `CONSOLIDATION.md` next-step #2.
-History is preserved with `git subtree`. The static site in `deploy/` is not
-touched; Vercel keeps deploying it exactly as today.
+`mobile/` and `packages/shared/`, per older consolidation notes. The static
+site in `deploy/` is not touched; Vercel keeps deploying it exactly as today.
 
-Target layout:
+Target layout (subtree / scaffold):
 
 ```
 protein-outfitters-design/
 ├── deploy/                 ← static site + serverless API (unchanged, Vercel root)
 ├── supabase/               ← already here (migrations, functions, seed)
-├── mobile/                 ← NEW  (was app/apps/mobile)
-├── packages/shared/        ← NEW  (was app/packages/shared)
-├── scripts/mobile/         ← NEW  bundle-data.mjs, build-icons.mjs
-├── docs/mobile/            ← NEW  app-store-readiness, reviewer-notes, store-listing-copy
-├── package.json            ← UPDATED: adds npm workspaces
-├── package-lock.json       ← NEW, now committed
-├── tsconfig.base.json      ← NEW
-├── .nvmrc                  ← NEW (20)
-└── .github/workflows/      ← + mobile-ci.yml, eas-preview.yml, eas-update.yml
+├── mobile/                 ← Expo app at root (was app/apps/mobile)
+├── packages/shared/        ← was app/packages/shared
+├── scripts/mobile/         ← bundle-data.mjs, build-icons.mjs
+├── docs/mobile/            ← app-store-readiness, reviewer-notes, store-listing-copy
+├── package.json            ← workspaces: ["mobile", "packages/*"]
+├── package-lock.json
+├── tsconfig.base.json
+├── .nvmrc
+└── .github/workflows/      ← mobile-ci.yml, eas-preview.yml, eas-update.yml
 ```
 
 The web app (`app/apps/web`) is deliberately **not** moved — the design repo
 replaced it. Its shared-package consumers become `mobile/` only.
 
----
-
-## 0. Before you start
+### 0. Before you start (subtree)
 
 - Merge or close **PR #3** in `protein-outfitters-app` first so the subtree
-  split carries the real-device `preview` profile. (`mobile/eas.json` in this
-  drop-in already matches PR #3, so either way you end up in the same place.)
+  split carries the real-device `preview` profile. (`mobile/eas.json` in the
+  scaffold already matches PR #3, so either way you end up in the same place.)
 - Have both repos cloned side by side:
   `~/code/protein-outfitters-app` and `~/code/protein-outfitters-design`.
 - `git subtree` ships with git ≥ 1.7.11; `git subtree --help` should work.
 
-## 1. Split the two directories out of the app repo (keeps history)
+### 1. Split the two directories out of the app repo (keeps history)
 
 ```bash
 cd ~/code/protein-outfitters-app
@@ -48,7 +112,7 @@ git subtree split --prefix=app/apps/mobile    -b split/mobile
 git subtree split --prefix=app/packages/shared -b split/shared
 ```
 
-## 2. Graft them into the design repo
+### 2. Graft them into the design repo
 
 ```bash
 cd ~/code/protein-outfitters-design
@@ -74,61 +138,39 @@ cp $A/docs/store-listing-copy.md     docs/mobile/
 cp $A/docs/setup-guide.md            docs/mobile/
 ```
 
-## 3. Drop in the files from this bundle
+### 3. Drop in / keep the scaffold overlays
 
-Copy everything in this bundle over the repo root, **overwriting**:
+PR #26 already landed workspaces, Metro/tsconfig, EAS overlays, and workflows.
+After subtree, re-apply path fixes if needed:
 
 | File | What changed |
 |---|---|
-| `package.json` | adds `workspaces: ["mobile", "packages/*"]`, mobile/shared scripts, `typescript` devDep, `engines`. Existing lint/test scripts kept verbatim. |
-| `.gitignore` | stops ignoring the **root** `package-lock.json` (needed by `npm ci` in CI and by EAS); nested lockfiles still ignored so `deploy/` is unchanged on Vercel. Adds the mobile/native ignores from the app repo. |
-| `tsconfig.base.json` | copied from app repo, unchanged |
-| `.nvmrc` | `20` |
-| `mobile/tsconfig.json` | `extends` and `paths` go up **one** level instead of two |
-| `mobile/metro.config.js` | `workspaceRoot = '..'`; blocks Metro from crawling `deploy/`, `supabase/`, `test/` |
-| `mobile/eas.json` | PR #3 version (real-device `preview`, `preview-simulator` extends it) |
-| `mobile/app.config.js` | **new** — injects `GOOGLE_MAPS_ANDROID_KEY` from env so the key can come out of `app.json` |
-| `mobile/.env.example` | **new** — `EXPO_PUBLIC_*` vars live in `mobile/`, not the repo root (Expo only reads `.env` from the app dir) |
-| `packages/shared/tsconfig.json` | unchanged (same depth as before) — included so nothing is missed |
-| `scripts/mobile/bundle-data.mjs` | reads `supabase/seed/processors.bundled.json` (already in this repo) → writes `mobile/src/data/` |
-| `deploy/scripts/vercel-ignore-build.sh` | **new** — Vercel Ignored Build Step so mobile-only commits don't redeploy the site |
-| `.github/workflows/mobile-ci.yml` | port of app repo `ci.yml` minus the web job; path-filtered |
-| `.github/workflows/eas-preview.yml` | paths updated (`mobile/`, root lockfile) |
-| `.github/workflows/eas-update.yml` | paths updated |
+| `package.json` | `workspaces: ["mobile", "packages/*"]`, mobile/shared scripts |
+| `mobile/tsconfig.json` | `extends` / `paths` one level up |
+| `mobile/metro.config.js` | `workspaceRoot = '..'`; ignore `deploy/`, `supabase/`, `test/` |
+| `mobile/app.config.js` | injects `GOOGLE_MAPS_ANDROID_KEY` from env |
+| `mobile/.env.example` | `EXPO_PUBLIC_*` in the app dir |
+| `.github/workflows/*` | path-filtered Mobile CI + EAS |
 
-## 4. Hand edits after the copy
+### 4. Hand edits after the copy
 
-1. **`mobile/app.json`** — delete the literal Google Maps key:
-   ```jsonc
-   "config": { "googleMaps": { "apiKey": "AIza…" } }   // ← remove the whole "config" block
-   ```
-   `app.config.js` now supplies it. Then rotate the key in Google Cloud (it's
-   in git history in the app repo) and restrict the new one to
-   `com.proteinoutfitters.app` + your SHA-1.
-2. **`scripts/mobile/build-icons.mjs`** — it was written for `app/apps/mobile/assets/source`
-   and `app/apps/web/public`. Point the mobile paths at `mobile/assets/source`
-   and delete the web output (the design site has its own icons in `deploy/`).
-3. **`docs/mobile/app-store-readiness.md`** — search/replace `app/apps/mobile` → `mobile`,
-   `app/docs/` → `docs/mobile/`, `app/packages/shared` → `packages/shared`.
-4. **`mobile/README`** links, if any, that reference `../../`.
-5. **`CONSOLIDATION.md`** — apply `CONSOLIDATION.patch.md` from this bundle.
-6. **`README.md`** — add the "Mobile" section from `README.snippet.md`.
+1. **`mobile/app.json`** — delete the literal Google Maps key; rotate in Google Cloud.
+2. **`scripts/mobile/build-icons.mjs`** — paths: `mobile/assets/source` (drop web output).
+3. Docs: `app/apps/mobile` → `mobile`, `app/packages/shared` → `packages/shared`.
+4. Update `CONSOLIDATION.md` / root `README` mobile section if needed.
 
-## 5. Install, verify locally
+### 5. Install, verify locally
 
 ```bash
-npm install                       # generates root package-lock.json — commit it
-npm run shared:test               # vitest, should match the app repo (green as of d212c9f)
-npm run typecheck                 # shared + mobile
-npm run mobile:bundle-data        # regenerates mobile/src/data/processors.bundled.json
-cd mobile && npx expo-doctor      # config sanity
-cp .env.example .env && npx expo start   # smoke test in Expo Go / simulator
+npm install
+npm run shared:test
+npm run typecheck
+npm run mobile:bundle-data
+cd mobile && npx expo-doctor
+cp .env.example .env && npx expo start
 ```
 
-If `expo start` can't resolve `@protein-outfitters/shared`, run
-`npx expo start --clear` once — Metro caches the old watchFolders.
-
-## 6. Commit + PR
+### 6. Commit + PR
 
 ```bash
 git add -A
@@ -136,56 +178,33 @@ git commit -m "feat(mobile): move Expo app + shared package in from protein-outf
 git push -u origin feat/mobile-workspace
 ```
 
-Open the PR **without** the `auto-merge` label (the existing auto-merge
-workflow squashes labeled PRs on green checks — you want to eyeball this one).
-Expect `Static checks` (existing) and `Mobile CI` (new) to both run.
-
-## 7. One-time settings outside git
+### 7. One-time settings outside git
 
 **GitHub → protein-outfitters-design → Settings → Secrets → Actions**
-- `EXPO_TOKEN` — expo.dev → Account Settings → Access Tokens. Required by
-  `eas-preview.yml` and `eas-update.yml`. (The app repo never had this set.)
+- `EXPO_TOKEN` — required by `eas-preview.yml` and `eas-update.yml`.
 
 **Vercel → protein-outfitters-design → Settings → Git → Ignored Build Step**
-- Command: `bash scripts/vercel-ignore-build.sh` (relative to Root Directory `deploy/`).
-- Without this, every mobile commit rebuilds and redeploys www. Harmless but noisy.
+- Command: `bash scripts/vercel-ignore-build.sh` (Root Directory `deploy/`).
 
-**Expo / EAS** (run from `mobile/`, once, with `eas login`)
-- `eas secret:create --scope project --name GOOGLE_MAPS_ANDROID_KEY --value <new key>`
-- `eas secret:create --scope project --name EXPO_PUBLIC_SUPABASE_URL --value https://unybunaqyqrxhfyhvhfo.supabase.co`
-- `eas secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <anon key>`
-- The EAS project ID (`e2976642-…`) and `owner: mychalstitts` in `app.json`
-  carry over unchanged — no `eas init` needed. `eas build:configure` will
-  notice the new repo path and should be a no-op.
-- `eas device:create` to register test iPhones before the first real-device
-  `preview` build.
+**Expo / EAS** (from the Expo app dir, with `eas login`)
+- Create secrets: `GOOGLE_MAPS_ANDROID_KEY`, `EXPO_PUBLIC_SUPABASE_URL`,
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+- Project ID / owner in `app.json` carry over — no new `eas init` needed.
+- `eas device:create` before first real-device `preview` build.
 
-## 8. Retire the app repo (CONSOLIDATION next-step #3)
+### 8. Retire the app repo
 
-After the PR merges and one EAS preview build succeeds from the new repo:
+After merge + one EAS preview from the design repo:
 
-1. In `protein-outfitters-app`, delete `.github/workflows/eas-preview.yml` and
-   `eas-update.yml` so nobody can accidentally OTA from the archived copy.
-2. GitHub → protein-outfitters-app → Settings → **Archive this repository**.
-3. Vercel dashboard → delete projects `protein-outfitters-app`,
-   `protein-outfitters-app1`, `protein-outfitters-design-ycmd` (or point them
-   at redirect-only). This is the only thing that actually stops
-   `protein-outfitters-app1.vercel.app` from serving the old Next.js site —
-   the host redirects in `deploy/vercel.json` never see those requests.
+1. Delete EAS workflows in `protein-outfitters-app`.
+2. GitHub-archive `protein-outfitters-app`.
+3. Delete paused Vercel projects when ready (`app`, `app1`, `ycmd`, `3nci`
+   were paused 2026-09-05 → 503).
 
-## Gotchas
+### Gotchas (subtree / root workspaces)
 
-- **`npm install` at the repo root now installs Expo/RN.** The existing
-  `Static checks` workflow does `npm install` on every push; it'll get ~1 min
-  slower. If that matters, change its install step to
-  `npm install --workspaces=false` (root deps only).
-- **Vercel is unaffected** by the root `package.json`: Root Directory is
-  `deploy/`, which has its own `package.json`. Do not add the root lockfile to
-  `deploy/`.
-- **`.gitignore` root-lockfile rule** — the app repo committed its lockfile;
-  the design repo ignored it. `npm ci` (CI + EAS) hard-fails without one, so
-  the root lockfile must be committed. Nested ones stay ignored.
-- **EAS uploads the whole git tree.** `deploy/` is small (HTML + serverless
-  JS), so this is fine. If it ever bloats, add a root `.easignore`.
-- **`supabase-client.test.ts`** relies on the safe-proxy stub; it passes with
-  no env set, so CI needs no secrets for `shared:test`.
+- Root `npm install` installs Expo/RN; static CI can use
+  `npm install --workspaces=false`.
+- Vercel Root Directory stays `deploy/` — unaffected.
+- Commit the root lockfile for `npm ci` / EAS.
+- EAS uploads the whole git tree; add `.easignore` only if `deploy/` bloats.
