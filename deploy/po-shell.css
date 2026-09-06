@@ -304,8 +304,9 @@ body.po-nav-open { overflow: hidden; }
   .po-nav-actions > button:not(.po-nav-burger):not(.po-user-chip):not(.po-bell),
   .po-nav-actions > button.reserve,
   .po-nav-actions button.reserve,
+  .po-nav-actions > button[data-open-sheet],
   .po-nav-actions > a.po-nav-cta,
-  .po-nav-actions > a.btn--primary { display: none; }
+  .po-nav-actions > a.btn--primary { display: none !important; }
   .po-nav-actions { gap: 6px; }
 }
 
@@ -383,7 +384,7 @@ body.po-nav-open { overflow: hidden; }
   border: 0;
   border-radius: 999px;
   padding: 11px 16px;
-  min-height: 40px;
+  min-height: 44px;
   background: var(--brand, #061b0e);
   color: #fbf9f5;
   font: 600 14px/1 'Inter', system-ui, sans-serif;
@@ -422,9 +423,9 @@ body.po-nav-open { overflow: hidden; }
 .po-search--map .po-search-go {
   background: #7da05d;
   color: #061b0e;
-  padding: 8px 12px;
-  min-height: 32px;
-  font-size: 12px;
+  padding: 8px 14px;
+  min-height: 44px;
+  font-size: 13px;
 }
 .po-search--map .po-search-go:hover { background: #8aad6c; }
 
@@ -434,8 +435,9 @@ body.po-nav-open { overflow: hidden; }
     min-height: 48px;
     padding: 4px 4px 4px 14px;
   }
-  .po-search-go { padding: 10px 14px; font-size: 13px; }
-  .po-search--map { max-width: 100%; flex: 1 1 100%; }
+  .po-search-go,
+  .po-search--map .po-search-go { padding: 10px 14px; font-size: 13px; min-height: 44px; }
+  .po-search--map { max-width: 100%; flex: 1 1 100%; min-height: 48px; }
 }
 
 /* ============================================================

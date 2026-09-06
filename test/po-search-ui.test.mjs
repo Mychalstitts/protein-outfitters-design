@@ -66,8 +66,13 @@ test('admin-hotspots chrome collapses on portrait so the heat map shows', () => 
   assert.match(hotspots, /\.hs-controls \{ display: none/);
   assert.match(hotspots, /\.hs-rail:not\(\.is-open\) \.hs-rail-head/);
   assert.match(hotspots, /\.hs-rail\.is-open \{ height: 42vh/);
+  assert.match(hotspots, /\.hs-legend \{ display: none/);
+  assert.match(hotspots, /min-height: 44px/);
   assert.match(map, /id="mapSideToggle"/);
   assert.match(map, /\.map-side:not\(\.is-open\) \.map-side-head/);
+  const zipAt = hotspots.indexOf('id="hsZipForm"');
+  const controlsAt = hotspots.indexOf('id="hsControls"');
+  assert.ok(zipAt > 0 && zipAt < controlsAt, 'ZIP search stays visible outside collapsed Layers');
 });
 
 test('homepage does not wrap or hide the search icon on phones', () => {

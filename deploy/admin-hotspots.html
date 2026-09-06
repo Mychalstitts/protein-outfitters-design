@@ -670,6 +670,7 @@
     }
     .hs-brand { min-width: 0; flex: 1 1 auto; }
     .hs-brand h1 { font-size: 13px; }
+    .hs-brand { display: none; }
     .hs-chrome-toggle {
       display: inline-flex;
       align-items: center;
@@ -677,7 +678,8 @@
       flex-shrink: 0;
       font: 700 12px/1 Inter, system-ui, sans-serif;
       padding: 10px 14px;
-      min-height: 40px;
+      min-height: 44px;
+      min-width: 44px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.18);
       background: transparent;
@@ -694,7 +696,13 @@
       display: flex;
       padding-top: 4px;
     }
-    .hs-zip-search { max-width: 100%; flex: 1 1 100%; }
+    .hs-zip-search { max-width: none; flex: 1 1 auto; }
+    .hs-filters-btn,
+    .hs-toggle button,
+    .hs-go,
+    .hs-rgn { min-height: 44px; }
+    .hs-legend { display: none; }
+    .hs-topbar.is-open ~ .hs-legend { display: block; }
 
     .hs-rail {
       top: auto;
@@ -767,6 +775,14 @@
       <p class="eyebrow">Market heat <span class="hs-ver" id="hsVerBadge">Metro-first · v3</span></p>
       <h1>Where opportunity burns</h1>
     </div>
+    <form class="po-search po-search--map hs-zip-search" id="hsZipForm" role="search" aria-label="Search by ZIP">
+      <span class="po-search-icon" aria-hidden="true">
+        <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
+      </span>
+      <input id="hsZip" name="zip" type="search" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="ZIP" aria-label="Search ZIP" autocomplete="off" />
+      <button type="submit" class="po-search-go" id="hsZipGo">Go</button>
+    </form>
+    <button type="button" class="hs-go secondary" id="hsZipClear" style="display:none;">Clear</button>
     <button type="button" class="hs-chrome-toggle" id="hsChromeToggle" aria-expanded="false" aria-controls="hsControls">Layers</button>
     <div class="hs-controls" id="hsControls">
       <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
@@ -796,14 +812,6 @@
         <option value="500">500 mi</option>
         <option value="nationwide">Nationwide</option>
       </select>
-      <form class="po-search po-search--map hs-zip-search" id="hsZipForm" role="search" aria-label="Search by ZIP">
-        <span class="po-search-icon" aria-hidden="true">
-          <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
-        </span>
-        <input id="hsZip" name="zip" type="search" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="ZIP" aria-label="Search ZIP" autocomplete="off" />
-        <button type="submit" class="po-search-go" id="hsZipGo">Go</button>
-      </form>
-      <button type="button" class="hs-go secondary" id="hsZipClear" style="display:none;">Clear</button>
       <div style="position:relative;margin-left:auto;">
         <button type="button" class="hs-filters-btn" id="hsFiltersBtn" aria-expanded="false">Filters</button>
         <div class="hs-glass hs-filters-pop" id="hsFiltersPop">

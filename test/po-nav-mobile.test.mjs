@@ -73,7 +73,9 @@ test('Reserve and marketplace CTAs leave the phone header at 720px', () => {
     /\.po-nav-actions > button:not\(\.po-nav-burger\):not\(\.po-user-chip\):not\(\.po-bell\)/
   );
   assert.match(mobile[0], /button\.reserve/);
-  assert.match(mobile[0], /display:\s*none/);
+  assert.match(mobile[0], /data-open-sheet/);
+  assert.match(mobile[0], /display:\s*none !important/);
+  assert.doesNotMatch(js, /headerReserve|reserveHtml/);
   const hide = mobile[0].indexOf('display: none');
   const show = css.indexOf(
     '.po-nav-actions button:not(.po-nav-burger):not(.po-user-chip):not(.po-bell)'
