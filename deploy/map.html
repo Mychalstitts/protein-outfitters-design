@@ -62,19 +62,13 @@
   .map-top .map-links a.cta:hover { filter: brightness(1.06); }
   .map-top .stats { margin-left: auto; display: flex; gap: 14px; font: 600 12px/1 'Inter'; color: var(--map-muted); flex-wrap: wrap; }
   @media (max-width: 720px) {
+    .map-page { min-height: 100dvh; }
+    .map-top { max-width: 100%; }
     .map-top .stats { width: 100%; order: 5; margin-left: 0; }
     .map-top .map-links a:not(.cta) { display: none; }
+    .map-search { order: 3; flex: 1 1 100%; margin-left: 0; max-width: 100%; }
   }
-  .map-search { display: flex; gap: 6px; align-items: center; margin-left: 8px; }
-  .map-search input {
-    width: min(160px, 28vw); padding: 7px 12px; border-radius: 999px;
-    border: 1px solid var(--map-line); background: var(--map-panel-2); color: var(--map-text);
-    font: 600 12.5px/1 'Inter';
-  }
-  .map-search button {
-    padding: 7px 12px; border-radius: 999px; border: 0; background: var(--po-green);
-    color: #061b0e; font: 800 11px/1 'Inter'; cursor: pointer;
-  }
+  .map-search { margin-left: 8px; min-width: 0; }
   .map-area-tools {
     position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 800;
     display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;
@@ -302,9 +296,12 @@
       <a href="/compare">Compare</a>
       <a href="/#partners">Partners</a>
     </nav>
-    <form class="map-search" id="mapSearchForm">
-      <input id="mapSearchInput" name="q" type="search" placeholder="ZIP, city, or state" autocomplete="off" />
-      <button type="submit">Go</button>
+    <form class="po-search po-search--map map-search" id="mapSearchForm" role="search" aria-label="Search the map">
+      <span class="po-search-icon" aria-hidden="true">
+        <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
+      </span>
+      <input id="mapSearchInput" name="q" type="search" placeholder="Search ZIP, city, or state" aria-label="Search ZIP, city, or state" autocomplete="off" />
+      <button type="submit" class="po-search-go">Search</button>
     </form>
     <div class="stats" id="topStats"></div>
     <button class="tier-pill free" id="tierPill" type="button" title="Click to upgrade your map insights">FREE</button>

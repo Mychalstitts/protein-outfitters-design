@@ -37,7 +37,8 @@
 .chip.divider { background: transparent; border: 0; pointer-events: none; padding: 0 4px; color: var(--ink-3); font-size: 11px; }
 
 /* Producer cards */
-.farm-grid { display: grid; gap: clamp(20px, 2vw, 28px); grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.farm-grid { display: grid; gap: clamp(20px, 2vw, 28px); grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+@media (max-width: 720px) { .farm-grid { grid-template-columns: 1fr; } }
 .farm-card { background: #fff; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; border: 1px solid rgba(6,27,14,.06); box-shadow: none; transition: box-shadow .22s ease, border-color .22s ease; }
 .farm-card:hover { box-shadow: 0 8px 24px rgba(6,27,14,.08); border-color: rgba(6,27,14,.1); }
 .farm-cover { aspect-ratio: 16/10; background-color: #1a0d08; background-size: cover; background-position: center; position: relative; }

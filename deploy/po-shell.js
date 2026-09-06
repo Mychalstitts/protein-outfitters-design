@@ -330,11 +330,16 @@
           ? `<a class="po-drawer-cta" href="${ctaHref}">${ctaLabel || 'Continue'}</a>`
           : '';
 
+        // Marketplace tagline is noise on admin / processor / plant-desk.
+        const drawerMeta = isRoleHub
+          ? ''
+          : `<p class="po-drawer-meta">A whole animal, in three taps.<br>Real farms · inspected plants.</p>`;
+
         drawer.innerHTML = items.map((i) =>
           `<a href="${i.href}">${i.text}<span>→</span></a>`
         ).join('') +
           ctaHtml +
-          `<p class="po-drawer-meta">A whole animal, in three taps.<br>Real farms · inspected plants.</p>`;
+          drawerMeta;
         // Mount on body so wrap's backdrop-filter / overflow cannot clip it.
         document.body.appendChild(drawer);
 

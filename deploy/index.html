@@ -46,16 +46,18 @@ body { background: var(--bg); overflow-x: hidden; }
 /* ---------- Sticky glass nav ---------- */
 .po-nav-wrap {
   position: sticky; top: 0; z-index: 80;
+  max-width: 100%;
   background: rgba(251, 249, 245, 0.72);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 }
 .po-nav {
-  max-width: 1320px; margin: 0 auto;
+  max-width: min(1320px, 100%); width: 100%; margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px var(--shell-pad);
   gap: var(--s-4);
+  min-width: 0; box-sizing: border-box;
 }
 .po-mark {
   display: flex; align-items: center; gap: 10px;
@@ -63,6 +65,7 @@ body { background: var(--bg); overflow-x: hidden; }
   letter-spacing: -0.02em; text-transform: none;
   color: var(--ink);
   text-decoration: none;
+  min-width: 0;
 }
 .po-mark img { width: 22px; height: 22px; display: block; border-radius: 5px; }
 .po-nav-links {
@@ -144,37 +147,7 @@ body { background: var(--bg); overflow-x: hidden; }
 }
 .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
 
-/* Hero AI search box (Airbnb-style) */
-.hero-search{
-  margin-top: 28px; max-width: 680px;
-  display: flex; align-items: center; gap: 4px;
-  padding: 5px 5px 5px 18px;
-  background: rgba(255,255,255,.97);
-  border-radius: 999px;
-  box-shadow: 0 8px 24px rgba(6,27,14,0.08);
-  border: 1px solid rgba(255,255,255,.2);
-}
-.hero-search-icon{ display: inline-flex; color: #061b0e; opacity: .4; }
-.hero-search-icon svg{ width: 20px; height: 20px; }
-.hero-search input{
-  flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
-  padding: 13px 8px;
-  font: 500 16px/1.4 'Inter', system-ui, sans-serif;
-  color: #061b0e;
-}
-.hero-search input::placeholder{ color: rgba(6,27,14,.4); }
-.hero-search-ai{
-  display: none; /* quiet — search doesn't need an AI badge */
-}
-.hero-search-btn{
-  padding: 13px 20px; border: 0; border-radius: 999px;
-  background: #061b0e; color: #fbf9f5;
-  font: 600 14px/1 'Inter', system-ui, sans-serif;
-  cursor: pointer; transition: background .2s ease;
-  white-space: nowrap;
-}
-.hero-search-btn:hover{ background: #0a2614; }
-
+/* Hero search uses shared .po-search — keep chips local */
 .hero-search-suggest{
   margin-top: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   font: 500 12.5px/1 'Inter', system-ui, sans-serif;
@@ -191,11 +164,13 @@ body { background: var(--bg); overflow-x: hidden; }
 .hero-search-suggest button:hover{ background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.28); }
 
 @media (max-width: 720px){
-  .hero-search{ flex-wrap: wrap; padding: 8px; }
-  .hero-search input{ flex: 1 1 100%; padding: 8px 12px; }
-  .hero-search-icon{ display: none; }
-  .hero-search-ai{ order: 1; }
-  .hero-search-btn{ order: 2; flex: 1; }
+  .hero { min-height: auto; overflow: visible; }
+  .hero-inner { width: 100%; max-width: 100%; padding-top: clamp(36px, 10vw, 64px); padding-bottom: 48px; }
+  .hero-headline { overflow-wrap: anywhere; }
+  .hero-sub { max-width: 100%; }
+  .hero-cta { width: 100%; }
+  .hero-cta .btn-xl { max-width: 100%; }
+  .hero-scroll { display: none; }
   .hero-search-suggest{ display: none; }
 }
 .btn-xl {
@@ -309,7 +284,7 @@ body { background: var(--bg); overflow-x: hidden; }
 .partner-grid {
   margin-top: clamp(36px, 4vw, 56px);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: clamp(16px, 2vw, 24px);
 }
 .partner-card {
@@ -368,7 +343,7 @@ body { background: var(--bg); overflow-x: hidden; }
 .reserve-grid {
   margin-top: clamp(28px, 3vw, 44px);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: clamp(16px, 1.6vw, 24px);
 }
 .product {
@@ -451,7 +426,7 @@ body { background: var(--bg); overflow-x: hidden; }
 .steps {
   margin-top: clamp(48px, 6vw, 88px);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: clamp(28px, 3vw, 56px);
 }
 .step .num {
@@ -836,16 +811,12 @@ body { background: var(--bg); overflow-x: hidden; }
     <p class="hero-sub">Reserve a share of a named animal from a verified U.S. producer. Set your cuts. Pick it up at a local plant. The hanging-weight price is the animal from the farmer. Plant processing (kill, cut, wrap) is separate and paid to the plant.</p>
 
     <!-- Primary conversion: search (Airbnb) → inventory -->
-    <form class="hero-search" id="heroSearch" role="search" aria-label="Find meat near you" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
-      <span class="hero-search-icon" aria-hidden="true">
+    <form class="po-search hero-search" id="heroSearch" role="search" aria-label="Find meat near you" onsubmit="event.preventDefault(); var q=this.q.value.trim(); if(q) window.location='/discover?q='+encodeURIComponent(q); else window.location='/discover';">
+      <span class="po-search-icon" aria-hidden="true">
         <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
       </span>
-      <input name="q" type="text" aria-label="What are you looking for?" placeholder='Try: "grass-fed beef under $8/lb near me"' autocomplete="off" />
-      <span class="hero-search-ai" title="Natural-language search">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>
-        AI
-      </span>
-      <button type="submit" class="hero-search-btn">Search</button>
+      <input name="q" type="search" aria-label="Search animals, farms, or ZIP" placeholder="Search animals, farms, or ZIP" autocomplete="off" />
+      <button type="submit" class="po-search-go">Search</button>
     </form>
     <div class="hero-search-suggest">
       <span class="hssh">Popular:</span>

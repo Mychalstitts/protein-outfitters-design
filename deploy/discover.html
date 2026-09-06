@@ -37,14 +37,8 @@
       border-bottom: 1px solid var(--filter-border);
       padding: 14px var(--shell-pad);
     }
-    .ds-bar{ max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; }
-    .ds-input-wrap{ position: relative; background: #fff; border: 1px solid var(--filter-border); border-radius: 999px; padding: 10px 18px 10px 50px; transition: all .2s var(--ease-apple, ease); }
-    .ds-input-wrap:focus-within{ border-color: var(--ink); box-shadow: 0 0 0 4px rgba(6,27,14,.06); }
-    .ds-input-wrap .ico-search{ position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; color: var(--ink); opacity: .55; }
-    .ds-input{ width: 100%; border: 0; background: transparent; outline: none; font: 500 16px/1.4 var(--ff-sans); color: var(--ink); }
-    .ds-input::placeholder{ color: rgba(6,27,14,.45); }
-    .ds-ai-badge{ display: none; /* craft: quiet search */ position: absolute; right: 12px; top: 50%; transform: translateY(-50%); align-items: center; gap: 5px; font: 600 10px/1 var(--ff-sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); opacity: .55; padding: 5px 9px; background: rgba(6,27,14,.05); border-radius: 999px; }
-    .ds-ai-badge svg{ width: 12px; height: 12px; }
+    .ds-bar{ max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; }
+    .ds-bar .po-search{ max-width: none; }
     .ds-go-btn{ background: var(--ink); color: var(--parchment); border: 0; border-radius: 999px; padding: 12px 22px; font: 700 14px/1 var(--ff-sans); cursor: pointer; transition: all .2s var(--ease-apple, ease); }
     .ds-go-btn:hover{ background: #0a2614; }
     .ds-view-toggle{ display: flex; background: #fff; border: 1px solid var(--filter-border); border-radius: 999px; padding: 3px; }
@@ -137,12 +131,13 @@
       .fr-section{ display: inline-block; vertical-align: top; margin-right: 10px; }
     }
     @media (max-width: 720px) {
-      .ds-bar{ grid-template-columns: 1fr auto; gap: 8px; }
-      .ds-go-btn{ display: none; }
-      .ds-view-toggle{ grid-column: 1 / -1; justify-self: stretch; }
+      .ds-bar{ grid-template-columns: minmax(0,1fr); gap: 8px; }
+      .ds-view-toggle{ justify-self: stretch; }
       .ds-view-btn{ flex: 1; justify-content: center; }
       .listing-grid{ grid-template-columns: 1fr; gap: 16px; }
       .results-count{ font-size: 18px; }
+      .results-head{ flex-wrap: wrap; gap: 10px; }
+      .sort-select{ max-width: 100%; }
     }
   </style>
 </head>
@@ -163,12 +158,11 @@
     <div class="discover-search">
       <form class="ds-bar" id="discoverSearch" role="search" aria-label="Search listings"
         onsubmit="event.preventDefault(); var q=(this.q.value||'').trim(); if(q){ history.replaceState(null,'','/discover?q='+encodeURIComponent(q)); runAISearch(q); } else { history.replaceState(null,'','/discover'); document.getElementById('aiParsed').style.display='none'; render(); }">
-        <label class="ds-input-wrap">
-          <svg class="ico-search" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
-          <input id="aiSearch" name="q" class="ds-input" type="search" autocomplete="off" placeholder='Try: "grass-fed beef under $8/lb within 100 miles, ready July"'>
-          <span class="ds-ai-badge"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.27L6.82 19.02L8 13.14L4 9.27L9.91 8.26z" stroke-linejoin="round"/></svg>AI</span>
+        <label class="po-search">
+          <svg class="po-search-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
+          <input id="aiSearch" name="q" class="ds-input" type="search" autocomplete="off" placeholder="Search animals, farms, or ZIP" aria-label="Search animals, farms, or ZIP">
+          <button type="submit" class="po-search-go" id="goBtn">Search</button>
         </label>
-        <button type="submit" class="ds-go-btn" id="goBtn">Search</button>
         <div class="ds-view-toggle">
           <button class="ds-view-btn active" data-view="grid"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Grid</button>
           <button class="ds-view-btn" data-view="map"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linejoin="round"/><circle cx="12" cy="10" r="3"/></svg>Map</button>
