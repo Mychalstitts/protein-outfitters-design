@@ -61,6 +61,8 @@ test('maps use keyless Esri tiles — no Carto API-key watermark', () => {
     assert.match(html, /po-basemap\.js/);
     assert.match(html, /PO_addBasemap/);
   }
+  assert.match(hotspots, /Opportunity Radar \(\/admin-hotspots\)/);
+  assert.match(hotspots, /tile\.openstreetmap\.org/);
 });
 
 test('admin-hotspots chrome collapses on portrait so the heat map shows', () => {

@@ -1325,7 +1325,18 @@
       attributionControl: true,
     }).setView([39.5, -96.5], 4);
 
-    if (typeof PO_addBasemap === 'function') PO_addBasemap(map, { theme: 'dark' });
+    // Opportunity Radar (/admin-hotspots) — not /map.
+    // Live Carto dark_all burns in “API KEY REQUIRED”.
+    // No tile-provider secret in Vercel: keyless Esri, OSM fallback.
+    if (typeof PO_addBasemap === 'function') {
+      PO_addBasemap(map, { theme: 'dark' });
+    } else {
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: 'abc',
+        maxZoom: 19,
+      }).addTo(map);
+    }
 
     // Dedicated pane so we can fade radar without touching basemap labels
     if (!map.getPane('radarPane')) {
