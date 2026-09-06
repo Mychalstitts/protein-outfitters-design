@@ -16,10 +16,12 @@ const hotspots = readFileSync(join(root, 'deploy/admin-hotspots.html'), 'utf8');
 test('shared search is a single rounded field with a left icon', () => {
   assert.match(css, /\.po-search \{/);
   assert.match(css, /\.po-search \{[^}]*border-radius:\s*999px/);
-  assert.match(css, /\.po-search \{[^}]*flex-wrap:\s*nowrap/);
+  assert.match(css, /\.po-search \{[^}]*flex-wrap:\s*nowrap !important/);
+  assert.match(css, /\.po-search \{[^}]*flex-direction:\s*row !important/);
   assert.match(css, /\.po-search-icon \{/);
   assert.match(css, /\.po-search-icon \{[^}]*flex-shrink:\s*0/);
-  assert.match(css, /\.po-search input\[type="search"\][\s\S]*?flex:\s*1 1 0%/);
+  assert.match(css, /\.po-search input\[type="search"\][\s\S]*?flex:\s*1 1 0% !important/);
+  assert.match(css, /min-width:\s*0 !important/);
   assert.doesNotMatch(css, /\.hero-search-icon\{\s*display:\s*none/);
 });
 
@@ -36,7 +38,7 @@ test('home, discover, map, and plant-claim use the shared search', () => {
 
   assert.match(map, /po-search po-search--map/);
   assert.match(map, /class="po-search-icon"/);
-  assert.match(map, /placeholder="Search ZIP, city, or state"/);
+  assert.match(map, /placeholder="ZIP or city"/);
 
   assert.match(processor, /class="pr-claim-search"/);
   assert.match(processor, /class="po-search"/);
@@ -48,14 +50,17 @@ test('home, discover, map, and plant-claim use the shared search', () => {
 });
 
 test('maps use keyless Esri tiles — no Carto API-key watermark', () => {
+  const tiles = readFileSync(join(root, 'deploy/po-basemap.js'), 'utf8');
+  assert.match(tiles, /World_Dark_Gray_Base/);
+  assert.match(tiles, /World_Light_Gray_Base/);
+  assert.match(tiles, /tile\.openstreetmap\.org/);
+  assert.doesNotMatch(tiles, /basemaps\.cartocdn\.com|api\.mapbox\.com|pk\.eyJ/);
   for (const html of [hotspots, map, discover]) {
     assert.doesNotMatch(html, /basemaps\.cartocdn\.com/);
     assert.doesNotMatch(html, /carto\.com\/basemap/);
-    assert.match(html, /World_(Dark|Light)_Gray_Base/);
+    assert.match(html, /po-basemap\.js/);
+    assert.match(html, /PO_addBasemap/);
   }
-  assert.match(hotspots, /World_Dark_Gray_Base/);
-  assert.match(map, /World_Dark_Gray_Base/);
-  assert.match(discover, /World_Light_Gray_Base/);
 });
 
 test('admin-hotspots chrome collapses on portrait so the heat map shows', () => {
@@ -83,6 +88,7 @@ test('homepage does not wrap or hide the search icon on phones', () => {
   }
   assert.match(home, /@media \(max-width: 720px\)\{[\s\S]*\.hero \{[^}]*overflow:\s*visible/);
   assert.match(home, /@media \(max-width: 720px\)\{[\s\S]*\.hero-scroll \{ display: none/);
+  assert.match(home, /\.hero-search\.po-search \{[\s\S]*flex-wrap:\s*nowrap !important/);
 });
 
 test('role-hub drawers omit the marketplace tagline', () => {

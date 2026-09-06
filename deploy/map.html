@@ -16,6 +16,7 @@
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/po-basemap.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -43,6 +44,7 @@
 
   /* Layout */
   .map-page { display: grid; grid-template-rows: auto 1fr; height: 100dvh; min-height: 720px; }
+  .map-canvas { min-height: 0; position: relative; }
   .map-frame { display: grid; grid-template-columns: 360px 1fr; height: 100%; overflow: hidden; }
   .map-side-handle { display: none; }
   @media (max-width: 920px) {
@@ -81,12 +83,26 @@
   }
   .map-top .map-links a.cta:hover { filter: brightness(1.06); }
   .map-top .stats { margin-left: auto; display: flex; gap: 14px; font: 600 12px/1 'Inter'; color: var(--map-muted); flex-wrap: wrap; }
+  @media (max-width: 920px) {
+    .map-page { min-height: 100dvh; }
+  }
   @media (max-width: 720px) {
     .map-page { min-height: 100dvh; }
-    .map-top { max-width: 100%; }
-    .map-top .stats { width: 100%; order: 5; margin-left: 0; }
-    .map-top .map-links a:not(.cta) { display: none; }
-    .map-search { order: 3; flex: 1 1 100%; margin-left: 0; max-width: 100%; }
+    .map-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      max-width: 100%;
+    }
+    .map-top .map-brand { grid-column: 1; min-width: 0; }
+    .map-top .map-links { display: none; }
+    .map-top .tier-pill { grid-column: 2; grid-row: 1; }
+    .map-search {
+      grid-column: 1 / -1;
+      margin-left: 0;
+      max-width: none;
+      width: 100%;
+    }
+    .map-top .stats { display: none; }
   }
   .map-search { margin-left: 8px; min-width: 0; }
   .map-area-tools {
@@ -320,8 +336,8 @@
       <span class="po-search-icon" aria-hidden="true">
         <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
       </span>
-      <input id="mapSearchInput" name="q" type="search" placeholder="Search ZIP, city, or state" aria-label="Search ZIP, city, or state" autocomplete="off" />
-      <button type="submit" class="po-search-go">Search</button>
+      <input id="mapSearchInput" name="q" type="search" placeholder="ZIP or city" aria-label="Search ZIP or city" autocomplete="off" />
+      <button type="submit" class="po-search-go">Go</button>
     </form>
     <div class="stats" id="topStats"></div>
     <button class="tier-pill free" id="tierPill" type="button" title="Click to upgrade your map insights">FREE</button>
@@ -427,15 +443,7 @@
   // Continental U.S. default — nationwide platform, not a single region
   }).setView([39.8, -98.5], 4);
 
-  // Keyless Esri dark canvas — Carto dark_all now watermarks "API KEY REQUIRED"
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
-    maxZoom: 16,
-  }).addTo(map);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '',
-    maxZoom: 16,
-  }).addTo(map);
+  if (typeof PO_addBasemap === 'function') PO_addBasemap(map, { theme: 'dark' });
 
   // ── Helpers ──────────────────────────────────────────────────
   function escapeHtml(s) {

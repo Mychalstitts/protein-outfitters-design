@@ -335,7 +335,9 @@ body.po-nav-open { overflow: hidden; }
    Left icon, one row, enter-to-search. Used on home / discover / map.
    ============================================================ */
 .po-search {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -347,7 +349,7 @@ body.po-nav-open { overflow: hidden; }
   border-radius: 999px;
   padding: 6px 6px 6px 16px;
   min-height: 52px;
-  flex-wrap: nowrap;
+  overflow: hidden;
 }
 .po-search:focus-within {
   border-color: var(--ink, #061b0e);
@@ -367,9 +369,12 @@ body.po-nav-open { overflow: hidden; }
 .po-search input[type="search"],
 .po-search input[type="text"],
 .po-search .ds-input {
-  flex: 1 1 0%;
-  min-width: 0;
-  width: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  width: 0;
+  max-width: 100%;
   border: 0;
   background: transparent;
   outline: none;
@@ -436,8 +441,24 @@ body.po-nav-open { overflow: hidden; }
     padding: 4px 4px 4px 14px;
   }
   .po-search-go,
-  .po-search--map .po-search-go { padding: 10px 14px; font-size: 13px; min-height: 44px; }
-  .po-search--map { max-width: 100%; flex: 1 1 100%; min-height: 48px; }
+  .po-search--map .po-search-go { padding: 10px 12px; font-size: 13px; min-height: 44px; }
+  .po-search--map { max-width: none; flex: 1 1 auto; min-height: 48px; }
+}
+
+.po-basemap-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 850;
+  max-width: min(92vw, 420px);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(12, 18, 14, 0.92);
+  color: #fbf9f5;
+  font: 600 12px/1.4 Inter, system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
 }
 
 /* ============================================================

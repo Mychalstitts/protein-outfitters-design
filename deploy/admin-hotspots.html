@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="/po-shell.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/po-basemap.js"></script>
 <!-- Heat is drawn by our own HeatField canvas overlay (see HeatField below).
      No leaflet.heat: its ramp lost contrast through mid-scale yellow. -->
 <style>
@@ -1324,15 +1325,7 @@
       attributionControl: true,
     }).setView([39.5, -96.5], 4);
 
-    // Keyless Esri dark canvas — Carto dark_all now watermarks "API KEY REQUIRED"
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
-      maxZoom: 16,
-    }).addTo(map);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
-      attribution: '',
-      maxZoom: 16,
-    }).addTo(map);
+    if (typeof PO_addBasemap === 'function') PO_addBasemap(map, { theme: 'dark' });
 
     // Dedicated pane so we can fade radar without touching basemap labels
     if (!map.getPane('radarPane')) {

@@ -17,14 +17,15 @@
 // Bump SHELL_VERSION on every deploy that ships new po-shell.js / theme.css to
 // invalidate the previous cached shell. Otherwise users keep getting the old
 // JavaScript even after a deploy lands.
-const SHELL_VERSION = 'po-shell-v14';
-const STATIC_VERSION = 'po-static-v14';
+const SHELL_VERSION = 'po-shell-v15';
+const STATIC_VERSION = 'po-static-v15';
 
 // Files that change frequently and MUST be network-first so deploys propagate
 // without waiting for cache eviction. Anything else gets cache-first behavior.
 const NETWORK_FIRST_PATHS = new Set([
   '/po-shell.js',
   '/po-shell.css',
+  '/po-basemap.js',
   '/po-api.js',
   '/theme.css',
   '/manifest.webmanifest',
@@ -41,6 +42,7 @@ const APP_SHELL = [
   '/faq',
   '/po-shell.css',
   '/po-shell.js',
+  '/po-basemap.js',
   '/theme.css',
   '/icons.svg',
   '/brand/favicon.svg',
