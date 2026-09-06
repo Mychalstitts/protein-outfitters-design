@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="/po-shell.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/po-basemap.js"></script>
 <!-- Heat is drawn by our own HeatField canvas overlay (see HeatField below).
      No leaflet.heat: its ramp lost contrast through mid-scale yellow. -->
 <style>
@@ -20,6 +21,9 @@
     background: #0a0f0c;
     color: #f4f1ea;
     overflow: hidden;
+    --map-panel-2: rgba(255,255,255,.06);
+    --map-line: rgba(255,255,255,.14);
+    --map-text: #fbf9f5;
   }
   body.hs-body .po-nav-wrap {
     position: relative;
@@ -35,6 +39,7 @@
   body.hs-body .po-nav .reserve {
     background: #fbf9f5; color: #061b0e;
   }
+  body.hs-body .po-nav-drawer { z-index: 1200; }
 
   .hs-stage {
     position: fixed;
@@ -138,8 +143,7 @@
     text-transform: uppercase;
     color: rgba(251,249,245,.5);
   }
-  .hs-controls select,
-  .hs-controls input#hsZip {
+  .hs-controls select {
     font: 700 13px/1 Inter, system-ui, sans-serif;
     padding: 9px 12px;
     border-radius: 12px;
@@ -149,8 +153,13 @@
     cursor: pointer;
   }
   .hs-controls select option { background: #121a15; color: #fbf9f5; }
-  .hs-controls input#hsZip { width: 88px; cursor: text; }
-  .hs-controls input#hsZip::placeholder { color: rgba(251,249,245,.35); }
+  .hs-zip-search {
+    flex: 1 1 180px;
+    min-width: 0;
+    max-width: 240px;
+  }
+  .hs-chrome-toggle,
+  .hs-rail-handle { display: none; }
 
   .hs-toggle {
     display: inline-flex;
@@ -653,19 +662,87 @@
   }
 
   @media (max-width: 820px) {
+    .hs-topbar {
+      right: 14px;
+      flex-wrap: nowrap;
+      align-items: center;
+      padding: 8px 10px;
+      gap: 8px;
+    }
+    .hs-brand { min-width: 0; flex: 1 1 auto; }
+    .hs-brand h1 { font-size: 13px; }
+    .hs-brand { display: none; }
+    .hs-chrome-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font: 700 12px/1 Inter, system-ui, sans-serif;
+      padding: 10px 14px;
+      min-height: 44px;
+      min-width: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: transparent;
+      color: rgba(251,249,245,.88);
+      cursor: pointer;
+    }
+    .hs-chrome-toggle[aria-expanded="true"] {
+      background: #fbf9f5;
+      color: #061b0e;
+    }
+    .hs-controls { display: none; width: 100%; }
+    .hs-topbar.is-open { flex-wrap: wrap; }
+    .hs-topbar.is-open .hs-controls {
+      display: flex;
+      padding-top: 4px;
+    }
+    .hs-zip-search { max-width: none; flex: 1 1 auto; }
+    .hs-filters-btn,
+    .hs-toggle button,
+    .hs-go,
+    .hs-rgn { min-height: 44px; }
+    .hs-legend { display: none; }
+    .hs-topbar.is-open ~ .hs-legend { display: block; }
+
     .hs-rail {
       top: auto;
       bottom: 0;
       left: 0;
       right: 0;
       width: 100%;
-      height: 42vh;
+      height: auto;
+      max-height: none;
       border-radius: 20px 20px 0 0;
     }
-    .hs-topbar { right: 14px; }
-    .hs-legend { bottom: calc(42vh + 12px); }
-    #hsSearchArea { top: auto; bottom: calc(42vh + 14px); }
-    .hs-brand h1 { font-size: 13px; }
+    .hs-rail-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 52px;
+      border: 0;
+      background: transparent;
+      color: #fbf9f5;
+      font: 700 13px/1 Inter, system-ui, sans-serif;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .hs-rail-handle::before {
+      content: '';
+      width: 36px;
+      height: 4px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.28);
+    }
+    .hs-rail:not(.is-open) .hs-rail-head,
+    .hs-rail:not(.is-open) .hs-stats,
+    .hs-rail:not(.is-open) .hs-list,
+    .hs-rail:not(.is-open) .hs-rail-foot { display: none; }
+    .hs-rail.is-open { height: 42vh; }
+    .hs-legend { bottom: 64px; }
+    #hsSearchArea { top: auto; bottom: 64px; }
   }
 </style>
 </head>
@@ -699,7 +776,16 @@
       <p class="eyebrow">Market heat <span class="hs-ver" id="hsVerBadge">Metro-first · v3</span></p>
       <h1>Where opportunity burns</h1>
     </div>
-    <div class="hs-controls">
+    <form class="po-search po-search--map hs-zip-search" id="hsZipForm" role="search" aria-label="Search by ZIP">
+      <span class="po-search-icon" aria-hidden="true">
+        <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
+      </span>
+      <input id="hsZip" name="zip" type="search" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="ZIP" aria-label="Search ZIP" autocomplete="off" />
+      <button type="submit" class="po-search-go" id="hsZipGo">Go</button>
+    </form>
+    <button type="button" class="hs-go secondary" id="hsZipClear" style="display:none;">Clear</button>
+    <button type="button" class="hs-chrome-toggle" id="hsChromeToggle" aria-expanded="false" aria-controls="hsControls">Layers</button>
+    <div class="hs-controls" id="hsControls">
       <div class="hs-toggle" id="hsMode" role="tablist" aria-label="Map style">
         <button type="button" data-mode="heat" class="on">Radar</button>
         <button type="button" data-mode="zones">Zones</button>
@@ -727,10 +813,6 @@
         <option value="500">500 mi</option>
         <option value="nationwide">Nationwide</option>
       </select>
-      <label for="hsZip">Zip</label>
-      <input id="hsZip" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="56601" />
-      <button type="button" class="hs-go" id="hsZipGo">Go</button>
-      <button type="button" class="hs-go secondary" id="hsZipClear" style="display:none;">Clear</button>
       <div style="position:relative;margin-left:auto;">
         <button type="button" class="hs-filters-btn" id="hsFiltersBtn" aria-expanded="false">Filters</button>
         <div class="hs-glass hs-filters-pop" id="hsFiltersPop">
@@ -773,6 +855,7 @@
   </div>
 
   <aside class="hs-glass hs-rail" id="hsRail">
+    <button type="button" class="hs-rail-handle" id="hsRailToggle" aria-expanded="false" aria-controls="hsRail">Markets</button>
     <div class="hs-rail-head">
       <div class="hs-rail-top">
         <h2 id="hsRailTitle">Markets <small id="hsRailCount"></small></h2>
@@ -1242,12 +1325,18 @@
       attributionControl: true,
     }).setView([39.5, -96.5], 4);
 
-    // Dark basemap — radar shade sits on top; opacity slider reveals cities
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(map);
+    // Opportunity Radar (/admin-hotspots) — not /map.
+    // Live Carto dark_all burns in “API KEY REQUIRED”.
+    // No tile-provider secret in Vercel: keyless Esri, OSM fallback.
+    if (typeof PO_addBasemap === 'function') {
+      PO_addBasemap(map, { theme: 'dark' });
+    } else {
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: 'abc',
+        maxZoom: 19,
+      }).addTo(map);
+    }
 
     // Dedicated pane so we can fade radar without touching basemap labels
     if (!map.getPane('radarPane')) {
@@ -1789,11 +1878,42 @@
     zipClear.style.display = '';
     load();
   }
-  zipGo.addEventListener('click', goZip);
-  zipInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') goZip(); });
+  const zipForm = document.getElementById('hsZipForm');
+  if (zipForm) zipForm.addEventListener('submit', (e) => { e.preventDefault(); goZip(); });
+  else if (zipGo) zipGo.addEventListener('click', goZip);
   zipClear.addEventListener('click', () => {
     focusCenter = null; focusRadius = null; zipInput.value = ''; zipClear.style.display = 'none'; load();
   });
+
+  const topbar = document.getElementById('hsTopbar');
+  const chromeToggle = document.getElementById('hsChromeToggle');
+  const rail = document.getElementById('hsRail');
+  const railToggle = document.getElementById('hsRailToggle');
+  function setChromeOpen(open) {
+    if (!topbar || !chromeToggle) return;
+    topbar.classList.toggle('is-open', open);
+    chromeToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function setRailOpen(open) {
+    if (!rail || !railToggle) return;
+    rail.classList.toggle('is-open', open);
+    railToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    syncNavH();
+  }
+  if (chromeToggle) {
+    chromeToggle.addEventListener('click', () => {
+      const open = !topbar.classList.contains('is-open');
+      setChromeOpen(open);
+      if (open) setRailOpen(false);
+    });
+  }
+  if (railToggle) {
+    railToggle.addEventListener('click', () => {
+      const open = !rail.classList.contains('is-open');
+      setRailOpen(open);
+      if (open) setChromeOpen(false);
+    });
+  }
 
   window.__hsFocusStep = function (dir) {
     if (!focusCenter) return;

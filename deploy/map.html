@@ -16,6 +16,7 @@
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/po-basemap.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -43,8 +44,29 @@
 
   /* Layout */
   .map-page { display: grid; grid-template-rows: auto 1fr; height: 100dvh; min-height: 720px; }
+  .map-canvas { min-height: 0; position: relative; }
   .map-frame { display: grid; grid-template-columns: 360px 1fr; height: 100%; overflow: hidden; }
-  @media (max-width: 920px) { .map-frame { grid-template-columns: 1fr; grid-template-rows: 1fr 320px; } }
+  .map-side-handle { display: none; }
+  @media (max-width: 920px) {
+    .map-frame { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    .map-side { border-right: 0; border-top: 1px solid var(--map-line); }
+    .map-side-handle {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; min-height: 52px; border: 0; cursor: pointer;
+      background: var(--map-panel); color: var(--map-text);
+      font: 700 13px/1 Inter, system-ui, sans-serif;
+    }
+    .map-side-handle::before {
+      content: ''; width: 36px; height: 4px; border-radius: 99px;
+      background: rgba(232,238,233,.28);
+    }
+    .map-side:not(.is-open) .map-side-head,
+    .map-side:not(.is-open) .layer-tabs,
+    .map-side:not(.is-open) .map-side-body,
+    .map-side:not(.is-open) .map-side-foot { display: none; }
+    .map-side.is-open { max-height: 42vh; }
+    .map-side.is-open .map-side-body { min-height: 0; }
+  }
 
   /* Top header */
   .map-top { background: var(--map-panel); padding: 12px 18px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid var(--map-line); flex-wrap: wrap; }
@@ -61,20 +83,28 @@
   }
   .map-top .map-links a.cta:hover { filter: brightness(1.06); }
   .map-top .stats { margin-left: auto; display: flex; gap: 14px; font: 600 12px/1 'Inter'; color: var(--map-muted); flex-wrap: wrap; }
+  @media (max-width: 920px) {
+    .map-page { min-height: 100dvh; }
+  }
   @media (max-width: 720px) {
-    .map-top .stats { width: 100%; order: 5; margin-left: 0; }
-    .map-top .map-links a:not(.cta) { display: none; }
+    .map-page { min-height: 100dvh; }
+    .map-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      max-width: 100%;
+    }
+    .map-top .map-brand { grid-column: 1; min-width: 0; }
+    .map-top .map-links { display: none; }
+    .map-top .tier-pill { grid-column: 2; grid-row: 1; }
+    .map-search {
+      grid-column: 1 / -1;
+      margin-left: 0;
+      max-width: none;
+      width: 100%;
+    }
+    .map-top .stats { display: none; }
   }
-  .map-search { display: flex; gap: 6px; align-items: center; margin-left: 8px; }
-  .map-search input {
-    width: min(160px, 28vw); padding: 7px 12px; border-radius: 999px;
-    border: 1px solid var(--map-line); background: var(--map-panel-2); color: var(--map-text);
-    font: 600 12.5px/1 'Inter';
-  }
-  .map-search button {
-    padding: 7px 12px; border-radius: 999px; border: 0; background: var(--po-green);
-    color: #061b0e; font: 800 11px/1 'Inter'; cursor: pointer;
-  }
+  .map-search { margin-left: 8px; min-width: 0; }
   .map-area-tools {
     position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 800;
     display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;
@@ -302,16 +332,20 @@
       <a href="/compare">Compare</a>
       <a href="/#partners">Partners</a>
     </nav>
-    <form class="map-search" id="mapSearchForm">
-      <input id="mapSearchInput" name="q" type="search" placeholder="ZIP, city, or state" autocomplete="off" />
-      <button type="submit">Go</button>
+    <form class="po-search po-search--map map-search" id="mapSearchForm" role="search" aria-label="Search the map">
+      <span class="po-search-icon" aria-hidden="true">
+        <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
+      </span>
+      <input id="mapSearchInput" name="q" type="search" placeholder="ZIP or city" aria-label="Search ZIP or city" autocomplete="off" />
+      <button type="submit" class="po-search-go">Go</button>
     </form>
     <div class="stats" id="topStats"></div>
     <button class="tier-pill free" id="tierPill" type="button" title="Click to upgrade your map insights">FREE</button>
   </header>
 
   <div class="map-frame">
-    <aside class="map-side">
+    <aside class="map-side" id="mapSide">
+      <button type="button" class="map-side-handle" id="mapSideToggle" aria-expanded="false" aria-controls="mapSide">List</button>
       <div class="map-side-head">
         <h1 id="layerTitle">Loading…</h1>
         <p id="layerLead">Mapping every farm, processor, and demand pocket across the United States.</p>
@@ -409,12 +443,7 @@
   // Continental U.S. default — nationwide platform, not a single region
   }).setView([39.8, -98.5], 4);
 
-  // Dark Snapchat-vibe tile style
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19,
-  }).addTo(map);
+  if (typeof PO_addBasemap === 'function') PO_addBasemap(map, { theme: 'dark' });
 
   // ── Helpers ──────────────────────────────────────────────────
   function escapeHtml(s) {
@@ -1063,6 +1092,16 @@
       document.getElementById('mapLoading').classList.add('hide');
     }
   }
+  const mapSide = document.getElementById('mapSide');
+  const mapSideToggle = document.getElementById('mapSideToggle');
+  if (mapSide && mapSideToggle) {
+    mapSideToggle.addEventListener('click', () => {
+      const open = mapSide.classList.toggle('is-open');
+      mapSideToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 80);
+    });
+  }
+
   load();
 })();
 </script>

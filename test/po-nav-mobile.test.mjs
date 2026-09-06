@@ -65,6 +65,24 @@ test('opening the burger closes the profile menu', () => {
   assert.match(js, /closeAccountChrome\(\)/);
 });
 
+test('Reserve and marketplace CTAs leave the phone header at 720px', () => {
+  const mobile = /@media \(max-width: 720px\) \{[\s\S]*?\.po-nav-actions \{ gap: 6px; \}/.exec(css);
+  assert.ok(mobile, 'expected the portrait nav-actions hide block');
+  assert.match(
+    mobile[0],
+    /\.po-nav-actions > button:not\(\.po-nav-burger\):not\(\.po-user-chip\):not\(\.po-bell\)/
+  );
+  assert.match(mobile[0], /button\.reserve/);
+  assert.match(mobile[0], /data-open-sheet/);
+  assert.match(mobile[0], /display:\s*none !important/);
+  assert.doesNotMatch(js, /headerReserve|reserveHtml/);
+  const hide = mobile[0].indexOf('display: none');
+  const show = css.indexOf(
+    '.po-nav-actions button:not(.po-nav-burger):not(.po-user-chip):not(.po-bell)'
+  );
+  assert.ok(show >= 0 && hide >= 0, 'need both the unscoped button style and the mobile hide');
+});
+
 test('profile chip collapses to avatar at 640px', () => {
   assert.match(css, /@media \(max-width: 640px\)/);
   assert.match(css, /\.po-user-chip-name/);

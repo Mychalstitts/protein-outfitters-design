@@ -282,6 +282,7 @@ body { background: var(--bg); overflow-x: hidden; }
 .po-nav-drawer .po-drawer-cta {
   margin-top: 12px; background: var(--brand); color: #fbf9f5 !important;
   justify-content: center; border-radius: 999px; padding: 16px 20px;
+  border: 0; width: 100%; cursor: pointer; font: inherit;
 }
 .po-nav-drawer .po-drawer-cta:hover { background: #0a2614; }
 .po-nav-drawer .po-drawer-meta {
@@ -296,10 +297,16 @@ body.po-nav-open { overflow: hidden; }
   .po-nav-burger { display: inline-flex; }
   .po-nav-actions .signin { display: none; }
   /* Reserve / marketplace CTAs move into the drawer so the profile chip
-     cannot overflow and cover primary navigation on ~390px portrait. */
-  .po-nav-actions > button:not(.po-nav-burger),
+     cannot overflow and cover primary navigation on ~390px portrait.
+     Specificity must match the earlier unscoped
+     `.po-nav-actions button:not(...):not(...):not(...)` rule or Reserve
+     stays visible on phones. */
+  .po-nav-actions > button:not(.po-nav-burger):not(.po-user-chip):not(.po-bell),
+  .po-nav-actions > button.reserve,
+  .po-nav-actions button.reserve,
+  .po-nav-actions > button[data-open-sheet],
   .po-nav-actions > a.po-nav-cta,
-  .po-nav-actions > a.btn--primary { display: none; }
+  .po-nav-actions > a.btn--primary { display: none !important; }
   .po-nav-actions { gap: 6px; }
 }
 
@@ -321,6 +328,171 @@ body.po-nav-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .po-nav-drawer { animation: none; }
+}
+
+/* ============================================================
+   Shared search — Grok-clean single rounded field
+   Left icon, one row, enter-to-search. Used on home / discover / map.
+   ============================================================ */
+.po-search {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 680px;
+  min-width: 0;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid rgba(6,27,14,.10);
+  border-radius: 999px;
+  padding: 6px 6px 6px 16px;
+  min-height: 52px;
+  overflow: hidden;
+}
+.po-search:focus-within {
+  border-color: var(--ink, #061b0e);
+  box-shadow: 0 0 0 4px rgba(6,27,14,.06);
+}
+.po-search-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--ink, #061b0e);
+  opacity: .45;
+}
+.po-search-icon svg { width: 20px; height: 20px; display: block; }
+.po-search input[type="search"],
+.po-search input[type="text"],
+.po-search .ds-input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  width: 0;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+  padding: 10px 0;
+  font: 500 16px/1.4 'Inter', system-ui, sans-serif;
+  color: var(--ink, #061b0e);
+}
+.po-search input::placeholder { color: rgba(6,27,14,.40); }
+.po-search-go {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 11px 16px;
+  min-height: 44px;
+  background: var(--brand, #061b0e);
+  color: #fbf9f5;
+  font: 600 14px/1 'Inter', system-ui, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.po-search-go:hover { background: #0a2614; }
+
+/* Hero sits on a photo — same field, slightly lifted */
+.hero-search.po-search {
+  margin-top: 28px;
+  box-shadow: 0 8px 24px rgba(6,27,14,0.08);
+  border-color: rgba(255,255,255,.2);
+}
+.hero-search.po-search:focus-within {
+  border-color: #fff;
+  box-shadow: 0 8px 24px rgba(6,27,14,0.12), 0 0 0 4px rgba(255,255,255,.18);
+}
+
+/* Map atlas — dark chrome, same shape */
+.po-search--map {
+  max-width: 280px;
+  min-height: 40px;
+  padding: 4px 4px 4px 12px;
+  background: var(--map-panel-2, #142823);
+  border-color: var(--map-line, rgba(232,238,233,.10));
+}
+.po-search--map:focus-within {
+  border-color: rgba(232,238,233,.28);
+  box-shadow: 0 0 0 3px rgba(125,160,93,.18);
+}
+.po-search--map input[type="search"],
+.po-search--map input[type="text"] { color: var(--map-text, #e8eee9); }
+.po-search--map input::placeholder { color: rgba(232,238,233,.45); }
+.po-search--map .po-search-icon { color: #e8eee9; opacity: .55; }
+.po-search--map .po-search-go {
+  background: #7da05d;
+  color: #061b0e;
+  padding: 8px 14px;
+  min-height: 44px;
+  font-size: 13px;
+}
+.po-search--map .po-search-go:hover { background: #8aad6c; }
+
+@media (max-width: 720px) {
+  .po-search {
+    max-width: 100%;
+    min-height: 48px;
+    padding: 4px 4px 4px 14px;
+  }
+  .po-search-go,
+  .po-search--map .po-search-go { padding: 10px 12px; font-size: 13px; min-height: 44px; }
+  .po-search--map { max-width: none; flex: 1 1 auto; min-height: 48px; }
+}
+
+.po-basemap-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 850;
+  max-width: min(92vw, 420px);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(12, 18, 14, 0.92);
+  color: #fbf9f5;
+  font: 600 12px/1.4 Inter, system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+
+/* ============================================================
+   P0 overflow lock — header, drawers, hero, forms on phones
+   Surgical: keep content inside the viewport after nav + search.
+   ============================================================ */
+.hero, .hero-inner, .hero-search, .discover-search, .ds-bar,
+.map-top, .map-search, .po-search, form {
+  max-width: 100%;
+  min-width: 0;
+}
+input, select, textarea { max-width: 100%; }
+
+@media (max-width: 720px) {
+  .hero {
+    min-height: auto;
+    overflow: visible;
+  }
+  .hero-inner {
+    width: 100%;
+    max-width: 100%;
+    padding-top: clamp(36px, 10vw, 64px);
+    padding-bottom: 48px;
+  }
+  .hero-headline { overflow-wrap: anywhere; }
+  .hero-sub { max-width: 100%; }
+  .hero-cta { width: 100%; }
+  .hero-cta .btn-xl { max-width: 100%; }
+  .hero-scroll { display: none; }
+
+  .pr-claim-search { grid-template-columns: 1fr !important; }
+
+  .pd-day-head { flex-wrap: wrap; }
+  .pd-day-meta { text-align: left; }
 }
 
 /* Shared empty / error states (Airbnb-style next action) */

@@ -9,6 +9,10 @@
 //   posthog_key         — PostHog public key (env: POSTHOG_PUBLIC_KEY) — optional
 //   posthog_host        — PostHog host (env: POSTHOG_HOST) — optional
 //
+// Intentionally NOT exposed: CARTO_API_KEY / MAPBOX_*. Opportunity Radar
+// (/admin-hotspots) and /map use keyless Esri (+ OSM fallback) in po-basemap.js.
+// Do not mint a Carto key unless we switch back to cartocdn tiles.
+//
 // CORS-friendly, cached at the edge for 5 minutes.
 
 import { json, nodejsHandler } from './_lib/db.js';

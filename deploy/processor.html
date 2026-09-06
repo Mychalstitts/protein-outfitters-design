@@ -179,10 +179,13 @@
         <!-- Search existing unowned plants -->
         <div style="display:grid;gap:10px;margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid rgba(6,27,14,.08);">
           <p style="margin:0;font:800 12px/1 'Inter';letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);">Claim a plant already on the map</p>
-          <div style="display:grid;grid-template-columns:1fr 88px auto;gap:10px;">
-            <input id="prSearchQ" type="search" placeholder="Plant name…" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;" />
-            <input id="prSearchState" maxlength="2" placeholder="ST" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:12px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;text-transform:uppercase;" />
-            <button type="button" id="prSearchBtn" style="background:rgba(6,27,14,.08);color:var(--ink);border:0;border-radius:999px;padding:12px 18px;font:700 14px/1 'Inter';cursor:pointer;">Search</button>
+          <div class="pr-claim-search" style="display:grid;grid-template-columns:minmax(0,1fr) 88px auto;gap:10px;">
+            <label class="po-search" style="max-width:none;">
+              <svg class="po-search-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/></svg>
+              <input id="prSearchQ" type="search" placeholder="Search plant name" aria-label="Search plant name" />
+            </label>
+            <input id="prSearchState" maxlength="2" placeholder="ST" aria-label="State" style="font:600 15px/1.3 'Inter';padding:12px 14px;border-radius:999px;border:1px solid rgba(6,27,14,.12);color:var(--ink);background:#fff;text-transform:uppercase;" />
+            <button type="button" id="prSearchBtn" class="po-search-go">Search</button>
           </div>
           <div id="prSearchResults" style="display:grid;gap:8px;"></div>
           <p id="prSearchStatus" style="margin:0;font:500 13px/1.4 'Inter';color:var(--ink-2);min-height:1.2em;"></p>
