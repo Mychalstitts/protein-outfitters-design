@@ -232,13 +232,15 @@
   }
 
   /* ── Marketplace nav polish (Airbnb/Apple-level consistency) ──
-     - Add mobile burger + drawer to every .po-nav-wrap
+     - Add mobile burger + drawer to every .po-nav-wrap, including admin /
+       plant-desk role hubs. Portrait CSS hides .po-nav-links; without a
+       drawer those primary links disappear behind the profile chip.
      - Mark active link from pathname
-     - Skip role hubs (farmer/processor/hardware/admin) which have their own IA
+     - Do not inject a marketplace nav onto role hubs (they keep their IA)
   */
   function enhanceMarketplaceNav() {
     const path = (location.pathname || '/').replace(/\/$/, '') || '/';
-    const isRoleHub = /\/(farmer|processor|hardware|admin|list-animal|credentials|finance|processor-|onboarding|checkout|screens|trends)/.test(path)
+    const isRoleHub = /\/(farmer|processor|hardware|admin|list-animal|credentials|finance|processor-|onboarding|checkout|screens|trends|plant-desk|harvest)/.test(path)
       || path.startsWith('/admin');
 
     // Inject marketplace nav on public pages that still lack one
@@ -286,9 +288,8 @@
         });
       }
 
-      if (isRoleHub) return; // role dashboards keep their own chrome
-
-      // Mobile burger
+      // Mobile burger — role hubs keep their own links, but they still
+      // need a drawer. Skipping it left only the profile chip in portrait.
       if (!wrap.querySelector('.po-nav-burger') && actions) {
         const burger = document.createElement('button');
         burger.type = 'button';
@@ -300,7 +301,7 @@
 
         const drawer = document.createElement('div');
         drawer.className = 'po-nav-drawer';
-        drawer.id = 'poNavDrawer';
+        drawer.id = wrap.id ? wrap.id + '-drawer' : 'poNavDrawer';
         drawer.setAttribute('role', 'dialog');
         drawer.setAttribute('aria-label', 'Site menu');
 
@@ -310,19 +311,39 @@
             items.push({ href: a.getAttribute('href'), text: a.textContent.trim() });
           });
         }
-        // Canonical marketplace extras if thin nav
-        const hasDiscover = items.some((i) => (i.href || '').includes('/discover'));
-        if (!hasDiscover) items.unshift({ href: '/discover', text: 'Browse animals' });
-        const hasFaq = items.some((i) => (i.href || '').includes('/faq'));
-        if (!hasFaq) items.push({ href: '/faq', text: 'Help & FAQ' });
-        items.push({ href: '/account', text: 'Sign in / Account' });
+        if (!isRoleHub) {
+          const hasDiscover = items.some((i) => (i.href || '').includes('/discover'));
+          if (!hasDiscover) items.unshift({ href: '/discover', text: 'Browse animals' });
+          const hasFaq = items.some((i) => (i.href || '').includes('/faq'));
+          if (!hasFaq) items.push({ href: '/faq', text: 'Help & FAQ' });
+        }
+        const hasAccount = items.some((i) => /^\/account\/?$/.test(i.href || ''));
+        if (!hasAccount) items.push({ href: '/account', text: isRoleHub ? 'Account' : 'Sign in / Account' });
+
+        const ctaHref = !isRoleHub
+          ? '/discover'
+          : (actions.querySelector('a.po-nav-cta, a.btn--primary') || {}).href;
+        const ctaLabel = !isRoleHub
+          ? 'Browse animals'
+          : ((actions.querySelector('a.po-nav-cta, a.btn--primary') || {}).textContent || '').trim();
+        const ctaHtml = ctaHref
+          ? `<a class="po-drawer-cta" href="${ctaHref}">${ctaLabel || 'Continue'}</a>`
+          : '';
 
         drawer.innerHTML = items.map((i) =>
           `<a href="${i.href}">${i.text}<span>→</span></a>`
         ).join('') +
-          `<a class="po-drawer-cta" href="/discover">Browse animals</a>` +
+          ctaHtml +
           `<p class="po-drawer-meta">A whole animal, in three taps.<br>Real farms · inspected plants.</p>`;
-        wrap.appendChild(drawer);
+        // Mount on body so wrap's backdrop-filter / overflow cannot clip it.
+        document.body.appendChild(drawer);
+
+        const closeAccountChrome = () => {
+          document.querySelectorAll('.po-user-menu.open').forEach((el) => el.classList.remove('open'));
+          document.querySelectorAll('.po-notif-pop.open').forEach((el) => el.classList.remove('open'));
+          const chip = document.getElementById('poUserChip');
+          if (chip) chip.setAttribute('aria-expanded', 'false');
+        };
 
         const close = () => {
           burger.setAttribute('aria-expanded', 'false');
@@ -331,6 +352,7 @@
           document.body.classList.remove('po-nav-open');
         };
         const open = () => {
+          closeAccountChrome();
           burger.setAttribute('aria-expanded', 'true');
           burger.setAttribute('aria-label', 'Close menu');
           drawer.classList.add('open');
@@ -910,9 +932,11 @@
       const s = document.createElement('style');
       s.id = 'po-user-style';
       s.textContent = `
-        .po-user-chip{position:relative;display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:rgba(6,27,14,.06);text-decoration:none;color:var(--ink, #061b0e);font:700 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;border:0;transition:all .2s cubic-bezier(.2,.9,.3,1.4)}
-        .po-user-chip:hover{background:rgba(6,27,14,.1);transform:translateY(-1px)}
-        .po-user-chip-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7da05d,#b48a5a);color:#fbf9f5;display:grid;place-items:center;font:800 11px/1 'Inter';letter-spacing:.02em}
+        .po-nav-account{position:relative;display:inline-flex;align-items:center;gap:8px;flex-shrink:0}
+        .po-nav-actions .po-user-chip,.po-user-chip{position:relative;display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:rgba(6,27,14,.06);text-decoration:none;color:var(--ink, #061b0e);font:700 13px/1 'Inter',system-ui,sans-serif;cursor:pointer;border:0;min-height:44px;transition:background .2s ease}
+        .po-nav-actions .po-user-chip:hover,.po-user-chip:hover{background:rgba(6,27,14,.1);transform:none;color:var(--ink, #061b0e)}
+        .po-user-chip-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7da05d,#b48a5a);color:#fbf9f5;display:grid;place-items:center;font:800 11px/1 'Inter';letter-spacing:.02em;flex-shrink:0}
+        .po-user-chip-name{white-space:nowrap}
         .po-user-chip-caret{font-size:9px;opacity:.55;margin-left:2px}
         .po-user-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:200px;background:#fff;border-radius:12px;box-shadow:0 12px 32px rgba(6,27,14,.15);padding:6px;display:none;z-index:200}
         .po-user-menu.open{display:block}
@@ -920,18 +944,22 @@
         .po-user-menu .pum-name{font:700 13px/1.2 'Inter';color:var(--ink, #061b0e)}
         .po-user-menu .pum-email{font:500 11.5px/1.3 'Inter';color:rgba(6,27,14,.55);margin-top:3px;word-break:break-all}
         .po-user-menu .pum-role{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;background:rgba(125,160,93,.18);color:#2d4a18;font:700 9.5px/1 'Inter';letter-spacing:.08em;text-transform:uppercase}
-        .po-user-menu a, .po-user-menu button{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:8px;background:transparent;border:0;color:var(--ink, #061b0e);text-decoration:none;font:600 12.5px/1.2 'Inter';cursor:pointer}
+        .po-user-menu a, .po-user-menu button{display:flex;align-items:center;width:100%;text-align:left;padding:10px 12px;min-height:44px;border-radius:8px;background:transparent;border:0;color:var(--ink, #061b0e);text-decoration:none;font:600 12.5px/1.2 'Inter';cursor:pointer}
         .po-user-menu a:hover, .po-user-menu button:hover{background:rgba(6,27,14,.05)}
         .po-user-menu .signout{color:#a13a3a;border-top:1px solid rgba(6,27,14,.06);margin-top:4px;padding-top:10px}
 
         /* Notifications bell */
-        .po-bell{position:relative;width:38px;height:38px;border-radius:999px;background:rgba(6,27,14,.06);border:0;color:var(--ink,#061b0e);display:inline-grid;place-items:center;cursor:pointer;transition:all .2s cubic-bezier(.2,.9,.3,1.4)}
-        .po-bell:hover{background:rgba(6,27,14,.1);transform:translateY(-1px)}
+        .po-nav-actions .po-bell,.po-bell{position:relative;width:44px;height:44px;min-width:44px;min-height:44px;border-radius:999px;background:rgba(6,27,14,.06);border:0;color:var(--ink,#061b0e);display:inline-grid;place-items:center;cursor:pointer;padding:0;transition:background .2s ease}
+        .po-nav-actions .po-bell:hover,.po-bell:hover{background:rgba(6,27,14,.1);transform:none;color:var(--ink,#061b0e)}
         .po-bell svg{width:18px;height:18px}
         .po-bell-badge{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#a13a3a;color:#fff;font:800 10px/18px 'Inter',system-ui,sans-serif;text-align:center;display:none}
         .po-bell-badge.has{display:block}
-        .po-notif-pop{position:absolute;top:calc(100% + 8px);right:0;width:360px;max-height:480px;overflow:hidden;background:#fff;border-radius:14px;box-shadow:0 18px 48px rgba(6,27,14,.18);display:none;z-index:200;flex-direction:column}
+        .po-notif-pop{position:absolute;top:calc(100% + 8px);right:0;width:min(360px, calc(100vw - 24px));max-height:480px;overflow:hidden;background:#fff;border-radius:14px;box-shadow:0 18px 48px rgba(6,27,14,.18);display:none;z-index:200;flex-direction:column}
         .po-notif-pop.open{display:flex}
+        @media (max-width: 640px) {
+          .po-nav-actions .po-user-chip,.po-user-chip{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;gap:0;justify-content:center}
+          .po-user-chip-name,.po-user-chip-caret{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+        }
         .po-notif-head{padding:14px 16px;border-bottom:1px solid rgba(6,27,14,.07);display:flex;align-items:center;justify-content:space-between}
         .po-notif-head h4{margin:0;font:800 14px/1 'Inter';color:var(--ink,#061b0e)}
         .po-notif-head button{background:transparent;border:0;color:#5a6359;font:600 11.5px/1 'Inter';cursor:pointer}
@@ -966,10 +994,7 @@
     if (!slot) return;
 
     const wrap = document.createElement('div');
-    wrap.style.position = 'relative';
-    wrap.style.display = 'inline-flex';
-    wrap.style.alignItems = 'center';
-    wrap.style.gap = '8px';
+    wrap.className = 'po-nav-account';
     wrap.innerHTML = `
       <div style="position:relative;display:inline-flex">
         <button class="po-bell" id="poBell" type="button" aria-label="Notifications">
@@ -990,10 +1015,10 @@
           <div class="po-notif-foot"><a href="/notifications">View all →</a></div>
         </div>
       </div>
-      <button class="po-user-chip" id="poUserChip" type="button">
+      <button class="po-user-chip" id="poUserChip" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="poUserMenu" aria-label="Account menu">
         <span class="po-user-chip-avatar">${initials || '?'}</span>
-        <span>${escapeHtml(display)}</span>
-        <span class="po-user-chip-caret">▼</span>
+        <span class="po-user-chip-name">${escapeHtml(display)}</span>
+        <span class="po-user-chip-caret" aria-hidden="true">▼</span>
       </button>
       <div class="po-user-menu" id="poUserMenu">
         <div class="pum-head">
@@ -1014,8 +1039,15 @@
 
     const chip = document.getElementById('poUserChip');
     const menu = document.getElementById('poUserMenu');
-    chip.addEventListener('click', e => { e.stopPropagation(); menu.classList.toggle('open'); });
-    document.addEventListener('click', () => menu.classList.remove('open'));
+    chip.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = menu.classList.toggle('open');
+      chip.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', () => {
+      menu.classList.remove('open');
+      chip.setAttribute('aria-expanded', 'false');
+    });
     document.getElementById('poSignout').addEventListener('click', async () => {
       try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
       location.href = '/';
@@ -1083,6 +1115,7 @@
       e.stopPropagation();
       const isOpen = pop.classList.toggle('open');
       menu.classList.remove('open');
+      chip.setAttribute('aria-expanded', 'false');
       if (isOpen) loadNotifications();
     });
     document.addEventListener('click', () => pop.classList.remove('open'));
