@@ -282,6 +282,7 @@ body { background: var(--bg); overflow-x: hidden; }
 .po-nav-drawer .po-drawer-cta {
   margin-top: 12px; background: var(--brand); color: #fbf9f5 !important;
   justify-content: center; border-radius: 999px; padding: 16px 20px;
+  border: 0; width: 100%; cursor: pointer; font: inherit;
 }
 .po-nav-drawer .po-drawer-cta:hover { background: #0a2614; }
 .po-nav-drawer .po-drawer-meta {
@@ -296,8 +297,13 @@ body.po-nav-open { overflow: hidden; }
   .po-nav-burger { display: inline-flex; }
   .po-nav-actions .signin { display: none; }
   /* Reserve / marketplace CTAs move into the drawer so the profile chip
-     cannot overflow and cover primary navigation on ~390px portrait. */
-  .po-nav-actions > button:not(.po-nav-burger),
+     cannot overflow and cover primary navigation on ~390px portrait.
+     Specificity must match the earlier unscoped
+     `.po-nav-actions button:not(...):not(...):not(...)` rule or Reserve
+     stays visible on phones. */
+  .po-nav-actions > button:not(.po-nav-burger):not(.po-user-chip):not(.po-bell),
+  .po-nav-actions > button.reserve,
+  .po-nav-actions button.reserve,
   .po-nav-actions > a.po-nav-cta,
   .po-nav-actions > a.btn--primary { display: none; }
   .po-nav-actions { gap: 6px; }
@@ -360,7 +366,7 @@ body.po-nav-open { overflow: hidden; }
 .po-search input[type="search"],
 .po-search input[type="text"],
 .po-search .ds-input {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-width: 0;
   width: auto;
   border: 0;

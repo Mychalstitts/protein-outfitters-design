@@ -329,6 +329,10 @@
         const ctaHtml = ctaHref
           ? `<a class="po-drawer-cta" href="${ctaHref}">${ctaLabel || 'Continue'}</a>`
           : '';
+        const headerReserve = actions.querySelector('button.reserve, button[data-open-sheet]');
+        const reserveHtml = headerReserve
+          ? `<button type="button" class="po-drawer-cta" data-open-sheet>${(headerReserve.textContent || 'Reserve').trim()}</button>`
+          : '';
 
         // Marketplace tagline is noise on admin / processor / plant-desk.
         const drawerMeta = isRoleHub
@@ -339,6 +343,7 @@
           `<a href="${i.href}">${i.text}<span>→</span></a>`
         ).join('') +
           ctaHtml +
+          reserveHtml +
           drawerMeta;
         // Mount on body so wrap's backdrop-filter / overflow cannot clip it.
         document.body.appendChild(drawer);
@@ -366,7 +371,7 @@
         burger.addEventListener('click', () => {
           if (drawer.classList.contains('open')) close(); else open();
         });
-        drawer.querySelectorAll('a').forEach((a) => a.addEventListener('click', close));
+        drawer.querySelectorAll('a, [data-open-sheet]').forEach((a) => a.addEventListener('click', close));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
       }
     });

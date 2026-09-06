@@ -44,7 +44,27 @@
   /* Layout */
   .map-page { display: grid; grid-template-rows: auto 1fr; height: 100dvh; min-height: 720px; }
   .map-frame { display: grid; grid-template-columns: 360px 1fr; height: 100%; overflow: hidden; }
-  @media (max-width: 920px) { .map-frame { grid-template-columns: 1fr; grid-template-rows: 1fr 320px; } }
+  .map-side-handle { display: none; }
+  @media (max-width: 920px) {
+    .map-frame { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    .map-side { border-right: 0; border-top: 1px solid var(--map-line); }
+    .map-side-handle {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; min-height: 52px; border: 0; cursor: pointer;
+      background: var(--map-panel); color: var(--map-text);
+      font: 700 13px/1 Inter, system-ui, sans-serif;
+    }
+    .map-side-handle::before {
+      content: ''; width: 36px; height: 4px; border-radius: 99px;
+      background: rgba(232,238,233,.28);
+    }
+    .map-side:not(.is-open) .map-side-head,
+    .map-side:not(.is-open) .layer-tabs,
+    .map-side:not(.is-open) .map-side-body,
+    .map-side:not(.is-open) .map-side-foot { display: none; }
+    .map-side.is-open { max-height: 42vh; }
+    .map-side.is-open .map-side-body { min-height: 0; }
+  }
 
   /* Top header */
   .map-top { background: var(--map-panel); padding: 12px 18px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid var(--map-line); flex-wrap: wrap; }
@@ -308,7 +328,8 @@
   </header>
 
   <div class="map-frame">
-    <aside class="map-side">
+    <aside class="map-side" id="mapSide">
+      <button type="button" class="map-side-handle" id="mapSideToggle" aria-expanded="false" aria-controls="mapSide">List</button>
       <div class="map-side-head">
         <h1 id="layerTitle">Loading…</h1>
         <p id="layerLead">Mapping every farm, processor, and demand pocket across the United States.</p>
@@ -406,11 +427,14 @@
   // Continental U.S. default — nationwide platform, not a single region
   }).setView([39.8, -98.5], 4);
 
-  // Dark Snapchat-vibe tile style
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19,
+  // Keyless Esri dark canvas — Carto dark_all now watermarks "API KEY REQUIRED"
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+    maxZoom: 16,
+  }).addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '',
+    maxZoom: 16,
   }).addTo(map);
 
   // ── Helpers ──────────────────────────────────────────────────
@@ -1060,6 +1084,16 @@
       document.getElementById('mapLoading').classList.add('hide');
     }
   }
+  const mapSide = document.getElementById('mapSide');
+  const mapSideToggle = document.getElementById('mapSideToggle');
+  if (mapSide && mapSideToggle) {
+    mapSideToggle.addEventListener('click', () => {
+      const open = mapSide.classList.toggle('is-open');
+      mapSideToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 80);
+    });
+  }
+
   load();
 })();
 </script>
