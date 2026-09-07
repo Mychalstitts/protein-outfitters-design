@@ -6,7 +6,7 @@ import { rawQuery, err, json, nodejsHandler } from './_lib/db.js';
 
 export const config = { runtime: 'nodejs' };
 
-const SCHEMA_STATEMENTS = [
+export const SCHEMA_STATEMENTS = [
   `CREATE EXTENSION IF NOT EXISTS "pgcrypto"`,
 
   `CREATE TABLE IF NOT EXISTS users (
@@ -783,7 +783,7 @@ const SCHEMA_STATEMENTS = [
 
 ];
 
-const SEED_SQL = [
+export const SEED_SQL = [
   `INSERT INTO users (email, name, role, zip)
    VALUES
      ('demo-farmer@proteinoutfitters.com',    'Demo Farmer',    'producer',  '56601'),
